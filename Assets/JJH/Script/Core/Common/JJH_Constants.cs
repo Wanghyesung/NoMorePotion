@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public static class JJH_Constants
 {
     public const string Enemy_TAG = "Enemy";

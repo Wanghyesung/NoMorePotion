@@ -1,8 +1,4 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using NUnit.Framework;
 using System.Collections.Generic;
-using UnityEngine;
 
 public abstract class Character
 {
