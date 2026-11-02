@@ -116,8 +116,12 @@ InitTestScene*.unity*
 /[Aa]ssets/[Pp]lugins.meta
 # Visual Studio Solution
 
-# Unity Project Settings
-/[Pp]roject[Ss]ettings/
+# Generated Firebase desktop metadata
+/[Aa]ssets/StreamingAssets/google-services-desktop.json.meta
+
+# NuGetForUnity restored packages
+/Packages/nuget-packages/InstalledPackages/
+/Packages/nuget-packages/InstalledPackages.meta
 
 # Visual Studio Solution
 *.sln
