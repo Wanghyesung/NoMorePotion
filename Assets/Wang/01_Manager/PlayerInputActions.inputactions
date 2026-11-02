@@ -43,15 +43,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Run",
-                    "type": "Button",
-                    "id": "d537ad29-f33b-4697-bbdd-bea306e40e85",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Skill0",
                     "type": "Button",
                     "id": "3e220129-b8da-4063-b66b-7d8bb0705f7d",
@@ -167,7 +158,7 @@
                 {
                     "name": "",
                     "id": "f67776d1-13b3-42c7-abda-9331acf69e7c",
-                    "path": "<Keyboard>/space",
+                    "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
@@ -178,22 +169,11 @@
                 {
                     "name": "",
                     "id": "04ae6bfa-6d84-4842-8e18-a70c169ad06e",
-                    "path": "<Keyboard>/leftCtrl",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Roll",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "0de41ce8-70c8-4fb5-850a-54761c1fc3f7",
-                    "path": "<Keyboard>/leftShift",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Run",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

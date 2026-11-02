@@ -2,11 +2,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /*///////////////////////////////////////////
-             tInputInfo / InputManager
+             PlayerInputInfo / InputManager
 기능 : Inspector의 액션 참조와 활성화 수명을 관리하고 연속 입력을 읽음
        포커스 해제·비활성화 시 입력 취소
  *///////////////////////////////////////////
-public struct tInputInfo
+public struct PlayerInputInfo
 {
     public Vector2 MoveDir;
     public Vector2 Delta;
@@ -16,76 +16,90 @@ public struct tInputInfo
 [DisallowMultipleComponent]
 public sealed class InputManager : MonoBehaviour
 {
-    public static InputManager m_Instance { get; private set; }
+    public static InputManager Instance { get; private set; }
 
     [Header("Input Actions")]
     #region InputActions
-    [SerializeField] private InputActionReference m_refMoveActionReference;
-    [SerializeField] private InputActionReference m_refJumpActionReference;
-    [SerializeField] private InputActionReference m_refRollActionReference;
-    [SerializeField] private InputActionReference m_refRunActionReference;
-    [SerializeField] private InputActionReference m_refDeltaActionReference;
-    [SerializeField] private InputActionReference m_refSkill0ActionReference;
-    [SerializeField] private InputActionReference m_refAimActionReference;
-    [SerializeField] private InputActionReference m_refSwitchHandActionReference;
-    [SerializeField] private InputActionReference m_refInteractActionReference;
-    [SerializeField] private InputActionReference m_refTakeOutPotionActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refMoveActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refMoveActionReference")]
+    [SerializeField] private InputActionReference moveActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refJumpActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refJumpActionReference")]
+    [SerializeField] private InputActionReference jumpActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refRollActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refRollActionReference")]
+    [SerializeField] private InputActionReference rollActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refDeltaActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refDeltaActionReference")]
+    [SerializeField] private InputActionReference deltaActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refSkill0ActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refSkill0ActionReference")]
+    [SerializeField] private InputActionReference skill0ActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refAimActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refAimActionReference")]
+    [SerializeField] private InputActionReference aimActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refSwitchHandActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refSwitchHandActionReference")]
+    [SerializeField] private InputActionReference switchHandActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refInteractActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refInteractActionReference")]
+    [SerializeField] private InputActionReference interactActionReference;
+    [UnityEngine.Serialization.FormerlySerializedAs("m_refTakeOutPotionActionReference")]
+    [UnityEngine.Serialization.FormerlySerializedAs("refTakeOutPotionActionReference")]
+    [SerializeField] private InputActionReference takeOutPotionActionReference;
 
-    public InputAction m_refMoveAction { get; private set; }
-    public InputAction m_refDeltaAction { get; private set; }
-    public InputAction m_refJumpAction { get; private set; }
-    public InputAction m_refRollAction { get; private set; }
-    public InputAction m_refRunAction { get; private set; }
-    public InputAction m_refSkill0Action { get; private set; }
-    public InputAction m_refAimAction { get; private set; }
-    public InputAction m_refSwitchHandAction { get; private set; }
-    public InputAction m_refInteractAction { get; private set; }
-    public InputAction m_refTakeOutPotionAction { get; private set; }
+    public InputAction MoveAction { get; private set; }
+    public InputAction DeltaAction { get; private set; }
+    public InputAction JumpAction { get; private set; }
+    public InputAction RollAction { get; private set; }
+    public InputAction Skill0Action { get; private set; }
+    public InputAction AimAction { get; private set; }
+    public InputAction SwitchHandAction { get; private set; }
+    public InputAction InteractAction { get; private set; }
+    public InputAction TakeOutPotionAction { get; private set; }
     #endregion
 
-    private tInputInfo m_tInputInfo;
-    private bool m_bFocused = true;
-    public tInputInfo InputInfo => m_tInputInfo;
+    private PlayerInputInfo inputInfo;
+    private bool focused = true;
+    public PlayerInputInfo InputInfo => inputInfo;
 
-    public bool HasGameplayInput => m_bFocused && Time.timeScale > 0f;
-    public bool IsRunHeld => HasGameplayInput && m_refRunAction.IsPressed();
+    public bool HasGameplayInput => focused && Time.timeScale > 0f;
 
     private void Awake()
     {
-        if (m_Instance != null && m_Instance != this)
+        if (Instance != null && Instance != this)
         {
             enabled = false;
             Destroy(gameObject);
             return;
         }
 
-        m_Instance = this;
+        Instance = this;
         DontDestroyOnLoad(gameObject);
-        Init();
+        init();
     }
 
-    private void Init()
+    private void init()
     {
-        m_refMoveAction = m_refMoveActionReference.action;
-        m_refDeltaAction = m_refDeltaActionReference.action;
-        m_refJumpAction = m_refJumpActionReference.action;
-        m_refRollAction = m_refRollActionReference.action;
-        m_refRunAction = m_refRunActionReference.action;
-        m_refSkill0Action = m_refSkill0ActionReference.action;
-        m_refAimAction = m_refAimActionReference.action;
-        m_refSwitchHandAction = m_refSwitchHandActionReference.action;
-        m_refInteractAction = m_refInteractActionReference.action;
-        m_refTakeOutPotionAction = m_refTakeOutPotionActionReference.action;
+        MoveAction = moveActionReference.action;
+        DeltaAction = deltaActionReference.action;
+        JumpAction = jumpActionReference.action;
+        RollAction = rollActionReference.action;
+        Skill0Action = skill0ActionReference.action;
+        AimAction = aimActionReference.action;
+        SwitchHandAction = switchHandActionReference.action;
+        InteractAction = interactActionReference.action;
+        TakeOutPotionAction = takeOutPotionActionReference.action;
     }
 
     private void OnEnable()
     {
-        if (m_Instance != this)
+        if (Instance != this)
             return;
 
-        EnableActions();
-        m_bFocused = true;
-        CancelInput();
+        enableActions();
+        focused = true;
+        cancelInput();
     }
 
     private void Update()
@@ -93,65 +107,63 @@ public sealed class InputManager : MonoBehaviour
         if (HasGameplayInput == false)
             return;
 
-        m_tInputInfo.MoveDir = m_refMoveAction.ReadValue<Vector2>();
-        m_tInputInfo.Delta = m_refDeltaAction.ReadValue<Vector2>();
+        inputInfo.MoveDir = MoveAction.ReadValue<Vector2>();
+        inputInfo.Delta = DeltaAction.ReadValue<Vector2>();
     }
 
     private void OnDisable()
     {
-        if (m_Instance != this)
+        if (Instance != this)
             return;
 
-        m_bFocused = false;
-        DisableActions();
-        CancelInput();
+        focused = false;
+        disableActions();
+        cancelInput();
     }
 
     private void OnDestroy()
     {
-        if (m_Instance != this)
+        if (Instance != this)
             return;
 
-        m_Instance = null;
+        Instance = null;
     }
 
-    //private void OnApplicationFocus(bool _bFocused)
+    //private void OnApplicationFocus(bool focused)
     //{
-    //    m_bFocused = _bFocused;
-    //    if (_bFocused == false)
-    //        CancelInput();
+    //    this.focused = focused;
+    //    if (focused == false)
+    //        cancelInput();
     //}
 
-    private void CancelInput()
+    private void cancelInput()
     {
-        m_tInputInfo = default;
+        inputInfo = default;
     }
 
-    private void EnableActions()
+    private void enableActions()
     {
-        m_refSkill0Action.Enable();
-        m_refMoveAction.Enable();
-        m_refDeltaAction.Enable();
-        m_refJumpAction.Enable();
-        m_refRollAction.Enable();
-        m_refRunAction.Enable();
-        m_refAimAction.Enable();
-        m_refSwitchHandAction.Enable();
-        m_refInteractAction.Enable();
-        m_refTakeOutPotionAction.Enable();
+        Skill0Action.Enable();
+        MoveAction.Enable();
+        DeltaAction.Enable();
+        JumpAction.Enable();
+        RollAction.Enable();
+        AimAction.Enable();
+        SwitchHandAction.Enable();
+        InteractAction.Enable();
+        TakeOutPotionAction.Enable();
     }
 
-    private void DisableActions()
+    private void disableActions()
     {
-        m_refSkill0Action.Disable();
-        m_refMoveAction.Disable();
-        m_refDeltaAction.Disable();
-        m_refJumpAction.Disable();
-        m_refRollAction.Disable();
-        m_refRunAction.Disable();
-        m_refAimAction.Disable();
-        m_refSwitchHandAction.Disable();
-        m_refInteractAction.Disable();
-        m_refTakeOutPotionAction.Disable();
+        Skill0Action.Disable();
+        MoveAction.Disable();
+        DeltaAction.Disable();
+        JumpAction.Disable();
+        RollAction.Disable();
+        AimAction.Disable();
+        SwitchHandAction.Disable();
+        InteractAction.Disable();
+        TakeOutPotionAction.Disable();
     }
 }
