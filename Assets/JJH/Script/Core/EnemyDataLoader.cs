@@ -5,16 +5,19 @@ using System.Linq;
 using UnityEngine;
 using static JJH_Constants;
 
+using HIn = UnityEngine.HideInInspector;
+
 public class EnemyDataLoader : MonoBehaviour
 {
     public EnemyDataLoader Instance { get; private set; }
 
     private Dictionary<int, MonsterData> NormalMonsterData;
-    public List<MonsterData> NormalMonsterDataList;
+
+    [HIn] public List<MonsterData> NormalMonsterDataList;
     private Dictionary<int, MonsterData> BossMonsterData;
-    public List<MonsterData> BossMonsterDataList;
+    [HIn] public List<MonsterData> BossMonsterDataList;
     private Dictionary<int, MonsterTextData> MonsterLocalizationData;
-    public List<MonsterTextData> MonsterLocalizationDataList;
+    [HIn] public List<MonsterTextData> MonsterLocalizationDataList;
 
     public void Awake()
     {
@@ -36,6 +39,8 @@ public class EnemyDataLoader : MonoBehaviour
         BossMonsterData = new();
         MonsterLocalizationDataList = new();
         MonsterLocalizationData = new();
+
+        ResourceLoad();
     }
 
     public void ResourceLoad()
@@ -50,6 +55,7 @@ public class EnemyDataLoader : MonoBehaviour
             normalData = Resources.Load<TextAsset>($"{ASSET_DATA_PATH}{MONSTER_DATA}_{NORMAL_TEXT}").text;
             bossData = Resources.Load<TextAsset>($"{ASSET_DATA_PATH}{MONSTER_DATA}_{BOSS_TEXT}").text;
             localizationData = Resources.Load<TextAsset>($"{ASSET_DATA_PATH}{MONSTER_DATA}_{TEXT}_{nowCont}").text;
+            
         }
         catch (Exception e)
         {

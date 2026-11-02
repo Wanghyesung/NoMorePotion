@@ -1,21 +1,21 @@
 [
   {
     "Id": 40001,
-    "Hp": 500,
+    "HP": 500,
     "DamageType": "Normal",
     "AtkPoint": 100,
     "Immune": {
-
+      "2": -20
     },
     "SpawnArea": "Plain"
   },
   {
-    "Id": 40001,
-    "Hp": 500,
-    "DamageType": "Fire",
-    "AtkPoint": 100,
+    "Id": 40002,
+    "HP": 700,
+    "DamageType": "Normal",
+    "AtkPoint": 150,
     "Immune": {
-      "2": 10
+      "2": -30
     },
     "SpawnArea": "Plain"
   }
