@@ -1,12 +1,22 @@
 using UnityEngine;
 using R3;
+using Photon.Pun;
+using Photon.Realtime;
+using Cysharp.Threading.Tasks;
+using System;
 
-public class NetworkFlowManager : MonoBehaviour
+public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
     public static NetworkFlowManager Instance { get; private set; }
 
+
+    private const string NicknameKey = "Nickname";
+    private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
+
+
     private ReactiveProperty<FlowState> state;
     private Subject<string> error;
+    private FirebaseAuthService authService = new FirebaseAuthService();
 
     public ReadOnlyReactiveProperty<FlowState> State => state;
     public Observable<string> Error => error;
@@ -14,6 +24,7 @@ public class NetworkFlowManager : MonoBehaviour
 
     //===============================================================
 
+    #region LifeCycle
     private void Awake()
     {
         if(Instance != null && Instance != this)
@@ -25,8 +36,16 @@ public class NetworkFlowManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        // Master 씬 로드시 전원이 같은 씬으로 이동
+        PhotonNetwork.AutomaticallySyncScene = true;
+
+        // 상태 : 구독하는 순간 현재 값 전달, 같은 값으로 바꾸면 알림X
         state = new ReactiveProperty<FlowState>(FlowState.Title);
+
+        // 에러: 구독 이후에 발생한 메세지만 전달
         error = new Subject<string>();
+
+        // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
 
     }
@@ -36,9 +55,12 @@ public class NetworkFlowManager : MonoBehaviour
         if (Instance == this)
             Instance = null;
 
+        // 매니저가 직접 만든 소스 정리
+        // ?. : 중복 매니저는 Awake에서 return해서 null이므로 건너뜀
         state?.Dispose();
         error?.Dispose();
     }
+    #endregion
 
     //===============================================================
 
@@ -52,6 +74,79 @@ public class NetworkFlowManager : MonoBehaviour
     private void RaiseError(string message)
     {
         error.OnNext(message);
+    }
+
+    #endregion
+
+    //===============================================================
+
+    #region Connect
+
+    // 저장된 닉네임 가져오기
+    public string GetSavedNickname()
+    {
+        return PlayerPrefs.GetString(NicknameKey, "");
+    }
+
+    public async UniTaskVoid RequestConnect(string nickname)
+    {
+        if (CurrentState != FlowState.Title) return;
+
+        SetState(FlowState.Connecting);
+
+        PlayerPrefs.SetString(NicknameKey, nickname);
+        PlayerPrefs.Save();
+        PhotonNetwork.NickName = nickname;
+
+        try
+        {
+            await authService.SignInAsync().Timeout(LoginTimeout);
+        }
+        catch(TimeoutException e)
+        {
+            Debug.LogException(e);
+            RaiseError("Login timed out");
+            SetState(FlowState.Title);
+            return;
+        }
+        catch(Exception e)
+        {
+            Debug.LogException(e);
+            RaiseError("Login failed");
+            SetState(FlowState.Title);
+            return;
+        }
+
+        Debug.Log($"[NetworkFlowManager] Firebase UID: {authService.UserId}");
+
+        if (!PhotonNetwork.ConnectUsingSettings())   // true = 접속 시도를 시작, false = 시도조차 실패
+        {
+            RaiseError("Failed to connect to server");
+            SetState(FlowState.Title);
+        }
+    }
+
+
+    #endregion
+
+    //===============================================================
+
+    #region Photon Callbacks
+
+    public override void OnConnectedToMaster()
+    {
+        PhotonNetwork.JoinLobby();
+    }
+
+    public override void OnJoinedLobby()
+    {
+        SetState(FlowState.Lobby);
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        SetState(FlowState.Title);
+        RaiseError($"Disconnected from server. ({cause})");
     }
 
     #endregion
