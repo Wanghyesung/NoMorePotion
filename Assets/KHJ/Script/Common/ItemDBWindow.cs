@@ -40,6 +40,11 @@ namespace Enzeun.Editor
             {
                 DestroyImmediate(createMaterialButton.newMaterial);
             }
+
+            if (createPotionButton != null)
+            {
+                DestroyImmediate(createPotionButton.newPotion);
+            }
         }
 
         protected override OdinMenuTree BuildMenuTree()
@@ -103,7 +108,7 @@ namespace Enzeun.Editor
         private void CreateMaterial(MaterialData material)
         {
             string folderPath = "Assets/KHJ/ScriptableObjects/Material";
-            string fileName = $"{material.GetMaterialId()}.asset";
+            string fileName = $"{material.materialID}.asset";
 
             if (!Directory.Exists(folderPath))
             {
@@ -126,7 +131,7 @@ namespace Enzeun.Editor
         private void CreatePotion(PotionData potion)
         {
             string folderPath = "Assets/KHJ/ScriptableObjects/Potion";
-            string fileName = $"{potion.GetPotionId()}.asset";
+            string fileName = $"{potion.potionID}.asset";
 
             if (!Directory.Exists(folderPath))
             {
