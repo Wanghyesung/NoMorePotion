@@ -7,6 +7,7 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(Animator))]
 public class MonsterAnimationController : MonoBehaviour
 {
+    private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
     private static readonly int IsNomalAttackHash = Animator.StringToHash(IS_NORMAL);
     private static readonly int IsRunHash = Animator.StringToHash(IS_RUN);
     private static readonly int IsWalkHash = Animator.StringToHash(IS_WALK);
@@ -32,5 +33,10 @@ public class MonsterAnimationController : MonoBehaviour
     public void IsNormalAttack(bool type = true)
     {
         animator.SetBool(IsNomalAttackHash, type);
+    }
+
+    public void IsDead(bool type = true)
+    {
+        animator.SetBool(IsDeadHash, type);
     }
 }

@@ -22,6 +22,7 @@ public class MonsterCombat : MonoBehaviour
         int id, int instanceId, string spawnArea, string description, DamageType damageType)
     {
         data = new(name, hp, immune, speed, id, instanceId, spawnArea, description, damageType);
+        data.OnDead += MonsterDead;
     }
 
     #region
@@ -57,6 +58,11 @@ public class MonsterCombat : MonoBehaviour
     {
         mover.IsAnimation = false;
         anim.IsNormalAttack(false);
+    }
+
+    private void MonsterDead()
+    {
+        anim.IsDead();
     }
     #endregion
 }

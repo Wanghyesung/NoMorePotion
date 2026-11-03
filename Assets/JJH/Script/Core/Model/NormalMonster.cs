@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using static CommonStruct;
 
@@ -12,6 +13,8 @@ public class NormalMonster : Character, IDamageable, IAttacker
     public string SpawnArea;
     public string Description;
     public DamageType DamageType { get; set; }
+
+    public Action OnDead;
 
     public  NormalMonster(string name, int hp, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea,string description, DamageType damageType
