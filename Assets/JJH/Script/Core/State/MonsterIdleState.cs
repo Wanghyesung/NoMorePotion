@@ -20,7 +20,10 @@ public class MonsterIdleState : IMonsterState
 
     public void OnStart()
     {
+        Debug.Log($"{mover.patrolTimerActive} : {mover.patrolDelay} | {mover.patrolTimer}");
         mover.patrolTimerActive = true;
+        mover.patrolTimer = 0;
+        Debug.Log($"{mover.patrolTimerActive} : {mover.patrolDelay} | {mover.patrolTimer}");
         mover.anim.IsWalk(false);
         mover.anim.IsRun(false);
     }

@@ -25,10 +25,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [Header("본체 관련")]
     public float nextMoveDist;
     [SF] private float attackRange;
+    public SphereCollider chaseCollider;
     public float attackSpeed;
     public float patrolDelay = 4;
     public float walkSpeed = 2;
     public float runSpeed = 4;
+    public float turnSpeed = 5;
 
     [Header("인스펙터")]
     public GameObject nowTarget;
@@ -71,6 +73,34 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         };
 
         StartAI().Forget();
+    }
+
+    private void Update()
+    {
+        if (!IsAnimation && state.GetStateType() == MonsterState.Attack)
+            AttackAngleRotate();
+    }
+
+    private void AttackAngleRotate()
+    {
+        float angleDeadzone = 1.5f;
+
+        Vector3 targetDirection =
+            nowTarget.transform.position - transform.position;
+        targetDirection.y = 0;
+        Quaternion targetRotation =
+            Quaternion.LookRotation(targetDirection);
+
+        float angleDifference = Vector3.Angle(transform.forward, targetDirection);
+
+        if (angleDifference > angleDeadzone)
+            transform.rotation =
+            Quaternion.Slerp(transform.rotation,
+            targetRotation, Time.deltaTime * turnSpeed);
+        else
+        {
+            transform.rotation = targetRotation;
+        }
     }
 
     // 혹시 공격 범위 갱신이 필요할 경우
@@ -122,7 +152,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
 
         // 공격 범위 밖이지만 감지 범위 안
-        else if (distance <= nextMoveDist)
+        else if (distance <= chaseCollider.radius)
         {
             result = stateGroup[MonsterState.Chase];
             nowState = MonsterState.Chase;
@@ -146,7 +176,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             if (!IsAnimation)
             {
                 IMonsterState data = UpdateState();
-
+                
                 if (data != null)
                     state.ChangeState(data);
 
@@ -155,9 +185,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
                 if (attackTimerActive)
                     attackTimer += FSM_TIMER / MIL_SEC_F;
-                Debug.Log(attackTimer);
+
                 state.Stay();
             }
+
             
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
