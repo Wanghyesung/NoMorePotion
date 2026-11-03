@@ -14,8 +14,16 @@ public class MonsterCombat : MonoBehaviour
 
     private void Awake()
     {
-        anim = GetComponent<MonsterAnimationController>();
-        mover = GetComponent<MonsterMove>();
+        if(anim == null)
+            anim = GetComponent<MonsterAnimationController>();
+
+        if(mover == null)
+            mover = GetComponent<MonsterMove>();
+    }
+
+    private void OnDisable()
+    {
+        data.OnDead -= MonsterDead;
     }
 
     private void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,
@@ -54,6 +62,7 @@ public class MonsterCombat : MonoBehaviour
     {
         biteHitbox.gameObject.SetActive(false);
     }
+
     private void NormalAttackAnimationEnd()
     {
         mover.IsAnimation = false;

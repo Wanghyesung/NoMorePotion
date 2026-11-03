@@ -526,7 +526,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
   ShowLayerWeightsInspector: 1
   ShowParameterInspector: 1
-  m_SynchronizeParameters: []
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsWalk
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsRun
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsDead
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsHit
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
@@ -584,7 +599,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterCombat
   anim: {fileID: 760214938}
   mover: {fileID: 760214933}
-  biteHitbox: {fileID: 760214939}
+  biteHitbox: {fileID: 219722964}
 --- !u!114 &760214938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -627,6 +642,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6817621319522544039, guid: 5e40f61adf84057419bac8a31f745829, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 6482f0ea527a39d4a863ca47fe431364, type: 2}
     - target: {fileID: 6817621319531857473, guid: 5e40f61adf84057419bac8a31f745829, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0.00000085202305
