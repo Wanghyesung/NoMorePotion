@@ -20,28 +20,25 @@ public sealed class FSM : MonoBehaviour
 
     #region Components
     private Player player;
+    private int upperBodyLayer;
+    private static readonly int upperBodyEmptyHash = Animator.StringToHash("UpperBody.Empty");
     public Animator Animator { get; private set; }
     public Rigidbody Rigidbody { get; private set; }
     #endregion
 
     #region PlayerState
-    [UnityEngine.Serialization.FormerlySerializedAs("m_listState")]
-    [UnityEngine.Serialization.FormerlySerializedAs("listState")]
     [SerializeField] private List<SOState> stateData = new List<SOState>();
-    [UnityEngine.Serialization.FormerlySerializedAs("m_eInitialState")]
-    [UnityEngine.Serialization.FormerlySerializedAs("eInitialState")]
     [SerializeField] private StateType initialState = StateType.Idle;
 
     private readonly Dictionary<StateType, PlayerState> states = new Dictionary<StateType, PlayerState>(3);
     private readonly Dictionary<StateType, AnimatorEventBridge> animEvents = new();
 
     public PlayerState CurrentState { get; private set; }
+    public PlayerState CurrentActionState { get; private set; }
     public PlayerState PreviousState { get; private set; }
     #endregion
 
     #region Rotate
-    [UnityEngine.Serialization.FormerlySerializedAs("m_fRotateSensitivity")]
-    [UnityEngine.Serialization.FormerlySerializedAs("fRotateSensitivity")]
     [SerializeField, Min(0f)] private float rotateSensitivity = 0.15f;
     private float rotateY;
     public Quaternion ViewRotation => Quaternion.Euler(0f, rotateY, 0f);
@@ -49,8 +46,6 @@ public sealed class FSM : MonoBehaviour
 
     #region GroundCheck
     private readonly HashSet<Collider> groundContacts = new HashSet<Collider>();
-    [UnityEngine.Serialization.FormerlySerializedAs("m_iGroundLayers")]
-    [UnityEngine.Serialization.FormerlySerializedAs("iGroundLayers")]
     [SerializeField] private LayerMask groundLayers = ~0;
     public bool IsGrounded => groundContacts.Count > 0 && Rigidbody.linearVelocity.y <= 0.1f;
     public void ClearGroundContact() => groundContacts.Clear();
@@ -61,6 +56,7 @@ public sealed class FSM : MonoBehaviour
     {
         this.player = player;
         Animator = GetComponent<Animator>();
+        upperBodyLayer = Animator.GetLayerIndex("UpperBody");
         Rigidbody = GetComponent<Rigidbody>();
 
         rotateY = transform.eulerAngles.y;
@@ -84,7 +80,10 @@ public sealed class FSM : MonoBehaviour
     public void UpdateState()
     {  
         if (CurrentState == null)
-            StartState();
+        {
+            if (!StartState())
+                return;
+        }
 
         if (Instance.HasGameplayInput == true && CurrentState.Type != StateType.Roll)
         {
@@ -95,19 +94,21 @@ public sealed class FSM : MonoBehaviour
         }
 
         CurrentState?.UpdateState();
+        CurrentActionState?.UpdateState();
     }
 
     public void FixedUpdateState()
     {
         CurrentState?.FixedUpdateState();
+        CurrentActionState?.FixedUpdateState();
     }
 
     public void ExecuteEvent(AnimationEvent animationEvent)
     {
-        if (CurrentState == null)
-            return;
-
-        animEvents[CurrentState.Type].ExecuteFrame(animationEvent);
+        if (CurrentState != null)
+            animEvents[CurrentState.Type].ExecuteFrame(animationEvent);
+        if (CurrentActionState != null)
+            animEvents[CurrentActionState.Type].ExecuteFrame(animationEvent);
     }
 
     public bool ChangeState(StateType type)
@@ -123,8 +124,31 @@ public sealed class FSM : MonoBehaviour
         return true;
     }
 
+    public bool ChangeActionState(StateType type)
+    {
+        PlayerState nextState = states[type];
+        if (CurrentState == null || CurrentActionState == nextState || !nextState.CanEnter())
+            return false;
+
+        ClearActionState();
+        CurrentActionState = nextState;
+        Animator.SetLayerWeight(upperBodyLayer, 1f);
+        CurrentActionState.Enter();
+        return true;
+    }
+
+    public void ClearActionState()
+    {
+        CurrentActionState?.Exit();
+        CurrentActionState = null;
+
+        Animator.SetLayerWeight(upperBodyLayer, 0f);
+        Animator.Play(upperBodyEmptyHash, upperBodyLayer, 0f);
+    }
+
     public void Stop()
     {
+        ClearActionState();
         if (CurrentState != null)
         {
             PreviousState = CurrentState;

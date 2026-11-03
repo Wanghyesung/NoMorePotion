@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 844c1183e286daf498343eb6ed768f77, type: 3}
   m_Name: Idle
   m_EditorClassIdentifier: Assembly-CSharp::SOIdleState
-  m_refClip: {fileID: 7400000, guid: c1ecc4aee828a994c8726b190092a0ce, type: 2}
-  m_fAnimationSpeed: 1
+  clip: {fileID: 7400000, guid: c1ecc4aee828a994c8726b190092a0ce, type: 2}
+  animationSpeed: 1

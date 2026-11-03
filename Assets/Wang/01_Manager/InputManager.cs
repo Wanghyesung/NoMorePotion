@@ -20,32 +20,14 @@ public sealed class InputManager : MonoBehaviour
 
     [Header("Input Actions")]
     #region InputActions
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refMoveActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refMoveActionReference")]
     [SerializeField] private InputActionReference moveActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refJumpActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refJumpActionReference")]
     [SerializeField] private InputActionReference jumpActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refRollActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refRollActionReference")]
     [SerializeField] private InputActionReference rollActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refDeltaActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refDeltaActionReference")]
     [SerializeField] private InputActionReference deltaActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refSkill0ActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refSkill0ActionReference")]
     [SerializeField] private InputActionReference skill0ActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refAimActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refAimActionReference")]
     [SerializeField] private InputActionReference aimActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refSwitchHandActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refSwitchHandActionReference")]
     [SerializeField] private InputActionReference switchHandActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refInteractActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refInteractActionReference")]
     [SerializeField] private InputActionReference interactActionReference;
-    [UnityEngine.Serialization.FormerlySerializedAs("m_refTakeOutPotionActionReference")]
-    [UnityEngine.Serialization.FormerlySerializedAs("refTakeOutPotionActionReference")]
     [SerializeField] private InputActionReference takeOutPotionActionReference;
 
     public InputAction MoveAction { get; private set; }

@@ -2,11 +2,15 @@ using UnityEngine;
 
 public abstract class PlayerState
 {
+    private static readonly int baseAnimationSpeedHash = Animator.StringToHash("BaseAnimationSpeed");
+    protected virtual int AnimationSpeedHash => baseAnimationSpeedHash;
+
     protected readonly FSM owner;
     protected readonly SOState data;
     protected readonly AnimatorEventBridge animEvent = new AnimatorEventBridge();
     protected readonly AnimationClip clip;
     protected AnimationEvent[] clipEvents;
+
 
     public AnimatorEventBridge AnimEvent => animEvent;
 
@@ -20,19 +24,24 @@ public abstract class PlayerState
         clip = data.Clip;
     }
 
-    public virtual void Init() => clipEvents = clip.events;
+    public virtual void Init()
+    {
+        if(clip == null)
+            return;
+        clipEvents = clip.events;
+    }
     public virtual void Dispose() { }
     public virtual bool CanEnter() => true;
 
     public virtual void Enter()
     {
-        owner.Animator.speed = data.AnimationSpeed;
+        owner.Animator.SetFloat(AnimationSpeedHash, data.AnimationSpeed);
     }
 
     public virtual void UpdateState() { }
     public virtual void FixedUpdateState() { }
     public virtual void Exit()
     {
-        owner.Animator.speed = 1f;
+        owner.Animator.SetFloat(AnimationSpeedHash, 1f);
     }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d3c09fbce5e51945b3fc427ea037d73, type: 3}
   m_Name: Walk
   m_EditorClassIdentifier: Assembly-CSharp::SOMoveState
-  m_refClip: {fileID: 7400000, guid: b1369161d3961f747b79052d0e286b07, type: 2}
-  m_fAnimationSpeed: 1
-  m_fMoveSpeed: 2
-  m_fDirectionTurnSpeed: 360
+  clip: {fileID: 7400000, guid: b1369161d3961f747b79052d0e286b07, type: 2}
+  animationSpeed: 1
+  moveSpeed: 2
+  directionTurnSpeed: 360

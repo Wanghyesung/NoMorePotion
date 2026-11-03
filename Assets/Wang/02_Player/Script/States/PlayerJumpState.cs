@@ -56,7 +56,7 @@ public sealed class PlayerJumpState : PlayerState
     private void HoldPose(AnimationEvent animationEvent)
     {
         if (!owner.IsGrounded)
-            owner.Animator.speed = 0f;
+            owner.Animator.SetFloat(AnimationSpeedHash, 0f);
     }
 
     public override void UpdateState()
