@@ -23,7 +23,22 @@ public class DebugStateSwitcher : MonoBehaviour
 
         if (keyboard.aKey.wasPressedThisFrame) manager.RequestCreateRoom("", 5, true);
         if (keyboard.bKey.wasPressedThisFrame) manager.RequestCreateRoom("테스트방", 3, false);
+        if (keyboard.cKey.wasPressedThisFrame) JoinFirstRoom(manager);
+        if (keyboard.dKey.wasPressedThisFrame) manager.RequestLeaveRoom();
 
+    }
+
+    private void JoinFirstRoom(NetworkFlowManager manager)
+    {
+        var rooms = manager.RoomList.CurrentValue;
+
+        if (rooms.Count == 0)
+        {
+            Debug.Log("[DebugStateSwitcher] 입장할 방이 없음");
+            return;
+        }
+
+        manager.RequestJoinRoom(rooms[0].Name);
     }
 #endif
 }

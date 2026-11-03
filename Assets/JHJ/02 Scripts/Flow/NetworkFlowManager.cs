@@ -204,7 +204,24 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         string code = RoomCodeGenerator.Generate();
 
-        PhotonNetwork.CreateRoom(code, pendingRoomOptions);
+        // false = 요청을 보내지 못함 → 실패 콜백이 오지 않으므로 직접 처리
+        if (!PhotonNetwork.CreateRoom(code, pendingRoomOptions))
+        {
+            Debug.LogWarning($"[NetworkFlowManager] 방 생성 요청 실패: {code}");
+            RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
+        }
+    }
+
+    public void RequestJoinRoom(string roomCode)
+    {
+        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
+            return;
+
+        if (!PhotonNetwork.JoinRoom(roomCode))
+        {
+            Debug.LogWarning($"[NetworkFlowManager] 방 입장 요청 실패: {roomCode}");
+            RaiseError("방에 입장하지 못했습니다.");
+        }
     }
 
     #endregion
@@ -234,6 +251,35 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         SetState(FlowState.Room);
     }
 
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.LogWarning($"[NetworkFlowManager] 방 입장 실패 사유 : {message} , (코드){returnCode}");
+
+        string msg = null;
+
+        switch (returnCode)
+        {
+            case ErrorCode.GameFull:
+                msg = "방이 가득 찼습니다.";
+                break;
+
+            case ErrorCode.GameClosed:
+                msg = "이미 게임이 시작된 방입니다.";
+                break;
+
+            case ErrorCode.GameDoesNotExist:
+                msg = "방이 사라졌습니다.";
+                break;
+
+            default:
+                msg = "방에 입장하지 못했습니다.";
+                break;
+        }
+
+        RaiseError(msg);
+
+    }
+
     #endregion
 
     #region 내부
@@ -249,7 +295,27 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     //===============================================================
 
+    #region Room
 
+    #region 요청
+
+    public void RequestLeaveRoom()
+    {
+        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
+            return;
+
+        PhotonNetwork.LeaveRoom();
+    }
+
+    #endregion
+
+    #region Photon Callbacks
+
+
+
+    #endregion
+
+    #endregion
 
     //===============================================================
 
