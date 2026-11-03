@@ -10,6 +10,8 @@ public sealed class PlayerThrowState : PlayerState
     protected override int AnimationSpeedHash => upperBodyAnimationSpeedHash;
 
     private readonly Hand hand;
+    private readonly ThrowAim throwAim;
+    private bool isAiming;
     private readonly AnimationClip rightClip;
     private AnimationEvent[] rightClipEvents;
     private readonly float throwSpeed;
@@ -18,6 +20,7 @@ public sealed class PlayerThrowState : PlayerState
     public PlayerThrowState(FSM owner, SOThrowState data) : base(owner, data)
     {
         hand = owner.GetComponent<Hand>();
+        throwAim = owner.GetComponentInChildren<ThrowAim>(true);
         throwSpeed = data.ThrowSpeed;
         rightClip = data.RightClip;
     }
@@ -27,31 +30,70 @@ public sealed class PlayerThrowState : PlayerState
         base.Init();
 
         rightClipEvents = rightClip.events;
-        animEvent.RegisterFrame(clip, clipEvents[0], ThrowPotion);
-        animEvent.RegisterFrame(clip, clipEvents[1], FinishThrow);
+        animEvent.RegisterFrame(clip, clipEvents[0], ThrowWait);
+        animEvent.RegisterFrame(clip, clipEvents[1], ThrowPotion);
+        animEvent.RegisterFrame(clip, clipEvents[2], FinishThrow);
 
-        animEvent.RegisterFrame(rightClip, rightClipEvents[0], ThrowPotion);
-        animEvent.RegisterFrame(rightClip, rightClipEvents[1], FinishThrow);
+        animEvent.RegisterFrame(rightClip, rightClipEvents[0], ThrowWait);
+        animEvent.RegisterFrame(rightClip, rightClipEvents[1], ThrowPotion);
+        animEvent.RegisterFrame(rightClip, rightClipEvents[2], FinishThrow);
 
         Instance.Skill0Action.performed += RequestThrow;
+        Instance.AimAction.performed += RequestAim;
     }
 
     public override void Dispose()
     {
-        animEvent.UnregisterFrame(clip, clipEvents[0], ThrowPotion);
-        animEvent.UnregisterFrame(clip, clipEvents[1], FinishThrow);
+        animEvent.UnregisterFrame(clip, clipEvents[0], ThrowWait);
+        animEvent.UnregisterFrame(clip, clipEvents[1], ThrowPotion);
+        animEvent.UnregisterFrame(clip, clipEvents[2], FinishThrow);
 
-        animEvent.UnregisterFrame(rightClip, rightClipEvents[0], ThrowPotion);
-        animEvent.UnregisterFrame(rightClip, rightClipEvents[1], FinishThrow);
+        animEvent.UnregisterFrame(rightClip, rightClipEvents[0], ThrowWait);
+        animEvent.UnregisterFrame(rightClip, rightClipEvents[1], ThrowPotion);
+        animEvent.UnregisterFrame(rightClip, rightClipEvents[2], FinishThrow);
 
 
         if (Instance != null)
+        {
             Instance.Skill0Action.performed -= RequestThrow;
+            Instance.AimAction.performed -= RequestAim;
+        }
     }
 
     private void RequestThrow(InputAction.CallbackContext context)
     {
+        if (owner.CurrentActionState == this)
+        {
+            if (isAiming)
+            {
+                isAiming = false;
+                owner.Animator.SetFloat(AnimationSpeedHash, data.AnimationSpeed);
+                throwAim.Hide();
+            }
+            return;
+        }
+
+        isAiming = false;
         owner.ChangeActionState(FSM.StateType.Throw);
+    }
+
+    private void RequestAim(InputAction.CallbackContext context)
+    {
+        if (owner.CurrentActionState == this)
+            return;
+
+        isAiming = true;
+        if (!owner.ChangeActionState(FSM.StateType.Throw))
+            isAiming = false;
+    }
+
+    private void ThrowWait(AnimationEvent animationEvent)
+    {
+        if (!isAiming)
+            return;
+
+        owner.Animator.SetFloat(AnimationSpeedHash, 0f);
+        throwAim.Show(throwingPotion, throwSpeed);
     }
     public override bool CanEnter()
     {
@@ -88,6 +130,8 @@ public sealed class PlayerThrowState : PlayerState
         owner.Animator.ResetTrigger(throwLeftHash);
         owner.Animator.ResetTrigger(throwRightHash);
 
+        throwAim.Hide();
+        isAiming = false;
         throwingPotion = null;
     }
 }
