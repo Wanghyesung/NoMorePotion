@@ -3,6 +3,7 @@ public static class JJH_Constants
     //애니메이션 관련 상수값
     public const string IS_WALK = "IsWalk";
     public const string IS_RUN = "IsRun";
+    public const string IS_NORMAL = "IsNormalAttack";
 
     public const string ENEMY_TAG = "Enemy";
     public const string PLAYER_TAG = "Player";

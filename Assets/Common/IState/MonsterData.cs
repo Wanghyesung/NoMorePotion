@@ -8,6 +8,7 @@ using UnityEngine;
 public class MonsterData
 {
     public int Id;
+    public int AtkPoint;
     public int HP;
     [JsonConverter(typeof(StringEnumConverter))]
     public DamageType DamageType;
@@ -17,6 +18,7 @@ public class MonsterData
     /// <para>Fire = 2</para>
     /// <para>Ice = 3</para>
     /// <para>Electric = 4</para>
+    /// <para>Dark = 5</para>
     /// </summary>
     public Dictionary<int, int> Immune;
     public string SpawnArea;

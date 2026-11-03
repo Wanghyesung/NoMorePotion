@@ -37,6 +37,7 @@ public class StateMachine
     public MonsterState GetStateType(bool now = true)
     {
         IMonsterState callState = now ? nowState : beforeState;
+
         if (callState is MonsterSpawnState)
             return MonsterState.Spawn;
         else if (callState is MonsterIdleState)

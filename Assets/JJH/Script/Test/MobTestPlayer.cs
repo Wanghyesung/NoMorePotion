@@ -5,7 +5,7 @@ public class MobTestPlayer : MonoBehaviour, IDamageable
 {
     [Header("이동 설정")]
     [SerializeField] private float moveSpeed = 5f;
-
+    private int Hp = 100;
     private Rigidbody rb;
     private InputAction moveAction;
     private Vector2 moveInput;
@@ -56,7 +56,8 @@ public class MobTestPlayer : MonoBehaviour, IDamageable
 
     public void TakeDamage(AttackInfo attackInfo)
     {
-        throw new System.NotImplementedException();
+        Hp = -attackInfo.Damage;
+        Debug.Log(Hp);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)

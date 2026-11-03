@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static JJH_Constants;
 using SF = UnityEngine.SerializeField;
-public class MonsterTrigger : MonoBehaviour
+public class MonsterChaseTrigger : MonoBehaviour
 {
     [SF] private MonsterMove mover;
     private List<GameObject> players;

@@ -4,6 +4,7 @@ using static CommonStruct;
 public class NormalMonster : Character, IDamageable, IAttacker
 {
     public int Id;
+    public int AtkPoint;
     public int InstanceId;
     public string SpawnArea;
     public string Description;
@@ -18,11 +19,6 @@ public class NormalMonster : Character, IDamageable, IAttacker
         SpawnArea = spawnArea;
         Description = description;
         DamageType = damageType;
-    }
-
-    public void Init()
-    {
-
     }
 
     public void TakeDamage(AttackInfo attackInfo)

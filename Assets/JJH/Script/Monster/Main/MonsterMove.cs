@@ -25,17 +25,21 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [Header("본체 관련")]
     public float nextMoveDist;
     [SF] private float attackRange;
-    [SF] private float attackSpeed;
+    public float attackSpeed;
     public float patrolDelay = 4;
     public float walkSpeed = 2;
     public float runSpeed = 4;
 
     [Header("인스펙터")]
     public GameObject nowTarget;
+    
 
     [HIn] public StateMachine state;
     [HIn] public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
+    [HIn] public float attackTimer = 0;
+    [HIn] public bool attackTimerActive;
+    [HIn] public bool IsAnimation;
 
     public Dictionary<MonsterState, IMonsterState> stateGroup;
     private void Awake()
@@ -87,7 +91,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
         //스폰 중엔 판단 정지
         if (state.GetStateType() == MonsterState.Spawn) return null;
-        Debug.Log(nowTarget);
+
         if (nowTarget == null)
         {
             if (patrolTimerActive)
@@ -139,16 +143,22 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     {
         while (!token.IsCancellationRequested)
         {
-            IMonsterState data = UpdateState();
+            if (!IsAnimation)
+            {
+                IMonsterState data = UpdateState();
 
-            if (data != null)
-                state.ChangeState(data);
+                if (data != null)
+                    state.ChangeState(data);
 
-            if (patrolTimerActive)
-                patrolTimer += FSM_TIMER / MIL_SEC_F;
+                if (patrolTimerActive)
+                    patrolTimer += FSM_TIMER / MIL_SEC_F;
 
-            state.Stay();
-
+                if (attackTimerActive)
+                    attackTimer += FSM_TIMER / MIL_SEC_F;
+                Debug.Log(attackTimer);
+                state.Stay();
+            }
+            
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
     }
