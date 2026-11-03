@@ -36,17 +36,19 @@ public class MonsterPatrolState : IMonsterState
             {
                 moverAI.speed = mover.walkSpeed;
 
+                moverAI.SetDestination(newRandomPos);
+
                 mover.anim.IsWalk();
                 mover.anim.IsRun(false);
-
-                moverAI.SetDestination(newRandomPos);
             }
         }
     }
 
     public void OnStay()
     {
-        if (IsMoverStop()) mover.state.ChangeState(mover.stateGroup[MonsterState.Idle]);
+        if (IsMoverStop())
+            mover.state.ChangeState(mover.stateGroup[MonsterState.Idle]);
+        
     }
 
     /// <summary>

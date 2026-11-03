@@ -54,10 +54,13 @@ public class MobTestPlayer : MonoBehaviour, IDamageable
         }
     }
 
+    /// <summary>
+    /// 임시 TakeDamage
+    /// </summary>
+    /// <param name="attackInfo"></param>
     public void TakeDamage(AttackInfo attackInfo)
     {
         Hp = -attackInfo.Damage;
-        Debug.Log(Hp);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)

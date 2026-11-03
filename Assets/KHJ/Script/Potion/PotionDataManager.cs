@@ -53,16 +53,16 @@ namespace Enzeun.Runtime
         [ShowInInspector, ReadOnly]
         private Dictionary<PotionRecipeSet, PotionData> potionDataDictionary = new Dictionary<PotionRecipeSet, PotionData>();
 
-        public bool isDataInitialized { get; private set; } = false;
+        private bool isDataInitialized = false;
 
         /// <summary>
         /// 저장소에 있는 모든 포션의 레시피 등록
         /// </summary>
-        public void FindAllPotionRecipes()
+        private void FindAllPotionRecipes()
         {
             if (isDataInitialized)
             {
-                Debug.LogWarning("포션 데이터가 이미 초기화되었습니다.");
+                Debug.LogWarning("[PotionDataManager]: 포션 데이터가 이미 초기화되었습니다.");
                 return;
             }
 
@@ -81,7 +81,7 @@ namespace Enzeun.Runtime
                 }
                 else
                 {
-                    Debug.LogWarning($"포션 {potionData.potionName}의 레시피 재료가 2개가 아닙니다.");
+                    Debug.LogWarning($"[PotionDataManager]: 포션 {potionData.potionName}의 레시피 재료가 2개가 아닙니다.");
                 }
             }
 
@@ -94,7 +94,7 @@ namespace Enzeun.Runtime
         /// <param name="firstIngredientID">재료1</param>
         /// <param name="secondIngredientID">재료2</param>
         /// <param name="potionData">포션 데이터</param>
-        public void AddPotionRecipe(int firstIngredientID, int secondIngredientID, PotionData potionData)
+        private void AddPotionRecipe(int firstIngredientID, int secondIngredientID, PotionData potionData)
         {
             // 재료 ID를 오름차순으로 정렬            
             int first = Math.Min(firstIngredientID, secondIngredientID);
@@ -113,8 +113,14 @@ namespace Enzeun.Runtime
         /// <returns></returns>
         [Button("레시피로 포션 데이터 가져오기", ButtonSizes.Large)]
         [GUIColor(0.4f, 0.8f, 1f)]
-        public PotionData GetPotionData(int firstIngredientID, int secondIngredientID)
+        public PotionData GetPotionDataFromRecipe(int firstIngredientID, int secondIngredientID)
         {
+            if (!isDataInitialized)
+            {
+                Debug.LogError("[PotionDataManager]: 포션 데이터가 초기화되지 않았습니다. FindAllPotionRecipes()를 먼저 호출하세요.");
+                return null;
+            }
+
             // 재료 ID를 오름차순으로 정렬
             int first = Math.Min(firstIngredientID, secondIngredientID);
             int second = Math.Max(firstIngredientID, secondIngredientID);
@@ -127,7 +133,7 @@ namespace Enzeun.Runtime
             }
             else
             {
-                Debug.LogWarning($"레시피에 해당하는 포션 데이터가 없습니다. 재료 ID: {first}, {second}");
+                Debug.LogWarning($"[PotionDataManager]: 레시피에 해당하는 포션 데이터가 없습니다. 재료 ID: {first}, {second}");
                 return null;
             }
         }

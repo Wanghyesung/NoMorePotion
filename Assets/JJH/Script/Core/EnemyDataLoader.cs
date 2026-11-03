@@ -13,11 +13,11 @@ public class EnemyDataLoader : MonoBehaviour
 
     private Dictionary<int, MonsterData> NormalMonsterData;
 
-    [HIn] public List<MonsterData> NormalMonsterDataList;
+    public List<MonsterData> NormalMonsterDataList;
     private Dictionary<int, MonsterData> BossMonsterData;
-    [HIn] public List<MonsterData> BossMonsterDataList;
+    public List<MonsterData> BossMonsterDataList;
     private Dictionary<int, MonsterTextData> MonsterLocalizationData;
-    [HIn] public List<MonsterTextData> MonsterLocalizationDataList;
+    public List<MonsterTextData> MonsterLocalizationDataList;
 
     public void Awake()
     {

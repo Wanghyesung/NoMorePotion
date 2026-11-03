@@ -18,7 +18,7 @@ public class MonsterChaseTrigger : MonoBehaviour
         {
             if(mover.nowTarget == null)
                 mover.nowTarget = other.gameObject;
-            Debug.Log(other.gameObject);
+
             players.Add(other.gameObject);
         }
     }
@@ -27,7 +27,6 @@ public class MonsterChaseTrigger : MonoBehaviour
     {
         if (players.Contains(other.gameObject))
         {
-            Debug.Log(other.gameObject);
             players.Remove(other.gameObject);
 
             if(other.gameObject == mover.nowTarget && players.Count > 0)

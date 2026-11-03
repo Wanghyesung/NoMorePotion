@@ -25,10 +25,13 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [Header("본체 관련")]
     public float nextMoveDist;
     [SF] private float attackRange;
+    public SphereCollider chaseCollider;
     public float attackSpeed;
     public float patrolDelay = 4;
-    public float walkSpeed = 2;
-    public float runSpeed = 4;
+    public float walkSpeed = 1.9f;
+    public float runSpeed = 3.8f;
+    public float turnSpeed = 5;
+    public float NowSpeed => agent.speed;
 
     [Header("인스펙터")]
     public GameObject nowTarget;
@@ -69,13 +72,43 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             [MonsterState.Attack] = new MonsterAttackState(this),
             [MonsterState.Death] = new MonsterDeathState(this)
         };
-
-        StartAI().Forget();
+        // 이후 캐릭터 스폰 + 이동속도 받을 시 위치 변경
+        StartAI(3.8f).Forget();
     }
 
-    // 혹시 공격 범위 갱신이 필요할 경우
-    public async UniTask StartAI()
+    private void Update()
     {
+        if (!IsAnimation && state.GetStateType() == MonsterState.Attack)
+            AttackAngleRotate();
+    }
+
+    private void AttackAngleRotate()
+    {
+        float angleDeadzone = 1.5f;
+
+        Vector3 targetDirection =
+            nowTarget.transform.position - transform.position;
+        targetDirection.y = 0;
+        Quaternion targetRotation =
+            Quaternion.LookRotation(targetDirection);
+
+        float angleDifference = Vector3.Angle(transform.forward, targetDirection);
+
+        if (angleDifference > angleDeadzone)
+            transform.rotation =
+            Quaternion.Slerp(transform.rotation,
+            targetRotation, Time.deltaTime * turnSpeed);
+        else
+        {
+            transform.rotation = targetRotation;
+        }
+    }
+
+    public async UniTask StartAI(float speed)
+    {
+        walkSpeed = speed / 2f;
+        runSpeed = speed;
+        agent.speed = walkSpeed;
         CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
 
         StartAILoop(destroyToken).Forget();
@@ -122,7 +155,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
 
         // 공격 범위 밖이지만 감지 범위 안
-        else if (distance <= nextMoveDist)
+        else if (distance <= chaseCollider.radius)
         {
             result = stateGroup[MonsterState.Chase];
             nowState = MonsterState.Chase;
@@ -146,7 +179,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             if (!IsAnimation)
             {
                 IMonsterState data = UpdateState();
-
+                
                 if (data != null)
                     state.ChangeState(data);
 
@@ -155,9 +188,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
                 if (attackTimerActive)
                     attackTimer += FSM_TIMER / MIL_SEC_F;
-                Debug.Log(attackTimer);
+
                 state.Stay();
             }
+
             
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
