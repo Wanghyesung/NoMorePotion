@@ -10,6 +10,7 @@ public class MonsterData
     public int Id;
     public int AtkPoint;
     public int HP;
+    public float Speed;
     [JsonConverter(typeof(StringEnumConverter))]
     public DamageType DamageType;
     /// <summary>

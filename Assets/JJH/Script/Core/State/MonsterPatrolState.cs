@@ -47,10 +47,8 @@ public class MonsterPatrolState : IMonsterState
     public void OnStay()
     {
         if (IsMoverStop())
-        {
-            Debug.Log("작동");
             mover.state.ChangeState(mover.stateGroup[MonsterState.Idle]);
-        }
+        
     }
 
     /// <summary>

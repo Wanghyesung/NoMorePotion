@@ -28,9 +28,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public SphereCollider chaseCollider;
     public float attackSpeed;
     public float patrolDelay = 4;
-    public float walkSpeed = 2;
-    public float runSpeed = 4;
+    public float walkSpeed = 1.9f;
+    public float runSpeed = 3.8f;
     public float turnSpeed = 5;
+    public float NowSpeed => agent.speed;
 
     [Header("인스펙터")]
     public GameObject nowTarget;
@@ -71,8 +72,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             [MonsterState.Attack] = new MonsterAttackState(this),
             [MonsterState.Death] = new MonsterDeathState(this)
         };
-
-        StartAI().Forget();
+        // 이후 캐릭터 스폰 + 이동속도 받을 시 위치 변경
+        StartAI(3.8f).Forget();
     }
 
     private void Update()
@@ -103,9 +104,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
     }
 
-    // 혹시 공격 범위 갱신이 필요할 경우
-    public async UniTask StartAI()
+    public async UniTask StartAI(float speed)
     {
+        walkSpeed = speed / 2f;
+        runSpeed = speed;
+        agent.speed = walkSpeed;
         CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
 
         StartAILoop(destroyToken).Forget();
