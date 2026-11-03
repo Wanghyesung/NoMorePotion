@@ -215,6 +215,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         {
             Debug.LogWarning($"[NetworkFlowManager] 방 생성 요청 실패: {code}");
             RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
+            RejoinLobby();
         }
     }
 
@@ -256,6 +257,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         {
             Debug.LogWarning($"[NetworkFlowManager] 퀵 매치 실패");
             RaiseError("빠른 입장에 실패했습니다.");
+            RejoinLobby();
         }
     }
 
@@ -279,6 +281,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         Debug.LogWarning($"[NetworkFlowManager] 방 생성 실패 ({returnCode}): {message}");
         RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
+        RejoinLobby();
     }
 
     public override void OnJoinedRoom()
@@ -312,6 +315,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         }
 
         RaiseError(msg);
+        RejoinLobby();
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
@@ -325,6 +329,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         Debug.LogWarning($"[NetworkFlowManager] 빠른 입장 실패 ({returnCode}): {message}");
         RaiseError("빠른 입장에 실패했습니다.");
+        RejoinLobby();
     }
 
     #endregion
@@ -336,6 +341,14 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         roomListCache.Clear();
         roomList.Value = roomListCache.ToList();
     }
+
+    // 방 입장, 생성 요청 시 PUN이 로비에서 빠지고 실패하면 마스터 서버에만 남음 → 로비 재입장 필요
+    private void RejoinLobby()
+    {
+        if (PhotonNetwork.NetworkClientState == ClientState.ConnectedToMasterServer)
+            PhotonNetwork.JoinLobby();
+    }
+
     #endregion
 
     #endregion
