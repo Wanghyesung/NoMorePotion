@@ -9,7 +9,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
-    private const int MAX_CREATE_RETRY = 5; 
+    private const int MAX_CREATE_RETRY = 5;
     public static NetworkFlowManager Instance { get; private set; }
 
 
@@ -176,6 +176,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
             return;
 
+        CreateRoomInternal(displayName, maxPlayers, isPublic);
+    }
+
+    // 검사 없이 방 생성 시작 (방 만들기 요청, 퀵매치 실패 후 새 방 생성에서 호출)
+    private void CreateRoomInternal(string displayName, int maxPlayers, bool isPublic)
+    {
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = $"{PhotonNetwork.NickName}의 방";
 
@@ -186,9 +192,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
             // 방에 저장할 커스텀 속성 : 키 => 값
             CustomRoomProperties = new Hashtable
-            {
-                { RoomProps.DisplayName, displayName }
-            },
+        {
+            { RoomProps.DisplayName, displayName }
+        },
 
             // 로비목록에서도 보이게 할 키 목록
             CustomRoomPropertiesForLobby = new[] { RoomProps.DisplayName }
@@ -204,7 +210,55 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         string code = RoomCodeGenerator.Generate();
 
-        PhotonNetwork.CreateRoom(code, pendingRoomOptions);
+        // false = 요청을 보내지 못함 → 실패 콜백이 오지 않으므로 직접 처리
+        if (!PhotonNetwork.CreateRoom(code, pendingRoomOptions))
+        {
+            Debug.LogWarning($"[NetworkFlowManager] 방 생성 요청 실패: {code}");
+            RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
+            RejoinLobby();
+        }
+    }
+
+    public void RequestJoinRoom(string roomCode)
+    {
+        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
+            return;
+
+        if (!PhotonNetwork.JoinRoom(roomCode))
+        {
+            Debug.LogWarning($"[NetworkFlowManager] 방 입장 요청 실패: {roomCode}");
+            RaiseError("방에 입장하지 못했습니다.");
+        }
+    }
+
+    public void RequestJoinByCode(string roomCode)
+    {
+        string code = (roomCode ?? "").Trim().ToUpperInvariant();
+
+        // TODO const 모음 정리해서 수정
+        if (code.Length != 6)
+        {
+            RaiseError("방 코드 6자리를 입력해 주세요.");
+            return;
+        }
+
+        RequestJoinRoom(code);
+    }
+
+    public void RequestQuickMatch()
+    {
+        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
+        {
+            Debug.Log($"[NetworkFlowManager] 퀵매치 무시됨 - 상태: {CurrentState}, PUN: {PhotonNetwork.NetworkClientState}");
+            return;
+        }
+
+        if (!PhotonNetwork.JoinRandomRoom())
+        {
+            Debug.LogWarning($"[NetworkFlowManager] 퀵 매치 실패");
+            RaiseError("빠른 입장에 실패했습니다.");
+            RejoinLobby();
+        }
     }
 
     #endregion
@@ -218,7 +272,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        if(returnCode == ErrorCode.GameIdAlreadyExists && createRetryCount < MAX_CREATE_RETRY)
+        if (returnCode == ErrorCode.GameIdAlreadyExists && createRetryCount < MAX_CREATE_RETRY)
         {
             createRetryCount++;
             TryCreateRoom();
@@ -227,11 +281,55 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         Debug.LogWarning($"[NetworkFlowManager] 방 생성 실패 ({returnCode}): {message}");
         RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
+        RejoinLobby();
     }
 
     public override void OnJoinedRoom()
     {
         SetState(FlowState.Room);
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.LogWarning($"[NetworkFlowManager] 방 입장 실패 사유 : {message} , (코드){returnCode}");
+
+        string msg = null;
+
+        switch (returnCode)
+        {
+            case ErrorCode.GameFull:
+                msg = "방이 가득 찼습니다.";
+                break;
+
+            case ErrorCode.GameClosed:
+                msg = "이미 게임이 시작된 방입니다.";
+                break;
+
+            case ErrorCode.GameDoesNotExist:
+                msg = "방을 찾을 수 없습니다.";
+                break;
+
+            default:
+                msg = "방에 입장하지 못했습니다.";
+                break;
+        }
+
+        RaiseError(msg);
+        RejoinLobby();
+    }
+
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        if (returnCode == ErrorCode.NoRandomMatchFound)
+        {
+            // TODO : MAX PLAYER CONST 두기
+            CreateRoomInternal("", 5, true);
+            return;
+        }
+
+        Debug.LogWarning($"[NetworkFlowManager] 빠른 입장 실패 ({returnCode}): {message}");
+        RaiseError("빠른 입장에 실패했습니다.");
+        RejoinLobby();
     }
 
     #endregion
@@ -243,13 +341,41 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         roomListCache.Clear();
         roomList.Value = roomListCache.ToList();
     }
+
+    // 방 입장, 생성 요청 시 PUN이 로비에서 빠지고 실패하면 마스터 서버에만 남음 → 로비 재입장 필요
+    private void RejoinLobby()
+    {
+        if (PhotonNetwork.NetworkClientState == ClientState.ConnectedToMasterServer)
+            PhotonNetwork.JoinLobby();
+    }
+
     #endregion
 
     #endregion
 
     //===============================================================
 
+    #region Room
 
+    #region 요청
+
+    public void RequestLeaveRoom()
+    {
+        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
+            return;
+
+        PhotonNetwork.LeaveRoom();
+    }
+
+    #endregion
+
+    #region Photon Callbacks
+
+
+
+    #endregion
+
+    #endregion
 
     //===============================================================
 
