@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using Photon.Pun;
 using Sirenix.OdinInspector;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -15,6 +16,9 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(NavMeshAgent))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
+    [Header("스크립트")]
+    public MonsterAnimationController anim;
+
     [Header("AI 네비게이션")]
     public NavMeshAgent agent;
 
@@ -22,7 +26,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public float nextMoveDist;
     [SF] private float attackRange;
     [SF] private float attackSpeed;
-    [SF] private float patrolDelay = 4;
+    public float patrolDelay = 4;
     public float walkSpeed = 2;
     public float runSpeed = 4;
 
@@ -30,7 +34,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [SF] private GameObject nowTarget;
 
     [HIn] public StateMachine state;
-    [HIn] public float patrolTimer;
+    public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
 
     public Dictionary<MonsterState, IMonsterState> stateGroup;
@@ -44,13 +48,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             transform.position = hit.position;
             agent.Warp(hit.position);
         }
-
-        /*        if (!PhotonNetwork.IsMasterClient)
-                {
-                    if (agent != null) agent.enabled = false;
-
-                    if (TryGetComponent<Rigidbody>(out var rb)) rb.isKinematic = true;
-                }*/
+        if(anim == null)
+            anim = GetComponent<MonsterAnimationController>();
     }
 
     private void Start()
@@ -59,6 +58,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
         stateGroup = new Dictionary<MonsterState, IMonsterState>()
         {
+            [MonsterState.Spawn] = new MonsterSpawnState(this),
             [MonsterState.Idle] = new MonsterIdleState(this),
             [MonsterState.Patrol] = new MonsterPatrolState(this),
             [MonsterState.Chase] = new MonsterChaseState(this),
@@ -83,19 +83,25 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private IMonsterState UpdateState()
     {
         IMonsterState result = null;
+        MonsterState nowState = MonsterState.None;
+
+        //스폰 중엔 판단 정지
+        if (state.GetStateType() == MonsterState.Spawn) return null;
 
         if (nowTarget == null)
         {
-            
-            if (patrolTimer > patrolDelay)
+            if (patrolTimerActive)
             {
                 result = stateGroup[MonsterState.Idle];
-                patrolTimer = 0;
+                nowState = MonsterState.Idle;
+            }
+            else
+            {
+                result = stateGroup[MonsterState.Patrol];
+                nowState = MonsterState.Patrol;
             }
 
-            result = stateGroup[MonsterState.Patrol];
-
-            if (state.GetStateType() == MonsterState.Patrol)
+            if (state.GetStateType() == nowState)
                 result = null;
 
             return result;
@@ -105,18 +111,26 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
         // 공격 범위 안
         if (distance <= attackRange)
+        {
+
             result = stateGroup[MonsterState.Attack];
+            nowState = MonsterState.Attack;
+        }
 
         // 공격 범위 밖이지만 감지 범위 안
         else if (distance <= nextMoveDist)
+        {
             result = stateGroup[MonsterState.Chase];
+            nowState = MonsterState.Chase;
+        }
         else
         {
             nowTarget = null;
             result = stateGroup[MonsterState.Patrol];
+            nowState = MonsterState.Patrol;
         }
         
-        if (state.GetStateType() == MonsterState.Patrol)
+        if (state.GetStateType() == nowState)
             result = null;
 
         return result;

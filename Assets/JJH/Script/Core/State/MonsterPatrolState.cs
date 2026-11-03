@@ -17,9 +17,8 @@ public class MonsterPatrolState : IMonsterState
 
     public void OnEnd()
     {
-        NavMeshAgent moverAI = mover.agent;
         mover.patrolTimerActive = true;
-        moverAI.ResetPath();
+        mover.patrolTimer = 0;
     }
 
     public void OnStart()
@@ -36,6 +35,9 @@ public class MonsterPatrolState : IMonsterState
             if (newRandomPos != Vector3.zero)
             {
                 moverAI.speed = mover.walkSpeed;
+
+                mover.anim.IsWalk();
+                mover.anim.IsRun(false);
 
                 moverAI.SetDestination(newRandomPos);
             }
