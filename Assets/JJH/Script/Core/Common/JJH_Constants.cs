@@ -10,4 +10,6 @@ public static class JJH_Constants
     public const string TEXT = "Text";
     public const string COUNTRY_KR = "KR";
 
+    public const int FSM_TIMER = 100;
+
 }
