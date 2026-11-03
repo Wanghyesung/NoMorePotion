@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using static JJH_Enums;
+using static JJH_Constants;
 
 /// <summary>
 /// 몬스터 공격 상태 FSM
@@ -31,21 +32,28 @@ public class MonsterAttackState : IMonsterState
 
         mover.anim.IsRun(false);
         mover.anim.IsWalk(false);
-        mover.anim.IsNormalAttack();
-        mover.attackTimer = 0;
-        
+        mover.attackTimer = 2;
     }
 
     public void OnStay()
     {
-        // 타깃을 향한 회전값 계산
+        float angleDeadzone = 1.5f;
+        Vector3 targetDirection = 
+            mover.nowTarget.transform.position - mover.transform.position;
+
         Quaternion targetRotation = 
-            Quaternion.LookRotation(mover.nowTarget.transform.position);
+            Quaternion.LookRotation(targetDirection);
 
-        mover.transform.rotation = 
+        float angleDifference = Vector3.Angle(mover.transform.forward, targetDirection);
+
+        if (angleDifference > angleDeadzone)
+            mover.transform.rotation = 
             Quaternion.Slerp(mover.transform.rotation, 
-            targetRotation, Time.deltaTime * 10);
-
+            targetRotation, FSM_TIMER / MIL_SEC_F * 10);
+        else
+        {
+            mover.transform.rotation = targetRotation;
+        }
         if (mover.attackSpeed < mover.attackTimer)
         {
             mover.attackTimer = 0;
