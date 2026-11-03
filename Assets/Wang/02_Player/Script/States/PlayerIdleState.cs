@@ -11,4 +11,5 @@ public sealed class PlayerIdleState : PlayerState
     {
         owner.ChangeState(PlayerMoveState.SelectState(owner));
     }
+  
 }

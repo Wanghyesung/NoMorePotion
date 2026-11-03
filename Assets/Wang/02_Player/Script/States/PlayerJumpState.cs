@@ -6,8 +6,7 @@ public sealed class PlayerJumpState : PlayerState
 {
     private static readonly int jumpHash = Animator.StringToHash("Jump");
     private readonly float jumpSpeed;
-    private InputAction jumpAction;
-
+   
     public PlayerJumpState(FSM owner, SOState data, float jumpSpeed)
         : base(owner, data)
     {
@@ -16,14 +15,16 @@ public sealed class PlayerJumpState : PlayerState
 
     public override void Init()
     {
-        jumpAction = Instance.JumpAction;
-        jumpAction.performed += requestJump;
+        Instance.JumpAction.performed += requestJump;
     }
 
-    public override void Dispose() => jumpAction.performed -= requestJump;
+    public override void Dispose()
+    {
+        if(Instance != null)
+            Instance.JumpAction.performed -= requestJump;
+    }
 
-    private void requestJump(InputAction.CallbackContext context)
-        => owner.ChangeState(FSM.StateType.Jump);
+    private void requestJump(InputAction.CallbackContext context) => owner.ChangeState(FSM.StateType.Jump);
 
     public override bool CanEnter()
     {

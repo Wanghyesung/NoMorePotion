@@ -48,7 +48,6 @@ public sealed class PlayerMoveState : PlayerState
 
         velocity.y = owner.Rigidbody.linearVelocity.y;
         owner.Rigidbody.linearVelocity = velocity;
-        owner.Rigidbody.MoveRotation(owner.ViewRotation);
     }
 
     private void updateMovement()

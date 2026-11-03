@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8716a113d584a4948b65df96d717fa5e, type: 3}
   m_Name: Jump
   m_EditorClassIdentifier: Assembly-CSharp::SOJumpState
-  m_refClip: {fileID: 7400000, guid: 561c49f5e16ce174891fbbd988b82835, type: 2}
-  m_fAnimationSpeed: 1
-  m_fJumpSpeed: 6
+  clip: {fileID: -623603649343465320, guid: 514fa51582eb07144878d28b90cefaf4, type: 3}
+  animationSpeed: 1
+  jumpSpeed: 4

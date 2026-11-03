@@ -14,6 +14,7 @@ public sealed class FSM : MonoBehaviour
         Jump = 2,
         Roll = 3,
 
+        Throw = 4,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
 
@@ -83,10 +84,12 @@ public sealed class FSM : MonoBehaviour
         if (CurrentState == null)
             StartState();
 
-        if (Instance.HasGameplayInput == true)
+        if (Instance.HasGameplayInput == true && CurrentState.Type != StateType.Roll)
         {
             rotateY = Mathf.Repeat(
                 rotateY + Instance.InputInfo.Delta.x * rotateSensitivity, 360f);
+
+            Rigidbody.MoveRotation(ViewRotation);
         }
 
         CurrentState?.UpdateState();

@@ -4,9 +4,7 @@ using static InputManager;
 [DisallowMultipleComponent]
 public sealed class Player : MonoBehaviour
 {
- 
     private FSM fsm;
-
     private void Awake()
     {
         fsm = GetComponent<FSM>();
@@ -34,6 +32,7 @@ public sealed class Player : MonoBehaviour
         fsm.Stop();
     }
 
+
     public void OnJumpHold()
     {
         if (fsm.CurrentState is PlayerJumpState jump)
@@ -44,5 +43,11 @@ public sealed class Player : MonoBehaviour
     {
         if (fsm.CurrentState is PlayerRollState roll)
             roll.FinishRoll();
+    }
+
+    public void ThrowPotion()
+    {
+        if (fsm.CurrentState is PlayerThrowState throwState)
+            throwState.ThrowPotion();
     }
 }
