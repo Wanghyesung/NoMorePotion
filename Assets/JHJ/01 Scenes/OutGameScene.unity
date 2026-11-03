@@ -445,7 +445,7 @@ MonoBehaviour:
   connectingPanel: {fileID: 1927784466}
   lobbyPanel: {fileID: 1150428583}
   roomPanel: {fileID: 1417071924}
-  popup: {fileID: 0}
+  popup: {fileID: 943354049}
 --- !u!114 &357816847 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1724566184692156698, guid: a0f2f4b8d59501441908d43537aa5a43, type: 3}
@@ -3460,7 +3460,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitlePanelUI
   nicknameInput: {fileID: 1598107616}
-  startButton: {fileID: 1126384108}
+  startBtn: {fileID: 1126384108}
+  quitBtn: {fileID: 812186574}
+  confirmPopup: {fileID: 373966585}
 --- !u!1 &2070522671
 GameObject:
   m_ObjectHideFlags: 0
@@ -3623,6 +3625,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1927784467}
     m_Modifications:
+    - target: {fileID: 2035574371415390288, guid: 61b0e2503a42acc47bd9b58001ed666a, type: 3}
+      propertyPath: m_text
+      value: "\uC811\uC18D \uC911.."
+      objectReference: {fileID: 0}
     - target: {fileID: 2105947304457306362, guid: 61b0e2503a42acc47bd9b58001ed666a, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
