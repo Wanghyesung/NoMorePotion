@@ -5,9 +5,11 @@ using R3;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
+    private const int MAX_CREATE_RETRY = 5; 
     public static NetworkFlowManager Instance { get; private set; }
 
 
@@ -20,6 +22,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private Subject<string> error;
     private FirebaseAuthService authService = new FirebaseAuthService();
     private RoomListCache roomListCache = new RoomListCache();
+    private int createRetryCount;
+    private RoomOptions pendingRoomOptions;
 
     public ReadOnlyReactiveProperty<FlowState> State => state;
     public ReadOnlyReactiveProperty<List<RoomInfo>> RoomList => roomList;
@@ -164,11 +168,70 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     #region Lobby
 
+    #region 요청
+
+    public void RequestCreateRoom(string displayName, int maxPlayers, bool isPublic)
+    {
+        // 로비 상태가 아니거나 펀 상태가 로비가 아니면
+        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
+            return;
+
+        if (string.IsNullOrWhiteSpace(displayName))
+            displayName = $"{PhotonNetwork.NickName}의 방";
+
+        RoomOptions option = new RoomOptions
+        {
+            MaxPlayers = maxPlayers,
+            IsVisible = isPublic,
+
+            // 방에 저장할 커스텀 속성 : 키 => 값
+            CustomRoomProperties = new Hashtable
+            {
+                { RoomProps.DisplayName, displayName }
+            },
+
+            // 로비목록에서도 보이게 할 키 목록
+            CustomRoomPropertiesForLobby = new[] { RoomProps.DisplayName }
+        };
+
+        createRetryCount = 0;
+        pendingRoomOptions = option;
+
+        TryCreateRoom();
+    }
+
+    private void TryCreateRoom()
+    {
+        string code = RoomCodeGenerator.Generate();
+
+        PhotonNetwork.CreateRoom(code, pendingRoomOptions);
+    }
+
+    #endregion
+
     #region Photon Callbacks
     public override void OnRoomListUpdate(List<RoomInfo> changedRoomList)
     {
         roomListCache.Apply(changedRoomList);
         roomList.Value = roomListCache.ToList();
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        if(returnCode == ErrorCode.GameIdAlreadyExists && createRetryCount < MAX_CREATE_RETRY)
+        {
+            createRetryCount++;
+            TryCreateRoom();
+            return;
+        }
+
+        Debug.LogWarning($"[NetworkFlowManager] 방 생성 실패 ({returnCode}): {message}");
+        RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
+    }
+
+    public override void OnJoinedRoom()
+    {
+        SetState(FlowState.Room);
     }
 
     #endregion
