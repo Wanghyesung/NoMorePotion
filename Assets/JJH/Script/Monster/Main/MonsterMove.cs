@@ -31,10 +31,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public float runSpeed = 4;
 
     [Header("인스펙터")]
-    [SF] private GameObject nowTarget;
+    public GameObject nowTarget;
 
     [HIn] public StateMachine state;
-    public float patrolTimer = 0;
+    [HIn] public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
 
     public Dictionary<MonsterState, IMonsterState> stateGroup;
@@ -87,7 +87,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
         //스폰 중엔 판단 정지
         if (state.GetStateType() == MonsterState.Spawn) return null;
-
+        Debug.Log(nowTarget);
         if (nowTarget == null)
         {
             if (patrolTimerActive)
@@ -108,7 +108,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
         
         float distance = Vector3.Distance(transform.position, nowTarget.transform.position);
-
+        
         // 공격 범위 안
         if (distance <= attackRange)
         {
@@ -125,7 +125,6 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
         else
         {
-            nowTarget = null;
             result = stateGroup[MonsterState.Patrol];
             nowState = MonsterState.Patrol;
         }

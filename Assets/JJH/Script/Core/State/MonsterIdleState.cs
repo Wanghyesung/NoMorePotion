@@ -27,8 +27,6 @@ public class MonsterIdleState : IMonsterState
 
     public void OnStay()
     {
-        Debug.Log(mover.patrolDelay);
-        Debug.Log(mover.patrolTimer);
         if (mover.patrolDelay < mover.patrolTimer)
         {
             mover.patrolTimer = 0;
