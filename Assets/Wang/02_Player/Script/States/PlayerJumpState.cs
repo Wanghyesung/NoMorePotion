@@ -15,16 +15,19 @@ public sealed class PlayerJumpState : PlayerState
 
     public override void Init()
     {
-        Instance.JumpAction.performed += requestJump;
+        base.Init();
+        animEvent.RegisterFrame(clip, clipEvents[0], HoldPose);
+        Instance.JumpAction.performed += RequestJump;
     }
 
     public override void Dispose()
     {
+        animEvent.UnregisterFrame(clip, clipEvents[0], HoldPose);
         if(Instance != null)
-            Instance.JumpAction.performed -= requestJump;
+            Instance.JumpAction.performed -= RequestJump;
     }
 
-    private void requestJump(InputAction.CallbackContext context) => owner.ChangeState(FSM.StateType.Jump);
+    private void RequestJump(InputAction.CallbackContext context) => owner.ChangeState(FSM.StateType.Jump);
 
     public override bool CanEnter()
     {
@@ -50,7 +53,7 @@ public sealed class PlayerJumpState : PlayerState
         owner.ClearGroundContact();
     }
 
-    public void HoldPose()
+    private void HoldPose(AnimationEvent animationEvent)
     {
         if (!owner.IsGrounded)
             owner.Animator.speed = 0f;

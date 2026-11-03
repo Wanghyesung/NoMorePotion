@@ -4,6 +4,11 @@ public abstract class PlayerState
 {
     protected readonly FSM owner;
     protected readonly SOState data;
+    protected readonly AnimatorEventBridge animEvent = new AnimatorEventBridge();
+    protected readonly AnimationClip clip;
+    protected AnimationEvent[] clipEvents;
+
+    public AnimatorEventBridge AnimEvent => animEvent;
 
     public FSM.StateType Type => data.State;
     public virtual Vector2 MoveDirection => Vector2.zero;
@@ -12,9 +17,10 @@ public abstract class PlayerState
     {
         this.owner = owner;
         this.data = data;
+        clip = data.Clip;
     }
 
-    public virtual void Init() { }
+    public virtual void Init() => clipEvents = clip.events;
     public virtual void Dispose() { }
     public virtual bool CanEnter() => true;
 

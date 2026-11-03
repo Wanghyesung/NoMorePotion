@@ -76,10 +76,10 @@ public sealed class InputManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        init();
+        Init();
     }
 
-    private void init()
+    private void Init()
     {
         MoveAction = moveActionReference.action;
         DeltaAction = deltaActionReference.action;
@@ -97,9 +97,9 @@ public sealed class InputManager : MonoBehaviour
         if (Instance != this)
             return;
 
-        enableActions();
+        EnableActions();
         focused = true;
-        cancelInput();
+        CancelInput();
     }
 
     private void Update()
@@ -117,8 +117,8 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         focused = false;
-        disableActions();
-        cancelInput();
+        DisableActions();
+        CancelInput();
     }
 
     private void OnDestroy()
@@ -133,15 +133,15 @@ public sealed class InputManager : MonoBehaviour
     //{
     //    this.focused = focused;
     //    if (focused == false)
-    //        cancelInput();
+    //        CancelInput();
     //}
 
-    private void cancelInput()
+    private void CancelInput()
     {
         inputInfo = default;
     }
 
-    private void enableActions()
+    private void EnableActions()
     {
         Skill0Action.Enable();
         MoveAction.Enable();
@@ -154,7 +154,7 @@ public sealed class InputManager : MonoBehaviour
         TakeOutPotionAction.Enable();
     }
 
-    private void disableActions()
+    private void DisableActions()
     {
         Skill0Action.Disable();
         MoveAction.Disable();

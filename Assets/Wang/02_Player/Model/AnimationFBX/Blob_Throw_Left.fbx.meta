@@ -56,14 +56,14 @@ ModelImporter:
       curves: []
       events:
       - time: 0.7297393
-        functionName: ThrowPotion
+        functionName: ExecuteEvent
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0.86588204
-        functionName: OnThrowFinished
+        functionName: ExecuteEvent
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

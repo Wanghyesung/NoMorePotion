@@ -33,6 +33,7 @@ public sealed class FSM : MonoBehaviour
     [SerializeField] private StateType initialState = StateType.Idle;
 
     private readonly Dictionary<StateType, PlayerState> states = new Dictionary<StateType, PlayerState>(3);
+    private readonly Dictionary<StateType, AnimatorEventBridge> animEvents = new();
 
     public PlayerState CurrentState { get; private set; }
     public PlayerState PreviousState { get; private set; }
@@ -68,6 +69,7 @@ public sealed class FSM : MonoBehaviour
         {
             PlayerState state = data.CreateState(this);
             states.Add(data.State, state);
+            animEvents.Add(data.State, state.AnimEvent);
         }
 
         foreach (PlayerState state in states.Values)
@@ -98,6 +100,14 @@ public sealed class FSM : MonoBehaviour
     public void FixedUpdateState()
     {
         CurrentState?.FixedUpdateState();
+    }
+
+    public void ExecuteEvent(AnimationEvent animationEvent)
+    {
+        if (CurrentState == null)
+            return;
+
+        animEvents[CurrentState.Type].ExecuteFrame(animationEvent);
     }
 
     public bool ChangeState(StateType type)
@@ -140,6 +150,7 @@ public sealed class FSM : MonoBehaviour
             state.Dispose();
 
         states.Clear();
+        animEvents.Clear();
         groundContacts.Clear();
         PreviousState = null;
     }
@@ -161,11 +172,11 @@ public sealed class FSM : MonoBehaviour
         Dispose();
     }
 
-    private void OnCollisionEnter(Collision collision) => updateGroundContact(collision);
-    private void OnCollisionStay(Collision collision) => updateGroundContact(collision);
+    private void OnCollisionEnter(Collision collision) => UpdateGroundContact(collision);
+    private void OnCollisionStay(Collision collision) => UpdateGroundContact(collision);
     private void OnCollisionExit(Collision collision) => groundContacts.Remove(collision.collider);
 
-    private void updateGroundContact(Collision collision)
+    private void UpdateGroundContact(Collision collision)
     {
         if ((groundLayers.value & (1 << collision.gameObject.layer)) != 0)
         {

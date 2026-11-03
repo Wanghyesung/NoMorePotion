@@ -25,7 +25,7 @@ public sealed class PlayerMoveState : PlayerState
         owner.Animator.SetBool(walkHash, true);
         moveDir = owner.PreviousState.MoveDirection;
 
-        updateMovement();
+        UpdateMovement();
     }
 
     public override void UpdateState()
@@ -38,7 +38,7 @@ public sealed class PlayerMoveState : PlayerState
             return;
         }
 
-        updateMovement();
+        UpdateMovement();
     }
 
     public override void FixedUpdateState()
@@ -50,7 +50,7 @@ public sealed class PlayerMoveState : PlayerState
         owner.Rigidbody.linearVelocity = velocity;
     }
 
-    private void updateMovement()
+    private void UpdateMovement()
     {
         moveInput = Vector2.ClampMagnitude(Instance.InputInfo.MoveDir, 1f);
 

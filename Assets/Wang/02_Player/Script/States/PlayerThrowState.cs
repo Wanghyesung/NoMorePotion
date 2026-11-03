@@ -7,6 +7,8 @@ public sealed class PlayerThrowState : PlayerState
     private static readonly int throwLeftHash = Animator.StringToHash("ThrowLeft");
     private static readonly int throwRightHash = Animator.StringToHash("ThrowRight");
     private readonly Hand hand;
+    private readonly AnimationClip rightClip;
+    private AnimationEvent[] rightClipEvents;
     private readonly float throwSpeed;
     private Transform throwingPotion; //이거도 포션으로 바꿔야함
 
@@ -14,21 +16,40 @@ public sealed class PlayerThrowState : PlayerState
     {
         hand = owner.GetComponent<Hand>();
         throwSpeed = data.ThrowSpeed;
+        rightClip = data.RightClip;
     }
 
     public override void Init()
     {
-        Instance.Skill0Action.performed += requestThrow;
+        base.Init();
+
+        rightClipEvents = rightClip.events;
+        animEvent.RegisterFrame(clip, clipEvents[0], TrowPotion);
+        animEvent.RegisterFrame(clip, clipEvents[1], FinishThrow);
+
+        animEvent.RegisterFrame(rightClip, rightClipEvents[0], TrowPotion);
+        animEvent.RegisterFrame(rightClip, rightClipEvents[1], FinishThrow);
+
+        Instance.Skill0Action.performed += RequestThrow;
     }
 
     public override void Dispose()
     {
+        animEvent.UnregisterFrame(clip, clipEvents[0], TrowPotion);
+        animEvent.UnregisterFrame(clip, clipEvents[1], FinishThrow);
+
+        animEvent.UnregisterFrame(rightClip, rightClipEvents[0], TrowPotion);
+        animEvent.UnregisterFrame(rightClip, rightClipEvents[1], FinishThrow);
+
+
         if (Instance != null)
-            Instance.Skill0Action.performed -= requestThrow;
+            Instance.Skill0Action.performed -= RequestThrow;
     }
 
-    private void requestThrow(InputAction.CallbackContext context) => owner.ChangeState(FSM.StateType.Throw);
-
+    private void RequestThrow(InputAction.CallbackContext context)
+    {
+        owner.ChangeState(FSM.StateType.Throw);
+    }
     public override bool CanEnter()
     {
         var currentType = owner.CurrentState.Type;
@@ -49,15 +70,20 @@ public sealed class PlayerThrowState : PlayerState
         owner.Animator.SetTrigger(hand.FocusedSide == Hand.Side.Left ? throwLeftHash : throwRightHash);
     }
 
-    public void ThrowPotion()
+    private void TrowPotion(AnimationEvent animationEvent)
     {
         //타겟으로 걸린 포션 캐싱하고 던지기
     }
 
+    private void FinishThrow(AnimationEvent animationEvent)
+    {
+        owner.ChangeState(FSM.StateType.Idle);
+    }
     public override void Exit()
     {
         owner.Animator.ResetTrigger(throwLeftHash);
         owner.Animator.ResetTrigger(throwRightHash);
+
         throwingPotion = null;
     }
 }

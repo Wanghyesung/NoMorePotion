@@ -33,21 +33,4 @@ public sealed class Player : MonoBehaviour
     }
 
 
-    public void OnJumpHold()
-    {
-        if (fsm.CurrentState is PlayerJumpState jump)
-            jump.HoldPose();
-    }
-
-    public void OnRollFinished()
-    {
-        if (fsm.CurrentState is PlayerRollState roll)
-            roll.FinishRoll();
-    }
-
-    public void ThrowPotion()
-    {
-        if (fsm.CurrentState is PlayerThrowState throwState)
-            throwState.ThrowPotion();
-    }
 }

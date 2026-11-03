@@ -329674,14 +329674,14 @@ AnimationClip:
   m_HasMotionFloatCurves: 1
   m_Events:
   - time: 0.8
-    functionName: GrabItem
+    functionName: ExecuteEvent
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 1
   - time: 1.6
-    functionName: EatItem
+    functionName: ExecuteEvent
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

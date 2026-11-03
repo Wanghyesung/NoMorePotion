@@ -28,16 +28,19 @@ public sealed class PlayerRollState : PlayerState
 
     public override void Init()
     {
+        base.Init();
+        animEvent.RegisterFrame(clip, clipEvents[0], FinishRoll);
         rollAction = Instance.RollAction;
-        rollAction.performed += requestRoll;
+        rollAction.performed += RequestRoll;
     }
 
     public override void Dispose()
     {
-        rollAction.performed -= requestRoll;
+        animEvent.UnregisterFrame(clip, clipEvents[0], FinishRoll);
+        rollAction.performed -= RequestRoll;
     }
 
-    private void requestRoll(InputAction.CallbackContext context)
+    private void RequestRoll(InputAction.CallbackContext context)
     {
         owner.ChangeState(FSM.StateType.Roll);
     }
@@ -72,7 +75,7 @@ public sealed class PlayerRollState : PlayerState
 
     }
 
-    public void FinishRoll() => owner.ChangeState(FSM.StateType.Idle);
+    private void FinishRoll(AnimationEvent animationEvent) => owner.ChangeState(FSM.StateType.Idle);
 
     public override void Exit()
     {

@@ -18,12 +18,16 @@ public sealed class Hand : MonoBehaviour
 
     private void OnEnable()
     {
-        Instance.SwitchHandAction.performed += switchFocus;
+        Instance.SwitchHandAction.performed += SwitchFocus;
     }
 
-    private void OnDisable() => Instance.SwitchHandAction.performed -= switchFocus;
+    private void OnDisable()
+    {
+        if(Instance != null)
+            Instance.SwitchHandAction.performed -= SwitchFocus;
+    }
 
-    private void switchFocus(InputAction.CallbackContext context) => 
+    private void SwitchFocus(InputAction.CallbackContext context) => 
         focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
 
     public void Hold(Side side, Transform potion)

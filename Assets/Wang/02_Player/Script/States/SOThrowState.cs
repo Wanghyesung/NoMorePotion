@@ -4,6 +4,8 @@ using UnityEngine;
 public sealed class SOThrowState : SOState
 {
     [SerializeField, Min(0f)] private float throwSpeed = 8f;
+    [SerializeField] private AnimationClip rightClip;
+    public AnimationClip RightClip => rightClip;
     public float ThrowSpeed => throwSpeed;
     public override FSM.StateType State => FSM.StateType.Throw;
     public override PlayerState CreateState(FSM owner) => new PlayerThrowState(owner, this);
