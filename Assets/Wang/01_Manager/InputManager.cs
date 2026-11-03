@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 /*///////////////////////////////////////////
              PlayerInputInfo / InputManager
 기능 : Inspector의 액션 참조와 활성화 수명을 관리하고 연속 입력을 읽음
-       포커스 해제·비활성화 시 입력 취소
  *///////////////////////////////////////////
 public struct PlayerInputInfo
 {
