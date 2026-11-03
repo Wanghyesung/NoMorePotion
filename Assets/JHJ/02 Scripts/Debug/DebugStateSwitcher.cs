@@ -26,6 +26,9 @@ public class DebugStateSwitcher : MonoBehaviour
         if (keyboard.cKey.wasPressedThisFrame) JoinFirstRoom(manager);
         if (keyboard.dKey.wasPressedThisFrame) manager.RequestLeaveRoom();
 
+        if (keyboard.eKey.wasPressedThisFrame) manager.RequestJoinByCode("zzzzzz");
+        if (keyboard.fKey.wasPressedThisFrame) manager.RequestQuickMatch();
+
     }
 
     private void JoinFirstRoom(NetworkFlowManager manager)
