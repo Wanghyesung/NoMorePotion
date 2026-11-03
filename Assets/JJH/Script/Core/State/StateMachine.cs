@@ -38,14 +38,18 @@ public class StateMachine
     {
         IMonsterState callState = now ? nowState : beforeState;
 
-        if (callState is MonsterPatrolState)
+        if (callState is MonsterSpawnState)
+            return MonsterState.Spawn;
+        else if (callState is MonsterIdleState)
+            return MonsterState.Idle;
+        else if (callState is MonsterPatrolState)
             return MonsterState.Patrol;
-
         else if (callState is MonsterChaseState)
             return MonsterState.Chase;
-
         else if (callState is MonsterAttackState)
             return MonsterState.Attack;
+        else if (callState is MonsterDeathState)
+            return MonsterState.Death;
         else
             return MonsterState.None;
     }

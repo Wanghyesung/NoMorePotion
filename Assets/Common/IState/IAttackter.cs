@@ -5,7 +5,8 @@ public enum DamageType
     Normal,
     Fire,
     Ice,
-    Electric
+    Electric,
+    Dark
 }
 
 public interface IAttacker
