@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// 몬스터 추격 상태 FSM
+/// </summary>
 public class MonsterChaseState : IMonsterState
 {
     private MonsterMove mover;

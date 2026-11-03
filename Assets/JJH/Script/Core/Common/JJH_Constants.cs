@@ -11,5 +11,8 @@ public static class JJH_Constants
     public const string COUNTRY_KR = "KR";
 
     public const int FSM_TIMER = 100;
+    public const int MIL_SEC = 1000;
+
+    public const float MIL_SEC_F = 1000f;
 
 }

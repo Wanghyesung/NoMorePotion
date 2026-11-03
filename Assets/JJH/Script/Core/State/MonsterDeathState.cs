@@ -1,6 +1,9 @@
 using UnityEngine;
 
-public class MonsterDeathState : MonoBehaviour
+/// <summary>
+/// 몬스터 사망 상태 FSM
+/// </summary>
+public class MonsterDeathState : IMonsterState
 {
     private MonsterMove mover;
 
