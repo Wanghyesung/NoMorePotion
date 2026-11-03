@@ -29,5 +29,11 @@ namespace Enzeun.SO
 
         [HideInInspector] public List<MaterialData> recipeMaterials => RecipeMaterials;
 
+#if UNITY_EDITOR
+        public void SetPotionID(int id)
+        {
+            potionID = id;
+        }
+#endif
     }
 }

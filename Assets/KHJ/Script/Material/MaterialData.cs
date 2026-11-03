@@ -22,5 +22,11 @@ namespace Enzeun.SO
         [MinValue(-1), LabelText("최대 보유 개수"), MaxValue(99)]
         [ShowInInspector] public int maxHoldCount { get; private set; } = 99;
 
+#if UNITY_EDITOR
+        public void SetMaterialID(int id)
+        {
+            materialID = id;
+        }
+#endif
     }
 }

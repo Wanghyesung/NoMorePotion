@@ -1,11 +1,11 @@
 #if UNITY_EDITOR
+
 using UnityEngine;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
 using System.IO;
-
+using Enzeun.Runtime;
 using Enzeun.SO;
 using System;
 
@@ -14,12 +14,14 @@ namespace Enzeun.Editor
 
     public class ItemDatabaseWindow : OdinMenuEditorWindow
     {
-        // --- 입력 필드 변수들 ---
+        public static readonly string materialFolderPath = "Assets/Resources/" + PotionDataManager.materialFolderPath;
+        public static readonly string potionFolderPath = "Assets/Resources/" + PotionDataManager.potionFolderPath;
+
         [SerializeField, LabelText("재료 ID"), HideLabel]
-        private int inputMaterialID = 20001;
+        private int lastMaterialID = 20001;
 
         [SerializeField, LabelText("포션 ID"), HideLabel]
-        private int inputPotionID = 10001;
+        private int lastPotionID = 10001;
 
         CreateMaterialButton createMaterialButton;
         CreatePotionButton createPotionButton;
@@ -51,25 +53,26 @@ namespace Enzeun.Editor
         {
             var tree = new OdinMenuTree();
 
-            createMaterialButton = new CreateMaterialButton();
+            createMaterialButton = new CreateMaterialButton(lastMaterialID);
             createMaterialButton.OnCreateMaterial += CreateMaterial;
             tree.Add("Material SO 생성", createMaterialButton);
 
-            createPotionButton = new CreatePotionButton();
+            createPotionButton = new CreatePotionButton(lastPotionID);
             createPotionButton.OnCreatePotion += CreatePotion;
             tree.Add("Potion SO 생성", createPotionButton);
 
-            tree.AddAllAssetsAtPath("재료 목록", "Assets/KHJ/ScriptableObjects/Material", typeof(MaterialData), true);
-            tree.AddAllAssetsAtPath("포션 목록", "Assets/KHJ/ScriptableObjects/Potion", typeof(PotionData), true);
+            tree.AddAllAssetsAtPath("재료 목록", materialFolderPath, typeof(MaterialData), true);
+            tree.AddAllAssetsAtPath("포션 목록", potionFolderPath, typeof(PotionData), true);
 
             return tree;
         }
 
         public class CreateMaterialButton
         {
-            public CreateMaterialButton()
+            public CreateMaterialButton(int newMaterialID)
             {
                 newMaterial = ScriptableObject.CreateInstance<MaterialData>();
+                newMaterial.SetMaterialID(newMaterialID);
             }
 
             [InlineEditor(objectFieldMode: InlineEditorObjectFieldModes.Hidden)]
@@ -87,9 +90,10 @@ namespace Enzeun.Editor
 
         public class CreatePotionButton
         {
-            public CreatePotionButton()
+            public CreatePotionButton(int newPotionID)
             {
                 newPotion = ScriptableObject.CreateInstance<PotionData>();
+                newPotion.SetPotionID(newPotionID);
             }
 
             [InlineEditor(objectFieldMode: InlineEditorObjectFieldModes.Hidden)]
@@ -107,8 +111,9 @@ namespace Enzeun.Editor
 
         private void CreateMaterial(MaterialData material)
         {
-            string folderPath = "Assets/KHJ/ScriptableObjects/Material";
-            string fileName = $"{material.materialID}.asset";
+            string folderPath = materialFolderPath;
+            int createdMaterialID = material.materialID;
+            string fileName = $"{createdMaterialID}.asset";
 
             if (!Directory.Exists(folderPath))
             {
@@ -126,12 +131,19 @@ namespace Enzeun.Editor
 
             AssetDatabase.CreateAsset(material, path);
             AssetDatabase.SaveAssets();
+
+            lastMaterialID = createdMaterialID + 1;
+
+            // ForceMenuTreeRebuild();
+            // EditorUtility.FocusProjectWindow();
+            // Selection.activeObject = material;
         }
 
         private void CreatePotion(PotionData potion)
         {
-            string folderPath = "Assets/KHJ/ScriptableObjects/Potion";
-            string fileName = $"{potion.potionID}.asset";
+            string folderPath = potionFolderPath;
+            int createdPotionID = potion.potionID;
+            string fileName = $"{createdPotionID}.asset";
 
             if (!Directory.Exists(folderPath))
             {
@@ -149,6 +161,12 @@ namespace Enzeun.Editor
 
             AssetDatabase.CreateAsset(potion, path);
             AssetDatabase.SaveAssets();
+
+            lastPotionID = createdPotionID + 1;
+
+            // ForceMenuTreeRebuild();
+            // EditorUtility.FocusProjectWindow();
+            // Selection.activeObject = potion;
         }
     }
 }
