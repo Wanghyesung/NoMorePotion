@@ -13,7 +13,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public static NetworkFlowManager Instance { get; private set; }
 
 
-    private const string NicknameKey = "Nickname";
+    private const string NICKNAME_KEY = "Nickname";
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
 
 
@@ -97,7 +97,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     // 저장된 닉네임 가져오기
     public string GetSavedNickname()
     {
-        return PlayerPrefs.GetString(NicknameKey, "");
+        return PlayerPrefs.GetString(NICKNAME_KEY, "");
     }
 
     public async UniTaskVoid RequestConnect(string nickname)
@@ -106,7 +106,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         SetState(FlowState.Connecting);
 
-        PlayerPrefs.SetString(NicknameKey, nickname);
+        PlayerPrefs.SetString(NICKNAME_KEY, nickname);
         PlayerPrefs.Save();
         PhotonNetwork.NickName = nickname;
 
@@ -193,11 +193,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             // 방에 저장할 커스텀 속성 : 키 => 값
             CustomRoomProperties = new Hashtable
         {
-            { RoomProps.DisplayName, displayName }
+            { RoomProps.DISPLAY_NAME, displayName }
         },
 
             // 로비목록에서도 보이게 할 키 목록
-            CustomRoomPropertiesForLobby = new[] { RoomProps.DisplayName }
+            CustomRoomPropertiesForLobby = new[] { RoomProps.DISPLAY_NAME }
         };
 
         createRetryCount = 0;
@@ -235,8 +235,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         string code = (roomCode ?? "").Trim().ToUpperInvariant();
 
-        // TODO const 모음 정리해서 수정
-        if (code.Length != 6)
+        if (code.Length != RoomCodeGenerator.CODE_LENGTH)
         {
             RaiseError("방 코드 6자리를 입력해 주세요.");
             return;
@@ -322,8 +321,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         if (returnCode == ErrorCode.NoRandomMatchFound)
         {
-            // TODO : MAX PLAYER CONST 두기
-            CreateRoomInternal("", 5, true);
+            CreateRoomInternal("", RoomRules.MAX_PLAYERS, true);
             return;
         }
 

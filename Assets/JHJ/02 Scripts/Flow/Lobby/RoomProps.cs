@@ -12,5 +12,5 @@
 /// </remarks>
 public static class RoomProps 
 {
-    public const string DisplayName = "dn";
+    public const string DISPLAY_NAME = "dn";
 }
