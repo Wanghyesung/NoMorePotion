@@ -20,6 +20,10 @@ public class DebugStateSwitcher : MonoBehaviour
         if (keyboard.digit4Key.wasPressedThisFrame) manager.Debug_SetState(FlowState.Room);
         if (keyboard.digit5Key.wasPressedThisFrame) manager.Debug_SetState(FlowState.InGame);
         if (keyboard.pKey.wasPressedThisFrame) manager.Debug_RaiseError("Test Popup");
+
+        if (keyboard.aKey.wasPressedThisFrame) manager.RequestCreateRoom("", 5, true);
+        if (keyboard.bKey.wasPressedThisFrame) manager.RequestCreateRoom("테스트방", 3, false);
+
     }
 #endif
 }

@@ -28,7 +28,7 @@ public class OutGameUI : MonoBehaviour
 
     private void ApplyState(FlowState state)
     {
-        titlePanel.SetActive(state == FlowState.Title);
+        titlePanel.SetActive(state == FlowState.Title || state == FlowState.Connecting);
         connectingPanel.SetActive(state == FlowState.Connecting);
         lobbyPanel.SetActive(state == FlowState.Lobby);
         roomPanel.SetActive(state == FlowState.Room);

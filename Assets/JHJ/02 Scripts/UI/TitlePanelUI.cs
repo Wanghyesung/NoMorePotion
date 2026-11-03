@@ -8,7 +8,9 @@ public class TitlePanelUI : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private TMP_InputField nicknameInput;
-    [SerializeField] private Button startButton;
+    [SerializeField] private Button startBtn;
+    [SerializeField] private Button quitBtn;
+    [SerializeField] private ConfirmPopupUI confirmPopup;
 
     private NetworkFlowManager manager;
     private string defaultNickname;
@@ -28,11 +30,12 @@ public class TitlePanelUI : MonoBehaviour
 
         nicknameInput.text = string.IsNullOrEmpty(savedNickname)? defaultNickname : savedNickname;
 
-        startButton.onClick.AddListener(OnClickStart);
+        startBtn.onClick.AddListener(OnClickStart);
+        quitBtn.onClick.AddListener( () => QuitFlow().Forget() );
 
         manager.State                                      // 상태가 바뀔때마다 값을 보냄
             .Select(s => s == FlowState.Title)               // 받은 상태가 Title인지?
-            .Subscribe(isTitle => startButton.interactable = isTitle)   //해당 값을 받아서 interactable에 대입
+            .Subscribe(isTitle => startBtn.interactable = isTitle)   //해당 값을 받아서 interactable에 대입
             .AddTo(this);
     }
 
@@ -45,6 +48,14 @@ public class TitlePanelUI : MonoBehaviour
 
         // UniTask라서 붙임, 결과를 기다리지않고 실행만
         manager.RequestConnect(nickname).Forget();
+    }
+
+    private async UniTaskVoid QuitFlow()
+    {
+        bool yes = await confirmPopup.ShowAsync("게임을 종료하시겠습니까?");
+
+        if(yes)
+            QuitGame.Quit();
     }
 
 }
