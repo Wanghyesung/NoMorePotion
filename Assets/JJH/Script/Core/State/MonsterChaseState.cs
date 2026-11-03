@@ -1,5 +1,6 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static JJH_Enums;
 
 /// <summary>
@@ -16,7 +17,9 @@ public class MonsterChaseState : IMonsterState
 
     public void OnEnd()
     {
-        if (mover.state.GetStateType() == MonsterState.Patrol)
+        float distance = Vector3.Distance(mover.transform.position, 
+            mover.nowTarget.transform.position);
+        if (distance > mover.chaseCollider.radius)
             mover.nowTarget = null;
     }
 
@@ -25,8 +28,10 @@ public class MonsterChaseState : IMonsterState
         mover.agent.ResetPath();
         mover.agent.isStopped = false;
         mover.agent.speed = mover.runSpeed;
+
         mover.anim.IsRun();
         mover.anim.IsWalk(false);
+
         mover.patrolTimer = 0;
         mover.patrolTimerActive = false;
     }

@@ -21,6 +21,8 @@ public class MonsterIdleState : IMonsterState
     public void OnStart()
     {
         mover.patrolTimerActive = true;
+        mover.patrolTimer = 0;
+        
         mover.anim.IsWalk(false);
         mover.anim.IsRun(false);
     }

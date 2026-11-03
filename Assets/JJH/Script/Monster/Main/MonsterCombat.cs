@@ -18,12 +18,12 @@ public class MonsterCombat : MonoBehaviour
         mover = GetComponent<MonsterMove>();
     }
 
-    private void Init(string name,int hp, Dictionary<DamageType, int> immune,
+    private void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea, string description, DamageType damageType)
     {
-        data = new(name, hp,immune,id, instanceId, spawnArea,description, damageType);
+        data = new(name, hp, immune, speed, id, instanceId, spawnArea, description, damageType);
+        data.OnDead += MonsterDead;
     }
-
 
     #region
     public int GetDamage()
@@ -58,6 +58,11 @@ public class MonsterCombat : MonoBehaviour
     {
         mover.IsAnimation = false;
         anim.IsNormalAttack(false);
+    }
+
+    private void MonsterDead()
+    {
+        anim.IsDead();
     }
     #endregion
 }
