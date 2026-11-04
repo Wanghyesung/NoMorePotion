@@ -10,7 +10,7 @@ public class MonsterCombat : MonoBehaviour
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
     [SF] private Collider biteHitbox;
-    [SF] private NormalMonster data;
+    protected NormalMonster data;
 
     private void Awake()
     {
@@ -21,9 +21,10 @@ public class MonsterCombat : MonoBehaviour
             mover = GetComponent<MonsterMove>();
     }
 
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
-        data.OnDead -= MonsterDead;
+        if(data != null)
+            data.OnDead -= MonsterDead;
     }
 
     private void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,

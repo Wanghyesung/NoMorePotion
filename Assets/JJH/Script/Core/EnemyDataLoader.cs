@@ -84,8 +84,6 @@ public class EnemyDataLoader : MonoBehaviour
             // 이외 런타임 에러
             Debug.LogError($"[DataProcessing] 데이터 변환 및 딕셔너리 구성 중 오류 발생: {e.Message}");
         }
-
-        Debug.Log(LoadBossData(40004).BossSkill[0].AnimationName);
     }
 
     public void ReloadLocalizationData()

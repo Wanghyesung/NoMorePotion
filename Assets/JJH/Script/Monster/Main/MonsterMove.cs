@@ -42,6 +42,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [HIn] public bool patrolTimerActive;
     [HIn] public float attackTimer = 0;
     [HIn] public bool attackTimerActive;
+    [HIn]public float AttackRange => attackRange;
     [HIn] public bool IsAnimation;
 
     public Dictionary<MonsterState, IMonsterState> stateGroup;
@@ -72,14 +73,28 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             [MonsterState.Attack] = new MonsterAttackState(this),
             [MonsterState.Death] = new MonsterDeathState(this)
         };
+
+        RegisterStates();
+
         // 이후 캐릭터 스폰 + 이동속도 받을 시 위치 변경
-        StartAI(3.8f).Forget();
+        if (runSpeed == 0)
+            StartAI(3.8f).Forget();
+        else 
+            StartAI(runSpeed).Forget();
     }
 
     private void Update()
     {
-        if (!IsAnimation && state.GetStateType() == MonsterState.Attack)
+        if (!IsAnimation && nowTarget != null && ShouldFaceTarget())
             AttackAngleRotate();
+    }
+
+    // 자식 클래스가 전용 상태를 추가할 때 override
+    protected virtual void RegisterStates() { }
+
+    protected virtual bool ShouldFaceTarget()
+    {
+        return state != null && state.GetStateType() == MonsterState.Attack;
     }
 
     private void AttackAngleRotate()
@@ -117,7 +132,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         state.ChangeState(stateGroup[MonsterState.Patrol]);
     }
 
-    private IMonsterState UpdateState()
+    protected virtual IMonsterState UpdateState()
     {
         IMonsterState result = null;
         MonsterState nowState = MonsterState.None;

@@ -7,9 +7,10 @@ public class WolfBoss : NormalMonster
 
     public WolfBoss(string name, int hp, Dictionary<DamageType, int> immune, 
         float speed, int id, int instanceId, string spawnArea, string description, 
-        DamageType damageType) : 
+        List<BossSkill> bossSkill, DamageType damageType) : 
         base(name, hp, immune, speed, id, instanceId, spawnArea, description, damageType)
     {
+        BossSkill = new(bossSkill);
     }
 
    
