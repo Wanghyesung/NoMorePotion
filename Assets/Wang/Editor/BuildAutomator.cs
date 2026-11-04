@@ -11,7 +11,7 @@ public static class BuildAutomator
 
         BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
 
-        buildPlayerOptions.scenes = new[] { "Assets/JHJ/01 Scenes/OutGameScene.unity" };
+        buildPlayerOptions.scenes = new[] { "Assets/JHJ/01 Scenes/OutGameScene.unity", "Assets/JHJ/01 Scenes/TestInGameScene.unity" };
         buildPlayerOptions.locationPathName = $"C:/NoMorePotion/{time.ToString("yyyy-MM-dd HH_mm_ss")}/NoMorePotion.exe";
         buildPlayerOptions.target = BuildTarget.StandaloneWindows;
         buildPlayerOptions.options = BuildOptions.Development;
