@@ -1,7 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static InputManager;
+
+/*///////////////////////////////////////////
+                       FSM
+기능 : 기본·상체 상태 전환과 애니메이션 이벤트를 관리
+       피격 전달 및 상태·회전 잠금 처리
+ *///////////////////////////////////////////
 
 [DisallowMultipleComponent]
 public sealed class FSM : MonoBehaviour
@@ -16,6 +22,7 @@ public sealed class FSM : MonoBehaviour
 
         Throw = 4,
         Pick = 5,
+        Hit = 6,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
 
@@ -37,6 +44,7 @@ public sealed class FSM : MonoBehaviour
     public PlayerState CurrentState { get; private set; }
     public PlayerState CurrentActionState { get; private set; }
     public PlayerState PreviousState { get; private set; }
+    public event Action<CommonStruct.AttackInfo> OnHitAction;
     #endregion
 
     #region Rotate
@@ -46,6 +54,7 @@ public sealed class FSM : MonoBehaviour
     private float rotateY;
     // 하위 16비트: 기본 상태, 상위 16비트: 액션 상태
     private int rotateLockMask;
+    private bool stateLocked;
     public Quaternion ViewRotation => Quaternion.Euler(0f, rotateY, 0f);
     #endregion
 
@@ -131,19 +140,51 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeState(StateType type)
     {
+        if (stateLocked || player.HP <= 0)
+            return false;
+
         PlayerState nextState = states[type];
         if (CurrentState == nextState || !nextState.CanEnter())
             return false;
 
+        EnterState(nextState);
+        return true;
+    }
+
+    public void LockState(bool locked) => stateLocked = locked;
+
+    // attackInfo: 피격 진입 전에 전달할 공격 위치와 피해량
+    public void TakeDamage(CommonStruct.AttackInfo attackInfo)
+    {
+        if (player.HP <= 0)
+            return;
+
+        OnHitAction?.Invoke(attackInfo);
+    }
+
+    // 잠긴 상태나 같은 상태도 중단 후 다시 진입
+    public void ResetState(PlayerState nextState)
+    {
+        if (player.HP <= 0)
+            return;
+
+        ClearActionState();
+        EnterState(nextState);
+    }
+
+    private void EnterState(PlayerState nextState)
+    {
         PreviousState = CurrentState;
         PreviousState?.Exit();
         CurrentState = nextState;
         CurrentState.Enter();
-        return true;
     }
 
     public bool ChangeActionState(StateType type)
     {
+        if (stateLocked || player.HP <= 0)
+            return false;
+
         PlayerState nextState = states[type];
         if (CurrentState == null || CurrentActionState == nextState || !nextState.CanEnter())
             return false;
@@ -176,6 +217,7 @@ public sealed class FSM : MonoBehaviour
 
         StopHorizontalMovement();
         rotateLockMask = 0;
+        stateLocked = false;
         Animator.speed = 1f;
     }
 
