@@ -34,11 +34,11 @@ public sealed class RangeDetector : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Collider hit = hits[i];
-            if (hit.transform.IsChildOf(transform))
+            if (hit.transform.IsChildOf(transform) == true)
                 continue;
 
             T component = hit.GetComponentInParent<T>();
-            if (component == null || transform.IsChildOf(component.transform))
+            if (component == null || transform.IsChildOf(component.transform) == true)
                 continue;
 
             float distance = (hit.ClosestPoint(center) - center).sqrMagnitude;

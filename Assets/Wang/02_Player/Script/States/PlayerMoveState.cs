@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using static InputManager;
 
 public sealed class PlayerMoveState : PlayerState
@@ -79,7 +79,7 @@ public sealed class PlayerMoveState : PlayerState
 
     public static FSM.StateType SelectState(FSM owner)
     {
-        if (!owner.HasGameplayInput || Instance.InputInfo.MoveDir.sqrMagnitude <= 0.001f)
+        if (owner.HasGameplayInput == false || Instance.InputInfo.MoveDir.sqrMagnitude <= 0.001f)
             return FSM.StateType.Idle;
 
         return FSM.StateType.Walk;

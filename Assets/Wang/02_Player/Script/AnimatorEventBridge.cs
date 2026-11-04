@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,7 +27,7 @@ public sealed class AnimatorEventBridge
     {
         AnimationClip clip = animationEvent.animatorClipInfo.clip;
         var key = (clip, GetFrame(clip, animationEvent));
-        if (frameEvents.TryGetValue(key, out var frame))
+        if (frameEvents.TryGetValue(key, out var frame) == true)
             frame(animationEvent);
     }
 

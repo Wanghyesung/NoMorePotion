@@ -44,7 +44,7 @@ public sealed class Player : MonoBehaviour, IDamageable
 
     private void OnEnable()
     {
-        if (fsm.isActiveAndEnabled)
+        if (fsm.isActiveAndEnabled == true)
             fsm.StartState();
     }
 
@@ -57,7 +57,7 @@ public sealed class Player : MonoBehaviour, IDamageable
         var keyboard = UnityEngine.InputSystem.Keyboard.current;
         bool testHit = keyboard != null && keyboard.oKey.isPressed;
 #endif
-        if (hp > 0 && testHit)
+        if (hp > 0 && testHit == true)
         {
             Vector3 attackDirection = Quaternion.AngleAxis(Random.Range(-45f, 45f), Vector3.up)
                 * transform.forward;

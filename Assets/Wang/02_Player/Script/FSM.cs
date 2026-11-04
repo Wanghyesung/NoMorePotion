@@ -95,11 +95,11 @@ public sealed class FSM : MonoBehaviour
     {  
         if (CurrentState == null)
         {
-            if (!StartState())
+            if (StartState() == false)
                 return;
         }
 
-        if (Instance.HasGameplayInput && rotateLockMask == 0)
+        if (Instance.HasGameplayInput == true && rotateLockMask == 0)
         {
             rotateY = Mathf.Repeat(
                 rotateY + Instance.InputInfo.Delta.x * rotateSensitivity, 360f);
@@ -140,11 +140,11 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeState(StateType type)
     {
-        if (stateLocked || player.HP <= 0)
+        if (stateLocked == true || player.HP <= 0)
             return false;
 
         PlayerState nextState = states[type];
-        if (CurrentState == nextState || !nextState.CanEnter())
+        if (CurrentState == nextState || nextState.CanEnter() == false)
             return false;
 
         EnterState(nextState);
@@ -182,11 +182,11 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeActionState(StateType type)
     {
-        if (stateLocked || player.HP <= 0)
+        if (stateLocked == true || player.HP <= 0)
             return false;
 
         PlayerState nextState = states[type];
-        if (CurrentState == null || CurrentActionState == nextState || !nextState.CanEnter())
+        if (CurrentState == null || CurrentActionState == nextState || nextState.CanEnter() == false)
             return false;
 
         ClearActionState();

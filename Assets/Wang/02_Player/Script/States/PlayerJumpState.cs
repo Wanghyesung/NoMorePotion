@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputManager;
 
@@ -55,13 +55,13 @@ public sealed class PlayerJumpState : PlayerState
 
     private void HoldPose(AnimationEvent animationEvent)
     {
-        if (!owner.IsGrounded)
+        if (owner.IsGrounded == false)
             owner.Animator.SetFloat(AnimationSpeedHash, 0f);
     }
 
     public override void UpdateState()
     {
-        if (owner.IsGrounded)
+        if (owner.IsGrounded == true)
             owner.ChangeState(FSM.StateType.Idle);
     }
 

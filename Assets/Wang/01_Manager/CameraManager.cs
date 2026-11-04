@@ -50,7 +50,7 @@ public sealed class CameraManager : CinemachineExtension
     public void MoveTo(Transform destination)
     {
         CancelMove();
-        if (!isActiveAndEnabled || destination == null)
+        if (isActiveAndEnabled == false || destination == null)
             return;
 
         moveCancellation = new CancellationTokenSource();

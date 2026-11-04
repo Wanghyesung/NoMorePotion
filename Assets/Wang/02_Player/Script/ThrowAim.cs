@@ -84,8 +84,8 @@ public sealed class ThrowAim : MonoBehaviour
     private void Draw(Vector2 screenPosition)
     {
         Ray ray = aimCamera.ScreenPointToRay(screenPosition);
-        if (!Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
-                QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
+                QueryTriggerInteraction.Ignore) == false)
         {
             ClearLine();
             return;

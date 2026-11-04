@@ -68,7 +68,7 @@ public sealed class PlayerPickState : PlayerState
 
     private void Pick(AnimationEvent animationEvent)
     {
-        if (hasPicked || Target == null || !Target.activeInHierarchy)
+        if (hasPicked == true || Target == null || Target.activeInHierarchy == false)
             return;
 
         hasPicked = true;

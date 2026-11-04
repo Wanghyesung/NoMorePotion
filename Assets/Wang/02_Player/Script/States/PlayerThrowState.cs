@@ -85,7 +85,7 @@ public sealed class PlayerThrowState : PlayerState
 
     public override void UpdateState()
     {
-        if (!isAiming || !throwAim.HasTarget)
+        if (isAiming == false || throwAim.HasTarget == false)
             return;
 
         Transform playerView = owner.PlayerView;
@@ -104,7 +104,7 @@ public sealed class PlayerThrowState : PlayerState
     {
         if (owner.CurrentActionState == this)
         {
-            if (isAiming)
+            if (isAiming == true)
             {
                 isAiming = false;
                 owner.LockRotate(this, false);
@@ -125,7 +125,7 @@ public sealed class PlayerThrowState : PlayerState
             return;
 
         isAiming = true;
-        if (!owner.ChangeActionState(FSM.StateType.Throw))
+        if (owner.ChangeActionState(FSM.StateType.Throw) == false)
         {
             isAiming = false;
         }
@@ -142,7 +142,7 @@ public sealed class PlayerThrowState : PlayerState
 
     private void ThrowWait(AnimationEvent animationEvent)
     {
-        if (!isAiming)
+        if (isAiming == false)
             return;
 
         owner.Animator.SetFloat(AnimationSpeedHash, 0f);
@@ -164,7 +164,7 @@ public sealed class PlayerThrowState : PlayerState
     public override void Enter()
     {
         base.Enter();
-        if (isAiming)
+        if (isAiming == true)
             owner.LockRotate(this, true);
         throwingPotion = hand.GetPotion(hand.FocusedSide);
 
