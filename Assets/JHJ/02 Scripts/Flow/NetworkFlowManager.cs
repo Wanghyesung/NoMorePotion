@@ -27,12 +27,14 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private NicknameStore nicknameStore = new NicknameStore();
     private ReactiveProperty<string> nickname;
     private ReactiveProperty<List<PhotonPlayer>> players;
+    private ReactiveProperty<bool> canStart;
 
 
     public ReadOnlyReactiveProperty<string> Nickname => nickname;
     public ReadOnlyReactiveProperty<FlowState> State => state;
     public ReadOnlyReactiveProperty<List<RoomInfo>> RoomList => roomList;
     public ReadOnlyReactiveProperty<List<PhotonPlayer>> Players => players;
+    public ReadOnlyReactiveProperty<bool> CanStart => canStart;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
     public bool HasSavedNickname { get; private set; }
@@ -64,6 +66,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         players = new ReactiveProperty<List<PhotonPlayer>>(new List<PhotonPlayer>());
 
+        canStart = new ReactiveProperty<bool>(false);
+
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
 
@@ -87,6 +91,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         roomList?.Dispose();
         nickname?.Dispose();
         players?.Dispose();
+        canStart?.Dispose();
     }
     #endregion
 
@@ -376,6 +381,24 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         PhotonNetwork.LeaveRoom();
     }
 
+    public void RequestToggleReady()
+    {
+        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
+        {
+            Debug.Log($"[NetworkFlowManager] 준비 무시됨: 현재 위치 = {CurrentState}");
+            return;
+        }
+
+        if(PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("[NetworkFlowManager] 준비 무시됨: 현재 방장");
+            return;
+        }
+
+        bool isReady = PlayerProps.IsReady(PhotonNetwork.LocalPlayer);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, !isReady } });
+    }
+
     #endregion
 
     #region Photon Callbacks
@@ -400,6 +423,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         ClearPlayers();
     }
 
+    public override void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
+    {
+        RefreshPlayers();
+    }
+
     #endregion
 
     #region 내부
@@ -407,11 +435,34 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private void RefreshPlayers()
     {
         players.Value = new List<PhotonPlayer>(PhotonNetwork.PlayerList);
+        canStart.Value = CheckCanStart();
     }
 
     private void ClearPlayers()
     {
         players.Value = new List<PhotonPlayer>();
+    }
+
+    private bool CheckCanStart()
+    {
+        if (!PhotonNetwork.IsMasterClient)
+            return false;
+
+        foreach(PhotonPlayer player in PhotonNetwork.PlayerList)
+        {
+            if (player.IsMasterClient)
+                continue;
+
+            if (!PlayerProps.IsReady(player))
+                return false;
+        }
+
+        return true;
+    }
+
+    private void ResetReady()
+    {
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, false } });
     }
 
     #endregion

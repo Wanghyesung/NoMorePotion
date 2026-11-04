@@ -20,6 +20,10 @@ public class RoomPanelUI : MonoBehaviour
 
     [Header("Buttons")]
     [SerializeField] private Button leaveBtn;
+    [SerializeField] private Button readyBtn;
+    [SerializeField] private Button startBtn;
+
+    [SerializeField] private TMP_Text readyBtnText;
 
     private NetworkFlowManager manager;
     private readonly List<PlayerSlotUI> slots = new List<PlayerSlotUI>();
@@ -47,6 +51,9 @@ public class RoomPanelUI : MonoBehaviour
         manager.Players.Subscribe(RenderSlots).AddTo(this);
 
         leaveBtn.onClick.AddListener(manager.RequestLeaveRoom);
+        readyBtn.onClick.AddListener(manager.RequestToggleReady);
+        startBtn.onClick.AddListener(() =>Debug.Log("게임 시작")); // TODO: 게임 시작 연결
+        manager.CanStart.Subscribe(can => startBtn.interactable = can).AddTo(this);
     }
 
     // 방에 들어올 때마다 방 정보 갱신
@@ -86,5 +93,18 @@ public class RoomPanelUI : MonoBehaviour
         }
 
         playerCountText.text = $"{players.Count}/{room.MaxPlayers}";
+
+        UpdateButtons();
+    }
+
+    private void UpdateButtons()
+    {
+        PhotonPlayer me = PhotonNetwork.LocalPlayer;
+
+        // 방장이면 시작 버튼, 아니면 레디 버튼 (같은 자리에 하나만 보임)
+        startBtn.gameObject.SetActive(me.IsMasterClient);
+        readyBtn.gameObject.SetActive(!me.IsMasterClient);
+
+        readyBtnText.text = PlayerProps.IsReady(me) ? "준비 취소" : "준비";
     }
 }
