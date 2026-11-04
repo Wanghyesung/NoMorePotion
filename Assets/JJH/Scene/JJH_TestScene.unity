@@ -1004,6 +1004,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 633858634194193658, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: sceneViewId
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1222167249365925507, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: sceneViewId
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3270118461142374099, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: sceneViewId
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 3445276007085165661, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
       propertyPath: m_Name
       value: WolfPack

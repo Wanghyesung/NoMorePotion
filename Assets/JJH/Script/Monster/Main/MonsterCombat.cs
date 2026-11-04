@@ -1,11 +1,12 @@
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
-
+using static CommonStruct;
 using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterAnimationController))]
 
 [RequireComponent(typeof(MonsterMove))]
-public class MonsterCombat : MonoBehaviour
+public class MonsterCombat : MonoBehaviour, IDamageable
 {
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
@@ -36,12 +37,15 @@ public class MonsterCombat : MonoBehaviour
 
         if (data != null)
             data.OnDead += MonsterDead;
+
+        // 이후 스폰 정리되면 활성화
+        //mover.StartAI(data.Speed).Forget();
     }
 
-    public void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,
+    public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea, string description, DamageType damageType)
     {
-        SetData(new(name, hp, immune, speed, id, instanceId, 
+        SetData(new(name, maxHp, hp, immune, speed, id, instanceId, 
             spawnArea, description, damageType));
     }
 
@@ -84,6 +88,22 @@ public class MonsterCombat : MonoBehaviour
     private void MonsterDead()
     {
         anim.IsDead();
+    }
+    #endregion
+
+    #region 인터페이스
+    public void TakeDamage(AttackInfo attackInfo)
+    {
+        data.HP =
+    }
+
+    public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
+    {
+    }
+
+    public void TakeDamage(AttackInfo attackInfo, Character attacker)
+    {
+
     }
     #endregion
 }

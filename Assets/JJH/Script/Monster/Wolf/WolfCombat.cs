@@ -52,11 +52,11 @@ public class WolfCombat : MonsterCombat
     }
 
 
-    public void Init(string name, int hp, Dictionary<DamageType, int> immune, float speed,
+    public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune, float speed,
         int id, int instanceId, string spawnArea, string description,
         List<BossSkill> bossSkill, DamageType damageType)
     {
-        SetData(new WolfBoss(name, hp, immune, speed, id, instanceId,
+        SetData(new WolfBoss(name, maxHp, hp, immune, speed, id, instanceId,
             spawnArea, description, bossSkill, damageType));
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 public abstract class Character
 {
     public string Name;
+    public int MaxHP;
     public int HP;
 
     /// <summary>
@@ -14,9 +15,10 @@ public abstract class Character
     /// </summary>
     public Dictionary<DamageType, int> Immune;
 
-    public Character(string Name, int HP, Dictionary<DamageType, int> Immune)
+    public Character(string Name,int MaxHp, int HP, Dictionary<DamageType, int> Immune)
     {
         this.Name = Name;
+        this.MaxHP = MaxHp;
         this.HP = HP;
         this.Immune = Immune;
     }

@@ -77,7 +77,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     {
         RegisterStates();
 
-        // 이후 캐릭터 스폰 + 이동속도 받을 시 위치 변경
+        // 이후 캐릭터 스폰 + 이동속도 받을 시 스폰으로 작동 위치 변경
         if (runSpeed == 0)
             StartAI(3.8f).Forget();
         else 
@@ -91,10 +91,20 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             AttackAngleRotate();
     }
 
+    public override void OnDisable()
+    {
+        base.OnDisable();
+        StopAI();
+    }
+
+
     /// <summary>
     /// 자식 클래스가 전용 상태(FSM)를 추가할 때 override
     /// </summary>
-    protected virtual void RegisterStates() { }
+    protected virtual void RegisterStates() 
+    { 
+
+    }
 
     /// <summary>
     /// 타겟의 재추적 가능 여부 확인 오버라이드 가능 함수
