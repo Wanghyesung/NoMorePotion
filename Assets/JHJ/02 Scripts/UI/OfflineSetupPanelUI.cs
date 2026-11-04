@@ -17,8 +17,7 @@ public class OfflineSetupPanelUI : MonoBehaviour
         }
 
         leaveBtn.onClick.AddListener(manager.RequestLeaveOffline);
-        // TODO: 오프라인 연결
-        startBtn.onClick.AddListener(() => Debug.Log("[OfflineSetupPanelUI] 오프라인 시작: 추후 연결"));
+        startBtn.onClick.AddListener(manager.RequestStartOffline);
 
     }
 

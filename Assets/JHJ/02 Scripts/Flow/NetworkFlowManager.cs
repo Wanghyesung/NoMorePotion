@@ -132,6 +132,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         if (CurrentState != FlowState.Title) return;
 
+        if (PhotonNetwork.OfflineMode)
+        {
+            PhotonNetwork.OfflineMode = false;
+        }
+
         SetState(FlowState.Connecting);
 
         try
@@ -160,6 +165,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             RaiseError("Failed to connect to server");
             SetState(FlowState.Title);
         }
+
+        
     }
 
     #endregion
@@ -168,6 +175,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
+        if(PhotonNetwork.OfflineMode)
+        {
+            CreateOfflineRoom();
+            return;
+        }
+
         PhotonNetwork.JoinLobby();
     }
 
@@ -312,6 +325,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+       if (PhotonNetwork.OfflineMode)
+        {
+            StartGameInternal();
+            return;
+        }
+
         RefreshPlayers();
         SetState(FlowState.Room);
     }
@@ -523,6 +542,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     #region Offline
 
+    private const string OFFLINE_ROOM_NAME = "Offline";
+
     #region 요청
 
     public void RequestEnterOffline()
@@ -545,6 +566,39 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         }
 
         SetState(FlowState.Title);
+    }
+
+    public void RequestStartOffline()
+    {
+        if (CurrentState != FlowState.OfflineSetup)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        if (PhotonNetwork.OfflineMode)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 이미 오프라인모드");
+            return;
+        }
+
+        if (PhotonNetwork.IsConnected)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 서버 접속중");
+            return;
+        }
+
+        // OnConnectedToMaster 즉시 호출됨
+        PhotonNetwork.OfflineMode = true;
+    }
+
+    #endregion
+
+    #region 내부
+
+    private void CreateOfflineRoom()
+    {
+        PhotonNetwork.CreateRoom(OFFLINE_ROOM_NAME, new RoomOptions { MaxPlayers = 1 });
     }
 
     #endregion
