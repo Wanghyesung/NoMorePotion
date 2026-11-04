@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+using PhotonPlayer = Photon.Realtime.Player;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
@@ -25,11 +26,13 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomOptions pendingRoomOptions;
     private NicknameStore nicknameStore = new NicknameStore();
     private ReactiveProperty<string> nickname;
+    private ReactiveProperty<List<PhotonPlayer>> players;
 
 
     public ReadOnlyReactiveProperty<string> Nickname => nickname;
     public ReadOnlyReactiveProperty<FlowState> State => state;
     public ReadOnlyReactiveProperty<List<RoomInfo>> RoomList => roomList;
+    public ReadOnlyReactiveProperty<List<PhotonPlayer>> Players => players;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
     public bool HasSavedNickname { get; private set; }
@@ -59,6 +62,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         roomList = new ReactiveProperty<List<RoomInfo>>(new List<RoomInfo>());
 
+        players = new ReactiveProperty<List<PhotonPlayer>>(new List<PhotonPlayer>());
+
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
 
@@ -81,6 +86,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         error?.Dispose();
         roomList?.Dispose();
         nickname?.Dispose();
+        players?.Dispose();
     }
     #endregion
 
@@ -158,6 +164,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         ClearRoomList();
+        ClearPlayers();
 
         SetState(FlowState.Title);
         RaiseError($"Disconnected from server. ({cause})");
@@ -288,6 +295,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        RefreshPlayers();
         SetState(FlowState.Room);
     }
 
@@ -372,7 +380,39 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     #region Photon Callbacks
 
+    public override void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
+    {
+        RefreshPlayers();
+    }
 
+    public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
+    {
+        RefreshPlayers();
+    }
+
+    public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
+    {
+        RefreshPlayers();
+    }
+
+    public override void OnLeftRoom()
+    {
+        ClearPlayers();
+    }
+
+    #endregion
+
+    #region 내부
+
+    private void RefreshPlayers()
+    {
+        players.Value = new List<PhotonPlayer>(PhotonNetwork.PlayerList);
+    }
+
+    private void ClearPlayers()
+    {
+        players.Value = new List<PhotonPlayer>();
+    }
 
     #endregion
 
