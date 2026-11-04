@@ -1,20 +1,17 @@
 using Cysharp.Threading.Tasks;
 using R3;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class TitlePanelUI : MonoBehaviour
 {
     [Header("UI")]
-    [SerializeField] private TMP_InputField nicknameInput;
     [SerializeField] private Button multiBtn;
     [SerializeField] private Button singleBtn;
     [SerializeField] private Button quitBtn;
     [SerializeField] private ConfirmPopupUI confirmPopup;
 
     private NetworkFlowManager manager;
-    private string defaultNickname;
 
     private void Start()
     {
@@ -25,11 +22,6 @@ public class TitlePanelUI : MonoBehaviour
             Debug.LogError("[TitlePanelUI] NetworkFlowManager 없음");
             return;
         }
-
-        defaultNickname = "Player" + Random.Range(1000, 10000);
-        string savedNickname = manager.GetSavedNickname();
-
-        nicknameInput.text = string.IsNullOrEmpty(savedNickname)? defaultNickname : savedNickname;
 
         multiBtn.onClick.AddListener(OnClickMulti);
         singleBtn.onClick.AddListener(manager.RequestEnterOffline);
@@ -48,13 +40,8 @@ public class TitlePanelUI : MonoBehaviour
 
     private void OnClickMulti()
     {
-        string nickname = nicknameInput.text.Trim();
-        
-        if(string.IsNullOrEmpty(nickname))
-            nickname = defaultNickname;
-
         // UniTask라서 붙임, 결과를 기다리지않고 실행만
-        manager.RequestConnectOnline(nickname).Forget();
+        manager.RequestConnectOnline().Forget();
     }
 
     private async UniTaskVoid QuitFlow()

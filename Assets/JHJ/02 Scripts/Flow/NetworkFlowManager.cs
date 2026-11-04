@@ -10,10 +10,9 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
     private const int MAX_CREATE_RETRY = 5;
+
     public static NetworkFlowManager Instance { get; private set; }
 
-
-    private const string NICKNAME_KEY = "Nickname";
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
 
 
@@ -24,11 +23,16 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomListCache roomListCache = new RoomListCache();
     private int createRetryCount;
     private RoomOptions pendingRoomOptions;
+    private NicknameStore nicknameStore = new NicknameStore();
+    private ReactiveProperty<string> nickname;
 
+
+    public ReadOnlyReactiveProperty<string> Nickname => nickname;
     public ReadOnlyReactiveProperty<FlowState> State => state;
     public ReadOnlyReactiveProperty<List<RoomInfo>> RoomList => roomList;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
+    public bool HasSavedNickname { get; private set; }
 
     //===============================================================
 
@@ -58,6 +62,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
 
+        string savedNickname = nicknameStore.Load();
+        HasSavedNickname = !string.IsNullOrEmpty(savedNickname);
+
+        nickname = new ReactiveProperty<string>(HasSavedNickname ? savedNickname : nicknameStore.CreateDefault() );
+        PhotonNetwork.NickName = nickname.Value;
+
     }
 
     private void OnDestroy()
@@ -70,6 +80,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         state?.Dispose();
         error?.Dispose();
         roomList?.Dispose();
+        nickname?.Dispose();
     }
     #endregion
 
@@ -94,21 +105,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Connect
 
     #region 요청
-    // 저장된 닉네임 가져오기
-    public string GetSavedNickname()
-    {
-        return PlayerPrefs.GetString(NICKNAME_KEY, "");
-    }
 
-    public async UniTaskVoid RequestConnectOnline(string nickname)
+    public async UniTaskVoid RequestConnectOnline()
     {
         if (CurrentState != FlowState.Title) return;
 
         SetState(FlowState.Connecting);
-
-        PlayerPrefs.SetString(NICKNAME_KEY, nickname);
-        PlayerPrefs.Save();
-        PhotonNetwork.NickName = nickname;
 
         try
         {
@@ -407,6 +409,45 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #endregion
 
     #endregion
+
+    //===============================================================
+
+    #region Nickname
+
+    #region 요청
+    public void RequestChangeNickname(string nick)
+    {
+        if (CurrentState != FlowState.Lobby)
+        {
+            Debug.Log($"[NetworkFlowManager] 닉네임 수정 무시됨: 현재상태 = {CurrentState}");
+            return;
+        }
+
+        nick = (nick ?? "").Trim();
+
+        if (string.IsNullOrEmpty(nick))
+        {
+            RaiseError("닉네임을 입력하세요.");
+            return;
+        }
+
+        // [임시] 닉네임 길이 규칙 확인
+        if (nick.Length > NicknameStore.MAX_LENGTH)
+        {
+            RaiseError($"닉네임 글자 수를 {NicknameStore.MAX_LENGTH}자 이내로 입력하세요.");
+            return;
+        }
+
+        nicknameStore.Save(nick);
+        HasSavedNickname = true;
+        nickname.Value = nick;
+        PhotonNetwork.NickName = nick;
+    }
+
+    #endregion
+
+    #endregion
+
 
     //===============================================================
 
