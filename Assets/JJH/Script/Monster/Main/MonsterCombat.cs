@@ -94,7 +94,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable
     #region 인터페이스
     public void TakeDamage(AttackInfo attackInfo)
     {
-        data.HP =
+        data.HP = Mathf.Max(0, data.HP - attackInfo.Damage);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
