@@ -39,8 +39,12 @@ public sealed class FSM : MonoBehaviour
     #endregion
 
     #region Rotate
+    [SerializeField] private Transform playerView;
+    public Transform PlayerView => playerView;
     [SerializeField, Min(0f)] private float rotateSensitivity = 0.15f;
     private float rotateY;
+    // 하위 16비트: 기본 상태, 상위 16비트: 액션 상태
+    private int rotateLockMask;
     public Quaternion ViewRotation => Quaternion.Euler(0f, rotateY, 0f);
     #endregion
 
@@ -55,7 +59,7 @@ public sealed class FSM : MonoBehaviour
     public void Init(Player player)
     {
         this.player = player;
-        Animator = GetComponent<Animator>();
+        Animator = playerView.GetComponent<Animator>();
         upperBodyLayer = Animator.GetLayerIndex("UpperBody");
         Rigidbody = GetComponent<Rigidbody>();
 
@@ -85,7 +89,7 @@ public sealed class FSM : MonoBehaviour
                 return;
         }
 
-        if (Instance.HasGameplayInput == true && CurrentState.Type != StateType.Roll)
+        if (Instance.HasGameplayInput && rotateLockMask == 0)
         {
             rotateY = Mathf.Repeat(
                 rotateY + Instance.InputInfo.Delta.x * rotateSensitivity, 360f);
@@ -101,6 +105,19 @@ public sealed class FSM : MonoBehaviour
     {
         CurrentState?.FixedUpdateState();
         CurrentActionState?.FixedUpdateState();
+    }
+
+    // source: 현재 기본/액션 상태. StateType(0~15)에 해당하는 비트만 변경
+    public void LockRotate(PlayerState source, bool locked)
+    {
+        int stateIndex = (int)source.Type;
+        int shift = source == CurrentActionState ? 16 : 0;
+        int mask = 1 << (shift + stateIndex);
+
+        if (locked == true)
+            rotateLockMask |= mask;
+        else
+            rotateLockMask &= ~mask;
     }
 
     public void ExecuteEvent(AnimationEvent animationEvent)
@@ -157,6 +174,7 @@ public sealed class FSM : MonoBehaviour
         }
 
         StopHorizontalMovement();
+        rotateLockMask = 0;
         Animator.speed = 1f;
     }
 

@@ -54,6 +54,7 @@ public sealed class PlayerRollState : PlayerState
     public override void Enter()
     {
         base.Enter();
+        owner.LockRotate(this, true);
         direction = owner.transform.forward;
 
         owner.Animator.SetTrigger(rollHash);
@@ -80,6 +81,7 @@ public sealed class PlayerRollState : PlayerState
     public override void Exit()
     {
         base.Exit();
+        owner.LockRotate(this, false);
         owner.Animator.ResetTrigger(rollHash);
     }
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputManager;
 
@@ -21,6 +22,7 @@ public sealed class PlayerThrowState : PlayerState
     #region Components
     private readonly Hand hand;
     private readonly ThrowAim throwAim;
+    private readonly Quaternion defaultViewRotation;
     #endregion
 
     #region AnimationData
@@ -39,6 +41,7 @@ public sealed class PlayerThrowState : PlayerState
     {
         hand = owner.GetComponent<Hand>();
         throwAim = owner.GetComponentInChildren<ThrowAim>(true);
+        defaultViewRotation = owner.PlayerView.localRotation;
         rightClip = data.RightClip;
     }
 
@@ -58,6 +61,7 @@ public sealed class PlayerThrowState : PlayerState
         Instance.Skill0Action.performed += RequestThrow;
         Instance.AimAction.performed += RequestAim;
         Instance.AimAction.canceled += CancelAim;
+        
     }
 
     public override void Dispose()
@@ -79,6 +83,22 @@ public sealed class PlayerThrowState : PlayerState
         }
     }
 
+    public override void UpdateState()
+    {
+        if (!isAiming || !throwAim.HasTarget)
+            return;
+
+        Transform playerView = owner.PlayerView;
+
+        Vector3 direction = throwAim.TargetPosition - playerView.position;
+        direction.y = 0f; // 몸이 위아래로 기울지 않도록 수평 회전만
+
+        if (direction.sqrMagnitude < 0.0001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        playerView.rotation = targetRotation;
+    }
 
     private void RequestThrow(InputAction.CallbackContext context)
     {
@@ -87,6 +107,7 @@ public sealed class PlayerThrowState : PlayerState
             if (isAiming)
             {
                 isAiming = false;
+                owner.LockRotate(this, false);
                 isThrowing = true;
                 owner.Animator.SetFloat(AnimationSpeedHash, data.AnimationSpeed);
                 throwAim.Hide();
@@ -105,7 +126,9 @@ public sealed class PlayerThrowState : PlayerState
 
         isAiming = true;
         if (!owner.ChangeActionState(FSM.StateType.Throw))
+        {
             isAiming = false;
+        }
     }
 
     private void CancelAim(InputAction.CallbackContext context)
@@ -141,6 +164,8 @@ public sealed class PlayerThrowState : PlayerState
     public override void Enter()
     {
         base.Enter();
+        if (isAiming)
+            owner.LockRotate(this, true);
         throwingPotion = hand.GetPotion(hand.FocusedSide);
 
         owner.Animator.SetTrigger(hand.FocusedSide == Hand.Side.Left ? throwLeftHash : throwRightHash);
@@ -160,6 +185,8 @@ public sealed class PlayerThrowState : PlayerState
     public override void Exit()
     {
         base.Exit();
+        owner.LockRotate(this, false);
+        owner.PlayerView.localRotation = defaultViewRotation;
         owner.Animator.ResetTrigger(throwLeftHash);
         owner.Animator.ResetTrigger(throwRightHash);
 

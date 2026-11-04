@@ -14,7 +14,6 @@ public sealed class ThrowAim : MonoBehaviour
 {
     #region AimSettings
     [SerializeField] private Camera aimCamera;
-    [SerializeField] private CameraManager cameraManager;
     [SerializeField] private LayerMask targetLayers;
     [SerializeField, Min(0.01f)] private float maxAimDistance = 100f;
     #endregion
@@ -27,6 +26,7 @@ public sealed class ThrowAim : MonoBehaviour
 
     #region LineSettings
     [SerializeField, Min(2)] private int pointCount = 40;
+    [SerializeField, Min(2)] private int fadePointCount = 20;
     [SerializeField] private List<Vector3> positions = new List<Vector3>(40);
     public IReadOnlyList<Vector3> Positions => positions;
     #endregion
@@ -34,6 +34,9 @@ public sealed class ThrowAim : MonoBehaviour
     #region Runtime
     private LineRenderer lineRenderer;
     private Transform origin;
+    private Gradient lineGradient;
+    private GradientColorKey[] lineColors;
+    private readonly GradientAlphaKey[] fadeAlphas = new GradientAlphaKey[3];
 
     public ThrowData ThrowData { get; private set; }
     public Vector3 TargetPosition { get; private set; }
@@ -44,6 +47,9 @@ public sealed class ThrowAim : MonoBehaviour
     {
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.useWorldSpace = true;
+        lineGradient = lineRenderer.colorGradient;
+        lineColors = lineGradient.colorKeys;
+        lineGradient.mode = GradientMode.Blend;
         positions.Capacity = Mathf.Max(positions.Capacity, pointCount);
         Hide();
     }
@@ -53,9 +59,7 @@ public sealed class ThrowAim : MonoBehaviour
     {
         origin = throwOrigin;
         enabled = true;
-        if (cameraManager != null)
-            cameraManager.SetZoom(true);
-        LateUpdate();
+
     }
 
     public void Hide()
@@ -107,6 +111,30 @@ public sealed class ThrowAim : MonoBehaviour
         lineRenderer.positionCount = positions.Count;
         for (int i = 0; i < positions.Count; i++)
             lineRenderer.SetPosition(i, positions[i]);
+
+        UpdateLineFade();
+    }
+
+    private void UpdateLineFade()
+    {
+        int fadeStart = Mathf.Max(0, positions.Count - fadePointCount);
+        float totalLength = 0f;
+        float startLength = 0f;
+        // Gradient는 선 길이 기준이므로 마지막 포인트 구간의 실제 길이 비율을 구함
+        for (int i = 1; i < positions.Count; i++)
+        {
+            totalLength += Vector3.Distance(positions[i - 1], positions[i]);
+            if (i == fadeStart)
+                startLength = totalLength;
+        }
+
+        //선의 어느 위치에서 얼마나 투명하게 보일지
+        float start = totalLength > 0f ? startLength / totalLength : 0f;
+        fadeAlphas[0] = new GradientAlphaKey(1f, 0f);
+        fadeAlphas[1] = new GradientAlphaKey(1f, start); // 흐려지기 시작할 위치까지: 선명하게 유지
+        fadeAlphas[2] = new GradientAlphaKey(0f, 1f);
+        lineGradient.SetKeys(lineColors, fadeAlphas);
+        lineRenderer.colorGradient = lineGradient;
     }
 
     private void ClearLine()
@@ -119,8 +147,6 @@ public sealed class ThrowAim : MonoBehaviour
 
     private void OnDisable()
     {
-        if (cameraManager != null)
-            cameraManager.SetZoom(false);
         if (lineRenderer != null)
             lineRenderer.enabled = false;
     }
