@@ -8,9 +8,9 @@
 [System.Serializable]
 public sealed class Inventory
 {
-    [SerializeField] private Transform itemPrefab;
+    [SerializeField] private Potion itemPrefab;
 
-    public Transform GetItem()
+    public Potion GetItem()
     {
         return Object.Instantiate(itemPrefab);
     }

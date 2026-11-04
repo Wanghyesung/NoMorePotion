@@ -18,14 +18,14 @@ public sealed class Hand : MonoBehaviour
     [SerializeField] private Transform leftSocket;
     [SerializeField] private Transform rightSocket;
 
-    private Transform leftPotion;
-    private Transform rightPotion;
+    private Potion leftPotion;
+    private Potion rightPotion;
     [SerializeField] private Inventory inventory = new Inventory();
-    [SerializeField] private UnityEvent<GameObject> OnDrink = new UnityEvent<GameObject>(); //이거 Potion으로 바꾸기
+    [SerializeField] private UnityEvent<Potion> OnDrink = new UnityEvent<Potion>();
 
     public Side FocusedSide => focusedSide;
-    public Transform FocusedPotion => GetPotion(focusedSide); // 이거도 포션 객체로 바꿔야함
-    public Transform OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);   
+    public Potion FocusedPotion => GetPotion(focusedSide);
+    public Potion OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);
     public Side TakeSide => FocusedPotion == null
         ? focusedSide
         : (focusedSide == Side.Left ? Side.Right : Side.Left);
@@ -44,7 +44,7 @@ public sealed class Hand : MonoBehaviour
     private void SwitchFocus(InputAction.CallbackContext context) => 
         focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
 
-    public bool Hold(Side side, Transform potion)
+    public bool Hold(Side side, Potion potion)
     {
         if (GetPotion(side) != null)
             return false;
@@ -64,28 +64,32 @@ public sealed class Hand : MonoBehaviour
         return Hold(TakeSide, inventory.GetItem());
     }
 
-    public void Throw(Side side)
+    public void Throw(Side side, ThrowData throwData)
     {
-        var potion = GetPotion(side);
-
-        SetPotion(side, null);
-    }
-
-    public void Drink(Side side)
-    {
-        Transform potion = GetPotion(side);
+        Potion potion = GetPotion(side);
         if (potion == null)
             return;
 
         SetPotion(side, null);
-        OnDrink.Invoke(potion.gameObject);
+        potion.transform.SetParent(null, true);
+        potion.GetComponent<ParabolicMovement>().Launch(throwData);
+    }
+
+    public void Drink(Side side)
+    {
+        Potion potion = GetPotion(side);
+        if (potion == null)
+            return;
+
+        SetPotion(side, null);
+        OnDrink.Invoke(potion);
         Destroy(potion.gameObject);
     }
 
     public void Drink() => Drink(focusedSide);
 
-    public Transform GetPotion(Side side) => side == Side.Left ? leftPotion : rightPotion;
-    private void SetPotion(Side side, Transform potion)
+    public Potion GetPotion(Side side) => side == Side.Left ? leftPotion : rightPotion;
+    private void SetPotion(Side side, Potion potion)
     {
         if (side == Side.Left)
             leftPotion = potion;

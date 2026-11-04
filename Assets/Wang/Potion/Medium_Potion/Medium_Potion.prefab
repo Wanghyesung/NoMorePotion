@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4347192446523376560}
+  - component: {fileID: 1417736869826601}
+  - component: {fileID: 8293469968150323575}
   m_Layer: 0
   m_Name: Medium_Potion
   m_TagString: Untagged
@@ -32,6 +34,31 @@ Transform:
   - {fileID: 7565801484644811471}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1417736869826601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710584622642429393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3cae9a50b8030b4ca8e49392968a6df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Potion
+--- !u!114 &8293469968150323575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710584622642429393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb5324848e76ba344962f2060f3f379e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ParabolicMovement
+  speedMultiplier: 2
 --- !u!1001 &8031493873536460068
 PrefabInstance:
   m_ObjectHideFlags: 0

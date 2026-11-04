@@ -83,26 +83,17 @@ public sealed class ThrowAim : MonoBehaviour
     // screenPosition: 화면의 마우스 X·Y 좌표. 카메라 Ray로 월드 목표 위치를 구함
     private void Draw(Vector2 screenPosition)
     {
-        Ray ray = aimCamera.ScreenPointToRay(screenPosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
-                QueryTriggerInteraction.Ignore) == false)
+        if (TryCreateThrowData(origin.position, screenPosition, out ThrowData data) == false)
         {
             ClearLine();
             return;
         }
 
         HasTarget = true;
-        TargetPosition = hit.point;
-        // 수평 거리 0~maxArcDistance를 높이 minArcHeight~maxArcHeight로 변환
-        float distance = Vector3.ProjectOnPlane(TargetPosition - origin.position, Physics.gravity).magnitude;
-        float ratio = Mathf.InverseLerp(0f, maxArcDistance, distance);
-        float arcHeight = Mathf.Lerp(minArcHeight, maxArcHeight, ratio);
-
-        // ThrowData(월드 출발 위치, 월드 목표 위치, 중력 가속도, 정점 높이)
-        ThrowData = new ThrowData(origin.position, TargetPosition, Physics.gravity, arcHeight);
+        ThrowData = data;
+        TargetPosition = data.Target;
 
         positions.Clear();
-        // 비행 시간 전체를 나누므로 마지막 점은 목표 위치에 도달
         float timeStep = ThrowData.FlightTime / (pointCount - 1);
         for (int i = 0; i < pointCount; i++)
             positions.Add(ThrowData.GetPosition(i * timeStep));
@@ -113,6 +104,27 @@ public sealed class ThrowAim : MonoBehaviour
             lineRenderer.SetPosition(i, positions[i]);
 
         UpdateLineFade();
+    }
+
+    // throwOrigin: 포션의 월드 위치, screenPosition: 목표를 고를 화면 좌표
+    public bool TryCreateThrowData(Vector3 throwOrigin, Vector2 screenPosition, out ThrowData data)
+    {
+        data = default;
+        Ray ray = aimCamera.ScreenPointToRay(screenPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
+                QueryTriggerInteraction.Ignore) == false)
+        {
+            return false;
+        }
+
+        // 수평 거리 0~maxArcDistance를 높이 minArcHeight~maxArcHeight로 변환
+        float distance = Vector3.ProjectOnPlane(hit.point - throwOrigin, Physics.gravity).magnitude;
+        float ratio = Mathf.InverseLerp(0f, maxArcDistance, distance);
+        float arcHeight = Mathf.Lerp(minArcHeight, maxArcHeight, ratio);
+
+        // ThrowData(월드 출발 위치, 월드 목표 위치, 중력 가속도, 정점 높이)
+        data = new ThrowData(throwOrigin, hit.point, Physics.gravity, arcHeight);
+        return true;
     }
 
     private void UpdateLineFade()

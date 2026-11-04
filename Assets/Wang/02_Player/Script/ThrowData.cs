@@ -10,6 +10,8 @@ public readonly struct ThrowData
 {
     #region TrajectoryData
     public Vector3 Origin { get; }
+    public Vector3 Target { get; }
+    public float ArcHeight { get; }
     public Vector3 Velocity { get; }
     public Vector3 Gravity { get; }
     public float FlightTime { get; }
@@ -21,6 +23,8 @@ public readonly struct ThrowData
         
         float acceleration = gravity.magnitude;
         Origin = origin;
+        Target = target;
+        ArcHeight = arcHeight;
         Gravity = gravity;
 
         float targetHeight = Vector3.Dot(target - origin, -gravity / acceleration);
@@ -38,4 +42,7 @@ public readonly struct ThrowData
     {
         return Origin + Velocity * time + Gravity * (0.5f * time * time);
     }
+
+    // origin: 실제 손에서 분리되는 순간의 월드 출발 위치
+    public ThrowData WithOrigin(Vector3 origin) => new ThrowData(origin, Target, Gravity, ArcHeight);
 }
