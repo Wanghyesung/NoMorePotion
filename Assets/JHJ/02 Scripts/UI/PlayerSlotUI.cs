@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using PhotonPlayer = Photon.Realtime.Player;

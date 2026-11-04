@@ -52,7 +52,7 @@ public class RoomPanelUI : MonoBehaviour
 
         leaveBtn.onClick.AddListener(manager.RequestLeaveRoom);
         readyBtn.onClick.AddListener(manager.RequestToggleReady);
-        startBtn.onClick.AddListener(() =>Debug.Log("게임 시작")); // TODO: 게임 시작 연결
+        startBtn.onClick.AddListener(manager.RequestStartGame);
         manager.CanStart.Subscribe(can => startBtn.interactable = can).AddTo(this);
     }
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using PhotonPlayer = Photon.Realtime.Player;
+using UnityEngine.SceneManagement;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
@@ -53,6 +54,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
         // Master 씬 로드시 전원이 같은 씬으로 이동
         PhotonNetwork.AutomaticallySyncScene = true;
 
@@ -92,6 +95,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         nickname?.Dispose();
         players?.Dispose();
         canStart?.Dispose();
+
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
     #endregion
 
@@ -107,6 +112,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private void RaiseError(string message)
     {
         error.OnNext(message);
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == SceneNames.IN_GAME)
+            SetState(FlowState.InGame);
     }
 
     #endregion
@@ -170,6 +181,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         ClearRoomList();
         ClearPlayers();
+        ResetReady();
 
         SetState(FlowState.Title);
         RaiseError($"Disconnected from server. ({cause})");
@@ -389,7 +401,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if(PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient)
         {
             Debug.Log("[NetworkFlowManager] 준비 무시됨: 현재 방장");
             return;
@@ -397,6 +409,36 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         bool isReady = PlayerProps.IsReady(PhotonNetwork.LocalPlayer);
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, !isReady } });
+    }
+
+    public void RequestStartGame()
+    {
+        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
+        {
+            Debug.Log($"[NetworkFlowManager] 시작 무시됨: 현재 위치 = {CurrentState}");
+            return;
+        }
+
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 방장 아님");
+            return;
+        }
+
+        if (!PhotonNetwork.CurrentRoom.IsOpen)
+        {
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 이미 시작된 방");
+            return;
+        }
+
+        if(!CheckCanStart())
+        {
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 시작할 수 있지않음");
+            return;
+        }
+
+        StartGameInternal();
+
     }
 
     #endregion
@@ -421,6 +463,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public override void OnLeftRoom()
     {
         ClearPlayers();
+        ResetReady();
     }
 
     public override void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
@@ -463,6 +506,13 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private void ResetReady()
     {
         PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, false } });
+    }
+
+    private void StartGameInternal()        // 오프라인 게임도 여기로 시작
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
     }
 
     #endregion
@@ -539,7 +589,6 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #endregion
 
     #endregion
-
 
     //===============================================================
 
