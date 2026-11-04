@@ -100,7 +100,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         return PlayerPrefs.GetString(NICKNAME_KEY, "");
     }
 
-    public async UniTaskVoid RequestConnect(string nickname)
+    public async UniTaskVoid RequestConnectOnline(string nickname)
     {
         if (CurrentState != FlowState.Title) return;
 
@@ -137,6 +137,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             SetState(FlowState.Title);
         }
     }
+
     #endregion
 
     #region Photon Callbacks
@@ -370,6 +371,38 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Photon Callbacks
 
 
+
+    #endregion
+
+    #endregion
+
+    //===============================================================
+
+    #region Offline
+
+    #region 요청
+
+    public void RequestEnterOffline()
+    {
+        if (CurrentState != FlowState.Title)
+        {
+            Debug.Log($"[NetworkFlowManager] 싱글 진입 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        SetState(FlowState.OfflineSetup);
+    }
+
+    public void RequestLeaveOffline()
+    {
+        if (CurrentState != FlowState.OfflineSetup)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 나가기 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        SetState(FlowState.Title);
+    }
 
     #endregion
 

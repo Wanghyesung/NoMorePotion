@@ -8,7 +8,8 @@ public class TitlePanelUI : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private TMP_InputField nicknameInput;
-    [SerializeField] private Button startBtn;
+    [SerializeField] private Button multiBtn;
+    [SerializeField] private Button singleBtn;
     [SerializeField] private Button quitBtn;
     [SerializeField] private ConfirmPopupUI confirmPopup;
 
@@ -30,16 +31,22 @@ public class TitlePanelUI : MonoBehaviour
 
         nicknameInput.text = string.IsNullOrEmpty(savedNickname)? defaultNickname : savedNickname;
 
-        startBtn.onClick.AddListener(OnClickStart);
+        multiBtn.onClick.AddListener(OnClickMulti);
+        singleBtn.onClick.AddListener(manager.RequestEnterOffline);
         quitBtn.onClick.AddListener( () => QuitFlow().Forget() );
 
         manager.State                                      // 상태가 바뀔때마다 값을 보냄
             .Select(s => s == FlowState.Title)               // 받은 상태가 Title인지?
-            .Subscribe(isTitle => startBtn.interactable = isTitle)   //해당 값을 받아서 interactable에 대입
+            .Subscribe(isTitle =>
+            {
+                multiBtn.interactable = isTitle;
+                singleBtn.interactable = isTitle;
+
+            })   //해당 값을 받아서 interactable에 대입
             .AddTo(this);
     }
 
-    private void OnClickStart()
+    private void OnClickMulti()
     {
         string nickname = nicknameInput.text.Trim();
         
@@ -47,7 +54,7 @@ public class TitlePanelUI : MonoBehaviour
             nickname = defaultNickname;
 
         // UniTask라서 붙임, 결과를 기다리지않고 실행만
-        manager.RequestConnect(nickname).Forget();
+        manager.RequestConnectOnline(nickname).Forget();
     }
 
     private async UniTaskVoid QuitFlow()

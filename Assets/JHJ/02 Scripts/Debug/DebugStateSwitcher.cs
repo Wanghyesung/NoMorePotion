@@ -4,7 +4,10 @@ using UnityEngine.InputSystem;
 #endif
 
 // 테스트 전용: 키 입력으로 FlowState 전환 / 팝업 테스트
-// 1~5: Title, Connecting, Lobby, Room, InGame / P: 테스트 팝업
+// 1~6: Title, Connecting, Lobby, Room, InGame, OfflineSetup
+// P: 테스트 팝업
+// A~F: (방 생성·입장·나가기·코드 입장·퀵매치)
+
 public class DebugStateSwitcher : MonoBehaviour
 {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -19,6 +22,9 @@ public class DebugStateSwitcher : MonoBehaviour
         if (keyboard.digit3Key.wasPressedThisFrame) manager.Debug_SetState(FlowState.Lobby);
         if (keyboard.digit4Key.wasPressedThisFrame) manager.Debug_SetState(FlowState.Room);
         if (keyboard.digit5Key.wasPressedThisFrame) manager.Debug_SetState(FlowState.InGame);
+        if (keyboard.digit6Key.wasPressedThisFrame) manager.Debug_SetState(FlowState.OfflineSetup);
+
+
         if (keyboard.pKey.wasPressedThisFrame) manager.Debug_RaiseError("Test Popup");
 
         if (keyboard.aKey.wasPressedThisFrame) manager.RequestCreateRoom("", 5, true);
