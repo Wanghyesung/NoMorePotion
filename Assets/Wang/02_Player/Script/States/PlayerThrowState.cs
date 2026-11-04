@@ -33,7 +33,10 @@ public sealed class PlayerThrowState : PlayerState
     #region RuntimeState
     private bool isAiming;
     private bool isThrowing;
-    private Transform throwingPotion; //이거도 포션으로 바꿔야함
+    private Potion throwingPotion;
+    private Hand.Side throwingSide;
+    private ThrowData throwData;
+    private bool hasThrown;
 
     #endregion
 
@@ -85,7 +88,7 @@ public sealed class PlayerThrowState : PlayerState
 
     public override void UpdateState()
     {
-        if (!isAiming || !throwAim.HasTarget)
+        if (isAiming == false || throwAim.HasTarget == false)
             return;
 
         Transform playerView = owner.PlayerView;
@@ -104,8 +107,12 @@ public sealed class PlayerThrowState : PlayerState
     {
         if (owner.CurrentActionState == this)
         {
-            if (isAiming)
+            if (isAiming == true)
             {
+                if (throwAim.HasTarget == false)
+                    return;
+
+                throwData = throwAim.ThrowData;
                 isAiming = false;
                 owner.LockRotate(this, false);
                 isThrowing = true;
@@ -125,7 +132,7 @@ public sealed class PlayerThrowState : PlayerState
             return;
 
         isAiming = true;
-        if (!owner.ChangeActionState(FSM.StateType.Throw))
+        if (owner.ChangeActionState(FSM.StateType.Throw) == false)
         {
             isAiming = false;
         }
@@ -133,7 +140,7 @@ public sealed class PlayerThrowState : PlayerState
 
     private void CancelAim(InputAction.CallbackContext context)
     {
-        if (isThrowing == true)
+        if (owner.CurrentActionState != this || isThrowing == true)
             return;
 
         owner.ClearActionState();
@@ -142,11 +149,11 @@ public sealed class PlayerThrowState : PlayerState
 
     private void ThrowWait(AnimationEvent animationEvent)
     {
-        if (!isAiming)
+        if (isAiming == false)
             return;
 
         owner.Animator.SetFloat(AnimationSpeedHash, 0f);
-        throwAim.Show(throwingPotion);
+        throwAim.Show(throwingPotion.transform);
     }
 
     public override bool CanEnter()
@@ -158,15 +165,27 @@ public sealed class PlayerThrowState : PlayerState
         if (hand.FocusedPotion == null)
             return false;
 
+        if (isAiming == false)
+        {
+            if (Mouse.current == null)
+                return false;
+
+            return throwAim.TryCreateThrowData(hand.FocusedPotion.transform.position,
+                Mouse.current.position.ReadValue(), out throwData);
+        }
+
         return true;
     }
         
     public override void Enter()
     {
         base.Enter();
-        if (isAiming)
+        if (isAiming == true)
             owner.LockRotate(this, true);
-        throwingPotion = hand.GetPotion(hand.FocusedSide);
+        throwingSide = hand.FocusedSide;
+        throwingPotion = hand.GetPotion(throwingSide);
+        hasThrown = false;
+        isThrowing = isAiming == false;
 
         owner.Animator.SetTrigger(hand.FocusedSide == Hand.Side.Left ? throwLeftHash : throwRightHash);
     }
@@ -174,7 +193,11 @@ public sealed class PlayerThrowState : PlayerState
 
     private void ThrowPotion(AnimationEvent animationEvent)
     {
-        //타겟으로 걸린 포션 캐싱하고 던지기
+        if (hasThrown == true || throwingPotion == null || hand.GetPotion(throwingSide) != throwingPotion)
+            return;
+
+        hasThrown = true;
+        hand.Throw(throwingSide, throwData.WithOrigin(throwingPotion.transform.position));
     }
 
     private void FinishThrow(AnimationEvent animationEvent)
