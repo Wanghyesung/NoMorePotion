@@ -23,6 +23,7 @@ public sealed class FSM : MonoBehaviour
         Throw = 4,
         Pick = 5,
         Hit = 6,
+        Take = 7,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
 

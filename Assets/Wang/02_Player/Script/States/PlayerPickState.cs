@@ -38,7 +38,9 @@ public sealed class PlayerPickState : PlayerState
     {
         animEvent.UnregisterFrame(clip, clipEvents[0], Pick);
         animEvent.UnregisterFrame(clip, clipEvents[1], FinishPick);
-        InputManager.Instance.InteractAction.performed -= RequestPick;
+
+        if(InputManager.Instance != null)
+            InputManager.Instance.InteractAction.performed -= RequestPick;
     }
 
     private void RequestPick(InputAction.CallbackContext context)

@@ -1100,6 +1100,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: efa4c9f18b8500f499bbaa65f74aa7b0, type: 2}
   - {fileID: 11400000, guid: 29aa64053f7a3114cadb3f5c8dfe6a29, type: 2}
   - {fileID: 11400000, guid: 00e7c23716aeb2f4ea71548b6bf0dc8a, type: 2}
+  - {fileID: 11400000, guid: f2dbe2cd57c070a46a7779cce2021938, type: 2}
   initialState: 0
   playerView: {fileID: 4944021340756901690}
   rotateSensitivity: 0.15
@@ -1134,6 +1135,8 @@ MonoBehaviour:
   focusedSide: 0
   leftSocket: {fileID: 9102542354336093553}
   rightSocket: {fileID: 3968786949799244013}
+  inventory:
+    itemPrefab: {fileID: 4347192446523376560, guid: 29d15d7934495f145811c33ea03f630a, type: 3}
   OnDrink:
     m_PersistentCalls:
       m_Calls: []
