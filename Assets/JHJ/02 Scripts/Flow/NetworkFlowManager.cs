@@ -6,14 +6,15 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+using PhotonPlayer = Photon.Realtime.Player;
+using UnityEngine.SceneManagement;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
     private const int MAX_CREATE_RETRY = 5;
+
     public static NetworkFlowManager Instance { get; private set; }
 
-
-    private const string NicknameKey = "Nickname";
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
 
 
@@ -24,11 +25,20 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomListCache roomListCache = new RoomListCache();
     private int createRetryCount;
     private RoomOptions pendingRoomOptions;
+    private NicknameStore nicknameStore = new NicknameStore();
+    private ReactiveProperty<string> nickname;
+    private ReactiveProperty<List<PhotonPlayer>> players;
+    private ReactiveProperty<bool> canStart;
 
+
+    public ReadOnlyReactiveProperty<string> Nickname => nickname;
     public ReadOnlyReactiveProperty<FlowState> State => state;
     public ReadOnlyReactiveProperty<List<RoomInfo>> RoomList => roomList;
+    public ReadOnlyReactiveProperty<List<PhotonPlayer>> Players => players;
+    public ReadOnlyReactiveProperty<bool> CanStart => canStart;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
+    public bool HasSavedNickname { get; private set; }
 
     //===============================================================
 
@@ -44,6 +54,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
         // Master 씬 로드시 전원이 같은 씬으로 이동
         PhotonNetwork.AutomaticallySyncScene = true;
 
@@ -55,8 +67,18 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         roomList = new ReactiveProperty<List<RoomInfo>>(new List<RoomInfo>());
 
+        players = new ReactiveProperty<List<PhotonPlayer>>(new List<PhotonPlayer>());
+
+        canStart = new ReactiveProperty<bool>(false);
+
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
+
+        string savedNickname = nicknameStore.Load();
+        HasSavedNickname = !string.IsNullOrEmpty(savedNickname);
+
+        nickname = new ReactiveProperty<string>(HasSavedNickname ? savedNickname : nicknameStore.CreateDefault() );
+        PhotonNetwork.NickName = nickname.Value;
 
     }
 
@@ -70,6 +92,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         state?.Dispose();
         error?.Dispose();
         roomList?.Dispose();
+        nickname?.Dispose();
+        players?.Dispose();
+        canStart?.Dispose();
+
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
     #endregion
 
@@ -87,6 +114,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         error.OnNext(message);
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == SceneNames.IN_GAME)
+            SetState(FlowState.InGame);
+    }
+
     #endregion
 
     //===============================================================
@@ -94,21 +127,17 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Connect
 
     #region 요청
-    // 저장된 닉네임 가져오기
-    public string GetSavedNickname()
-    {
-        return PlayerPrefs.GetString(NicknameKey, "");
-    }
 
-    public async UniTaskVoid RequestConnect(string nickname)
+    public async UniTaskVoid RequestConnectOnline()
     {
         if (CurrentState != FlowState.Title) return;
 
-        SetState(FlowState.Connecting);
+        if (PhotonNetwork.OfflineMode)
+        {
+            PhotonNetwork.OfflineMode = false;
+        }
 
-        PlayerPrefs.SetString(NicknameKey, nickname);
-        PlayerPrefs.Save();
-        PhotonNetwork.NickName = nickname;
+        SetState(FlowState.Connecting);
 
         try
         {
@@ -136,13 +165,22 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             RaiseError("Failed to connect to server");
             SetState(FlowState.Title);
         }
+
+        
     }
+
     #endregion
 
     #region Photon Callbacks
 
     public override void OnConnectedToMaster()
     {
+        if(PhotonNetwork.OfflineMode)
+        {
+            CreateOfflineRoom();
+            return;
+        }
+
         PhotonNetwork.JoinLobby();
     }
 
@@ -155,6 +193,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         ClearRoomList();
+        ClearPlayers();
+        ResetReady();
 
         SetState(FlowState.Title);
         RaiseError($"Disconnected from server. ({cause})");
@@ -193,11 +233,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             // 방에 저장할 커스텀 속성 : 키 => 값
             CustomRoomProperties = new Hashtable
         {
-            { RoomProps.DisplayName, displayName }
+            { RoomProps.DISPLAY_NAME, displayName }
         },
 
             // 로비목록에서도 보이게 할 키 목록
-            CustomRoomPropertiesForLobby = new[] { RoomProps.DisplayName }
+            CustomRoomPropertiesForLobby = new[] { RoomProps.DISPLAY_NAME }
         };
 
         createRetryCount = 0;
@@ -235,8 +275,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         string code = (roomCode ?? "").Trim().ToUpperInvariant();
 
-        // TODO const 모음 정리해서 수정
-        if (code.Length != 6)
+        if (code.Length != RoomCodeGenerator.CODE_LENGTH)
         {
             RaiseError("방 코드 6자리를 입력해 주세요.");
             return;
@@ -286,6 +325,13 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+       if (PhotonNetwork.OfflineMode)
+        {
+            StartGameInternal();
+            return;
+        }
+
+        RefreshPlayers();
         SetState(FlowState.Room);
     }
 
@@ -322,8 +368,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         if (returnCode == ErrorCode.NoRandomMatchFound)
         {
-            // TODO : MAX PLAYER CONST 두기
-            CreateRoomInternal("", 5, true);
+            CreateRoomInternal("", RoomRules.MAX_PLAYERS, true);
             return;
         }
 
@@ -367,11 +412,233 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         PhotonNetwork.LeaveRoom();
     }
 
+    public void RequestToggleReady()
+    {
+        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
+        {
+            Debug.Log($"[NetworkFlowManager] 준비 무시됨: 현재 위치 = {CurrentState}");
+            return;
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("[NetworkFlowManager] 준비 무시됨: 현재 방장");
+            return;
+        }
+
+        bool isReady = PlayerProps.IsReady(PhotonNetwork.LocalPlayer);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, !isReady } });
+    }
+
+    public void RequestStartGame()
+    {
+        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
+        {
+            Debug.Log($"[NetworkFlowManager] 시작 무시됨: 현재 위치 = {CurrentState}");
+            return;
+        }
+
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 방장 아님");
+            return;
+        }
+
+        if (!PhotonNetwork.CurrentRoom.IsOpen)
+        {
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 이미 시작된 방");
+            return;
+        }
+
+        if(!CheckCanStart())
+        {
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 시작할 수 있지않음");
+            return;
+        }
+
+        StartGameInternal();
+
+    }
+
     #endregion
 
     #region Photon Callbacks
 
+    public override void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
+    {
+        RefreshPlayers();
+    }
 
+    public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
+    {
+        RefreshPlayers();
+    }
+
+    public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
+    {
+        RefreshPlayers();
+    }
+
+    public override void OnLeftRoom()
+    {
+        ClearPlayers();
+        ResetReady();
+    }
+
+    public override void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
+    {
+        RefreshPlayers();
+    }
+
+    #endregion
+
+    #region 내부
+
+    private void RefreshPlayers()
+    {
+        players.Value = new List<PhotonPlayer>(PhotonNetwork.PlayerList);
+        canStart.Value = CheckCanStart();
+    }
+
+    private void ClearPlayers()
+    {
+        players.Value = new List<PhotonPlayer>();
+    }
+
+    private bool CheckCanStart()
+    {
+        if (!PhotonNetwork.IsMasterClient)
+            return false;
+
+        foreach(PhotonPlayer player in PhotonNetwork.PlayerList)
+        {
+            if (player.IsMasterClient)
+                continue;
+
+            if (!PlayerProps.IsReady(player))
+                return false;
+        }
+
+        return true;
+    }
+
+    private void ResetReady()
+    {
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, false } });
+    }
+
+    private void StartGameInternal()        // 오프라인 게임도 여기로 시작
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
+    }
+
+    #endregion
+
+    #endregion
+
+    //===============================================================
+
+    #region Offline
+
+    private const string OFFLINE_ROOM_NAME = "Offline";
+
+    #region 요청
+
+    public void RequestEnterOffline()
+    {
+        if (CurrentState != FlowState.Title)
+        {
+            Debug.Log($"[NetworkFlowManager] 싱글 진입 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        SetState(FlowState.OfflineSetup);
+    }
+
+    public void RequestLeaveOffline()
+    {
+        if (CurrentState != FlowState.OfflineSetup)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 나가기 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        SetState(FlowState.Title);
+    }
+
+    public void RequestStartOffline()
+    {
+        if (CurrentState != FlowState.OfflineSetup)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        if (PhotonNetwork.OfflineMode)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 이미 오프라인모드");
+            return;
+        }
+
+        if (PhotonNetwork.IsConnected)
+        {
+            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 서버 접속중");
+            return;
+        }
+
+        // OnConnectedToMaster 즉시 호출됨
+        PhotonNetwork.OfflineMode = true;
+    }
+
+    #endregion
+
+    #region 내부
+
+    private void CreateOfflineRoom()
+    {
+        PhotonNetwork.CreateRoom(OFFLINE_ROOM_NAME, new RoomOptions { MaxPlayers = 1 });
+    }
+
+    #endregion
+
+    #endregion
+
+    //===============================================================
+
+    #region Nickname
+
+    #region 요청
+    public bool RequestChangeNickname(string nick)
+    {
+        if (CurrentState != FlowState.Lobby)
+        {
+            Debug.Log($"[NetworkFlowManager] 닉네임 수정 무시됨: 현재상태 = {CurrentState}");
+            return false;
+        }
+
+        nick = (nick ?? "").Trim();
+
+        if (string.IsNullOrEmpty(nick))
+        {
+            RaiseError("닉네임을 입력하세요.");
+            return false;
+        }
+
+        // [임시] 닉네임 길이 규칙 확인
+        if (nick.Length > NicknameStore.MAX_LENGTH)
+        {
+            RaiseError($"닉네임 글자 수를 {NicknameStore.MAX_LENGTH}자 이내로 입력하세요.");
+            return false;
+        }
+
+        nicknameStore.Save(nick);
+        HasSavedNickname = true;
+        nickname.Value = nick;
+        PhotonNetwork.NickName = nick;
+        return true;
+    }
 
     #endregion
 

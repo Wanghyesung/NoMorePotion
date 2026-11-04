@@ -5,5 +5,6 @@ public enum FlowState
     Connecting,
     Lobby,
     Room,
-    InGame
+    InGame,
+    OfflineSetup
 }

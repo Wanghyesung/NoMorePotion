@@ -2,18 +2,18 @@ using UnityEngine;
 
 public static class RoomCodeGenerator 
 {
-    private const string Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private const int Length = 6;
+    private const string CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    public const int CODE_LENGTH = 6;
 
 
     public static string Generate()
     {
-        char[] code = new char[Length];
+        char[] code = new char[CODE_LENGTH];
 
-        for (int i = 0; i < Length; i++)
+        for (int i = 0; i < CODE_LENGTH; i++)
         {
-            int index = Random.Range(0, Chars.Length);
-            code[i] = Chars[index];
+            int index = Random.Range(0, CHARS.Length);
+            code[i] = CHARS[index];
         }
 
         return new string(code);

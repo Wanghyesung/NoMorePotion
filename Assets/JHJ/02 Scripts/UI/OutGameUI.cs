@@ -7,6 +7,7 @@ public class OutGameUI : MonoBehaviour
     [SerializeField] private GameObject connectingPanel;
     [SerializeField] private GameObject lobbyPanel;
     [SerializeField] private GameObject roomPanel;
+    [SerializeField] private GameObject offlineSetupPanel;
     
     [SerializeField] private PopupUI popup;
 
@@ -32,5 +33,6 @@ public class OutGameUI : MonoBehaviour
         connectingPanel.SetActive(state == FlowState.Connecting);
         lobbyPanel.SetActive(state == FlowState.Lobby);
         roomPanel.SetActive(state == FlowState.Room);
+        offlineSetupPanel.SetActive(state == FlowState.OfflineSetup);
     }
 }
