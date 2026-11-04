@@ -415,12 +415,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Nickname
 
     #region 요청
-    public void RequestChangeNickname(string nick)
+    public bool RequestChangeNickname(string nick)
     {
         if (CurrentState != FlowState.Lobby)
         {
             Debug.Log($"[NetworkFlowManager] 닉네임 수정 무시됨: 현재상태 = {CurrentState}");
-            return;
+            return false;
         }
 
         nick = (nick ?? "").Trim();
@@ -428,20 +428,21 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         if (string.IsNullOrEmpty(nick))
         {
             RaiseError("닉네임을 입력하세요.");
-            return;
+            return false;
         }
 
         // [임시] 닉네임 길이 규칙 확인
         if (nick.Length > NicknameStore.MAX_LENGTH)
         {
             RaiseError($"닉네임 글자 수를 {NicknameStore.MAX_LENGTH}자 이내로 입력하세요.");
-            return;
+            return false;
         }
 
         nicknameStore.Save(nick);
         HasSavedNickname = true;
         nickname.Value = nick;
         PhotonNetwork.NickName = nick;
+        return true;
     }
 
     #endregion
