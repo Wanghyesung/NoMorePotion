@@ -12,7 +12,6 @@ using static JJH_Enums;
 using HIn = UnityEngine.HideInInspector;
 using SF = UnityEngine.SerializeField;
 
-[DrawWithUnity]
 [RequireComponent(typeof(NavMeshAgent))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
@@ -33,18 +32,21 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public float turnSpeed = 5;
     public float NowSpeed => agent.speed;
 
+    [Header("도달 불가 판정")]
+    [SF] private ReachabilityTracker reachability = new();
+
     [Header("인스펙터")]
     public GameObject nowTarget;
     
-
     [HIn] public StateMachine state;
     [HIn] public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
     [HIn] public float attackTimer = 0;
-    [HIn] public bool attackTimerActive;
+    [HIn]public float AttackRange => attackRange;
     [HIn] public bool IsAnimation;
 
     public Dictionary<MonsterState, IMonsterState> stateGroup;
+    private CancellationTokenSource aiCts;
     private void Awake()
     {
         if(agent == null)
@@ -57,10 +59,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
         if(anim == null)
             anim = GetComponent<MonsterAnimationController>();
-    }
 
-    private void Start()
-    {
         state = new();
 
         stateGroup = new Dictionary<MonsterState, IMonsterState>()
@@ -72,16 +71,60 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             [MonsterState.Attack] = new MonsterAttackState(this),
             [MonsterState.Death] = new MonsterDeathState(this)
         };
-        // 이후 캐릭터 스폰 + 이동속도 받을 시 위치 변경
-        StartAI(3.8f).Forget();
+    }
+
+    private void Start()
+    {
+        RegisterStates();
+
+        // 이후 캐릭터 스폰 + 이동속도 받을 시 스폰으로 작동 위치 변경
+        if (runSpeed == 0)
+            StartAI(3.8f).Forget();
+        else 
+            StartAI(runSpeed).Forget();
+
     }
 
     private void Update()
     {
-        if (!IsAnimation && state.GetStateType() == MonsterState.Attack)
+        if (!IsAnimation && nowTarget != null && ShouldFaceTarget())
             AttackAngleRotate();
     }
 
+    public override void OnDisable()
+    {
+        base.OnDisable();
+        StopAI();
+    }
+
+
+    /// <summary>
+    /// 자식 클래스가 전용 상태(FSM)를 추가할 때 override
+    /// </summary>
+    protected virtual void RegisterStates() 
+    { 
+
+    }
+
+    /// <summary>
+    /// 타겟의 재추적 가능 여부 확인 오버라이드 가능 함수
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public virtual bool CanAcquireTarget(GameObject target) => reachability.CanAcquire(target);
+
+    /// <summary>
+    /// 개체의 회전 조절 여부
+    /// </summary>
+    /// <returns></returns>
+    protected virtual bool ShouldFaceTarget()
+    {
+        return state != null && state.GetStateType() == MonsterState.Attack;
+    }
+
+    /// <summary>
+    /// <para>대상 방향으로 몸체를 회전 시키는 함수</para>
+    /// </summary>
     private void AttackAngleRotate()
     {
         float angleDeadzone = 1.5f;
@@ -104,26 +147,49 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
     }
 
+    /// <summary>
+    /// 몬스터 생성/재사용 시 구동해야하는 함수
+    /// </summary>
+    /// <param name="speed"></param>
+    /// <returns></returns>
     public async UniTask StartAI(float speed)
     {
+        StopAI();
+        anim.AnimatorRebind();
+        aiCts = new CancellationTokenSource();
+        CancellationToken token = aiCts.Token;
+
+        // 이전 생애 흔적 초기화
+        state = new();
+        nowTarget = null;
+        IsAnimation = false;
+        patrolTimer = attackTimer = 0;
+        patrolTimerActive = false;
+
         walkSpeed = speed / 2f;
         runSpeed = speed;
         agent.speed = walkSpeed;
-        CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
 
-        StartAILoop(destroyToken).Forget();
-        await UniTask.Delay(FSM_TIMER);
+        StartAILoop(token).Forget();
+        await UniTask.Delay(FSM_TIMER, cancellationToken: token);
 
-        state.ChangeState(stateGroup[MonsterState.Patrol]);
+        if (state.GetStateType() == MonsterState.None ||
+            state.GetStateType() == MonsterState.Spawn)
+            state.ChangeState(stateGroup[MonsterState.Patrol]);
     }
 
-    private IMonsterState UpdateState()
+    protected virtual IMonsterState UpdateState()
     {
         IMonsterState result = null;
         MonsterState nowState = MonsterState.None;
 
         //스폰 중엔 판단 정지
         if (state.GetStateType() == MonsterState.Spawn) return null;
+
+        // 도달 불가 상태가 유예 시간을 넘기면 추적 해제
+        if (nowTarget != null &&
+            reachability.ShouldDrop(transform.position, nowTarget, FSM_TIMER / MIL_SEC_F))
+            nowTarget = null;
 
         if (nowTarget == null)
         {
@@ -186,8 +252,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 if (patrolTimerActive)
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
-                if (attackTimerActive)
-                    attackTimer += FSM_TIMER / MIL_SEC_F;
+                
+                attackTimer += FSM_TIMER / MIL_SEC_F;
 
                 state.Stay();
             }
@@ -195,5 +261,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
+    }
+    private void StopAI()
+    {
+        if (aiCts == null) return;
+        aiCts.Cancel();
+        aiCts.Dispose();
+        aiCts = null;
     }
 }

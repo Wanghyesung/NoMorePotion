@@ -38,6 +38,9 @@ public class StateMachine
     {
         IMonsterState callState = now ? nowState : beforeState;
 
+        if (callState is WolfStateBase wolfState)
+            return wolfState.GetStateType();
+
         if (callState is MonsterSpawnState)
             return MonsterState.Spawn;
         else if (callState is MonsterIdleState)

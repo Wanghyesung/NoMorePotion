@@ -5,32 +5,50 @@ using SF = UnityEngine.SerializeField;
 public class MonsterChaseTrigger : MonoBehaviour
 {
     [SF] private MonsterMove mover;
-    private List<GameObject> players;
+    private readonly List<GameObject> players = new();
+    private readonly List<GameObject> candidates = new();
 
-    private void Awake()
+    private void Update()
     {
-        players = new List<GameObject>();
+        if (mover.nowTarget != null || players.Count == 0) return;
+
+        players.RemoveAll(p => p == null || !p.activeInHierarchy);
+        mover.nowTarget = PickTarget();
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag(PLAYER_TAG))
-        {
-            if(mover.nowTarget == null)
-                mover.nowTarget = other.gameObject;
+        if (!other.CompareTag(PLAYER_TAG)) return;
 
+        if (!players.Contains(other.gameObject))
             players.Add(other.gameObject);
-        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (players.Contains(other.gameObject))
-        {
-            players.Remove(other.gameObject);
+        if (!players.Remove(other.gameObject)) return;
 
-            if(other.gameObject == mover.nowTarget && players.Count > 0)
-                mover.nowTarget = players[Random.Range(0, players.Count)];
-        }
+        // 죽었거나 비활성화된 플레이어 먼저 정리
+        players.RemoveAll(p => p == null || !p.activeInHierarchy);
+
+        // 현재 타겟이 아직 범위 안에 살아있으면 유지
+        if (mover.nowTarget != null && players.Contains(mover.nowTarget)) return;
+
+        // 타겟이 나갔거나 죽었으면 재선정 없으면 해제
+        mover.nowTarget = PickTarget();
+    }
+
+    // 재추적 쿨다운 중인 플레이어는 제외하고 무작위 선택
+    private GameObject PickTarget()
+    {
+        candidates.Clear();
+
+        foreach (GameObject p in players)
+            if (mover.CanAcquireTarget(p))
+                candidates.Add(p);
+
+        return candidates.Count > 0
+            ? candidates[Random.Range(0, candidates.Count)]
+            : null;
     }
 }

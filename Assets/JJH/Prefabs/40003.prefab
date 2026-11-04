@@ -453,7 +453,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2133261203295772532
 Transform:
   m_ObjectHideFlags: 0
@@ -616,8 +616,9 @@ GameObject:
   - component: {fileID: 633283270358376100}
   - component: {fileID: 5471541347697044551}
   - component: {fileID: 408107982291945379}
+  - component: {fileID: 525331187225737773}
   m_Layer: 8
-  m_Name: Plant Chewer
+  m_Name: 40003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -753,6 +754,12 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 0
     Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsDead
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsHit
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
@@ -833,6 +840,33 @@ MonoBehaviour:
   anim: {fileID: 5471541347697044551}
   mover: {fileID: 3567176340273345213}
   biteHitbox: {fileID: 9059199847216090800}
+--- !u!54 &525331187225737773
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6289969233494585237}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &6358660145628605905
 GameObject:
   m_ObjectHideFlags: 0

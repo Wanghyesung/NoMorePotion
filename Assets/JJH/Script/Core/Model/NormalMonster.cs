@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using static CommonStruct;
 
-public class NormalMonster : Character, IDamageable, IAttacker
+public class NormalMonster : Character, IAttacker
 {
     public int Id;
     public float Speed;
@@ -16,9 +16,9 @@ public class NormalMonster : Character, IDamageable, IAttacker
 
     public Action OnDead;
 
-    public  NormalMonster(string name, int hp, Dictionary<DamageType, int> immune,float speed,
+    public  NormalMonster(string name, int maxHp, int hp, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea,string description, DamageType damageType
-        ) : base(name, hp, immune) 
+        ) : base(name, maxHp, hp, immune) 
     {
         Id = id;
         InstanceId = instanceId;
@@ -27,18 +27,5 @@ public class NormalMonster : Character, IDamageable, IAttacker
         DamageType = damageType;
         Speed = speed;
         FinalAtkPoint = AtkPoint;
-    }
-
-    public void TakeDamage(AttackInfo attackInfo)
-    {
-        
-    }
-
-    public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
-    {
-    }
-
-    public void TakeDamage(AttackInfo attackInfo, Character attacker)
-    {
     }
 }

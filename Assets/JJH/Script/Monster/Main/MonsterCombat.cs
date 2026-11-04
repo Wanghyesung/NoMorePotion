@@ -1,28 +1,52 @@
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
-
+using static CommonStruct;
 using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterAnimationController))]
 
 [RequireComponent(typeof(MonsterMove))]
-public class MonsterCombat : MonoBehaviour
+public class MonsterCombat : MonoBehaviour, IDamageable
 {
-    [SF] private MonsterAnimationController anim;
-    [SF] private MonsterMove mover;
+    [SF] protected MonsterAnimationController anim;
+    [SF] protected MonsterMove mover;
     [SF] private Collider biteHitbox;
-    [SF] private NormalMonster data;
+    protected NormalMonster data;
 
     private void Awake()
     {
-        anim = GetComponent<MonsterAnimationController>();
-        mover = GetComponent<MonsterMove>();
+        if(anim == null)
+            anim = GetComponent<MonsterAnimationController>();
+
+        if(mover == null)
+            mover = GetComponent<MonsterMove>();
     }
 
-    private void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,
+    protected virtual void OnDisable()
+    {
+        if(data != null)
+            data.OnDead -= MonsterDead;
+    }
+
+    protected void SetData(NormalMonster newData)
+    {
+        if (data != null)
+            data.OnDead -= MonsterDead;
+
+        data = newData;
+
+        if (data != null)
+            data.OnDead += MonsterDead;
+
+        // 이후 스폰 정리되면 활성화
+        //mover.StartAI(data.Speed).Forget();
+    }
+
+    public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea, string description, DamageType damageType)
     {
-        data = new(name, hp, immune, speed, id, instanceId, spawnArea, description, damageType);
-        data.OnDead += MonsterDead;
+        SetData(new(name, maxHp, hp, immune, speed, id, instanceId, 
+            spawnArea, description, damageType));
     }
 
     #region
@@ -54,6 +78,7 @@ public class MonsterCombat : MonoBehaviour
     {
         biteHitbox.gameObject.SetActive(false);
     }
+
     private void NormalAttackAnimationEnd()
     {
         mover.IsAnimation = false;
@@ -63,6 +88,22 @@ public class MonsterCombat : MonoBehaviour
     private void MonsterDead()
     {
         anim.IsDead();
+    }
+    #endregion
+
+    #region 인터페이스
+    public void TakeDamage(AttackInfo attackInfo)
+    {
+        data.HP =
+    }
+
+    public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
+    {
+    }
+
+    public void TakeDamage(AttackInfo attackInfo, Character attacker)
+    {
+
     }
     #endregion
 }
