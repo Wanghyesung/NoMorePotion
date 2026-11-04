@@ -54,13 +54,18 @@ MonoBehaviour:
   formationOffsets:
   - {x: -1.5, y: 0, z: -1.5}
   - {x: 1.5, y: 0, z: -1.5}
-  turnRadius: 5
+  turnRadius: 6
   turnSpeed: 60
   poundDelay: 8
-  poundRange: 7
+  poundRange: 6
   poundCooldown: 20
-  poundTimeout: 5
+  poundTimeout: 3
   loseDistance: 15
+  reachability:
+    checkInterval: 0.5
+    graceTime: 2.5
+    reacquireCooldown: 3
+    sampleRadius: 2
 --- !u!1001 &3042281111016583516
 PrefabInstance:
   m_ObjectHideFlags: 0

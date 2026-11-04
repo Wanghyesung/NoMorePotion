@@ -2,7 +2,8 @@ using UnityEngine;
 using static JJH_Enums;
 
 /// <summary>
-/// IMonsterState(OnStart / OnStay / OnEnd) 구현 베이스
+/// WolfStateBase 전용 유사 HFSM(상위 FSM와 하위 개체의 2계층 FSM 구조)
+/// 늑대 분대 AI 전용
 /// </summary>
 public abstract class WolfStateBase : IMonsterState
 {

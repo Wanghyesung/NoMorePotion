@@ -222,19 +222,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterMove
   anim: {fileID: 2158663597128617275}
   agent: {fileID: 6464408849392596459}
-  nextMoveDist: 5
+  nextMoveDist: 10
   attackRange: 2
   chaseCollider: {fileID: 1801644105949774554}
   attackSpeed: 1
-  patrolDelay: 4
+  patrolDelay: 5
   walkSpeed: 2.65
   runSpeed: 5.3
   turnSpeed: 5
+  reachability:
+    checkInterval: 0.5
+    graceTime: 2.5
+    reacquireCooldown: 3
+    sampleRadius: 2
   nowTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
-  attackTimerActive: 0
   IsAnimation: 0
 --- !u!114 &2158663597128617275
 MonoBehaviour:

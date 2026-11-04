@@ -18,6 +18,12 @@ public class WolfMove : MonsterMove
         stateGroup[MonsterState.Pound] = new WolfPoundState(this);
     }
 
+    public override bool CanAcquireTarget(GameObject target)
+    {
+        if (Pack != null && Pack.IsActive) return Pack.CanAcquire(target);
+        return base.CanAcquireTarget(target);
+    }
+
     protected override IMonsterState UpdateState()
     {
         // 무리 없음 or 알파 사망 → 일반 몬스터처럼

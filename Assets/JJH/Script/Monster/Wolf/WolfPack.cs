@@ -26,19 +26,19 @@ public class WolfPack : MonoBehaviour
         new ( 1.5f, 0f, -1.5f),
     };
 
-    [Header("선회")]
+    [Header("선회 관련 값")]
     [SF] private float turnRadius = 5f;
     [SF] private float turnSpeed = 40f;
     [SF] private float poundDelay = 4f;
 
-    [Header("Pound")]
+    [Header("땅찍기 관련 값")]
     [SF] private float poundRange = 3f;
     [SF] private float poundCooldown = 20f;
     [SF] private float poundTimeout = 5f;
 
-    [Header("타겟")]
+    [Header("타겟 관련 값")]
     [SF] private float loseDistance = 15f;      // 전원이 이 거리 밖이면 타겟 해제
-
+    [SF] private ReachabilityTracker reachability = new();
     public PackPhase Phase { get; private set; } = PackPhase.Patrol;
     public GameObject Target { get; private set; }
     public WolfMove Alpha => alpha;
@@ -98,7 +98,9 @@ public class WolfPack : MonoBehaviour
                 break;
         }
     }
+    
 
+    public bool CanAcquire(GameObject target) => reachability.CanAcquire(target);
     private void ChangePhase(PackPhase next)
     {
         Phase = next;
@@ -156,21 +158,24 @@ public class WolfPack : MonoBehaviour
 
     private void RefreshTarget()
     {
-        if (Target != null && !IsTargetValid(Target))
+        // 거리 이탈 or 도달 불가 지속 → 해제
+        if (Target != null && (!IsTargetValid(Target) ||
+            reachability.ShouldDrop(alpha.transform.position, Target, Time.deltaTime)))
         {
             Target = null;
             foreach (WolfMove m in alive)
                 m.nowTarget = null;
         }
 
-        // 늑대 3마리중 1마리가 적을 감지할 경우 모두 타겟 적용
+        // 쿨다운 중인 타겟은 제외
         if (Target == null)
         {
             foreach (WolfMove m in alive)
             {
-                if (m.nowTarget != null && m.nowTarget.activeInHierarchy)
+                GameObject t = m.nowTarget;
+                if (t != null && t.activeInHierarchy && reachability.CanAcquire(t))
                 {
-                    Target = m.nowTarget;
+                    Target = t;
                     break;
                 }
             }
