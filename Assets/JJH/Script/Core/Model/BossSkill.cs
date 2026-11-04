@@ -6,7 +6,7 @@ public class BossSkill
     public int UseMonsterId;
     public int SkillNum;
     public string AnimationName;
-    public string SkillDamage;
+    public int SkillDamage;
 
     [JsonIgnore]
     public float Cooldown;

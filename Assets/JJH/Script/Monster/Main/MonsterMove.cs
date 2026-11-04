@@ -41,7 +41,6 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [HIn] public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
     [HIn] public float attackTimer = 0;
-    [HIn] public bool attackTimerActive;
     [HIn]public float AttackRange => attackRange;
     [HIn] public bool IsAnimation;
 
@@ -81,6 +80,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             StartAI(3.8f).Forget();
         else 
             StartAI(runSpeed).Forget();
+
     }
 
     private void Update()
@@ -129,7 +129,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         StartAILoop(destroyToken).Forget();
         await UniTask.Delay(FSM_TIMER);
 
-        state.ChangeState(stateGroup[MonsterState.Patrol]);
+        if (state.GetStateType() == MonsterState.None ||
+            state.GetStateType() == MonsterState.Spawn)
+            state.ChangeState(stateGroup[MonsterState.Patrol]);
     }
 
     protected virtual IMonsterState UpdateState()
@@ -201,8 +203,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 if (patrolTimerActive)
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
-                if (attackTimerActive)
-                    attackTimer += FSM_TIMER / MIL_SEC_F;
+                
+                attackTimer += FSM_TIMER / MIL_SEC_F;
 
                 state.Stay();
             }

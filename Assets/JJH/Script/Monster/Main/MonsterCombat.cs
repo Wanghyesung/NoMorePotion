@@ -27,11 +27,22 @@ public class MonsterCombat : MonoBehaviour
             data.OnDead -= MonsterDead;
     }
 
-    private void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,
+    protected void SetData(NormalMonster newData)
+    {
+        if (data != null)
+            data.OnDead -= MonsterDead;
+
+        data = newData;
+
+        if (data != null)
+            data.OnDead += MonsterDead;
+    }
+
+    public void Init(string name,int hp, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea, string description, DamageType damageType)
     {
-        data = new(name, hp, immune, speed, id, instanceId, spawnArea, description, damageType);
-        data.OnDead += MonsterDead;
+        SetData(new(name, hp, immune, speed, id, instanceId, 
+            spawnArea, description, damageType));
     }
 
     #region

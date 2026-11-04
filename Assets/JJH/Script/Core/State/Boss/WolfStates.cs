@@ -1,7 +1,9 @@
 using UnityEngine;
 using static JJH_Enums;
 
-// IMonsterState(OnStart / OnStay / OnEnd) 구현 베이스
+/// <summary>
+/// IMonsterState(OnStart / OnStay / OnEnd) 구현 베이스
+/// </summary>
 public abstract class WolfStateBase : IMonsterState
 {
     protected readonly WolfMove wolf;
@@ -64,6 +66,7 @@ public class WolfEncircleState : WolfStateBase
     {
         wolf.agent.isStopped = false;
         wolf.agent.speed = wolf.runSpeed;
+        wolf.anim.IsWalk(false);
         wolf.anim.IsRun(true);
     }
 
@@ -95,6 +98,7 @@ public class WolfPoundState : WolfStateBase
         started = false;
         wolf.agent.isStopped = false;
         wolf.agent.speed = wolf.runSpeed;
+        wolf.anim.IsWalk(false);
         wolf.anim.IsRun(true);
     }
 

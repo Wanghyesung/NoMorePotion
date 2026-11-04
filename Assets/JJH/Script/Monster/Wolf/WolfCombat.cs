@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
@@ -28,6 +29,8 @@ public class WolfCombat : MonsterCombat
     private bool isJumping;
     private bool isWindup;
 
+    private WolfBoss BossData => data as WolfBoss;
+
     private void Update()
     {
         if (isWindup)
@@ -48,7 +51,17 @@ public class WolfCombat : MonsterCombat
         EndJump(transform.position);
     }
 
-    #region Pound 애니메이션 이벤트
+
+    public void Init(string name, int hp, Dictionary<DamageType, int> immune, float speed,
+        int id, int instanceId, string spawnArea, string description,
+        List<BossSkill> bossSkill, DamageType damageType)
+    {
+        SetData(new WolfBoss(name, hp, immune, speed, id, instanceId,
+            spawnArea, description, bossSkill, damageType));
+    }
+
+
+    #region 땅찍기 애니메이션 이벤트
     /// <summary>
     /// 점프 공격 애니메이션 시작
     /// </summary>
@@ -117,7 +130,7 @@ public class WolfCombat : MonsterCombat
     }
     #endregion
 
-    #region 도약 준비
+    #region 도약 준비 이벤트
     private void FaceTargetDuringWindup()
     {
         if (mover.nowTarget == null) return;
@@ -131,7 +144,7 @@ public class WolfCombat : MonsterCombat
     }
     #endregion
 
-    #region 점프 동작
+    #region 점프 준비 동작 유니태스크
     private async UniTaskVoid PoundJump(CancellationToken token)
     {
         isJumping = true;
@@ -207,4 +220,9 @@ public class WolfCombat : MonsterCombat
         agent.updatePosition = true;
     }
     #endregion
+
+    public BossSkill GetBossSkill(string animationName)
+    {
+        return BossData.BossSkill.Find(x => x.AnimationName == animationName);
+    }
 }

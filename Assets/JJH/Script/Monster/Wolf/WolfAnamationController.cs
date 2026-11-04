@@ -10,6 +10,7 @@ using SF = UnityEngine.SerializeField;
 public class WolfAnamationController : MonsterAnimationController
 {
     private static readonly int PoundHash = Animator.StringToHash(POUND);
+
     [SF] private float baseSpeed = 1;
     public void IsPound(bool type = true)
     {

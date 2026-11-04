@@ -8,34 +8,33 @@ using SF = UnityEngine.SerializeField;
 public class MonsterAttackTrigger : MonoBehaviour
 {
     [SF] private MonsterCombat combat;
-    private bool isAlreadyTrigger;
-    private void OnEnable()
+    private readonly HashSet<IDamageable> hitTargets = new();
+
+    private void OnEnable() 
     {
-        isAlreadyTrigger = false;
+        hitTargets.Clear();
     }
 
-    private void OnDisable()
-    {
-        isAlreadyTrigger = false;
+    private void OnDisable() 
+    { 
+        hitTargets.Clear(); 
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag(PLAYER_TAG))
+        if (!other.CompareTag(PLAYER_TAG)) return;
+        if (!other.TryGetComponent(out IDamageable target)) return;
+        if (!hitTargets.Add(target)) return;
+
+        target.TakeDamage(GetAttackInfo());
+    }
+
+    protected virtual AttackInfo GetAttackInfo()
+    {
+        return new AttackInfo
         {
-            if (isAlreadyTrigger) return;
-
-            // 이후 플레이어가 생기면 대미지 저항까지 계산하도록 수정
-            if(other.TryGetComponent(out IDamageable target)){
-                target.TakeDamage(
-                    new AttackInfo
-                    {
-                        Damage = combat.GetDamage(),
-                        Position = combat.transform.position
-                    });
-
-                    isAlreadyTrigger = true;
-            }
-        }
+            Damage = combat.GetDamage(),
+            Position = combat.transform.position
+        };
     }
 }

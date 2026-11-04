@@ -19,6 +19,7 @@ public class MonsterPatrolState : IMonsterState
     {
         mover.patrolTimerActive = true;
         mover.patrolTimer = 0;
+        mover.anim.IsWalk(false);
     }
 
     public void OnStart()

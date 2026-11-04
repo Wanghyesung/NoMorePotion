@@ -11,6 +11,7 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterMove))]
 public class WolfLookTarget : MonoBehaviour
 {
+    #region 직렬화 필드
     [SF] private MonsterMove mover;
     [SF] private Rig headRig;
     [SF] private Transform lookTarget;
@@ -19,8 +20,10 @@ public class WolfLookTarget : MonoBehaviour
     [SF] private float targetHeight = 1.2f;
     [SF] private float weightSpeed = 4f;
     [SF] private float followSpeed = 10f; // 시선 속도
+
     [InfoBox("모션을 우선할 경우 true, 아닐 경우 false")]
     [SF] private bool releaseDuringAnimation = true; //모션 우선 설정
+    #endregion
 
     private void Awake()
     {
@@ -46,9 +49,9 @@ public class WolfLookTarget : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// 몬스터가 현재 고개를 회전 할 수 있는 상태인지 확인하는 함수
     /// </summary>
-    /// <returns></returns>
+    /// <returns>몬스터의 고개 회전 여부</returns>
     private bool ShouldLook()
     {
         if (mover.nowTarget == null || mover.state == null) return false;

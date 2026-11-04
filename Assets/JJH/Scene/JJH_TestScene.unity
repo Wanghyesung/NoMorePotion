@@ -915,8 +915,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7853957224262921117, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
-      propertyPath: poundDelay
-      value: 8
+      propertyPath: poundRange
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7853957224262921117, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: turnRadius
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7853957224262921117, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: poundTimeout
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
