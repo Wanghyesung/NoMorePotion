@@ -6,6 +6,8 @@ public static class JJH_Constants
     public const string IS_NORMAL = "IsNormalAttack";
     public const string IS_DEAD = "IsDead";
 
+    public const string POUND = "Pound";
+
     public const string ENEMY_TAG = "Enemy";
     public const string PLAYER_TAG = "Player";
 

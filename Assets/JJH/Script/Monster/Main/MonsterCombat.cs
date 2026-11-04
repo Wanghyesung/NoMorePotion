@@ -7,8 +7,8 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterMove))]
 public class MonsterCombat : MonoBehaviour
 {
-    [SF] private MonsterAnimationController anim;
-    [SF] private MonsterMove mover;
+    [SF] protected MonsterAnimationController anim;
+    [SF] protected MonsterMove mover;
     [SF] private Collider biteHitbox;
     [SF] private NormalMonster data;
 

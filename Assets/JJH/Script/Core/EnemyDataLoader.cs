@@ -14,8 +14,8 @@ public class EnemyDataLoader : MonoBehaviour
     private Dictionary<int, MonsterData> NormalMonsterData;
 
     public List<MonsterData> NormalMonsterDataList;
-    private Dictionary<int, MonsterData> BossMonsterData;
-    public List<MonsterData> BossMonsterDataList;
+    private Dictionary<int, BossData> BossMonsterData;
+    public List<BossData> BossMonsterDataList;
     private Dictionary<int, MonsterTextData> MonsterLocalizationData;
     public List<MonsterTextData> MonsterLocalizationDataList;
 
@@ -66,12 +66,12 @@ public class EnemyDataLoader : MonoBehaviour
         {
             // 리스트 변환
             NormalMonsterDataList = JsonConvert.DeserializeObject<List<MonsterData>>(normalData);
-            BossMonsterDataList = JsonConvert.DeserializeObject<List<MonsterData>>(bossData);
+            BossMonsterDataList = JsonConvert.DeserializeObject<List<BossData>>(bossData);
             MonsterLocalizationDataList = JsonConvert.DeserializeObject<List<MonsterTextData>>(localizationData);
 
             // 딕셔너리 가공
             NormalMonsterData = NormalMonsterDataList?.ToDictionary(x => x.Id) ?? new Dictionary<int, MonsterData>();
-            BossMonsterData = BossMonsterDataList?.ToDictionary(x => x.Id) ?? new Dictionary<int, MonsterData>();
+            BossMonsterData = BossMonsterDataList?.ToDictionary(x => x.Id) ?? new Dictionary<int, BossData>();
             MonsterLocalizationData = MonsterLocalizationDataList?.ToDictionary(x => x.Id) ?? new Dictionary<int, MonsterTextData>();
         }
         catch (JsonException jsonEx)
@@ -85,6 +85,7 @@ public class EnemyDataLoader : MonoBehaviour
             Debug.LogError($"[DataProcessing] 데이터 변환 및 딕셔너리 구성 중 오류 발생: {e.Message}");
         }
 
+        Debug.Log(LoadBossData(40004).BossSkill[0].AnimationName);
     }
 
     public void ReloadLocalizationData()
@@ -131,9 +132,9 @@ public class EnemyDataLoader : MonoBehaviour
             return null;
     }
 
-    public MonsterData LoadBossData(int id)
+    public BossData LoadBossData(int id)
     {
-        if (BossMonsterData.TryGetValue(id, out MonsterData data))
+        if (BossMonsterData.TryGetValue(id, out BossData data))
             return data;
         else
             return null;
