@@ -6,6 +6,9 @@ public sealed class PlayerJumpState : PlayerState
 {
     private static readonly int jumpHash = Animator.StringToHash("Jump");
     private readonly float jumpSpeed;
+    private Vector3 airVelocity;
+    private bool applyJump;
+    public override Vector3 Velocity => airVelocity;
    
     public PlayerJumpState(FSM owner, SOState data, float jumpSpeed)
         : base(owner, data)
@@ -46,9 +49,8 @@ public sealed class PlayerJumpState : PlayerState
         base.Enter();
         owner.Animator.SetTrigger(jumpHash);
 
-        Vector3 velocity = owner.Rigidbody.linearVelocity;
-        velocity.y = jumpSpeed;
-        owner.Rigidbody.linearVelocity = velocity;
+        airVelocity = owner.PreviousState.Velocity;
+        applyJump = true;
 
         owner.ClearGroundContact();
     }
@@ -57,6 +59,16 @@ public sealed class PlayerJumpState : PlayerState
     {
         if (owner.IsGrounded == false)
             owner.Animator.SetFloat(AnimationSpeedHash, 0f);
+    }
+
+    public override void FixedUpdateState()
+    {
+        owner.AddVel(airVelocity);
+        if (applyJump)
+        {
+            owner.AddVel(Vector3.up * (jumpSpeed - owner.Rigidbody.linearVelocity.y));
+            applyJump = false;
+        }
     }
 
     public override void UpdateState()

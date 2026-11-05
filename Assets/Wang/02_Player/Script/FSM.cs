@@ -36,6 +36,10 @@ public sealed class FSM : MonoBehaviour
     public Rigidbody Rigidbody { get; private set; }
     #endregion
 
+    #region Velocity
+    public Vector3 Vel { get; private set; }
+    #endregion
+
     #region PlayerState
     [SerializeField] private List<SOState> stateData = new List<SOState>();
     [SerializeField] private StateType initialState = StateType.Idle;
@@ -118,10 +122,18 @@ public sealed class FSM : MonoBehaviour
 
     public void FixedUpdateState()
     {
-        
+        if (Rigidbody.isKinematic)
+            return;
+
+        Vel = Vector3.up * Rigidbody.linearVelocity.y;
         CurrentState?.FixedUpdateState();
         CurrentActionState?.FixedUpdateState();
+
+        Rigidbody.linearVelocity = Vel;
     }
+
+    // FixedUpdateState에서 이번 물리 프레임에 적용할 속도를 누적한다.
+    public void AddVel(Vector3 velocity) => Vel += velocity;
 
     // source: 현재 기본/액션 상태. StateType(0~15)에 해당하는 비트만 변경
     public void LockRotate(PlayerState source, bool locked)
@@ -170,6 +182,7 @@ public sealed class FSM : MonoBehaviour
 
             dead.SetAttackInfo(attackInfo);
             ClearActionState();
+            Vel = Vector3.zero;
             EnterState(dead);
             return;
         }
@@ -252,6 +265,7 @@ public sealed class FSM : MonoBehaviour
 
     public void StopHorizontalMovement()
     {
+        Vel = Vector3.up * Rigidbody.linearVelocity.y;
         if (Rigidbody.isKinematic)
             return;
 

@@ -9,6 +9,8 @@ public sealed class PlayerMoveState : PlayerState
     private Vector2 moveInput;
     private Vector2 moveDir;
     public override Vector2 MoveDirection => moveDir;
+    public override Vector3 Velocity => owner.ViewRotation * new Vector3(moveDir.x, 0f, moveDir.y)
+        * (moveSpeed * moveInput.magnitude);
 
     public PlayerMoveState(FSM owner, SOState data, float moveSpeed, float directionTurnSpeed)
         : base(owner, data)
@@ -43,11 +45,7 @@ public sealed class PlayerMoveState : PlayerState
 
     public override void FixedUpdateState()
     {
-        Vector3 velocity = owner.ViewRotation * new Vector3(moveDir.x, 0f, moveDir.y)
-            * (moveSpeed * moveInput.magnitude);
-
-        velocity.y = owner.Rigidbody.linearVelocity.y;
-        owner.Rigidbody.linearVelocity = velocity;
+        owner.AddVel(Velocity);
     }
 
     private void UpdateMovement()

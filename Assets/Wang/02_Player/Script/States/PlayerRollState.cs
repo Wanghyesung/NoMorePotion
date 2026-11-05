@@ -8,6 +8,8 @@ public sealed class PlayerRollState : PlayerState
     private readonly float rollPower;
     private readonly float rollDeceleration;
     private Vector3 direction;
+    private Vector3 rollVelocity;
+    public override Vector3 Velocity => rollVelocity;
     private InputAction rollAction;
 
     public override Vector2 MoveDirection
@@ -59,20 +61,14 @@ public sealed class PlayerRollState : PlayerState
 
         owner.Animator.SetTrigger(rollHash);
 
-        owner.StopHorizontalMovement();
-        owner.Rigidbody.AddForce(direction * rollPower, ForceMode.Impulse);
+        rollVelocity = direction * (rollPower / owner.Rigidbody.mass);
     }
 
     public override void FixedUpdateState()
     {
-        Vector3 velocity = owner.Rigidbody.linearVelocity;
-
-        float vertical = velocity.y;
-        velocity.y = 0f;
-        velocity = Vector3.MoveTowards(velocity, Vector3.zero, rollDeceleration * Time.fixedDeltaTime);
-        velocity.y = vertical;
-
-        owner.Rigidbody.linearVelocity = velocity;
+        rollVelocity = Vector3.MoveTowards(
+            rollVelocity, Vector3.zero, rollDeceleration * Time.fixedDeltaTime);
+        owner.AddVel(rollVelocity);
 
     }
 

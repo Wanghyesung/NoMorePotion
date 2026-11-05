@@ -12,6 +12,7 @@ public sealed class PlayerHitState : PlayerState
     protected override int AnimationSpeedHash => upperBodyAnimationSpeedHash;
     private float knockbackPower;
     private Vector3 direction;
+    private Vector3 knockbackVelocity;
     private readonly float knockbackDeceleration;
     private readonly Quaternion defaultViewRotation;
 
@@ -40,6 +41,7 @@ public sealed class PlayerHitState : PlayerState
         knockbackPower = attackInfo.AttackPower;
         direction = attackInfo.Position - owner.transform.position;
         direction.y = 0f;
+
         if (direction.sqrMagnitude < 0.0001f)
             direction = owner.transform.forward;
         direction.Normalize();
@@ -55,22 +57,18 @@ public sealed class PlayerHitState : PlayerState
 
         owner.PlayerView.rotation = Quaternion.LookRotation(direction);
         owner.LockRotate(this, true);
-        owner.ClearActionState();
+       
 
-        owner.Rigidbody.linearVelocity = Vector3.zero;
-        owner.Rigidbody.AddForce(-direction * knockbackPower, ForceMode.Impulse);
+        knockbackVelocity = -direction * (knockbackPower / owner.Rigidbody.mass);
         owner.Animator.SetTrigger(hitHash);
     }
 
 
     public override void FixedUpdateState()
     {
-        Vector3 velocity = owner.Rigidbody.linearVelocity;
-        float vertical = velocity.y;
-        velocity.y = 0f;
-        velocity = Vector3.MoveTowards(velocity, Vector3.zero, knockbackDeceleration * Time.fixedDeltaTime);
-        velocity.y = vertical;
-        owner.Rigidbody.linearVelocity = velocity;
+        owner.AddVel(knockbackVelocity);
+        knockbackVelocity = Vector3.MoveTowards(
+            knockbackVelocity, Vector3.zero, knockbackDeceleration * Time.fixedDeltaTime);
     }
 
     private void FinishHit(AnimationEvent animationEvent)
@@ -81,6 +79,7 @@ public sealed class PlayerHitState : PlayerState
     public override void Exit()
     {
         base.Exit();
+        knockbackVelocity = Vector3.zero;
         owner.LockRotate(this, false);
         owner.PlayerView.localRotation = defaultViewRotation;
         owner.Animator.ResetTrigger(hitHash);

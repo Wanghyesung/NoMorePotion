@@ -16,6 +16,7 @@ public abstract class PlayerState
 
     public FSM.StateType Type => data.State;
     public virtual Vector2 MoveDirection => Vector2.zero;
+    public virtual Vector3 Velocity => Vector3.zero;
 
     protected PlayerState(FSM owner, SOState data)
     {

@@ -5,7 +5,6 @@ public sealed class PlayerIdleState : PlayerState
     public override void Enter()
     {
         base.Enter();
-        owner.StopHorizontalMovement();
     }
     public override void UpdateState()
     {
