@@ -17,6 +17,7 @@ public class WolfPack : MonoBehaviour
 {
     [Header("늑대 데이터")]
     [SF] private WolfMove alpha;
+    [SF] public int alphaId;
     [SF] private List<WolfMove> normals = new();
 
     [Header("일반 늑대 무리 대형")]
@@ -246,13 +247,13 @@ public class WolfPack : MonoBehaviour
 
     /// <summary>
     /// 땅찍기 공격의 쿨다운 계산 로직
-    /// 일반 늑대 사망 시 쿨다운이 짧아짐
+    /// 일반 늑대 사망 시 마다 쿨다운이 짧아짐
     /// </summary>
     /// <returns>실질 쿨다운 float</returns>
     private float GetRageCooldownReduce(float cooldown)
     {
         int dead = startNormalWolfCount - alive.Count;
-        float rate = Mathf.Max(minCooldownRate, 1f - startNormalWolfCount * dead);
+        float rate = Mathf.Max(minCooldownRate, 1f - dead * cooldownReduce);
         return cooldown * rate;
     }
     #endregion

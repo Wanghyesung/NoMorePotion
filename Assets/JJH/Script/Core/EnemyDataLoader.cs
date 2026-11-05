@@ -9,7 +9,7 @@ using HIn = UnityEngine.HideInInspector;
 
 public class EnemyDataLoader : MonoBehaviour
 {
-    public EnemyDataLoader Instance { get; private set; }
+    public static EnemyDataLoader Instance { get; private set; }
 
     private Dictionary<int, MonsterData> NormalMonsterData;
 
@@ -29,10 +29,6 @@ public class EnemyDataLoader : MonoBehaviour
         else
             Destroy(gameObject);
 
-    }
-
-    public void Start()
-    {
         NormalMonsterDataList = new();
         NormalMonsterData = new();
         BossMonsterDataList = new();
@@ -41,6 +37,11 @@ public class EnemyDataLoader : MonoBehaviour
         MonsterLocalizationData = new();
 
         ResourceLoad();
+    }
+
+    public void Start()
+    {
+        
     }
 
     public void ResourceLoad()

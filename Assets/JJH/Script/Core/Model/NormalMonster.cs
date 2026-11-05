@@ -28,4 +28,9 @@ public class NormalMonster : Character, IAttacker
         Speed = speed;
         FinalAtkPoint = AtkPoint;
     }
+
+    public override string ToString()
+    {
+        return $"{Name}({Id}) : {HP} / {MaxHP}";
+    }
 }

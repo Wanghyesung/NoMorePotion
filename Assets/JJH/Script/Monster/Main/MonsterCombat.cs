@@ -1,5 +1,7 @@
 using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static CommonStruct;
 using SF = UnityEngine.SerializeField;
@@ -11,6 +13,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
     [SF] private Collider biteHitbox;
+    [SF] protected int prefabId;
     protected NormalMonster data;
 
     private void Awake()
@@ -20,6 +23,30 @@ public class MonsterCombat : MonoBehaviour, IDamageable
 
         if(mover == null)
             mover = GetComponent<MonsterMove>();
+    }
+
+    private void Start()
+    {
+        InitTestData(prefabId);
+
+        Debug.Log(data.ToString());
+    }
+
+    // 스포너 구현 + 테스트 필요 없을 시 삭제
+    protected virtual void InitTestData(int id)
+    {
+        MonsterData data = EnemyDataLoader.Instance.LoadNormalData(id);
+        MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(id);
+
+        if (data == null || textData == null) return;
+
+        Dictionary<DamageType, int> immuneVal = data.Immune
+                    .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
+                    .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
+        // 인스턴트 아이디는 차후 스폰 시 구분용
+        Init(textData.Name,data.HP,data.HP,
+            immuneVal, data.Speed, data.Id, 0, 
+            data.SpawnArea,textData.Description, data.DamageType);
     }
 
     protected virtual void OnDisable()
@@ -38,8 +65,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable
         if (data != null)
             data.OnDead += MonsterDead;
 
-        // 이후 스폰 정리되면 활성화
-        //mover.StartAI(data.Speed).Forget();
+        mover.StartAI(data.Speed).Forget();
     }
 
     public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune,float speed,
@@ -52,9 +78,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable
     #region
     public int GetDamage()
     {
-        // 테스트용
-        return 10;
-        //return data.AtkPoint;
+        return data.AtkPoint;
     }
 
     public DamageType GetDamageType()
@@ -99,11 +123,12 @@ public class MonsterCombat : MonoBehaviour, IDamageable
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
+        data.HP = Mathf.Max(0, data.HP - attackInfo.Damage);
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
-
+        data.HP = Mathf.Max(0, data.HP - attackInfo.Damage);
     }
     #endregion
 }
