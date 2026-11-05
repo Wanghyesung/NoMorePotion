@@ -34,12 +34,15 @@ namespace Enzeun.Runtime
         // 포만감 초기값
         [SerializeField, LabelText("포만감 초기값")]
         private int initialSatiation = 50;
+
         // 배부름 디버프 임계값
         [SerializeField, LabelText("배부름 디버프 임계값")]
         private int fullThreshold = 90;
+
         // 허기 디버프 임계값
         [SerializeField, LabelText("허기 디버프 임계값")]
         private int hungryThreshold = 20;
+
         // 굶주림 디버프 임계값
         [SerializeField, LabelText("굶주림 디버프 임계값")]
         private int starvingThreshold = 0;
@@ -65,14 +68,18 @@ namespace Enzeun.Runtime
         public void ResetSatiation()
         {
             _satiation = initialSatiation;
+#if UNITY_EDITOR
             Debug.Log($"[SatiationManager] : 플레이어의 포만감을 초기값 {initialSatiation}으로 재설정 합니다.");
+#endif
             CheckCurrentSatiation();
         }
 
         public void IncreaseSatiation(int amount)
         {
             satiation += amount;
+#if UNITY_EDITOR
             Debug.Log($"[SatiationManager] : 플레이어의 포만감을 {amount}만큼 증가시킵니다. 현재 포만감: {satiation}");
+#endif
 
             CheckCurrentSatiation();
         }
@@ -80,7 +87,9 @@ namespace Enzeun.Runtime
         public void DecreaseSatiation(int amount)
         {
             satiation -= amount;
+#if UNITY_EDITOR
             Debug.Log($"[SatiationManager] : 플레이어의 포만감을 {amount}만큼 감소시킵니다. 현재 포만감: {satiation}");
+#endif
 
             CheckCurrentSatiation();
         }

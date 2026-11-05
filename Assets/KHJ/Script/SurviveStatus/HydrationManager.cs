@@ -34,12 +34,15 @@ namespace Enzeun.Runtime
         // 수분 초기값
         [SerializeField, LabelText("수분 초기값")]
         private int initialHydration = 50;
+
         // 촉촉함 버프 임계값
         [SerializeField, LabelText("촉촉함 버프 임계값")]
         private int moistThreshold = 70;
+
         // 갈증 디버프 임계값
         [SerializeField, LabelText("갈증 디버프 임계값")]
         private int thirstyThreshold = 10;
+
         // 탈수 디버프 임계값
         [SerializeField, LabelText("탈수 디버프 임계값")]
         private int dehydratedThreshold = 0;
@@ -65,14 +68,18 @@ namespace Enzeun.Runtime
         public void ResetHydration()
         {
             _hydration = initialHydration;
+#if UNITY_EDITOR
             Debug.Log($"[HydrationManager] : 플레이어의 수분을 초기값 {initialHydration}으로 재설정 합니다.");
+#endif
             CheckCurrentHydration();
         }
 
         public void IncreaseHydration(int amount)
         {
             hydration += amount;
+#if UNITY_EDITOR
             Debug.Log($"[HydrationManager] : 플레이어의 수분을 {amount}만큼 증가시킵니다. 현재 수분: {hydration}");
+#endif
 
             CheckCurrentHydration();
         }
@@ -80,7 +87,9 @@ namespace Enzeun.Runtime
         public void DecreaseHydration(int amount)
         {
             hydration -= amount;
+#if UNITY_EDITOR
             Debug.Log($"[HydrationManager] : 플레이어의 수분을 {amount}만큼 감소시킵니다. 현재 수분: {hydration}");
+#endif
 
             CheckCurrentHydration();
         }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using Sirenix.OdinInspector;
 
 
 namespace Enzeun.Runtime
@@ -25,11 +26,17 @@ namespace Enzeun.Runtime
 
 
         // 체온 초기값
+        [SerializeField, LabelText("체온 초기값")]
         private int initialBodyTemperature = 50;
+
         // 더움 임계값
+        [SerializeField, LabelText("더움 임계값")]
         private int hotThreshold = 70;
+
         // 추움 임계값
+        [SerializeField, LabelText("추움 임계값")]
         private int coldThreshold = 30;
+
         // 현재 체온 상태
         public BodyTemperatureState currentBodyTemperatureState { get; private set; } = BodyTemperatureState.Normal;
 
@@ -52,14 +59,19 @@ namespace Enzeun.Runtime
         public void ResetBodyTemperature()
         {
             _bodyTemperature = initialBodyTemperature;
+
+#if UNITY_EDITOR
             Debug.Log($"[BodyTemperatureManager] : 플레이어의 체온을 초기값 {initialBodyTemperature}으로 재설정 합니다.");
+#endif
             CheckCurrentBodyTemp();
         }
 
         public void IncreaseBodyTemperature(int amount)
         {
             bodyTemperature += amount;
+#if UNITY_EDITOR
             Debug.Log($"[BodyTemperatureManager] : 플레이어의 체온을 {amount}만큼 증가시킵니다. 현재 체온: {bodyTemperature}");
+#endif
 
             CheckCurrentBodyTemp();
         }
@@ -67,7 +79,9 @@ namespace Enzeun.Runtime
         public void DecreaseBodyTemperature(int amount)
         {
             bodyTemperature -= amount;
+#if UNITY_EDITOR
             Debug.Log($"[BodyTemperatureManager] : 플레이어의 체온을 {amount}만큼 감소시킵니다. 현재 체온: {bodyTemperature}");
+#endif
 
             CheckCurrentBodyTemp();
         }

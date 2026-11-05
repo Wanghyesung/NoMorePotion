@@ -28,6 +28,18 @@ namespace Enzeun.Runtime
 
         [SerializeField]
         private BodyTemperatureManager bodyTemperatureManager;
+        [SerializeField]
+        private MentalStrengthManager mentalStrengthManager;
+        [SerializeField]
+        private HydrationManager hydrationManager;
+        [SerializeField]
+        private SatiationManager satiationManager;
+
+        // 다른 시스템이 Awake 에서 이벤트를 구독할 수 있도록, 초기화는 Start 에서 일괄 수행합니다.
+        private void Start()
+        {
+            ResetAllStatus();
+        }
 
         /// <summary>
         /// 모든 생존 상태를 초기화합니다. 체온, 정신력, 수분, 포만감 상태를 초기값으로 재설정합니다.
@@ -35,6 +47,9 @@ namespace Enzeun.Runtime
         public void ResetAllStatus()
         {
             bodyTemperatureManager.ResetBodyTemperature();
+            mentalStrengthManager.ResetMentalStrength();
+            hydrationManager.ResetHydration();
+            satiationManager.ResetSatiation();
         }
     }
 }

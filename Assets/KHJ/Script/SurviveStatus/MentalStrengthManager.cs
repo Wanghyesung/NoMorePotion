@@ -42,18 +42,23 @@ namespace Enzeun.Runtime
         // 정신력 초기값
         [SerializeField, LabelText("정신력 초기값")]
         private int initialMentalStrength = 50;
+
         // 똑똑이 버프 임계값
         [SerializeField, LabelText("똑똑이 버프 임계값")]
         private int smartThreshold = 90;
+
         // 뭐라고? 디버프 임계값
         [SerializeField, LabelText("뭐라고? 디버프 임계값")]
         private int whatDebuffThreshold = 50;
+
         // 혼란 디버프 임계값
         [SerializeField, LabelText("혼란 디버프 임계값")]
         private int confusionThreshold = 30;
+
         // 죽어라 디버프 임계값
         [SerializeField, LabelText("죽어라 디버프 임계값")]
         private int goToDieThreshold = 10;
+
         // 사망 임계값
         [SerializeField, LabelText("사망 임계값")]
         private int deathThreshold = 0;
@@ -88,14 +93,18 @@ namespace Enzeun.Runtime
         {
             isDead = false;
             _mentalStrength = initialMentalStrength;
+#if UNITY_EDITOR
             Debug.Log($"[MentalStrengthManager] : 플레이어의 정신력을 초기값 {initialMentalStrength}으로 재설정 합니다.");
+#endif
             CheckCurrentMentalStrength();
         }
 
         public void IncreaseMentalStrength(int amount)
         {
             mentalStrength += amount;
+#if UNITY_EDITOR
             Debug.Log($"[MentalStrengthManager] : 플레이어의 정신력을 {amount}만큼 증가시킵니다. 현재 정신력: {mentalStrength}");
+#endif
 
             CheckCurrentMentalStrength();
         }
@@ -103,7 +112,9 @@ namespace Enzeun.Runtime
         public void DecreaseMentalStrength(int amount)
         {
             mentalStrength -= amount;
+#if UNITY_EDITOR
             Debug.Log($"[MentalStrengthManager] : 플레이어의 정신력을 {amount}만큼 감소시킵니다. 현재 정신력: {mentalStrength}");
+#endif
 
             CheckCurrentMentalStrength();
         }
@@ -143,7 +154,9 @@ namespace Enzeun.Runtime
             {
                 isDead = true;
                 OnDeathThresholdReached?.Invoke();
+#if UNITY_EDITOR
                 Debug.Log("[MentalStrengthManager] : 정신력이 0이 되어 사망 이벤트를 발생시킵니다.");
+#endif
             }
         }
     }
