@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
+  m_Name: 10009
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
+  _potionIcon: {fileID: 0}
+  _potionID: 10009
+  _potionName: "\uC73C\uB78F\uCC28 \uD3EC\uC158 (\uB300)"
+  _potionDesc: "\uC77C\uC815 \uC2DC\uAC04 \uACF5\uACA9\uB825\uC774 \uC99D\uAC00\uD558\uB294
+    \uD3EC\uC158\n\uC6A9\uB7C9\uC744 \uD0A4\uC6CC \uD6A8\uACFC\uAC00 \uC99D\uD3ED\uB418\uC5C8\uB2E4."
+  _potionEffect: "\uACF5\uACA9\uB825 + 60%\n\uC218\uBD84 + 5%\n\uD3EC\uB9CC\uAC10
+    + 5%"
+  _potionType: 1
+  _potionExplosionRange: 1
+  _potionCombinationType: 2
+  _maxHoldCount: 1
+  _recipeMaterials: []
+  _effects:
+  - rid: 4119466663539376405
+  - rid: 4119466663539376406
+  - rid: 4119466663539376407
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376405
+      type: {class: ApplyStatusPotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _statusEffect: {fileID: 11400000, guid: 6884d30db17bb194cb46643140ca4d26, type: 2}
+        _percent: 60
+        _durationSeconds: 180
+    - rid: 4119466663539376406
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: 5
+    - rid: 4119466663539376407
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: 5

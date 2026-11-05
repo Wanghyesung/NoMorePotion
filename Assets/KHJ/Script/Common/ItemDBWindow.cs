@@ -17,6 +17,7 @@ namespace Enzeun.Editor
         public static readonly string materialFolderPath = "Assets/Resources/" + PotionDataManager.materialFolderPath;
         public static readonly string potionFolderPath = "Assets/Resources/" + PotionDataManager.potionFolderPath;
         public static readonly string worldObjectFolderPath = "Assets/Resources/" + WorldObjectDataManager.worldObjectFolderPath;
+        public static readonly string statusEffectFolderPath = "Assets/Resources/" + StatusEffectData.folderPath;
 
         [SerializeField, LabelText("재료 ID"), HideLabel]
         private int lastMaterialID = 20001;
@@ -27,9 +28,17 @@ namespace Enzeun.Editor
         [SerializeField, LabelText("월드 오브젝트 ID"), HideLabel]
         private int lastWorldObjectID = 30001;
 
+        [SerializeField, LabelText("버프 ID"), HideLabel]
+        private int lastBuffID = 60001;
+
+        [SerializeField, LabelText("디버프 ID"), HideLabel]
+        private int lastDebuffID = 61001;
+
         CreateButton<MaterialData> createMaterialButton;
         CreateButton<PotionData> createPotionButton;
         CreateButton<WorldObjectData> createWorldObjectButton;
+        CreateButton<StatusEffectData> createBuffButton;
+        CreateButton<StatusEffectData> createDebuffButton;
 
         [MenuItem("Tools/아이템 데이터 관리자")]
         private static void OpenWindow()
@@ -46,6 +55,8 @@ namespace Enzeun.Editor
             createMaterialButton?.Dispose();
             createPotionButton?.Dispose();
             createWorldObjectButton?.Dispose();
+            createBuffButton?.Dispose();
+            createDebuffButton?.Dispose();
         }
 
         protected override OdinMenuTree BuildMenuTree()
@@ -64,11 +75,52 @@ namespace Enzeun.Editor
             createWorldObjectButton.OnCreate += data => lastWorldObjectID = CreateAsset(data, worldObjectFolderPath);
             tree.Add("World Object SO 생성", createWorldObjectButton);
 
+            createBuffButton = new CreateButton<StatusEffectData>(lastBuffID);
+            createBuffButton.newData.SetStatusEffectType(StatusEffectType.Buff);
+            createBuffButton.OnCreate += data => lastBuffID = CreateAsset(data, statusEffectFolderPath);
+            tree.Add("Buff SO 생성", createBuffButton);
+
+            createDebuffButton = new CreateButton<StatusEffectData>(lastDebuffID);
+            createDebuffButton.newData.SetStatusEffectType(StatusEffectType.Debuff);
+            createDebuffButton.OnCreate += data => lastDebuffID = CreateAsset(data, statusEffectFolderPath);
+            tree.Add("Debuff SO 생성", createDebuffButton);
+
             tree.AddAllAssetsAtPath("재료 목록", materialFolderPath, typeof(MaterialData), true);
             tree.AddAllAssetsAtPath("포션 목록", potionFolderPath, typeof(PotionData), true);
             tree.AddAllAssetsAtPath("월드 오브젝트 목록", worldObjectFolderPath, typeof(WorldObjectData), true);
+            AddStatusEffectList(tree, "버프 목록", StatusEffectType.Buff);
+            AddStatusEffectList(tree, "디버프 목록", StatusEffectType.Debuff);
 
             return tree;
+        }
+
+        /// <summary>
+        /// 상태 효과 SO 중 지정한 종류(버프/디버프)만 골라 메뉴 트리에 추가합니다.
+        /// AddAllAssetsAtPath 는 타입으로만 거를 수 있어서, 같은 SO 타입인 버프/디버프를 직접 분리합니다.
+        /// </summary>
+        private void AddStatusEffectList(OdinMenuTree tree, string menuName, StatusEffectType type)
+        {
+            if (!Directory.Exists(statusEffectFolderPath))
+            {
+                return;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:StatusEffectData", new[] { statusEffectFolderPath });
+            Array.Sort(guids, (a, b) => string.CompareOrdinal(
+                AssetDatabase.GUIDToAssetPath(a), AssetDatabase.GUIDToAssetPath(b)));
+
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var data = AssetDatabase.LoadAssetAtPath<StatusEffectData>(path);
+
+                if (data == null || data.statusEffectType != type)
+                {
+                    continue;
+                }
+
+                tree.AddAssetAtPath($"{menuName}/{Path.GetFileNameWithoutExtension(path)}", path);
+            }
         }
 
 

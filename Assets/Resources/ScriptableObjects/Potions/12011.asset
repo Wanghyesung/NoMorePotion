@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
+  m_Name: 12011
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
+  _potionIcon: {fileID: 0}
+  _potionID: 12011
+  _potionName: "\uD65C\uD65C \uD3EC\uC158 (\uC911)"
+  _potionDesc: "\uC9C0\uBA74\uC744 \uD0DC\uC6B0\uB294 \uD3EC\uC158.\n\uC6A9\uB7C9\uC744
+    \uD0A4\uC6CC \uD6A8\uACFC\uAC00 \uC99D\uD3ED\uB418\uC5C8\uB2E4."
+  _potionEffect: "\uBD88 \uC18D\uC131 \uB300\uBBF8\uC9C0 180 (\uCD08\uB2F9)\n\uC218\uBD84
+    - 5%\n\uD3EC\uB9CC\uAC10 + 2%\n\uC815\uC2E0\uB825 - 5%\n\uCCB4\uC628 + 5%"
+  _potionType: 3
+  _potionExplosionRange: 2
+  _potionCombinationType: 2
+  _maxHoldCount: 1
+  _recipeMaterials: []
+  _effects:
+  - rid: 4119466663539376330
+  - rid: 4119466663539376331
+  - rid: 4119466663539376332
+  - rid: 4119466663539376333
+  - rid: 4119466663539376334
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376330
+      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _healthChange:
+          _changeType: 1
+          _damageType: 2
+          _amount: 180
+          _intervalSeconds: 1
+        _durationSeconds: 10
+    - rid: 4119466663539376331
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: -5
+    - rid: 4119466663539376332
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: 2
+    - rid: 4119466663539376333
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 2
+        _percent: -5
+    - rid: 4119466663539376334
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 1
+        _percent: 5

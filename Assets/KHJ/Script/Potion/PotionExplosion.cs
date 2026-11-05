@@ -1,0 +1,110 @@
+using System.Collections.Generic;
+using Enzeun.SO;
+using UnityEngine;
+
+
+namespace Enzeun.Runtime
+{
+    /// <summary>
+    /// 포션 폭발을 일으키는 정적 도우미입니다. 지정한 위치에서 범위 안의 모든 대상에게 포션 효과를 적용합니다.
+    ///
+    /// - 던지기 : 포션이 부딪힌 위치에서 호출합니다. (Potion 컴포넌트)
+    /// - 마시기 : 플레이어의 위치에서 호출합니다. 범위에 플레이어 자신도 포함되므로 자신에게도 적용됩니다.
+    ///
+    /// 한 대상에 콜라이더가 여러 개여도 효과는 대상당 한 번만 적용합니다.
+    /// </summary>
+    public static class PotionExplosion
+    {
+        // 한 번의 폭발이 동시에 찾을 수 있는 콜라이더 수입니다. 가득 차면 경고합니다.
+        private const int MaxColliders = 64;
+
+        // 매 폭발마다 새로 할당하지 않도록 재사용하는 버퍼입니다.
+        private static readonly Collider[] ColliderBuffer = new Collider[MaxColliders];
+        private static readonly HashSet<Object> AppliedTargets = new HashSet<Object>();
+
+        private static int _playerLayer = -1;
+
+        /// <summary>
+        /// position 에서 폭발을 일으키고, 범위에 닿은 대상 수를 반환합니다.
+        /// </summary>
+        public static int Explode(PotionData potion, Vector3 position)
+        {
+            if (potion == null)
+            {
+                Debug.LogWarning("[PotionExplosion]: 폭발시킬 포션 데이터가 null 입니다.");
+                return 0;
+            }
+
+            PotionExplosionConfig config = PotionExplosionConfig.Instance;
+            if (config == null)
+            {
+                Debug.LogWarning($"[PotionExplosion]: 폭발 설정 에셋이 없습니다. (Resources/{PotionExplosionConfig.ResourcePath})");
+                return 0;
+            }
+
+            float radius = config.GetRadius(potion.potionExplosionRange);
+            int hitCount = Physics.OverlapSphereNonAlloc(position, radius, ColliderBuffer, config.TargetLayers, QueryTriggerInteraction.Collide);
+
+            if (hitCount >= MaxColliders)
+            {
+                Debug.LogWarning($"[PotionExplosion]: 폭발 범위 안의 콜라이더가 {MaxColliders}개 이상이라 일부가 누락될 수 있습니다.");
+            }
+
+            if (_playerLayer < 0)
+            {
+                _playerLayer = LayerMask.NameToLayer("Player");
+            }
+
+            AppliedTargets.Clear();
+            int targetCount = 0;
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider collider = ColliderBuffer[i];
+                ColliderBuffer[i] = null;   // 파괴된 오브젝트를 붙잡지 않도록 비웁니다.
+
+                var target = new PotionTarget
+                {
+                    BuffContainer = collider.GetComponentInParent<BuffContainer>(),
+                    Damageable = collider.GetComponentInParent<IDamageable>(),
+                    WorldObject = collider.GetComponentInParent<WorldObject>(),
+                    IsPlayer = collider.gameObject.layer == _playerLayer,
+                };
+
+                Object key = GetTargetKey(target);
+                if (key == null || !AppliedTargets.Add(key))
+                {
+                    continue;
+                }
+
+                PotionEffectApplier.Apply(potion, target, position);
+                targetCount++;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log($"[PotionExplosion] : {potion.potionName}({potion.potionID}) 폭발 / 반경 {radius}m / 대상 {targetCount}개");
+#endif
+
+            return targetCount;
+        }
+
+        /// <summary>
+        /// 같은 대상을 구분하는 키입니다. 대상이 가진 컴포넌트 중 우선순위가 가장 높은 것을 사용합니다.
+        /// 한 대상의 여러 콜라이더는 같은 컴포넌트를 찾으므로 같은 키가 됩니다.
+        /// </summary>
+        private static Object GetTargetKey(in PotionTarget target)
+        {
+            if (target.BuffContainer != null)
+            {
+                return target.BuffContainer;
+            }
+
+            if (target.Damageable is Component damageableComponent)
+            {
+                return damageableComponent;
+            }
+
+            return target.WorldObject;
+        }
+    }
+}

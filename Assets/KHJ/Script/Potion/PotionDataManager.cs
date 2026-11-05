@@ -62,6 +62,9 @@ namespace Enzeun.Runtime
         [ShowInInspector, ReadOnly]
         private Dictionary<PotionRecipeSet, PotionData> potionDataDictionary = new Dictionary<PotionRecipeSet, PotionData>();
 
+        // 포션 ID 로 포션 데이터를 찾기 위한 딕셔너리 (포션 + 포션 조합에서 사용)
+        private Dictionary<int, PotionData> potionDataByID = new Dictionary<int, PotionData>();
+
         private bool isDataInitialized = false;
 
         /// <summary>
@@ -79,6 +82,14 @@ namespace Enzeun.Runtime
 
             foreach (var potionData in potionDataList)
             {
+                // 포션 + 포션 조합(업그레이드)에서 ID 로 조회할 수 있도록 모든 포션을 등록
+                potionDataByID[potionData.potionID] = potionData;
+
+                if (potionData.potionCombinationType == PotionCombinationType.Potion)
+                {
+                    continue;
+                }
+
                 List<MaterialData> recipeMaterials = potionData.recipeMaterials;
 
                 if (recipeMaterials.Count == 2)
@@ -145,6 +156,38 @@ namespace Enzeun.Runtime
                 Debug.LogWarning($"[PotionDataManager]: 레시피에 해당하는 포션 데이터가 없습니다. 재료 ID: {first}, {second}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// 포션 + 포션 조합 결과를 가져오는 메서드입니다.
+        /// 기획 규칙 : 중 = 소 + 소, 대 = 중 + 중. 같은 포션 2개를 합치면 다음 ID(ID + 1)의 포션이 결과이며,
+        /// 그 포션의 조합 타입이 Potion 이어야 합니다. (대 + 대는 ID + 1 이 다른 계열의 소 포션이라 거절됩니다)
+        /// </summary>
+        /// <param name="firstPotionID">첫 번째 포션 ID</param>
+        /// <param name="secondPotionID">두 번째 포션 ID</param>
+        /// <returns>업그레이드된 포션 데이터. 조합할 수 없으면 null</returns>
+        public PotionData GetUpgradedPotion(int firstPotionID, int secondPotionID)
+        {
+            if (!isDataInitialized)
+            {
+                Debug.LogError("[PotionDataManager]: 포션 데이터가 초기화되지 않았습니다. FindAllPotionRecipes()를 먼저 호출하세요.");
+                return null;
+            }
+
+            if (firstPotionID != secondPotionID)
+            {
+                Debug.LogWarning($"[PotionDataManager]: 서로 다른 포션은 합칠 수 없습니다. 포션 ID: {firstPotionID}, {secondPotionID}");
+                return null;
+            }
+
+            if (potionDataByID.TryGetValue(firstPotionID + 1, out PotionData upgradedPotion)
+                && upgradedPotion.potionCombinationType == PotionCombinationType.Potion)
+            {
+                return upgradedPotion;
+            }
+
+            Debug.LogWarning($"[PotionDataManager]: 더 이상 업그레이드할 수 없는 포션입니다. 포션 ID: {firstPotionID}");
+            return null;
         }
 
         #endregion

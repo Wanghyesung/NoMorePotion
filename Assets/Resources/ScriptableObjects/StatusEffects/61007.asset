@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28744d3fd95c3b040a4f82bc51b21e13, type: 3}
+  m_Name: 61007
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.StatusEffectData
+  _statusEffectIcon: {fileID: 0}
+  _statusEffectID: 61007
+  _statusEffectName: "\uAD76\uC8FC\uB9BC"
+  _statusEffectDesc: "\uCCB4\uB825 \uAC10\uC18C(\uCD08\uB2F9 300)"
+  _statusEffectType: 2
+  _hasDuration: 0
+  _stackPolicy: 1
+  _modules:
+  - rid: 4119466663539376222
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376222
+      type: {class: HealthChangeModule, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _changeType: 1
+        _damageType: 0
+        _amount: 300
+        _intervalSeconds: 1

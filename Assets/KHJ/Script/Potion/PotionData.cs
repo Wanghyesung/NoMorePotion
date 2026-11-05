@@ -105,6 +105,12 @@ namespace Enzeun.SO
         private List<MaterialData> _recipeMaterials;
         public List<MaterialData> recipeMaterials => _recipeMaterials;
 
+        [LabelText("효과 목록"), BoxGroup("효과 정보")]
+        [PropertyOrder(11)]
+        [SerializeReference]
+        private List<PotionEffect> _effects = new List<PotionEffect>();
+        public IReadOnlyList<PotionEffect> effects => _effects;
+
 #if UNITY_EDITOR
         public void SetID(int id)
         {

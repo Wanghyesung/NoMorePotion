@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 802dcbd9439914e48b7609c3a2672ecb, type: 3}
+  m_Name: 32003
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.WorldObjectData
+  _worldObjectIcon: {fileID: 0}
+  _worldObjectID: 32003
+  _worldObjectName: "\uB178\uB791 \uBC84\uC12F"
+  _worldObjectDesc: 
+  _worldObjectType: 3
+  _worldObjectDropType: 1
+  _dropMaterials:
+  - {fileID: 11400000, guid: 61b0a944398197042b924926a8a69f4d, type: 2}
+  - {fileID: 11400000, guid: 27dc942bb7baf25428b2fb1b905c50f6, type: 2}

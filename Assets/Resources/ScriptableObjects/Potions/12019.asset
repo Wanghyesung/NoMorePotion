@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
+  m_Name: 12019
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
+  _potionIcon: {fileID: 0}
+  _potionID: 12019
+  _potionName: "\uB531\uD480 \uD3EC\uC158 (\uC18C)"
+  _potionDesc: "\uC9C0\uBA74\uC744 \uB048\uB048\uD558\uAC8C \uB9CC\uB4DC\uB294 \uD3EC\uC158."
+  _potionEffect: "\uC774\uB3D9\uC18D\uB3C4 - 20%\n\uC218\uBD84 - 5%"
+  _potionType: 3
+  _potionExplosionRange: 2
+  _potionCombinationType: 1
+  _maxHoldCount: 1
+  _recipeMaterials:
+  - {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}
+  - {fileID: 11400000, guid: 33a0a98c64347064eb6ac09816038fb6, type: 2}
+  _effects:
+  - rid: 4119466663539376507
+  - rid: 4119466663539376508
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376507
+      type: {class: ApplyStatusPotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _statusEffect: {fileID: 11400000, guid: 586eb330f3f77f941b1d8c4b75fadae9, type: 2}
+        _percent: -20
+        _durationSeconds: 10
+    - rid: 4119466663539376508
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: -5

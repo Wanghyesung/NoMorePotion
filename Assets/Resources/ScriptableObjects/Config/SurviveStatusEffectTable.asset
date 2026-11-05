@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7710c9e41f52ed748b840c7f472cdfb6, type: 3}
+  m_Name: SurviveStatusEffectTable
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.SurviveStatusEffectTable
+  _bodyTemperature:
+  - _state: 0
+    _effects: []
+  - _state: 2
+    _effects:
+    - {fileID: 11400000, guid: 58336de4e839e1140a66ddec02e7e568, type: 2}
+  - _state: 1
+    _effects:
+    - {fileID: 11400000, guid: 41989725145484b4abe3ddab8c494853, type: 2}
+  _mentalStrength:
+  - _state: 1
+    _effects:
+    - {fileID: 11400000, guid: 23e494234347b1a48b68078001684fd4, type: 2}
+  - _state: 0
+    _effects:
+    - {fileID: 11400000, guid: c7a756b5fff992f409267ca6f6ed1a16, type: 2}
+  - _state: 2
+    _effects:
+    - {fileID: 11400000, guid: c7a756b5fff992f409267ca6f6ed1a16, type: 2}
+    - {fileID: 11400000, guid: 6efdb9a15acc53c4980781970943881d, type: 2}
+  - _state: 3
+    _effects:
+    - {fileID: 11400000, guid: c7a756b5fff992f409267ca6f6ed1a16, type: 2}
+    - {fileID: 11400000, guid: 6efdb9a15acc53c4980781970943881d, type: 2}
+    - {fileID: 11400000, guid: 9d09f0b6670133c4e860aedac373ccaa, type: 2}
+  - _state: 4
+    _effects:
+    - {fileID: 11400000, guid: c7a756b5fff992f409267ca6f6ed1a16, type: 2}
+    - {fileID: 11400000, guid: 6efdb9a15acc53c4980781970943881d, type: 2}
+    - {fileID: 11400000, guid: 9d09f0b6670133c4e860aedac373ccaa, type: 2}
+    - {fileID: 11400000, guid: 7a6f54f75cc599847a7ffe23940069b1, type: 2}
+  _hydration:
+  - _state: 0
+    _effects: []
+  - _state: 1
+    _effects:
+    - {fileID: 11400000, guid: c0dc612a57aaf5c419eb6235ad094d9d, type: 2}
+  - _state: 2
+    _effects:
+    - {fileID: 11400000, guid: b99dfce18b880714c926718e80b415f3, type: 2}
+  - _state: 3
+    _effects:
+    - {fileID: 11400000, guid: b99dfce18b880714c926718e80b415f3, type: 2}
+    - {fileID: 11400000, guid: 123446f01e84bbf4686150172c651c88, type: 2}
+  _satiation:
+  - _state: 0
+    _effects: []
+  - _state: 1
+    _effects:
+    - {fileID: 11400000, guid: 93b03a503ff6d3343b1f1de6c8b03f60, type: 2}
+  - _state: 2
+    _effects:
+    - {fileID: 11400000, guid: d75a46dda320368438df79155dd9aed3, type: 2}
+  - _state: 3
+    _effects:
+    - {fileID: 11400000, guid: d75a46dda320368438df79155dd9aed3, type: 2}
+    - {fileID: 11400000, guid: 1b24f80152c17564aa3028e24013baf8, type: 2}
