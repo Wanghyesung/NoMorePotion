@@ -18,10 +18,4 @@ public class TimeManagerTestLogger : MonoBehaviour
         tm.RemainSec.Subscribe(value => Debug.Log($"[Test] 남은 초: {value}")).AddTo(this);
     }
 
-    [ContextMenu("진행 비율 출력")]
-    private void LogProgress()
-    {
-        if (TimeManager.Instance == null) return;
-        Debug.Log($"[Test] 진행 비율: {TimeManager.Instance.PhaseProgress}");
-    }
 }

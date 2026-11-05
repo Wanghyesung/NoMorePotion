@@ -6,9 +6,19 @@ using R3;
 /// 인게임 내 낮/밤 순환 및 일차 관리
 /// </summary>
 /// <remarks>
-/// - StartClock() 호출해야 시간이 흐름
-/// - 시간 진행은 마스터만. 오프라인은 혼자 마스터라 그대로 동작
-/// - 다른 파트를 직접 호출하지 X, 낮/밤 전환에 반응하는 쪽이 Phase 구독
+/// [구독 방법] using R3; 필요, Start에서 구독
+///   TimeManager.Instance.Phase.Subscribe(phase => { ... }).AddTo(this);
+///
+/// [구독 값]
+///   Phase     : TimePhase (Day/Night), 낮밤 전환 시
+///   DayCount  : int, 아침이 올 때
+///   RemainSec : int, 남은 초(올림), 1초마다
+///
+/// [직접 읽는 값]
+///   PhaseProgress : float (0~1), Update에서 읽기
+///
+/// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
+///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
 /// </remarks>
 public class TimeManager : MonoBehaviour
 {
@@ -32,11 +42,6 @@ public class TimeManager : MonoBehaviour
     public ReadOnlyReactiveProperty<int> DayCount => dayCount;
     /// <summary> 다음단계까지 남은 초, 값이 바뀔때만 알림 </summary>
     public ReadOnlyReactiveProperty<int> RemainSec => remainSec;
-
-    /// <summary>
-    /// 현재 단계 진행 비율(0~1). 매 프레임 바뀌므로 구독 대신 HUD가 Update에서 읽을예정
-    /// 시작 전에는 0.
-    public float PhaseProgress => isRunning ? state.Elapsed / currentDuration : 0f;
 
     private void Awake()
     {
