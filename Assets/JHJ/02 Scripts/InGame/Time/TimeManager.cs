@@ -43,6 +43,13 @@ public class TimeManager : MonoBehaviour
     /// <summary> 다음단계까지 남은 초, 값이 바뀔때만 알림 </summary>
     public ReadOnlyReactiveProperty<int> RemainSec => remainSec;
 
+
+    /// <summary>
+    /// 현재 단계 진행 비율(0~1). 매 프레임 바뀌므로 구독 대신 Update에서 직접 읽는다.
+    /// 시작 전에는 0.
+    /// </summary>
+    public float PhaseProgress => isRunning ? state.Elapsed / currentDuration : 0f;
+
     private void Awake()
     {
         if(Instance != null && Instance != this)
