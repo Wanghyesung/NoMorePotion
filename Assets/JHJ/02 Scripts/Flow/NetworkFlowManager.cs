@@ -197,7 +197,10 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         ResetReady();
 
         SetState(FlowState.Title);
-        RaiseError($"Disconnected from server. ({cause})");
+
+        // 직접 연결을 끊은 경우(타이틀로 돌아가기)는 오류로 알리지 않음
+        if (cause != DisconnectCause.DisconnectByClientLogic)
+            RaiseError($"Disconnected from server. ({cause})");
     }
 
     #endregion
@@ -209,6 +212,18 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Lobby
 
     #region 요청
+
+    // 로비에서 타이틀로: 서버 연결을 끊으면 OnDisconnected에서 Title 상태로 바뀜
+    public void RequestReturnToTitle()
+    {
+        if (CurrentState != FlowState.Lobby)
+        {
+            Debug.Log($"[NetworkFlowManager] 타이틀로 돌아가기 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        PhotonNetwork.Disconnect();
+    }
 
     public void RequestCreateRoom(string displayName, int maxPlayers, bool isPublic)
     {

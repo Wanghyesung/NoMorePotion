@@ -4,6 +4,7 @@ using R3;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class LobbyPanelUI : MonoBehaviour
@@ -21,13 +22,14 @@ public class LobbyPanelUI : MonoBehaviour
     [SerializeField] private Button joinByCodeBtn;
     [SerializeField] private Button createBtn;
     [SerializeField] private Button quickMatchBtn;
-    [SerializeField] private Button quitBtn;
+    [FormerlySerializedAs("quitBtn")]                     // 기존 연결 유지 (종료 버튼 → 설정 버튼)
+    [SerializeField] private Button settingsBtn;
     [SerializeField] private Button nicknameEditBtn;
 
     [Header("popup")]
     [SerializeField] private CreateRoomPopupUI createPopup;
     [SerializeField] private NicknamePopupUI changeNickPopup;
-    [SerializeField] private ConfirmPopupUI quitConfirmPopup;
+    [SerializeField] private SettingsPopupUI settingsPopup;
 
 
     private NetworkFlowManager manager;
@@ -55,7 +57,7 @@ public class LobbyPanelUI : MonoBehaviour
         joinByCodeBtn.onClick.AddListener(() => manager.RequestJoinByCode(codeInput.text));
         quickMatchBtn.onClick.AddListener(() => manager.RequestQuickMatch());
         createBtn.onClick.AddListener(() => createPopup.Open());
-        quitBtn.onClick.AddListener(() => QuitFlow().Forget());
+        settingsBtn.onClick.AddListener(() => settingsPopup.Open());
     }
 
     private void OnEnable()
@@ -79,13 +81,5 @@ public class LobbyPanelUI : MonoBehaviour
 
         // 개수표시
         roomCountText.text = $"방 목록 {rooms.Count}개";
-    }
-
-    private async UniTaskVoid QuitFlow()
-    {
-        bool yes = await quitConfirmPopup.ShowAsync("게임을 종료하시겠습니까?");
-
-        if (yes)
-            QuitGame.Quit();
     }
 }
