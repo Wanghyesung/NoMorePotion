@@ -14,8 +14,8 @@ namespace Enzeun.Runtime
         public IDamageable Damageable;
         public WorldObject WorldObject;
 
-        // 생존 상태(수분 등)를 적용할 대상인지 여부입니다. 현재는 Player 레이어이면 true 입니다.
-        public bool IsPlayer;
+        // 내 플레이어인지 여부입니다. 생존 상태(수분 등)는 내 플레이어에게만 적용합니다. (다른 플레이어, 몬스터는 false)
+        public bool IsLocalPlayer;
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ namespace Enzeun.Runtime
 
                     case GaugeChangePotionEffect gauge:
                         // 생존 상태는 0~100 범위라서 퍼센트가 곧 증감 수치입니다.
-                        if (target.IsPlayer && SurviveStatusManager.Instance != null)
+                        if (target.IsLocalPlayer && SurviveStatusManager.Instance != null)
                         {
                             SurviveStatusManager.Instance.ChangeStatus(gauge.gauge, gauge.percent);
                         }

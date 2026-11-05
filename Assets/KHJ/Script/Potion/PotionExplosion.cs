@@ -22,8 +22,6 @@ namespace Enzeun.Runtime
         private static readonly Collider[] ColliderBuffer = new Collider[MaxColliders];
         private static readonly HashSet<Object> AppliedTargets = new HashSet<Object>();
 
-        private static int _playerLayer = -1;
-
         /// <summary>
         /// position 에서 폭발을 일으키고, 범위에 닿은 대상 수를 반환합니다.
         /// </summary>
@@ -50,11 +48,6 @@ namespace Enzeun.Runtime
                 Debug.LogWarning($"[PotionExplosion]: 폭발 범위 안의 콜라이더가 {MaxColliders}개 이상이라 일부가 누락될 수 있습니다.");
             }
 
-            if (_playerLayer < 0)
-            {
-                _playerLayer = LayerMask.NameToLayer("Player");
-            }
-
             AppliedTargets.Clear();
             int targetCount = 0;
 
@@ -63,12 +56,15 @@ namespace Enzeun.Runtime
                 Collider collider = ColliderBuffer[i];
                 ColliderBuffer[i] = null;   // 파괴된 오브젝트를 붙잡지 않도록 비웁니다.
 
+                // 컨테이너는 Owner 로 찾습니다. (플레이어 컨테이너는 콜라이더의 부모 계층에 없을 수 있음)
+                BuffContainer container = BuffContainer.FindByOwner(collider.transform);
+
                 var target = new PotionTarget
                 {
-                    BuffContainer = collider.GetComponentInParent<BuffContainer>(),
+                    BuffContainer = container,
                     Damageable = collider.GetComponentInParent<IDamageable>(),
                     WorldObject = collider.GetComponentInParent<WorldObject>(),
-                    IsPlayer = collider.gameObject.layer == _playerLayer,
+                    IsLocalPlayer = IsLocalPlayerContainer(container),
                 };
 
                 Object key = GetTargetKey(target);
@@ -86,6 +82,16 @@ namespace Enzeun.Runtime
 #endif
 
             return targetCount;
+        }
+
+        /// <summary>
+        /// 이 컨테이너가 내 플레이어의 컨테이너인지 확인합니다. 다른 플레이어나 몬스터는 false 입니다.
+        /// </summary>
+        private static bool IsLocalPlayerContainer(BuffContainer container)
+        {
+            return container != null
+                && SurviveStatusManager.Instance != null
+                && container == SurviveStatusManager.Instance.PlayerBuffContainer;
         }
 
         /// <summary>

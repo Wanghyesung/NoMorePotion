@@ -19,8 +19,11 @@ namespace Enzeun.Runtime
     /// - 같은 효과를 다른 주체가 걸면 각자 보관합니다. 그래서 한 주체가 제거해도 다른 주체가 건 것은 남습니다.
     /// - 스탯 보정은 곱연산입니다. 효과 하나(상태 효과 ID 기준)당 한 번만 반영합니다.
     ///
-    /// - 체력 증감 모듈(탈수의 초당 대미지 등)은 걸리자마자 한 번, 이후 반복 간격마다 같은 오브젝트의 IDamageable 에게 적용합니다.
+    /// - 체력 증감 모듈(탈수의 초당 대미지 등)은 걸리자마자 한 번, 이후 반복 간격마다 Owner 의 IDamageable 에게 적용합니다.
     ///   같은 효과가 여러 건이어도 대미지는 한 건만 주고, 프레임이 튀어도 한 번의 갱신에 틱은 최대 한 번입니다.
+    ///   멀티플레이에서는 권한(HasAuthority)이 있는 클라이언트에서만 대미지를 줍니다.
+    ///
+    /// - Owner : 이 컨테이너의 주인입니다. 몬스터는 자기 자신이 기본 Owner 이고, 플레이어는 SetOwner 로 연결합니다.
     ///
     /// 이 클래스는 목록 관리, 중첩, 지속시간, 스탯 배율 조회, 체력 증감 틱까지 담당합니다.
     /// 행동 변화 효과(갈증, 허기 등)는 Has() 로 걸려 있는지 확인해서 각 시스템이 처리합니다.
@@ -50,6 +53,120 @@ namespace Enzeun.Runtime
         private bool _isStatMultiplierDirty = true;
 
 
+        // ==================== owner (이 컨테이너의 주인) ============================
+
+        // 몬스터처럼 컨테이너가 주인과 같은 오브젝트에 붙는 경우 켭니다. 플레이어 컨테이너(생존 상태 매니저 쪽)는 끄고 SetOwner 로 연결합니다.
+        [SerializeField, LabelText("Awake 에서 자기 자신을 Owner 로 지정")]
+        private bool _assignOwnerOnAwake = true;
+
+        /// <summary>
+        /// 이 컨테이너의 주인 오브젝트(루트)입니다. 폭발 등에서 맞은 콜라이더로 컨테이너를 찾을 때 기준이 됩니다.
+        /// </summary>
+        [ShowInInspector, ReadOnly, LabelText("Owner"), PropertyOrder(-4)]
+        public GameObject Owner { get; private set; }
+
+        /// <summary>
+        /// 체력 증감(초당 대미지 등)을 받을 대상입니다. Owner 를 지정할 때 한 번만 찾습니다.
+        /// </summary>
+        public IDamageable Damageable { get; private set; }
+
+        /// <summary>
+        /// 이 클라이언트가 이 컨테이너의 체력 증감을 실행할 권한이 있는지 여부입니다. 확인 함수를 지정하지 않으면 항상 true 입니다.
+        /// (멀티플레이에서 플레이어는 본인 클라이언트, 몬스터는 마스터 클라이언트만 대미지를 줘서 중복 대미지를 막기 위함)
+        /// </summary>
+        public bool HasAuthority => _authorityCheck == null || _authorityCheck();
+
+        private Func<bool> _authorityCheck;
+
+        // Owner 오브젝트로 컨테이너를 찾기 위한 등록부입니다.
+        private static readonly Dictionary<GameObject, BuffContainer> Containers = new Dictionary<GameObject, BuffContainer>();
+
+        // 등록할 때 쓴 키입니다. 주인이 먼저 파괴되어도 같은 키로 등록을 해제하기 위해 따로 들고 있습니다.
+        private GameObject _registeredKey;
+
+        private void Awake()
+        {
+            if (_assignOwnerOnAwake)
+            {
+                SetOwner(gameObject);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Unregister();
+        }
+
+        /// <summary>
+        /// 이 컨테이너의 주인을 지정합니다. 주인(또는 그 부모/자식)에서 IDamageable 을 찾아 체력 증감 대상으로 삼습니다.
+        /// 플레이어는 생성된 뒤에 호출해서 연결합니다.
+        /// </summary>
+        public void SetOwner(GameObject owner)
+        {
+            Unregister();
+
+            Owner = owner;
+            Damageable = null;
+
+            if (owner == null)
+            {
+                return;
+            }
+
+            Damageable = owner.GetComponentInParent<IDamageable>() ?? owner.GetComponentInChildren<IDamageable>();
+
+            if (Damageable == null)
+            {
+                Debug.LogWarning($"[BuffContainer]: Owner {owner.name} 에서 IDamageable 을 찾지 못해 체력 증감 효과를 적용할 수 없습니다.");
+            }
+
+            if (Containers.TryGetValue(owner, out BuffContainer existing) && existing != this)
+            {
+                Debug.LogWarning($"[BuffContainer]: Owner {owner.name} 에 이미 다른 BuffContainer 가 등록되어 있어 새 컨테이너로 교체합니다.");
+            }
+
+            Containers[owner] = this;
+            _registeredKey = owner;
+        }
+
+        /// <summary>
+        /// 이 컨테이너가 체력 증감을 실행할 권한이 있는지 확인하는 함수를 지정합니다.
+        /// 예) 플레이어 : () => photonView.IsMine / 몬스터 : () => PhotonNetwork.IsMasterClient
+        /// </summary>
+        public void SetAuthorityCheck(Func<bool> authorityCheck)
+        {
+            _authorityCheck = authorityCheck;
+        }
+
+        /// <summary>
+        /// start 에서 부모 방향으로 올라가며 Owner 로 등록된 오브젝트를 찾아 그 컨테이너를 반환합니다.
+        /// 컨테이너가 Owner 와 다른 오브젝트에 붙어 있어도 찾을 수 있습니다. 없으면 null 입니다.
+        /// </summary>
+        public static BuffContainer FindByOwner(Transform start)
+        {
+            for (Transform current = start; current != null; current = current.parent)
+            {
+                if (Containers.TryGetValue(current.gameObject, out BuffContainer container))
+                {
+                    return container;
+                }
+            }
+
+            return null;
+        }
+
+        private void Unregister()
+        {
+            if (!ReferenceEquals(_registeredKey, null)
+                && Containers.TryGetValue(_registeredKey, out BuffContainer registered)
+                && registered == this)
+            {
+                Containers.Remove(_registeredKey);
+            }
+
+            _registeredKey = null;
+        }
+
         private void Update()
         {
             Tick(Time.deltaTime);
@@ -64,24 +181,23 @@ namespace Enzeun.Runtime
             TickAndRemoveExpired(_debuffs, deltaTime);
         }
 
-        // 체력 증감을 적용할 대상입니다. 이 컨테이너와 같은 오브젝트(또는 부모)의 IDamageable 을 한 번만 찾습니다.
-        private IDamageable _damageable;
-        private bool _hasSearchedDamageable;
-
-        private IDamageable GetDamageable()
+        /// <summary>
+        /// 체력 증감을 적용할 수 있는 대상인지 확인합니다. (지정되지 않았거나 이미 파괴된 대상은 제외)
+        /// </summary>
+        private bool CanApplyHealthChange()
         {
-            if (!_hasSearchedDamageable)
+            if (Damageable == null || !HasAuthority)
             {
-                _hasSearchedDamageable = true;
-                _damageable = GetComponentInParent<IDamageable>();
-
-                if (_damageable == null)
-                {
-                    Debug.LogWarning($"[BuffContainer]: {name} 에서 IDamageable 을 찾지 못해 체력 증감 효과를 적용할 수 없습니다.");
-                }
+                return false;
             }
 
-            return _damageable;
+            // IDamageable 구현체가 파괴된 MonoBehaviour 인 경우를 걸러냅니다.
+            if (Damageable is UnityEngine.Object unityObject && unityObject == null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -374,10 +490,10 @@ namespace Enzeun.Runtime
                     continue;
                 }
 
-                IDamageable target = GetDamageable();
-                if (target != null)
+                if (CanApplyHealthChange())
                 {
-                    healthChange.Apply(target, transform.position);
+                    Vector3 position = Owner != null ? Owner.transform.position : transform.position;
+                    healthChange.Apply(Damageable, position);
                 }
             }
         }
