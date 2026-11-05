@@ -8,10 +8,9 @@
 [CreateAssetMenu(fileName = "Hit", menuName = "Player/State/Hit")]
 public sealed class SOHitState : SOState
 {
-    [SerializeField, Min(0f)] private float knockbackPower = 5f;
     [SerializeField, Min(0f)] private float knockbackDeceleration = 12f;
 
     public override FSM.StateType State => FSM.StateType.Hit;
     public override PlayerState CreateState(FSM owner)
-        => new PlayerHitState(owner, this, knockbackPower, knockbackDeceleration);
+        => new PlayerHitState(owner, this, knockbackDeceleration);
 }

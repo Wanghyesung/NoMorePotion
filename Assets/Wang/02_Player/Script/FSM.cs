@@ -24,6 +24,7 @@ public sealed class FSM : MonoBehaviour
         Pick = 5,
         Hit = 6,
         Take = 7,
+        Dead = 8,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
 
@@ -85,6 +86,9 @@ public sealed class FSM : MonoBehaviour
 
         foreach (PlayerState state in states.Values)
             state.Init();
+
+        
+        StartState();
     }
 
     public bool StartState()
@@ -141,7 +145,7 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeState(StateType type)
     {
-        if (stateLocked == true || player.HP <= 0)
+        if (stateLocked == true || player.Character.HP <= 0)
             return false;
 
         PlayerState nextState = states[type];
@@ -157,8 +161,17 @@ public sealed class FSM : MonoBehaviour
     // attackInfo: 피격 진입 전에 전달할 공격 위치와 피해량
     public void TakeDamage(CommonStruct.AttackInfo attackInfo)
     {
-        if (player.HP <= 0)
+        if (player.Character.HP <= 0)
+        {
+            PlayerDeadState dead = (PlayerDeadState)states[StateType.Dead];
+            if (CurrentState == dead)
+                return;
+
+            dead.SetAttackInfo(attackInfo);
+            ClearActionState();
+            EnterState(dead);
             return;
+        }
 
         OnHitAction?.Invoke(attackInfo);
     }
@@ -166,7 +179,7 @@ public sealed class FSM : MonoBehaviour
     // 잠긴 상태나 같은 상태도 중단 후 다시 진입
     public void ResetState(PlayerState nextState)
     {
-        if (player.HP <= 0)
+        if (player.Character.HP <= 0)
             return;
 
         ClearActionState();
@@ -183,7 +196,7 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeActionState(StateType type)
     {
-        if (stateLocked == true || player.HP <= 0)
+        if (stateLocked == true || player.Character.HP <= 0)
             return false;
 
         PlayerState nextState = states[type];
@@ -224,6 +237,9 @@ public sealed class FSM : MonoBehaviour
 
     public void StopHorizontalMovement()
     {
+        if (Rigidbody.isKinematic)
+            return;
+
         Vector3 velocity = Rigidbody.linearVelocity;
         velocity.x = 0f;
         velocity.z = 0f;
@@ -241,11 +257,6 @@ public sealed class FSM : MonoBehaviour
         PreviousState = null;
     }
 
-    private void OnEnable()
-    {
-        if (player.isActiveAndEnabled == true )
-            StartState();
-    }
 
     private void OnDisable()
     {

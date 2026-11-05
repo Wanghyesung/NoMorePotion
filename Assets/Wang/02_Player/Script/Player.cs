@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using MoreMountains.Feedbacks;
 using static InputManager;
 
 /*///////////////////////////////////////////
@@ -6,27 +8,31 @@ using static InputManager;
 기능 : 플레이어 생명주기와 HP를 관리하고 받은 피해를 FSM에 전달
  *///////////////////////////////////////////
 
+public class PlayerCharacter : Character
+{
+    public PlayerCharacter(string name, int maxHp, int hp, Dictionary<DamageType, int> immune)
+        : base(name, maxHp, hp, immune) { }
+}
+
+
 [DisallowMultipleComponent]
 public sealed class Player : MonoBehaviour, IDamageable
 {
-    [SerializeField, Min(1)] private int hp = 100;
-    public int HP => hp;
     private FSM fsm;
+    private MMF_Player viewFeedbacks;
+    private bool testingViewFeedbacks;
 
+    private Character character = null;
+    public Character Character => character;
     // attackInfo.Position: 공격이 들어온 월드 위치
+
+
     public void TakeDamage(CommonStruct.AttackInfo attackInfo)
     {
-        if (hp <= 0)
+        if (character.HP <= 0)
             return;
 
-        hp = Mathf.Max(0, hp - attackInfo.Damage);
-        if (hp == 0)
-        {
-            fsm.Stop();
-            fsm.Animator.speed = 0f;
-            return;
-        }
-
+        character.HP = Mathf.Max(0, character.HP - attackInfo.Damage);
         fsm.TakeDamage(attackInfo);
     }
 
@@ -38,8 +44,16 @@ public sealed class Player : MonoBehaviour, IDamageable
 
     private void Awake()
     {
+        Dictionary<DamageType, int> immune = new();
+        character = new PlayerCharacter("Player", 100, 100, immune);
+
         fsm = GetComponent<FSM>();
         fsm.Init(this);
+        viewFeedbacks = GetComponentInChildren<MMF_Player>();
+
+
+        //Assets/Imports/Feel/FeelDemos/Toaster/FeelToaster.unity
+
     }
 
     private void OnEnable()
@@ -48,39 +62,62 @@ public sealed class Player : MonoBehaviour, IDamageable
             fsm.StartState();
     }
 
+    //나중에 버릴 코드
     private void Update()
     {
         // 피격 테스트: O를 누르는 동안 전방 2m의 랜덤 위치에서 공격
-#if ENABLE_LEGACY_INPUT_MANAGER
         bool testHit = Input.GetKey(KeyCode.O);
-#else
-        var keyboard = UnityEngine.InputSystem.Keyboard.current;
-        bool testHit = keyboard != null && keyboard.oKey.isPressed;
-#endif
-        if (hp > 0 && testHit == true)
+        bool testView = Input.GetKey(KeyCode.P);
+        // P를 누르는 동안 한 번의 재생이 끝날 때마다 반복한다.
+        if (testView == true && viewFeedbacks != null)
+        {
+            testingViewFeedbacks = true;
+            if (viewFeedbacks.IsPlaying == false)
+                viewFeedbacks.PlayFeedbacks();
+        }
+        else
+        {
+            StopViewFeedbackTest();
+        }
+        
+        if (Character.HP > 0 && testHit == true)
         {
             Vector3 attackDirection = Quaternion.AngleAxis(Random.Range(-45f, 45f), Vector3.up)
                 * transform.forward;
             TakeDamage(new CommonStruct.AttackInfo
             {
                 Position = transform.position + attackDirection * 2.0f,
-                Damage = 1
+                Damage = 100
             });
         }
-
-        if (hp > 0)
+        
+        if (Character.HP > 0)
             fsm.UpdateState();
     }
 
     private void FixedUpdate()
     {
-        if (hp > 0)
+        if (Character.HP > 0)
             fsm.FixedUpdateState();
     }
 
     private void OnDisable()
     {
+        StopViewFeedbackTest();
         fsm.Stop();
+    }
+
+    private void StopViewFeedbackTest()
+    {
+        if (testingViewFeedbacks == false)
+            return;
+
+        testingViewFeedbacks = false;
+        if (viewFeedbacks != null)
+        {
+            viewFeedbacks.StopFeedbacks();
+            viewFeedbacks.RestoreInitialValues();
+        }
     }
 
 

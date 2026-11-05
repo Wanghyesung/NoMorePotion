@@ -9,17 +9,17 @@
 public sealed class PlayerHitState : PlayerState
 {
     #region Knockback
-    private readonly float knockbackPower;
     private readonly float knockbackDeceleration;
+    private float knockbackPower;
     private Vector3 direction;
+
     #endregion
 
     private static readonly int hitHash = Animator.StringToHash("Hit");
 
-    public PlayerHitState(FSM owner, SOState data, float knockbackPower, float knockbackDeceleration)
+    public PlayerHitState(FSM owner, SOState data, float knockbackDeceleration)
         : base(owner, data)
     {
-        this.knockbackPower = knockbackPower;
         this.knockbackDeceleration = knockbackDeceleration;
     }
 
@@ -40,6 +40,8 @@ public sealed class PlayerHitState : PlayerState
     private void OnHit(CommonStruct.AttackInfo attackInfo)
     {
         direction = owner.transform.position - attackInfo.Position;
+        knockbackPower = 1;// attackInfo.AttackPower;
+
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f)
             direction = -owner.transform.forward;
@@ -57,7 +59,7 @@ public sealed class PlayerHitState : PlayerState
         owner.LockState(true);
         owner.LockRotate(this, true);
 
-        owner.StopHorizontalMovement();
+        owner.Rigidbody.linearVelocity = Vector3.zero;
         owner.Rigidbody.AddForce(direction * knockbackPower, ForceMode.Impulse);
         owner.Animator.SetTrigger(hitHash);
     }
