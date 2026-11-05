@@ -15,5 +15,6 @@ public class TimeState
     public int DayCount;
     public TimePhase Phase;
     public float Elapsed;
+    public float TotalElapsed;
 
 }

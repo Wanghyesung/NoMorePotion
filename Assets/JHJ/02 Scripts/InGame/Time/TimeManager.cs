@@ -1,6 +1,7 @@
-using UnityEngine;
 using Photon.Pun;
 using R3;
+using System;
+using UnityEngine;
 
 /// <summary>
 /// 인게임 내 낮/밤 순환 및 일차 관리
@@ -16,6 +17,11 @@ using R3;
 ///
 /// [직접 읽는 값]
 ///   PhaseProgress : float (0~1), Update에서 읽기
+///   TotalElapsed  : float, 판 전체 경과 시간
+///
+/// [예약 실행]
+///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
+///   Time.time 기준, 시계가 도는 동안 방장에서만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
 ///
 /// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
 ///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
@@ -27,6 +33,7 @@ public class TimeManager : MonoBehaviour
     [SerializeField] float dayDuration = 10; // [임시] 설정값
     [SerializeField] float nightDuration = 10;
 
+    private TimerScheduler timer = new TimerScheduler();
     private TimeState state;
     private bool isRunning;
     // 저장하지 않고 읽을 때마다 계산 → 단계가 바뀌면 자동으로 다음 단계 길이가 됨
@@ -49,6 +56,8 @@ public class TimeManager : MonoBehaviour
     /// 시작 전에는 0.
     /// </summary>
     public float PhaseProgress => isRunning ? state.Elapsed / currentDuration : 0f;
+    /// <summary> 판 시작 후 흐른 게임 시간 총합. 플레이타임용. 시작 전 0 </summary>
+    public float TotalElapsed => isRunning ? state.TotalElapsed : 0f;
 
     private void Awake()
     {
@@ -91,7 +100,7 @@ public class TimeManager : MonoBehaviour
             return;
         }
 
-        state = new TimeState { DayCount = 1, Phase = TimePhase.Day, Elapsed = 0 };
+        state = new TimeState { DayCount = 1, Phase = TimePhase.Day, Elapsed = 0, TotalElapsed = 0 };
         isRunning = true;
         SyncPublicValues();
 
@@ -99,9 +108,19 @@ public class TimeManager : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// delay초(Time.time 기준) 뒤 callback 실행 예약. 반환값을 AddTo(this) 하면 오브젝트 파괴 시 자동 취소.
+    /// 시계가 도는 동안 방장에서만 실행됨.
+    /// </summary>
+    public IDisposable Schedule(float delay, Action callback)
+    {
+        return timer.Schedule(delay, callback);
+    }
+
     private void Tick(float deltaTime)
     {
         state.Elapsed += deltaTime;
+        state.TotalElapsed += deltaTime;
 
         // 넘친 시간을 다음 단계로 넘겨 오차가 쌓이지 않게
         if (state.Elapsed >= currentDuration)
@@ -111,6 +130,8 @@ public class TimeManager : MonoBehaviour
         }
 
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
+
+        timer.Tick();
     }
 
     /// <summary>낮↔밤 전환. 일차는 아침 기준으로 증가. 전환은 반드시 이 함수를 거침</summary>
@@ -142,7 +163,7 @@ public class TimeManager : MonoBehaviour
     {
         if (!isRunning) return;
 
-        state.Elapsed = 0;
+        state.Elapsed = 0; // 총 경과 시간은 그대로
         AdvancePhase();
     }
 }
