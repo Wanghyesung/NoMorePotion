@@ -12,4 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
   m_Name: 10002
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
-  _recipeMaterials: []
+  _potionIcon: {fileID: 0}
+  _potionID: 10002
+  _potionName: "\uBBF8\uC9C0\uC758 \uD3EC\uC158 (\uC911)"
+  _potionDesc: "\uAE30\uBCF8\uC801\uC778 \uD3EC\uC158\uC774\uB2E4.\n\uC6A9\uB7C9\uC744
+    \uD0A4\uC6CC \uD6A8\uACFC\uAC00 \uC99D\uD3ED\uB418\uC5C8\uB2E4."
+  _potionEffect: "\uBB34\uC18D\uC131 \uB300\uBBF8\uC9C0 80\nHP + 3%\n\uC218\uBD84
+    + 3%\n\uD3EC\uB9CC\uAC10 + 3%\n\uCCB4\uC628 + 2%\n\uC815\uC2E0\uB825 + 2%"
+  _potionType: 1
+  _potionExplosionRange: 1
+  _potionCombinationType: 2
+  _maxHoldCount: 1
+  _recipeMaterials:
+  - {fileID: 11400000, guid: eb0773513e5f55a4c8f54041bceea528, type: 2}
+  - {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}

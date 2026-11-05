@@ -27,9 +27,9 @@ namespace Enzeun.Editor
         [SerializeField, LabelText("월드 오브젝트 ID"), HideLabel]
         private int lastWorldObjectID = 30001;
 
-        CreateMaterialButton createMaterialButton;
-        CreatePotionButton createPotionButton;
-        CreateWorldObjectButton createWorldObjectButton;
+        CreateButton<MaterialData> createMaterialButton;
+        CreateButton<PotionData> createPotionButton;
+        CreateButton<WorldObjectData> createWorldObjectButton;
 
         [MenuItem("Tools/아이템 데이터 관리자")]
         private static void OpenWindow()
@@ -43,31 +43,25 @@ namespace Enzeun.Editor
         {
             base.OnDestroy();
 
-            if (createMaterialButton != null)
-            {
-                DestroyImmediate(createMaterialButton.newMaterial);
-            }
-
-            if (createPotionButton != null)
-            {
-                DestroyImmediate(createPotionButton.newPotion);
-            }
+            createMaterialButton?.Dispose();
+            createPotionButton?.Dispose();
+            createWorldObjectButton?.Dispose();
         }
 
         protected override OdinMenuTree BuildMenuTree()
         {
             var tree = new OdinMenuTree();
 
-            createMaterialButton = new CreateMaterialButton(lastMaterialID);
-            createMaterialButton.OnCreateMaterial += CreateMaterial;
+            createMaterialButton = new CreateButton<MaterialData>(lastMaterialID);
+            createMaterialButton.OnCreate += data => lastMaterialID = CreateAsset(data, materialFolderPath);
             tree.Add("Material SO 생성", createMaterialButton);
 
-            createPotionButton = new CreatePotionButton(lastPotionID);
-            createPotionButton.OnCreatePotion += CreatePotion;
+            createPotionButton = new CreateButton<PotionData>(lastPotionID);
+            createPotionButton.OnCreate += data => lastPotionID = CreateAsset(data, potionFolderPath);
             tree.Add("Potion SO 생성", createPotionButton);
 
-            createWorldObjectButton = new CreateWorldObjectButton(lastWorldObjectID);
-            createWorldObjectButton.OnCreateWorldObject += CreateWorldObject;
+            createWorldObjectButton = new CreateButton<WorldObjectData>(lastWorldObjectID);
+            createWorldObjectButton.OnCreate += data => lastWorldObjectID = CreateAsset(data, worldObjectFolderPath);
             tree.Add("World Object SO 생성", createWorldObjectButton);
 
             tree.AddAllAssetsAtPath("재료 목록", materialFolderPath, typeof(MaterialData), true);
@@ -79,88 +73,49 @@ namespace Enzeun.Editor
 
 
         /// <summary>
-        /// 재료 SO를 생성하는 버튼 클래스
+        /// SO 를 생성하는 버튼 클래스입니다. IItemData 를 구현한 SO 타입이면 재사용할 수 있습니다.
         /// </summary>
-        public class CreateMaterialButton
+        public class CreateButton<T> where T : ScriptableObject, IItemData
         {
-            public CreateMaterialButton(int newMaterialID)
+            public CreateButton(int newID)
             {
-                newMaterial = ScriptableObject.CreateInstance<MaterialData>();
-                newMaterial.SetMaterialID(newMaterialID);
+                newData = ScriptableObject.CreateInstance<T>();
+                newData.SetID(newID);
             }
 
             [InlineEditor(objectFieldMode: InlineEditorObjectFieldModes.Hidden)]
-            public MaterialData newMaterial;
+            public T newData;
 
-            [Button("재료 생성", ButtonSizes.Large)]
+            public Action<T> OnCreate;
+
+            [Button("생성", ButtonSizes.Large)]
             [GUIColor(0.4f, 0.8f, 1f)]
-            private void OnCreateMaterialBtnClicked()
+            private void OnCreateBtnClicked()
             {
-                OnCreateMaterial?.Invoke(newMaterial);
+                OnCreate?.Invoke(newData);
             }
 
-            public Action<MaterialData> OnCreateMaterial;
-        }
-
-        /// <summary>
-        /// 포션 SO를 생성하는 버튼 클래스
-        /// </summary>
-        public class CreatePotionButton
-        {
-            public CreatePotionButton(int newPotionID)
+            /// <summary>
+            /// 아직 에셋으로 저장되지 않은 임시 인스턴스만 정리합니다.
+            /// </summary>
+            public void Dispose()
             {
-                newPotion = ScriptableObject.CreateInstance<PotionData>();
-                newPotion.SetPotionID(newPotionID);
+                if (newData != null && !EditorUtility.IsPersistent(newData))
+                {
+                    UnityEngine.Object.DestroyImmediate(newData);
+                }
             }
-
-            [InlineEditor(objectFieldMode: InlineEditorObjectFieldModes.Hidden)]
-            public PotionData newPotion;
-
-            [Button("포션 생성", ButtonSizes.Large)]
-            [GUIColor(0.4f, 0.8f, 1f)]
-            private void OnCreatePotionBtnClicked()
-            {
-                OnCreatePotion?.Invoke(newPotion);
-            }
-
-            public Action<PotionData> OnCreatePotion;
         }
 
 
         /// <summary>
-        /// 월드 오브젝트 SO를 생성하는 버튼 클래스
+        /// SO 를 에셋 파일({ID}.asset)로 저장합니다.
         /// </summary>
-        public class CreateWorldObjectButton
+        /// <returns>다음에 사용할 ID. 생성에 실패하면 현재 ID 를 그대로 반환합니다.</returns>
+        private int CreateAsset<T>(T data, string folderPath) where T : ScriptableObject, IItemData
         {
-            public CreateWorldObjectButton(int newWorldObjectID)
-            {
-                newWorldObject = ScriptableObject.CreateInstance<WorldObjectData>();
-                newWorldObject.SetWorldObjectID(newWorldObjectID);
-            }
-
-            [InlineEditor(objectFieldMode: InlineEditorObjectFieldModes.Hidden)]
-            public WorldObjectData newWorldObject;
-
-            [Button("월드 오브젝트 생성", ButtonSizes.Large)]
-            [GUIColor(0.4f, 0.8f, 1f)]
-            private void OnCreateWorldObjectBtnClicked()
-            {
-                OnCreateWorldObject?.Invoke(newWorldObject);
-            }
-
-            public Action<WorldObjectData> OnCreateWorldObject;
-        }
-
-
-        /// <summary>
-        /// 아이템 데이터베이스 윈도우에서 재료 SO를 생성하는 메서드
-        /// </summary>
-        /// <param name="material"></param>
-        private void CreateMaterial(MaterialData material)
-        {
-            string folderPath = materialFolderPath;
-            int createdMaterialID = material.materialID;
-            string fileName = $"{createdMaterialID}.asset";
+            int createdID = data.ID;
+            string fileName = $"{createdID}.asset";
 
             if (!Directory.Exists(folderPath))
             {
@@ -173,86 +128,13 @@ namespace Enzeun.Editor
             if (File.Exists(path))
             {
                 EditorUtility.DisplayDialog("생성 실패", $"이미 동일한 이름의 에셋이 존재합니다:\n{fileName}", "확인");
-                return;
+                return createdID;
             }
 
-            AssetDatabase.CreateAsset(material, path);
+            AssetDatabase.CreateAsset(data, path);
             AssetDatabase.SaveAssets();
 
-            lastMaterialID = createdMaterialID + 1;
-
-            // ForceMenuTreeRebuild();
-            // EditorUtility.FocusProjectWindow();
-            // Selection.activeObject = material;
-        }
-
-        /// <summary>
-        /// 아이템 데이터베이스 윈도우에서 포션 SO를 생성하는 메서드
-        /// </summary>
-        /// <param name="potion"></param>
-        private void CreatePotion(PotionData potion)
-        {
-            string folderPath = potionFolderPath;
-            int createdPotionID = potion.potionID;
-            string fileName = $"{createdPotionID}.asset";
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            string path = Path.Combine(folderPath, fileName);
-
-            // 중복된 이름의 파일이 이미 존재하는지 체크
-            if (File.Exists(path))
-            {
-                EditorUtility.DisplayDialog("생성 실패", $"이미 동일한 이름의 에셋이 존재합니다:\n{fileName}", "확인");
-                return;
-            }
-
-            AssetDatabase.CreateAsset(potion, path);
-            AssetDatabase.SaveAssets();
-
-            lastPotionID = createdPotionID + 1;
-
-            // ForceMenuTreeRebuild();
-            // EditorUtility.FocusProjectWindow();
-            // Selection.activeObject = potion;
-        }
-
-
-        /// <summary>
-        /// 아이템 데이터베이스 윈도우에서 월드 오브젝트 SO를 생성하는 메서드
-        /// </summary>
-        /// <param name="worldObject"></param>
-        private void CreateWorldObject(WorldObjectData worldObject)
-        {
-            string folderPath = worldObjectFolderPath;
-            int createdWorldObjectID = worldObject.worldObjectID;
-            string fileName = $"{createdWorldObjectID}.asset";
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            string path = Path.Combine(folderPath, fileName);
-
-            // 중복된 이름의 파일이 이미 존재하는지 체크
-            if (File.Exists(path))
-            {
-                EditorUtility.DisplayDialog("생성 실패", $"이미 동일한 이름의 에셋이 존재합니다:\n{fileName}", "확인");
-                return;
-            }
-
-            AssetDatabase.CreateAsset(worldObject, path);
-            AssetDatabase.SaveAssets();
-
-            lastWorldObjectID = createdWorldObjectID + 1;
-
-            // ForceMenuTreeRebuild();
-            // EditorUtility.FocusProjectWindow();
-            // Selection.activeObject = worldObject;
+            return createdID + 1;
         }
     }
 }
