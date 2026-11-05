@@ -613,7 +613,7 @@ GameObject:
   - component: {fileID: 604970453104268731}
   - component: {fileID: 449058723265841904}
   - component: {fileID: 3567176340273345213}
-  - component: {fileID: 633283270358376100}
+  - component: {fileID: 1512881031957231172}
   - component: {fileID: 5471541347697044551}
   - component: {fileID: 408107982291945379}
   - component: {fileID: 525331187225737773}
@@ -785,14 +785,18 @@ MonoBehaviour:
   walkSpeed: 2
   runSpeed: 3.8
   turnSpeed: 5
+  reachability:
+    checkInterval: 0.5
+    graceTime: 2.5
+    reacquireCooldown: 4
+    sampleRadius: 2
   nowTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
-  attackTimerActive: 0
   IsAnimation: 0
---- !u!65 &633283270358376100
-BoxCollider:
+--- !u!136 &1512881031957231172
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -809,9 +813,11 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.25, y: 1.25, z: 1.25}
-  m_Center: {x: 0, y: 0.8, z: 0}
+  serializedVersion: 2
+  m_Radius: 0.75
+  m_Height: 1.6
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.78, z: 0}
 --- !u!114 &5471541347697044551
 MonoBehaviour:
   m_ObjectHideFlags: 0

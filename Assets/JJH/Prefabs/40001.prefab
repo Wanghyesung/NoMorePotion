@@ -52,7 +52,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4
+  m_Radius: 3
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &7748477015829741946
 MonoBehaviour:
@@ -591,7 +591,7 @@ GameObject:
   - component: {fileID: 6670860881785910812}
   - component: {fileID: 5993770591067683934}
   - component: {fileID: 6976874543293700478}
-  - component: {fileID: 4162582177754585669}
+  - component: {fileID: 3136918291055661877}
   - component: {fileID: 4897887934074592584}
   - component: {fileID: 2764475353491433491}
   - component: {fileID: 6240099015131037102}
@@ -758,18 +758,22 @@ MonoBehaviour:
   attackRange: 1.5
   chaseCollider: {fileID: 2760822750437985726}
   attackSpeed: 3.5
-  patrolDelay: 4
+  patrolDelay: 15
   walkSpeed: 1.6
   runSpeed: 3.2
   turnSpeed: 5
+  reachability:
+    checkInterval: 0.5
+    graceTime: 2.5
+    reacquireCooldown: 4
+    sampleRadius: 2
   nowTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
-  attackTimerActive: 0
   IsAnimation: 0
---- !u!65 &4162582177754585669
-BoxCollider:
+--- !u!136 &3136918291055661877
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -786,9 +790,11 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.55, y: 0.55, z: 0.55}
-  m_Center: {x: 0, y: 0.3, z: 0}
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Height: 0.4
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.29, z: 0}
 --- !u!114 &4897887934074592584
 MonoBehaviour:
   m_ObjectHideFlags: 0
