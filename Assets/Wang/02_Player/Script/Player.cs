@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
-using MoreMountains.Feedbacks;
 using static InputManager;
 using Enzeun.Runtime;
 
@@ -20,8 +19,6 @@ public class PlayerCharacter : Character
 public sealed class Player : MonoBehaviour, IDamageable
 {
     private FSM fsm;
-    private MMF_Player viewFeedbacks;
-    private bool testingViewFeedbacks;
 
     private Character character = null;
     public Character Character => character;
@@ -49,9 +46,6 @@ public sealed class Player : MonoBehaviour, IDamageable
 
         fsm = GetComponent<FSM>();
         fsm.Init(this);
-        viewFeedbacks = GetComponentInChildren<MMF_Player>();
-
-        //Assets/Imports/Feel/FeelDemos/Toaster/FeelToaster.unity
     }
 
    
@@ -70,19 +64,6 @@ public sealed class Player : MonoBehaviour, IDamageable
         // 피격 테스트: O를 누르는 동안 전방 2m의 랜덤 위치에서 공격
 
         bool testHit = Input.GetKeyDown(KeyCode.O);
-        bool testView = Input.GetKey(KeyCode.P);
-        // P를 누르는 동안 한 번의 재생이 끝날 때마다 반복한다.
-        if (testView == true && viewFeedbacks != null)
-        {
-            testingViewFeedbacks = true;
-            if (viewFeedbacks.IsPlaying == false)
-                viewFeedbacks.PlayFeedbacks();
-        }
-        else
-        {
-            StopViewFeedbackTest();
-        }
-        
         if (Character.HP > 0 && testHit == true)
         {
             Vector3 attackDirection = Quaternion.AngleAxis(Random.Range(-45f, 45f), Vector3.up)
@@ -107,21 +88,7 @@ public sealed class Player : MonoBehaviour, IDamageable
 
     private void OnDisable()
     {
-        StopViewFeedbackTest();
         fsm.Stop();
-    }
-
-    private void StopViewFeedbackTest()
-    {
-        if (testingViewFeedbacks == false)
-            return;
-
-        testingViewFeedbacks = false;
-        if (viewFeedbacks != null)
-        {
-            viewFeedbacks.StopFeedbacks();
-            viewFeedbacks.RestoreInitialValues();
-        }
     }
 
     /*//////////////////////////////////////////
