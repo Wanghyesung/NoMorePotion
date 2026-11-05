@@ -12,6 +12,7 @@ public sealed class ParabolicMovement : MonoBehaviour
     private ThrowData throwData;
     private float elapsedTime;
     public bool IsFlying { get; private set; }
+    public Vector3 PrePos { get; private set; }
 
     [SerializeField] private float speedMultiplier = 1f;
 
@@ -21,6 +22,7 @@ public sealed class ParabolicMovement : MonoBehaviour
         throwData = data;
         elapsedTime = 0f;
         transform.position = data.Origin;
+        PrePos = data.Origin;
         IsFlying = true;
     }
 
@@ -30,6 +32,7 @@ public sealed class ParabolicMovement : MonoBehaviour
             return;
 
         elapsedTime = Mathf.Min(elapsedTime + Time.deltaTime * speedMultiplier, throwData.FlightTime);
+        PrePos = transform.position;
         transform.position = throwData.GetPosition(elapsedTime);
         if (elapsedTime >= throwData.FlightTime)
         {
