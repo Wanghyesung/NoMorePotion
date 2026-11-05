@@ -27,7 +27,6 @@ public class BossHudBinder : MonoBehaviour
         bound = data;
         bound.OnHPChanged += hud.HealthChange;
         hud.Init(bound.MaxHP, bound.HP, bossName);
-        hud.FadeTo(1);
     }
 
     private void Unbind(NormalMonster data)
@@ -35,6 +34,5 @@ public class BossHudBinder : MonoBehaviour
         if (bound == null || data != bound) return;
         bound.OnHPChanged -= hud.HealthChange;
         bound = null;
-        hud.FadeTo(0);
     }
 }
