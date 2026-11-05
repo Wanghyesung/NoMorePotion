@@ -118,6 +118,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         if (scene.name == SceneNames.IN_GAME)
             SetState(FlowState.InGame);
+
+        else if (scene.name == SceneNames.OUT_GAME && CurrentState == FlowState.LeavingGame)
+            SetState(FlowState.Title);
     }
 
     #endregion
@@ -175,6 +178,13 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
+
+        if(CurrentState == FlowState.LeavingGame)
+        {
+            Debug.Log("[NetworkFlowManager] 인게임 나가는 중이라 마스터 접속 처리 무시");
+            return;
+        }
+
         if(PhotonNetwork.OfflineMode)
         {
             CreateOfflineRoom();
@@ -195,6 +205,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         ClearRoomList();
         ClearPlayers();
         ResetReady();
+
+        if (CurrentState == FlowState.LeavingGame) return;
 
         SetState(FlowState.Title);
 
@@ -607,6 +619,29 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         PhotonNetwork.OfflineMode = true;
     }
 
+    [ContextMenu("인게임 나가기")]
+    public void RequestLeaveGame()
+    {
+        if(CurrentState != FlowState.InGame)
+        {
+            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 현재 상태 = {CurrentState}");
+            return;
+        }
+
+        // TODO : 멀티 나가기 구현 추후
+        if (!PhotonNetwork.OfflineMode)
+        {
+            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 멀티 나가기 미구현");
+            return;
+        }
+
+        SetState(FlowState.LeavingGame);
+        PhotonNetwork.OfflineMode = false;
+
+        // 혼자 떠나는 이동이라 동기화 없는 LoadScene 사용 (LoadLevel은 방 전원 이동용)
+        SceneManager.LoadScene(SceneNames.OUT_GAME);
+    }
+
     #endregion
 
     #region 내부
@@ -665,6 +700,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Debug
     public void Debug_SetState(FlowState newState) => SetState(newState);
     public void Debug_RaiseError(string message) => RaiseError(message);
+
+
     #endregion
 #endif
 }
