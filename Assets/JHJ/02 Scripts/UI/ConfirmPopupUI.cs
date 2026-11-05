@@ -37,18 +37,24 @@ public class ConfirmPopupUI : MonoBehaviour
         if (pending == null)
             return;
 
-        gameObject.SetActive(false);
-
         // 먼저 비우고 결과 전달, 결과 받은 쪽이 ShowAsync를 다시 불러도 열리도록
+        // SetActive(false)보다 먼저 비워야 OnDisable에서 false로 덮어쓰지 않음
         var p = pending;
         pending = null;
+
+        gameObject.SetActive(false);
 
         p.TrySetResult(result);
     }
 
-    private void OnDestroy()
+    // 버튼 없이 꺼진 경우(부모 패널 비활성화, 씬 전환으로 파괴 등): 대기 중인 쪽에 취소(false) 전달
+    // 처리하지 않으면 pending이 남아 이후 ShowAsync가 계속 무시됨
+    // OnDestroy 전에도 항상 호출되므로 파괴 시 처리도 여기서 함께 됨
+    private void OnDisable()
     {
-        pending?.TrySetResult(false);
+        var p = pending;
         pending = null;
+
+        p?.TrySetResult(false);
     }
 }
