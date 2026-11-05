@@ -38,7 +38,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     ///  테스트용
     /// </summary>
-    protected override void InitTestData(int id)
+    protected override void InitTestData(int id, int hpOverride = -1)
     {
         BossData bossData = EnemyDataLoader.Instance.LoadBossData(WolfMover.Pack.alphaId);
         MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(WolfMover.Pack.alphaId);
@@ -54,9 +54,7 @@ public class WolfCombat : MonsterCombat
         // 노말 늑대는 일반 데이터, 알파만 보스 데이터
         if (WolfMover == null || !WolfMover.IsAlpha)
         {
-            base.InitTestData(prefabId);
-            data.HP = hp;
-            data.MaxHP = hp;
+            base.InitTestData(prefabId, hp);
             return;
         }
 
@@ -84,7 +82,6 @@ public class WolfCombat : MonsterCombat
         jumpCts?.Cancel();
         EndJump(transform.position);
     }
-
 
     public void Init(string name,int maxHp, int hp,int atkPoint,int attackPower, Dictionary<DamageType, int> immune, float speed,
         int id, int instanceId, string spawnArea, string description,

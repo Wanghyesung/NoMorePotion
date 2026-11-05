@@ -57,6 +57,8 @@ public class WolfPack : MonoBehaviour
     private float phaseTimer;
     private float turnAngle;
     private int startNormalWolfCount;
+    private WolfCombat alphaCombat;
+    private bool engaged;
 
     private void Awake()
     {
@@ -65,7 +67,7 @@ public class WolfPack : MonoBehaviour
 
         foreach (WolfMove mover in members)
             mover.JoinPack(this);
-
+        alphaCombat = alpha.GetComponent<WolfCombat>();
         startNormalWolfCount = members.Count;
     }
 
@@ -77,11 +79,13 @@ public class WolfPack : MonoBehaviour
         // 알파 사망 시 로직 해제, 노말은 기본 MonsterMove 로직으로 동작
         if (!IsActive)
         {
+            SetEngaged(false);
             enabled = false;
             return;
         }
 
         RefreshTarget();
+        SetEngaged(Target != null);
 
         if (Target == null && Phase != PackPhase.Patrol)
             ChangePhase(PackPhase.Patrol);
@@ -125,6 +129,12 @@ public class WolfPack : MonoBehaviour
         {
             Vector3 dir = alpha.transform.position - Target.transform.position;
             turnAngle = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+        }
+
+        if (next == PackPhase.Assault)
+        {
+            foreach (WolfMove m in alive)
+                m.attackTimer = m.attackSpeed - Random.Range(0f, 0.5f);
         }
     }
 
@@ -256,7 +266,27 @@ public class WolfPack : MonoBehaviour
         float rate = Mathf.Max(minCooldownRate, 1f - dead * cooldownReduce);
         return cooldown * rate;
     }
+
+    /// <summary>
+    /// 늑대 상태창 및 연결 판단 이벤트
+    /// </summary>
+    /// <param name="value"></param>
+    private void SetEngaged(bool value)
+    {
+        if (engaged == value) return;
+        engaged = value;
+        
+        NormalMonster data = alphaCombat.GetData();
+
+        if (value) BossEvents.Engage(data, data.Name);
+        else BossEvents.Disengage(data);
+    }
     #endregion
+
+    private void OnDisable()
+    {
+        SetEngaged(false);
+    }
 
     private void OnDrawGizmosSelected()
     {

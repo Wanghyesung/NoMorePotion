@@ -16,6 +16,10 @@ public class NormalMonster : Character, IAttacker
     public DamageType DamageType { get; set; }
 
     public Action OnDead;
+    /// <summary>
+    ///  피격시 체력 반환 함수(int : 변경 전 체력, int : 변경 후 체력)
+    /// </summary>
+    public Action<int, int> OnHPChanged;
 
     public  NormalMonster(string name, int maxHp, int hp,int atkPoint, int attackPower, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea,string description, DamageType damageType

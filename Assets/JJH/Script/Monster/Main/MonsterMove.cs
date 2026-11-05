@@ -4,6 +4,7 @@ using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using static JJH_Constants;
@@ -17,6 +18,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 {
     [Header("스크립트")]
     public MonsterAnimationController anim;
+    public MonsterCombat combat;
 
     [Header("AI 네비게이션")]
     public NavMeshAgent agent;
@@ -151,13 +153,14 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// </summary>
     /// <param name="speed"></param>
     /// <returns></returns>
-    public async UniTask StartAI(float speed)
+    public async UniTask StartAI(float speed, MonsterCombat combat)
     {
+        
         StopAI();
         anim.AnimatorRebind();
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
-
+        this.combat = combat;
         // 이전 풀 정보 초기화
         state = new();
         nowTarget = null;
@@ -251,9 +254,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 if (patrolTimerActive)
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
+                if(attackTimer <= attackSpeed)
+                    attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
                 
-                attackTimer += FSM_TIMER / MIL_SEC_F;
-
                 state.Stay();
             }
 

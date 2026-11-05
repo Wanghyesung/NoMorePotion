@@ -621,6 +621,7 @@ Transform:
   - {fileID: 7446693487285821284}
   - {fileID: 870061683119675537}
   - {fileID: 9042945509201311107}
+  - {fileID: 4068057508037617844}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &5190007707387830036
@@ -822,6 +823,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterCombat
   anim: {fileID: 4897887934074592584}
   mover: {fileID: 6976874543293700478}
+  hud: {fileID: 615632452494280003}
   biteHitbox: {fileID: 1848998904580899107}
   prefabId: 40001
 --- !u!54 &6240099015131037102
@@ -1057,3 +1059,124 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1663505330668543584}
   m_LocalEulerAnglesHint: {x: -0.8705429, y: 11.555114, z: 2.3248057}
+--- !u!1001 &1543515950602235475
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 818801099693523164}
+    m_Modifications:
+    - target: {fileID: 2152863422831946512, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: combat
+      value: 
+      objectReference: {fileID: 2764475353491433491}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5328677551709069207, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Name
+      value: HealthHud
+      objectReference: {fileID: 0}
+    - target: {fileID: 5390085790117532727, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+--- !u!114 &615632452494280003 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2152863422831946512, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+  m_PrefabInstance: {fileID: 1543515950602235475}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f07a5b401ff6354ea12e8da3ba3c040, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterHPUI
+--- !u!224 &4068057508037617844 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+  m_PrefabInstance: {fileID: 1543515950602235475}
+  m_PrefabAsset: {fileID: 0}

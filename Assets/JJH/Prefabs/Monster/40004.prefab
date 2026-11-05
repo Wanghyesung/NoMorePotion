@@ -221,6 +221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterMove
   anim: {fileID: 2158663597128617275}
+  combat: {fileID: 0}
   agent: {fileID: 6464408849392596459}
   nextMoveDist: 10
   attackRange: 2
@@ -268,6 +269,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WolfCombat
   anim: {fileID: 2158663597128617275}
   mover: {fileID: 3602153555428429680}
+  hud: {fileID: 0}
   biteHitbox: {fileID: 3650813904817012338}
   prefabId: 40004
   poundHitbox: {fileID: 8713156697564349642}
@@ -344,7 +346,7 @@ MonoBehaviour:
   mover: {fileID: 3602153555428429680}
   headRig: {fileID: 7900221603104680961}
   lookTarget: {fileID: 7021178157759568648}
-  targetHeight: 0.6
+  targetHeight: 0
   weightSpeed: 4
   followSpeed: 10
   releaseDuringAnimation: 1

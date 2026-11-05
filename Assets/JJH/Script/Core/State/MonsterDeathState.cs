@@ -18,6 +18,8 @@ public class MonsterDeathState : IMonsterState
 
     public void OnStart()
     {
+        mover.agent.isStopped = true;
+        mover.agent.ResetPath();
     }
 
     public void OnStay()
