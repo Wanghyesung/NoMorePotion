@@ -886,6 +886,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5937161480329527801, guid: 04044d500b75db94ca375d665e807be2, type: 3}
+      propertyPath: sceneViewId
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 6215176700309482726, guid: 04044d500b75db94ca375d665e807be2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -999,6 +1003,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7853957224262921117, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: poundDelay
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7853957224262921117, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: poundCooldown
+      value: 15
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1015,6 +1027,10 @@ PrefabInstance:
     - target: {fileID: 2735309005876133405, guid: d3fd0c1d763042043816ad784ddc6156, type: 3}
       propertyPath: m_Name
       value: Fledgling
+      objectReference: {fileID: 0}
+    - target: {fileID: 8843741140929730911, guid: d3fd0c1d763042043816ad784ddc6156, type: 3}
+      propertyPath: sceneViewId
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8979640024932114959, guid: d3fd0c1d763042043816ad784ddc6156, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1108,6 +1124,10 @@ PrefabInstance:
     - target: {fileID: 818801099693523164, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6952702537033370042, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
+      propertyPath: sceneViewId
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7406115627949075491, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
       propertyPath: m_Name

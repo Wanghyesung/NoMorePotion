@@ -25,6 +25,7 @@ public class WolfPack : MonoBehaviour
         new (-1.5f, 0f, -1.5f),
         new ( 1.5f, 0f, -1.5f),
     };
+    [SF] private float followLeash = 4f;
 
     [Header("선회 관련 값")]
     [SF] private float turnRadius = 5f;
@@ -33,7 +34,7 @@ public class WolfPack : MonoBehaviour
 
     [Header("땅찍기 관련 값")]
     [SF] private float poundRange = 3f;
-    [SF] private float poundCooldown = 20f;
+    [SF] private float poundCooldown = 15f;
     [SF] private float poundTimeout = 5f;
 
     [Header("타겟 관련 값")]
@@ -42,13 +43,19 @@ public class WolfPack : MonoBehaviour
     public PackPhase Phase { get; private set; } = PackPhase.Patrol;
     public GameObject Target { get; private set; }
     public WolfMove Alpha => alpha;
+    public float FollowLeash => followLeash;
     public float PoundRange => poundRange;
     public bool IsActive => IsAlive(alpha);
+
+    [Header("격노 관련 값")]
+    [SF] private float cooldownReduce = 0.25f; 
+    [SF] private float minCooldownRate = 0.4f;
 
     private readonly List<WolfMove> members = new();
     private readonly List<WolfMove> alive = new();
     private float phaseTimer;
     private float turnAngle;
+    private int startNormalWolfCount;
 
     private void Awake()
     {
@@ -57,6 +64,8 @@ public class WolfPack : MonoBehaviour
 
         foreach (WolfMove mover in members)
             mover.JoinPack(this);
+
+        startNormalWolfCount = members.Count;
     }
 
     private void Update()
@@ -82,19 +91,23 @@ public class WolfPack : MonoBehaviour
         switch (Phase)
         {
             case PackPhase.Patrol:
-                if (Target != null) ChangePhase(PackPhase.Encircle);
+                if (Target != null) 
+                    ChangePhase(PackPhase.Encircle);
                 break;
 
             case PackPhase.Encircle:
-                if (phaseTimer >= poundDelay) ChangePhase(PackPhase.Pound);
+                if (phaseTimer >= GetRageCooldownReduce(poundDelay)) 
+                    ChangePhase(PackPhase.Pound);
                 break;
 
             case PackPhase.Pound:
-                if (phaseTimer >= poundTimeout) ChangePhase(PackPhase.Assault);
+                if (phaseTimer >= poundTimeout) 
+                    ChangePhase(PackPhase.Assault);
                 break;
 
             case PackPhase.Assault:
-                if (phaseTimer >= poundCooldown) ChangePhase(PackPhase.Encircle);
+                if (phaseTimer >= GetRageCooldownReduce(poundCooldown)) 
+                    ChangePhase(PackPhase.Encircle);
                 break;
         }
     }
@@ -149,6 +162,9 @@ public class WolfPack : MonoBehaviour
     #endregion
 
     #region 내부
+    /// <summary>
+    /// 생존한 늑대 갱신
+    /// </summary>
     private void RefreshAlive()
     {
         alive.Clear();
@@ -156,6 +172,9 @@ public class WolfPack : MonoBehaviour
             if (IsAlive(m)) alive.Add(m);
     }
 
+    /// <summary>
+    /// 타겟 해제/재설정 로직
+    /// </summary>
     private void RefreshTarget()
     {
         // 거리 이탈 or 도달 불가 지속 → 해제
@@ -185,6 +204,11 @@ public class WolfPack : MonoBehaviour
             m.nowTarget = Target;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
     private bool IsTargetValid(GameObject target)
     {
         if (target == null || !target.activeInHierarchy) return false;
@@ -197,17 +221,39 @@ public class WolfPack : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// 늑대의 생존 여부 판별 함수
+    /// </summary>
+    /// <param name="m"></param>
+    /// <returns>생존 : true</returns>
     private static bool IsAlive(WolfMove m)
     {
         if (m == null || !m.isActiveAndEnabled) return false;
         return m.state == null || m.state.GetStateType() != MonsterState.Death;
     }
 
+    /// <summary>
+    /// 이동 가능한 Nav 매쉬 지역 탐색
+    /// </summary>
+    /// <param name="point"></param>
+    /// <returns></returns>
     private static Vector3 SampleNav(Vector3 point)
     {
         return NavMesh.SamplePosition(point, out NavMeshHit hit, 2f, NavMesh.AllAreas)
             ? hit.position
             : point;
+    }
+
+    /// <summary>
+    /// 땅찍기 공격의 쿨다운 계산 로직
+    /// 일반 늑대 사망 시 쿨다운이 짧아짐
+    /// </summary>
+    /// <returns>실질 쿨다운 float</returns>
+    private float GetRageCooldownReduce(float cooldown)
+    {
+        int dead = startNormalWolfCount - alive.Count;
+        float rate = Mathf.Max(minCooldownRate, 1f - startNormalWolfCount * dead);
+        return cooldown * rate;
     }
     #endregion
 
