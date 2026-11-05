@@ -64,6 +64,7 @@ namespace Enzeun.Runtime
         private int deathThreshold = 0;
 
         // 현재 정신력 상태
+        [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public MentalState currentMentalState { get; private set; } = MentalState.Normal;
 
         // 사망 이벤트를 이미 보냈는지 여부 (0 이하에서 중복 발생 방지)
@@ -80,6 +81,7 @@ namespace Enzeun.Runtime
         public event Action OnDeathThresholdReached;
 
         private int _mentalStrength;
+        [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int mentalStrength
         {
             get => _mentalStrength;
@@ -99,6 +101,7 @@ namespace Enzeun.Runtime
             CheckCurrentMentalStrength();
         }
 
+        [Button, LabelText("정신력 증가")]
         public void IncreaseMentalStrength(int amount)
         {
             mentalStrength += amount;
@@ -109,6 +112,7 @@ namespace Enzeun.Runtime
             CheckCurrentMentalStrength();
         }
 
+        [Button, LabelText("정신력 감소")]
         public void DecreaseMentalStrength(int amount)
         {
             mentalStrength -= amount;

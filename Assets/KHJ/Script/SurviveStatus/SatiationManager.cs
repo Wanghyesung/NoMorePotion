@@ -48,6 +48,7 @@ namespace Enzeun.Runtime
         private int starvingThreshold = 0;
 
         // 현재 포만감 상태
+        [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public SatiationState currentSatiationState { get; private set; } = SatiationState.Normal;
 
         /// <summary>
@@ -56,6 +57,7 @@ namespace Enzeun.Runtime
         public event Action<SatiationState, SatiationState> OnSatiationStateChanged;
 
         private int _satiation;
+        [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int satiation
         {
             get => _satiation;
@@ -74,6 +76,7 @@ namespace Enzeun.Runtime
             CheckCurrentSatiation();
         }
 
+        [Button, LabelText("포만감 증가")]
         public void IncreaseSatiation(int amount)
         {
             satiation += amount;
@@ -84,6 +87,7 @@ namespace Enzeun.Runtime
             CheckCurrentSatiation();
         }
 
+        [Button, LabelText("포만감 감소")]
         public void DecreaseSatiation(int amount)
         {
             satiation -= amount;

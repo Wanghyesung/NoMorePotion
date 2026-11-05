@@ -38,6 +38,7 @@ namespace Enzeun.Runtime
         private int coldThreshold = 30;
 
         // 현재 체온 상태
+        [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public BodyTemperatureState currentBodyTemperatureState { get; private set; } = BodyTemperatureState.Normal;
 
         /// <summary>
@@ -47,6 +48,7 @@ namespace Enzeun.Runtime
 
 
         private int _bodyTemperature;
+        [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int bodyTemperature
         {
             get => _bodyTemperature;
@@ -66,6 +68,7 @@ namespace Enzeun.Runtime
             CheckCurrentBodyTemp();
         }
 
+        [Button, LabelText("체온 증가")]
         public void IncreaseBodyTemperature(int amount)
         {
             bodyTemperature += amount;
@@ -76,6 +79,7 @@ namespace Enzeun.Runtime
             CheckCurrentBodyTemp();
         }
 
+        [Button, LabelText("체온 감소")]
         public void DecreaseBodyTemperature(int amount)
         {
             bodyTemperature -= amount;

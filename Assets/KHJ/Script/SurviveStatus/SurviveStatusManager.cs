@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 
@@ -26,13 +27,13 @@ namespace Enzeun.Runtime
             }
         }
 
-        [SerializeField]
+        [SerializeField, Required("체온 매니저를 연결해 주세요.")]
         private BodyTemperatureManager bodyTemperatureManager;
-        [SerializeField]
+        [SerializeField, Required("정신력 매니저를 연결해 주세요.")]
         private MentalStrengthManager mentalStrengthManager;
-        [SerializeField]
+        [SerializeField, Required("수분 매니저를 연결해 주세요.")]
         private HydrationManager hydrationManager;
-        [SerializeField]
+        [SerializeField, Required("포만감 매니저를 연결해 주세요.")]
         private SatiationManager satiationManager;
 
         // 다른 시스템이 Awake 에서 이벤트를 구독할 수 있도록, 초기화는 Start 에서 일괄 수행합니다.
@@ -44,6 +45,7 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 모든 생존 상태를 초기화합니다. 체온, 정신력, 수분, 포만감 상태를 초기값으로 재설정합니다.
         /// </summary>
+        [Button, LabelText("모든 상태 초기화")]
         public void ResetAllStatus()
         {
             bodyTemperatureManager.ResetBodyTemperature();

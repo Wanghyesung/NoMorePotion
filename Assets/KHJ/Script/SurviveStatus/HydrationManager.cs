@@ -48,6 +48,7 @@ namespace Enzeun.Runtime
         private int dehydratedThreshold = 0;
 
         // 현재 수분 상태
+        [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public HydrationState currentHydrationState { get; private set; } = HydrationState.Normal;
 
         /// <summary>
@@ -56,6 +57,7 @@ namespace Enzeun.Runtime
         public event Action<HydrationState, HydrationState> OnHydrationStateChanged;
 
         private int _hydration;
+        [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int hydration
         {
             get => _hydration;
@@ -74,6 +76,7 @@ namespace Enzeun.Runtime
             CheckCurrentHydration();
         }
 
+        [Button, LabelText("수분 증가")]
         public void IncreaseHydration(int amount)
         {
             hydration += amount;
@@ -84,6 +87,7 @@ namespace Enzeun.Runtime
             CheckCurrentHydration();
         }
 
+        [Button, LabelText("수분 감소")]
         public void DecreaseHydration(int amount)
         {
             hydration -= amount;
