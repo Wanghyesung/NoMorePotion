@@ -6,7 +6,7 @@ namespace Enzeun.Runtime
 {
     /// <summary>
     /// 런타임에 대상에게 걸려 있는 상태 효과 한 건입니다. (StatusEffectData 는 공유 설정값, 이 클래스는 걸린 상태)
-    /// 남은 시간처럼 변하는 값은 SO 가 아니라 여기에 둡니다. (SO 는 모든 사용자가 공유하므로 런타임 값을 쓰면 안 됨)
+    /// 남은 시간, 다음 틱까지의 시간처럼 변하는 값은 SO 가 아니라 여기에 둡니다. (SO 는 모든 사용자가 공유하므로 런타임 값을 쓰면 안 됨)
     /// 저장하지 않는 런타임 상태라서 자동 프로퍼티로 두고, 인스펙터 확인용으로 [ShowInInspector] 를 붙입니다.
     /// </summary>
     public class ActiveStatusEffect
@@ -18,6 +18,17 @@ namespace Enzeun.Runtime
             this.percentOverride = percentOverride;
             this.duration = duration;
             remaining = duration;
+
+            // 체력 증감 모듈이 있을 때만 틱 타이머를 만듭니다. 0 으로 시작하므로 첫 틱은 걸리자마자(다음 갱신에) 발생합니다.
+            for (int i = 0; i < data.modules.Count; i++)
+            {
+                if (data.modules[i] is HealthChangeModule)
+                {
+                    _tickTimers = new float[data.modules.Count];
+                    HasHealthChange = true;
+                    break;
+                }
+            }
         }
 
         [ShowInInspector, ReadOnly, LabelText("상태 효과")]
@@ -36,6 +47,14 @@ namespace Enzeun.Runtime
 
         [ShowInInspector, ReadOnly, LabelText("남은 시간 (초)")]
         public float remaining { get; private set; }
+
+        /// <summary>
+        /// 체력 증감 모듈(초당 대미지 등)을 가지고 있는지 여부입니다.
+        /// </summary>
+        public bool HasHealthChange { get; }
+
+        // 모듈별 다음 틱까지 남은 시간입니다. 모듈은 공유 SO 라서 타이머는 이 인스턴스가 가집니다.
+        private readonly float[] _tickTimers;
 
         /// <summary>
         /// 지속시간이 있는 효과인지 여부입니다. SO 의 설정을 따릅니다.
@@ -66,6 +85,29 @@ namespace Enzeun.Runtime
         public void RefreshDuration()
         {
             remaining = duration;
+        }
+
+        /// <summary>
+        /// 해당 모듈의 틱 타이머를 deltaTime 만큼 줄이고, 틱 시점이 되었는지 반환합니다.
+        /// 한 번 호출에 최대 한 번만 true 입니다. (프레임이 길게 튀어도 밀린 틱을 몰아서 주지 않음)
+        /// 간격이 0 이면 첫 틱 이후로는 다시 발생하지 않습니다. (한 번만)
+        /// </summary>
+        public bool ConsumeTick(int moduleIndex, float deltaTime, float interval)
+        {
+            if (_tickTimers == null)
+            {
+                return false;
+            }
+
+            _tickTimers[moduleIndex] -= deltaTime;
+
+            if (_tickTimers[moduleIndex] > 0f)
+            {
+                return false;
+            }
+
+            _tickTimers[moduleIndex] = interval > 0f ? interval : float.PositiveInfinity;
+            return true;
         }
     }
 }

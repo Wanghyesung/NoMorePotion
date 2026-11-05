@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Enzeun.SO;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -49,6 +51,30 @@ namespace Enzeun.Runtime
         [SerializeField, Required("포만감 매니저를 연결해 주세요.")]
         private SatiationManager satiationManager;
 
+        // 상태 구간별로 걸리는 버프/디버프 표입니다.
+        [SerializeField, Required("구간별 상태 효과 표를 연결해 주세요.")]
+        private SurviveStatusEffectTable effectTable;
+
+        // 상태 효과를 걸 대상(플레이어)의 컨테이너입니다. 씬에서 연결합니다.
+        [SerializeField, Required("플레이어의 BuffContainer 를 연결해 주세요.")]
+        private BuffContainer buffContainer;
+
+        private void OnEnable()
+        {
+            bodyTemperatureManager.OnBodyTemperatureStateChanged += HandleBodyTemperatureStateChanged;
+            mentalStrengthManager.OnMentalStateChanged += HandleMentalStateChanged;
+            hydrationManager.OnHydrationStateChanged += HandleHydrationStateChanged;
+            satiationManager.OnSatiationStateChanged += HandleSatiationStateChanged;
+        }
+
+        private void OnDisable()
+        {
+            bodyTemperatureManager.OnBodyTemperatureStateChanged -= HandleBodyTemperatureStateChanged;
+            mentalStrengthManager.OnMentalStateChanged -= HandleMentalStateChanged;
+            hydrationManager.OnHydrationStateChanged -= HandleHydrationStateChanged;
+            satiationManager.OnSatiationStateChanged -= HandleSatiationStateChanged;
+        }
+
         // 다른 시스템이 Awake 에서 이벤트를 구독할 수 있도록, 초기화는 Start 에서 일괄 수행합니다.
         private void Start()
         {
@@ -57,6 +83,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 모든 생존 상태를 초기화합니다. 체온, 정신력, 수분, 포만감 상태를 초기값으로 재설정합니다.
+        /// 초기 구간의 상태 효과도 다시 겁니다. (구간이 바뀌지 않으면 이벤트가 오지 않아 놓치기 때문)
         /// </summary>
         [Button, LabelText("모든 상태 초기화")]
         public void ResetAllStatus()
@@ -65,6 +92,106 @@ namespace Enzeun.Runtime
             mentalStrengthManager.ResetMentalStrength();
             hydrationManager.ResetHydration();
             satiationManager.ResetSatiation();
+
+            SyncAllEffects();
+        }
+
+        // ==================== 구간 -> 상태 효과(버프/디버프) 연결 ============================
+
+        private void HandleBodyTemperatureStateChanged(BodyTemperatureState prev, BodyTemperatureState next)
+        {
+            SyncEffects(bodyTemperatureManager, effectTable != null ? effectTable.GetEffects(next) : null);
+        }
+
+        private void HandleMentalStateChanged(MentalState prev, MentalState next)
+        {
+            SyncEffects(mentalStrengthManager, effectTable != null ? effectTable.GetEffects(next) : null);
+        }
+
+        private void HandleHydrationStateChanged(HydrationState prev, HydrationState next)
+        {
+            SyncEffects(hydrationManager, effectTable != null ? effectTable.GetEffects(next) : null);
+        }
+
+        private void HandleSatiationStateChanged(SatiationState prev, SatiationState next)
+        {
+            SyncEffects(satiationManager, effectTable != null ? effectTable.GetEffects(next) : null);
+        }
+
+        /// <summary>
+        /// 현재 구간에 맞는 상태 효과를 네 가지 생존 상태 모두에 대해 다시 맞춥니다.
+        /// </summary>
+        private void SyncAllEffects()
+        {
+            if (effectTable == null || buffContainer == null)
+            {
+                Debug.LogWarning("[SurviveStatusManager]: 상태 효과 표 또는 BuffContainer 가 연결되지 않아 구간별 상태 효과를 적용하지 않습니다.");
+                return;
+            }
+
+            SyncEffects(bodyTemperatureManager, effectTable.GetEffects(bodyTemperatureManager.currentBodyTemperatureState));
+            SyncEffects(mentalStrengthManager, effectTable.GetEffects(mentalStrengthManager.currentMentalState));
+            SyncEffects(hydrationManager, effectTable.GetEffects(hydrationManager.currentHydrationState));
+            SyncEffects(satiationManager, effectTable.GetEffects(satiationManager.currentSatiationState));
+        }
+
+        /// <summary>
+        /// 해당 상태 매니저가 건 효과를 모두 빼고, 새 구간의 효과를 모두 겁니다.
+        /// 건 주체를 매니저로 두므로 다른 상태나 포션이 건 효과는 영향받지 않습니다.
+        /// </summary>
+        private void SyncEffects(object source, IReadOnlyList<StatusEffectData> effects)
+        {
+            if (buffContainer == null)
+            {
+                return;
+            }
+
+            buffContainer.RemoveBySource(source);
+
+            if (effects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < effects.Count; i++)
+            {
+                buffContainer.Apply(effects[i], source);
+            }
+        }
+
+        /// <summary>
+        /// 지정한 생존 상태를 amount 만큼 증감합니다. 양수는 증가, 음수는 감소입니다.
+        /// 모든 생존 상태가 0~100 범위라서 퍼센트와 수치가 같습니다. (예: 수분 +5% -> 5)
+        /// </summary>
+        public void ChangeStatus(SurviveStatusType type, int amount)
+        {
+            if (amount == 0)
+            {
+                return;
+            }
+
+            switch (type)
+            {
+                case SurviveStatusType.BodyTemperature:
+                    if (amount > 0) bodyTemperatureManager.IncreaseBodyTemperature(amount);
+                    else bodyTemperatureManager.DecreaseBodyTemperature(-amount);
+                    break;
+                case SurviveStatusType.MentalStrength:
+                    if (amount > 0) mentalStrengthManager.IncreaseMentalStrength(amount);
+                    else mentalStrengthManager.DecreaseMentalStrength(-amount);
+                    break;
+                case SurviveStatusType.Hydration:
+                    if (amount > 0) hydrationManager.IncreaseHydration(amount);
+                    else hydrationManager.DecreaseHydration(-amount);
+                    break;
+                case SurviveStatusType.Satiation:
+                    if (amount > 0) satiationManager.IncreaseSatiation(amount);
+                    else satiationManager.DecreaseSatiation(-amount);
+                    break;
+                default:
+                    Debug.LogWarning($"[SurviveStatusManager]: 증감할 생존 상태가 지정되지 않았습니다. ({type})");
+                    break;
+            }
         }
     }
 }

@@ -19,8 +19,11 @@ namespace Enzeun.Runtime
     /// - 같은 효과를 다른 주체가 걸면 각자 보관합니다. 그래서 한 주체가 제거해도 다른 주체가 건 것은 남습니다.
     /// - 스탯 보정은 곱연산입니다. 효과 하나(상태 효과 ID 기준)당 한 번만 반영합니다.
     ///
-    /// 이 클래스는 목록 관리, 중첩, 지속시간, 스탯 배율 조회까지만 담당합니다.
-    /// 체력 증감처럼 주기적으로 실행하는 효과(탈수의 초당 대미지 등)는 이 목록을 읽는 별도 실행기의 몫입니다.
+    /// - 체력 증감 모듈(탈수의 초당 대미지 등)은 걸리자마자 한 번, 이후 반복 간격마다 같은 오브젝트의 IDamageable 에게 적용합니다.
+    ///   같은 효과가 여러 건이어도 대미지는 한 건만 주고, 프레임이 튀어도 한 번의 갱신에 틱은 최대 한 번입니다.
+    ///
+    /// 이 클래스는 목록 관리, 중첩, 지속시간, 스탯 배율 조회, 체력 증감 틱까지 담당합니다.
+    /// 행동 변화 효과(갈증, 허기 등)는 Has() 로 걸려 있는지 확인해서 각 시스템이 처리합니다.
     /// </summary>
     public class BuffContainer : MonoBehaviour
     {
@@ -49,9 +52,36 @@ namespace Enzeun.Runtime
 
         private void Update()
         {
-            float deltaTime = Time.deltaTime;
+            Tick(Time.deltaTime);
+        }
+
+        /// <summary>
+        /// 지속시간을 줄여 만료된 효과를 제거하고, 남은 효과의 체력 증감(초당 대미지 등)을 틱 시점에 적용합니다.
+        /// </summary>
+        private void Tick(float deltaTime)
+        {
             TickAndRemoveExpired(_buffs, deltaTime);
             TickAndRemoveExpired(_debuffs, deltaTime);
+        }
+
+        // 체력 증감을 적용할 대상입니다. 이 컨테이너와 같은 오브젝트(또는 부모)의 IDamageable 을 한 번만 찾습니다.
+        private IDamageable _damageable;
+        private bool _hasSearchedDamageable;
+
+        private IDamageable GetDamageable()
+        {
+            if (!_hasSearchedDamageable)
+            {
+                _hasSearchedDamageable = true;
+                _damageable = GetComponentInParent<IDamageable>();
+
+                if (_damageable == null)
+                {
+                    Debug.LogWarning($"[BuffContainer]: {name} 에서 IDamageable 을 찾지 못해 체력 증감 효과를 적용할 수 없습니다.");
+                }
+            }
+
+            return _damageable;
         }
 
         /// <summary>
@@ -304,11 +334,50 @@ namespace Enzeun.Runtime
                     continue;
                 }
 
-                list[i].Tick(deltaTime);
+                ActiveStatusEffect effect = list[i];
+                effect.Tick(deltaTime);
 
-                if (list[i].isExpired)
+                if (effect.isExpired)
                 {
                     RemoveAt(list, i);
+                    continue;
+                }
+
+                if (effect.HasHealthChange)
+                {
+                    ProcessHealthChanges(list, i, effect, deltaTime);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 효과가 가진 체력 증감 모듈의 틱을 처리합니다.
+        /// 같은 효과가 여러 건이어도 대미지는 한 건(가장 강한 것, 같으면 먼저 걸린 것)만 줍니다.
+        /// 나머지 건도 타이머는 같이 흘려보내서, 앞선 건이 제거되어 순서가 넘어와도 한꺼번에 몰려 들어가지 않습니다.
+        /// </summary>
+        private void ProcessHealthChanges(List<ActiveStatusEffect> list, int index, ActiveStatusEffect effect, float deltaTime)
+        {
+            // 대미지로 목록이 바뀔 수 있으므로, 적용 전에 이 건이 담당인지 먼저 판정합니다.
+            bool isDamageDealer = IsStrongest(list, index);
+            IReadOnlyList<StatusEffectModule> modules = effect.data.modules;
+
+            for (int m = 0; m < modules.Count; m++)
+            {
+                if (!(modules[m] is HealthChangeModule healthChange))
+                {
+                    continue;
+                }
+
+                bool isDue = effect.ConsumeTick(m, deltaTime, healthChange.intervalSeconds);
+                if (!isDue || !isDamageDealer)
+                {
+                    continue;
+                }
+
+                IDamageable target = GetDamageable();
+                if (target != null)
+                {
+                    healthChange.Apply(target, transform.position);
                 }
             }
         }

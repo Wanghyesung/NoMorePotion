@@ -72,7 +72,7 @@ namespace Enzeun.SO
         public WorldObjectDropType worldObjectDropType => _worldObjectDropType;
 
         /// <summary>
-        /// 횟수 규칙 : 상호작용 타입은 상호작용 1회와 대미지 1당 1씩 차감, 파괴 타입은 대미지가 들어올 때만 대미지 수치만큼 차감합니다.
+        /// 횟수 규칙 : 상호작용 타입은 상호작용 1회당 1씩 차감(포션 대미지는 받지 않음), 파괴 타입은 맞는 종류의 대미지가 들어올 때만 대미지 수치만큼 차감합니다.
         /// 0 이 되면 소진(드롭)됩니다. 예) 나무(소) 1 / 나무(중) 2 / 나무(대) 3 -> 식물 대미지 소 1, 중 2, 대 3 으로 각각 한 번에 소진
         /// </summary>
         [LabelText("횟수 (차감되어 0 이 되면 소진)"), BoxGroup("기본 정보")]

@@ -10,7 +10,7 @@ namespace Enzeun.Runtime
     /// 씬에 배치된 월드 오브젝트(꽃, 나무, 광물 등) 한 개의 런타임 상태입니다. 남은 횟수를 관리합니다.
     ///
     /// 횟수 차감 규칙 (기획)
-    /// - 상호작용 타입(Interacting) : 상호작용 1회당 1 차감, 맞는 종류의 대미지가 들어오면 대미지 수치만큼 차감
+    /// - 상호작용 타입(Interacting) : 상호작용 1회당 1 차감, 포션 대미지는 받지 않음
     /// - 파괴 타입(Destroying) : 상호작용으로는 차감되지 않고, 맞는 종류의 대미지가 들어올 때만 대미지 수치만큼 차감
     ///   예) 식물 대미지 1/2/3 을 주는 소/중/대 포션은 횟수를 1/2/3 씩 차감합니다.
     /// - 횟수가 0 이 되면 소진되며, 소진 이벤트는 한 번만 발생합니다.
@@ -88,12 +88,18 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
-        /// 포션의 월드 오브젝트 대미지 효과를 받습니다. 효과의 대상 종류에 이 오브젝트의 종류가 있을 때만 차감합니다.
+        /// 포션의 월드 오브젝트 대미지 효과를 받습니다. 파괴 타입이고, 효과의 대상 종류에 이 오브젝트의 종류가 있을 때만 차감합니다.
         /// </summary>
         /// <returns>횟수가 차감되었으면 true</returns>
         public bool ReceivePotionDamage(WorldObjectDamagePotionEffect effect)
         {
             if (_data == null || effect == null || isDepleted)
+            {
+                return false;
+            }
+
+            // 상호작용 타입은 포션 대미지를 받지 않습니다. (상호작용으로만 소진)
+            if (_data.worldObjectDropType != WorldObjectDropType.Destroying)
             {
                 return false;
             }

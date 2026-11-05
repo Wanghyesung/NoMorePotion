@@ -28,7 +28,8 @@ namespace Enzeun.SO
         private HealthChangeType _changeType = HealthChangeType.None;
         public HealthChangeType changeType => _changeType;
 
-        [SerializeField, LabelText("대미지 속성"), ShowIf("_changeType", HealthChangeType.Damage)]
+        // None = 고정 대미지(공격자 없이 전달), Normal = 무속성 대미지, 그 외는 해당 속성 대미지입니다.
+        [SerializeField, LabelText("대미지 속성 (None = 고정 대미지)"), ShowIf("_changeType", HealthChangeType.Damage)]
         private DamageType _damageType = DamageType.Normal;
         public DamageType damageType => _damageType;
 
@@ -65,11 +66,20 @@ namespace Enzeun.SO
             switch (_changeType)
             {
                 case HealthChangeType.Damage:
+                    var attackInfo = new CommonStruct.AttackInfo { Position = position, Damage = _amount };
+
+                    // 속성이 None 이면 고정 대미지입니다. 공격자(IAttacker) 없이 TakeDamage(AttackInfo) 로 전달합니다.
+                    if (_damageType == DamageType.None)
+                    {
+                        target.TakeDamage(attackInfo);
+                        break;
+                    }
+
                     if (_elementAttacker == null)
                     {
                         _elementAttacker = new ElementAttacker { DamageType = _damageType };
                     }
-                    target.TakeDamage(new CommonStruct.AttackInfo { Position = position, Damage = _amount }, _elementAttacker);
+                    target.TakeDamage(attackInfo, _elementAttacker);
                     break;
 
                 case HealthChangeType.Heal:
