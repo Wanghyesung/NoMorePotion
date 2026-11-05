@@ -21,8 +21,10 @@ public abstract class WolfStateBase : IMonsterState
 /// </summary>
 public class WolfFollowState : WolfStateBase
 {
-    private const float StopDistance = 0.5f;
+    private const float ArriveDistance = 1f;
     private const float CatchUpDistance = 4f;
+    private bool returning;   // 대형 위치 복귀 중?
+    private float leash;      // 자유 반경
 
     public WolfFollowState(WolfMove wolf) : base(wolf) { }
     public override MonsterState GetStateType() => MonsterState.Follow;
@@ -30,26 +32,51 @@ public class WolfFollowState : WolfStateBase
     public override void OnStart()
     {
         wolf.agent.isStopped = false;
+        returning = false;
+        leash = wolf.Pack.FollowLeash + Random.Range(-0.7f, 0.7f);
     }
 
     public override void OnStay()
     {
-        Vector3 dest = wolf.Pack.GetFollowPoint(wolf);
-        float dist = Vector3.Distance(wolf.transform.position, dest);
+        float alphaDist = Vector3.Distance(wolf.transform.position, wolf.Pack.Alpha.transform.position);
 
-        bool moving = dist > StopDistance;
-        bool farBehind = dist > CatchUpDistance;
+        if (!returning && alphaDist > leash)
+            returning = true;
+
+        if (!returning)
+        {
+            Stop();
+            return;
+        }
+
+        Vector3 dest = wolf.Pack.GetFollowPoint(wolf);
+        float slotDist = Vector3.Distance(wolf.transform.position, dest);
+
+        if (slotDist <= ArriveDistance)
+        {
+            returning = false;
+            Stop();
+            return;
+        }
+
+        bool farBehind = slotDist > CatchUpDistance;
 
         wolf.agent.speed = farBehind ? wolf.runSpeed : wolf.walkSpeed;
-        wolf.anim.IsRun(moving && farBehind);
-        wolf.anim.IsWalk(moving && !farBehind);
+        wolf.anim.IsRun(farBehind);
+        wolf.anim.IsWalk(!farBehind);
+        wolf.agent.SetDestination(dest);
 
-        if (moving) wolf.agent.SetDestination(dest);
-        else wolf.agent.ResetPath();
     }
 
     public override void OnEnd()
     {
+        wolf.anim.IsWalk(false);
+        wolf.anim.IsRun(false);
+    }
+
+    private void Stop()
+    {
+        wolf.agent.ResetPath();
         wolf.anim.IsWalk(false);
         wolf.anim.IsRun(false);
     }

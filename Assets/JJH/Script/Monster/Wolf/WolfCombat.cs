@@ -1,8 +1,12 @@
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
+using static JJH_Constants;
 
 using SF = UnityEngine.SerializeField;
 
@@ -31,6 +35,38 @@ public class WolfCombat : MonsterCombat
 
     private WolfBoss BossData => data as WolfBoss;
 
+    /// <summary>
+    ///  테스트용
+    /// </summary>
+    protected override void InitTestData(int id)
+    {
+        BossData data = EnemyDataLoader.Instance.LoadBossData(WolfMover.Pack.alphaId);
+        MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(WolfMover.Pack.alphaId);
+
+        if (data == null || textData == null) return;
+
+        // 노말 늑대는 일반 데이터, 알파만 보스 데이터
+        if (WolfMover == null || !WolfMover.IsAlpha)
+        {
+            base.InitTestData(prefabId);
+
+            if(data.BossSubData.TryGetValue(WOLF_SUB_DATA_NORMAL_WOLF_HP, out JToken hpVal)
+                && int.TryParse(hpVal.ToString(), out int hp))
+            {
+                data.HP = hp;
+            }
+            return;
+        }
+        Debug.Log("한번은 와야함");
+        Dictionary<DamageType, int> immuneVal = data.Immune
+            .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
+            .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
+
+        Init(textData.Name, data.HP, data.HP,
+            immuneVal, data.Speed, data.Id, 0,
+            data.SpawnArea, textData.Description, data.DamageType);
+    }
+
     private void Update()
     {
         if (isWindup)
@@ -54,10 +90,10 @@ public class WolfCombat : MonsterCombat
 
     public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune, float speed,
         int id, int instanceId, string spawnArea, string description,
-        List<BossSkill> bossSkill, DamageType damageType)
+        List<BossSkill> bossSkill,int normalWolfHP, DamageType damageType)
     {
         SetData(new WolfBoss(name, maxHp, hp, immune, speed, id, instanceId,
-            spawnArea, description, bossSkill, damageType));
+            spawnArea, description, bossSkill,normalWolfHP ,damageType));
     }
 
 

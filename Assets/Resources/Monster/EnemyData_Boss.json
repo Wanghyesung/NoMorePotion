@@ -4,7 +4,7 @@
     "HP": 5000,
     "Speed": 5.3,
     "DamageType": "Normal",
-    "AtkPoint": 150,
+    "AtkPoint": 450,
     "Immune": {
       "1": 20,
       "2": -30
@@ -14,9 +14,12 @@
       {
         "UseMonsterId": 40001,
         "SkillNum": 0,
-        "AnimationName" : "Pound",
-        "SkillDamage" :  "400"
+        "AnimationName": "Pound",
+        "SkillDamage": "400"
       }
-    ]
+    ],
+    "BossSubData": {
+      "NormalWolfHP": 3000
+    }
   }
 ]

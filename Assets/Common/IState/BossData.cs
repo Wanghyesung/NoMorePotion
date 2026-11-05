@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,5 +24,8 @@ public class BossData
     /// </summary>
     public Dictionary<int, int> Immune;
     public string SpawnArea;
-    public List<BossSkill> BossSkill;
+    [JsonProperty("BossSkill")]
+    public List<BossSkill> BossSkills;
+
+    public Dictionary<string, JToken> BossSubData;
 }
