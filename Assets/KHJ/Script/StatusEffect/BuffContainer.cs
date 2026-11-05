@@ -22,6 +22,9 @@ namespace Enzeun.Runtime
     /// - 체력 증감 모듈(탈수의 초당 대미지 등)은 걸리자마자 한 번, 이후 반복 간격마다 Owner 의 IDamageable 에게 적용합니다.
     ///   같은 효과가 여러 건이어도 대미지는 한 건만 주고, 프레임이 튀어도 한 번의 갱신에 틱은 최대 한 번입니다.
     ///   멀티플레이에서는 권한(HasAuthority)이 있는 클라이언트에서만 대미지를 줍니다.
+    /// - 주기 행동 모듈(추위의 이동 정지, 허기의 아이템 소모 등)은 같은 방식으로 발동 시점만 관리하고, OnPeriodicAction 이벤트로 알립니다.
+    ///   실제 행동은 이벤트를 받는 쪽이 처리하므로, 컨테이너는 플레이어나 인벤토리를 알지 못합니다.
+    /// - 지속시간이 있거나 틱 모듈이 있는 효과가 걸려 있을 때만 Update 를 돌립니다.
     ///
     /// - Owner : 이 컨테이너의 주인입니다. 몬스터는 자기 자신이 기본 Owner 이고, 플레이어는 SetOwner 로 연결합니다.
     ///
@@ -48,8 +51,18 @@ namespace Enzeun.Runtime
         /// </summary>
         public event Action<ActiveStatusEffect> OnEffectRemoved;
 
+        /// <summary>
+        /// 주기 행동(이동 정지, 아이템 소모 등)이 발동할 때 발생합니다. 걸리자마자 한 번, 이후 반복 간격마다 발생합니다.
+        /// 컨테이너는 발동 시점만 관리하고, 실제 행동은 이 이벤트를 받는 쪽이 처리합니다.
+        /// 같은 효과가 여러 건이어도 한 건만 발생하고, 권한(HasAuthority)이 있을 때만 발생합니다.
+        /// </summary>
+        public event Action<ActiveStatusEffect, PeriodicActionModule> OnPeriodicAction;
+
         // 스탯 배율 캐시입니다. 목록이 바뀔 때만 다시 계산합니다.
-        private readonly float[] _statMultipliers = new float[Enum.GetValues(typeof(StatType)).Length];
+        // 스탯 종류 개수는 한 번만 구합니다. (인스턴스마다 Enum.GetValues 배열을 만들어 버리면 컨테이너 생성 때마다 GC 할당이 생김)
+        private static readonly int StatTypeCount = Enum.GetValues(typeof(StatType)).Length;
+
+        private readonly float[] _statMultipliers = new float[StatTypeCount];
         private bool _isStatMultiplierDirty = true;
 
 
@@ -90,6 +103,36 @@ namespace Enzeun.Runtime
             {
                 SetOwner(gameObject);
             }
+
+            // 시간이 흘러야 하는 효과가 없으면 Update 를 돌리지 않습니다. (몬스터가 많을 때 Update 호출 비용을 없애기 위함)
+            UpdateEnabledState();
+        }
+
+        /// <summary>
+        /// 시간이 흘러야 하는 효과(지속시간이 있거나 체력 증감 틱이 있는 효과)가 있을 때만 컴포넌트를 켭니다.
+        /// 스탯 보정이나 행동만 있는 영구 효과(더위, 갈증 등)는 시간이 흐를 일이 없으므로 Update 를 돌리지 않습니다.
+        /// </summary>
+        private void UpdateEnabledState()
+        {
+            bool needsTick = NeedsTick(_buffs) || NeedsTick(_debuffs);
+
+            if (enabled != needsTick)
+            {
+                enabled = needsTick;
+            }
+        }
+
+        private static bool NeedsTick(List<ActiveStatusEffect> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].hasDuration || list[i].HasTickModule)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnDestroy()
@@ -262,6 +305,7 @@ namespace Enzeun.Runtime
             var added = new ActiveStatusEffect(data, source, percentOverride, data.hasDuration ? duration : 0f);
             list.Add(added);
             _isStatMultiplierDirty = true;
+            UpdateEnabledState();
 
 #if UNITY_EDITOR
             Debug.Log($"[BuffContainer] : {data.statusEffectName}({data.ID}) 적용");
@@ -405,6 +449,9 @@ namespace Enzeun.Runtime
 #endif
 
             OnEffectRemoved?.Invoke(removed);
+
+            // 이벤트 구독자가 효과를 다시 걸었을 수 있으므로, 이벤트 이후의 목록 상태로 판단합니다.
+            UpdateEnabledState();
         }
 
         private int RemoveBySource(List<ActiveStatusEffect> list, object source)
@@ -459,41 +506,45 @@ namespace Enzeun.Runtime
                     continue;
                 }
 
-                if (effect.HasHealthChange)
+                if (effect.HasTickModule)
                 {
-                    ProcessHealthChanges(list, i, effect, deltaTime);
+                    ProcessTickModules(list, i, effect, deltaTime);
                 }
             }
         }
 
         /// <summary>
-        /// 효과가 가진 체력 증감 모듈의 틱을 처리합니다.
-        /// 같은 효과가 여러 건이어도 대미지는 한 건(가장 강한 것, 같으면 먼저 걸린 것)만 줍니다.
+        /// 효과가 가진 틱 모듈(체력 증감, 주기 행동)을 틱 시점에 맞춰 처리합니다.
+        /// 같은 효과가 여러 건이어도 한 건(가장 강한 것, 같으면 먼저 걸린 것)만 발동합니다.
         /// 나머지 건도 타이머는 같이 흘려보내서, 앞선 건이 제거되어 순서가 넘어와도 한꺼번에 몰려 들어가지 않습니다.
         /// </summary>
-        private void ProcessHealthChanges(List<ActiveStatusEffect> list, int index, ActiveStatusEffect effect, float deltaTime)
+        private void ProcessTickModules(List<ActiveStatusEffect> list, int index, ActiveStatusEffect effect, float deltaTime)
         {
-            // 대미지로 목록이 바뀔 수 있으므로, 적용 전에 이 건이 담당인지 먼저 판정합니다.
-            bool isDamageDealer = IsStrongest(list, index);
+            // 발동으로 목록이 바뀔 수 있으므로, 발동하기 전에 이 건이 담당인지 먼저 판정합니다.
+            bool isActor = IsStrongest(list, index);
             IReadOnlyList<StatusEffectModule> modules = effect.data.modules;
 
             for (int m = 0; m < modules.Count; m++)
             {
-                if (!(modules[m] is HealthChangeModule healthChange))
+                if (modules[m] is HealthChangeModule healthChange)
                 {
-                    continue;
-                }
+                    bool isDue = effect.ConsumeTick(m, deltaTime, healthChange.intervalSeconds);
 
-                bool isDue = effect.ConsumeTick(m, deltaTime, healthChange.intervalSeconds);
-                if (!isDue || !isDamageDealer)
-                {
-                    continue;
+                    if (isDue && isActor && CanApplyHealthChange())
+                    {
+                        Vector3 position = Owner != null ? Owner.transform.position : transform.position;
+                        healthChange.Apply(Damageable, position);
+                    }
                 }
-
-                if (CanApplyHealthChange())
+                else if (modules[m] is PeriodicActionModule periodicAction)
                 {
-                    Vector3 position = Owner != null ? Owner.transform.position : transform.position;
-                    healthChange.Apply(Damageable, position);
+                    bool isDue = effect.ConsumeTick(m, deltaTime, periodicAction.IntervalSeconds);
+
+                    // 행동 자체는 이벤트를 받는 쪽이 처리합니다. 컨테이너는 발동 시점만 관리합니다.
+                    if (isDue && isActor && HasAuthority)
+                    {
+                        OnPeriodicAction?.Invoke(effect, periodicAction);
+                    }
                 }
             }
         }

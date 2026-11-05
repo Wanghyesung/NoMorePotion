@@ -86,6 +86,11 @@ namespace Enzeun.Runtime
             mentalStrengthManager.OnMentalStateChanged += HandleMentalStateChanged;
             hydrationManager.OnHydrationStateChanged += HandleHydrationStateChanged;
             satiationManager.OnSatiationStateChanged += HandleSatiationStateChanged;
+
+            if (buffContainer != null)
+            {
+                buffContainer.OnPeriodicAction += HandlePeriodicAction;
+            }
         }
 
         private void OnDisable()
@@ -94,6 +99,11 @@ namespace Enzeun.Runtime
             mentalStrengthManager.OnMentalStateChanged -= HandleMentalStateChanged;
             hydrationManager.OnHydrationStateChanged -= HandleHydrationStateChanged;
             satiationManager.OnSatiationStateChanged -= HandleSatiationStateChanged;
+
+            if (buffContainer != null)
+            {
+                buffContainer.OnPeriodicAction -= HandlePeriodicAction;
+            }
         }
 
         // 다른 시스템이 Awake 에서 이벤트를 구독할 수 있도록, 초기화는 Start 에서 일괄 수행합니다.
@@ -156,8 +166,13 @@ namespace Enzeun.Runtime
             SyncEffects(satiationManager, effectTable.GetEffects(satiationManager.currentSatiationState));
         }
 
+        // 새 구간 목록에 없어서 제거할 효과를 모아 두는 재사용 버퍼입니다.
+        private readonly List<StatusEffectData> removeBuffer = new List<StatusEffectData>();
+
         /// <summary>
-        /// 해당 상태 매니저가 건 효과를 모두 빼고, 새 구간의 효과를 모두 겁니다.
+        /// 해당 상태 매니저가 건 효과를 새 구간의 목록과 맞춥니다. 목록에 없는 효과만 빼고, 아직 걸려 있지 않은 효과만 새로 겁니다.
+        /// 구간이 바뀌어도 계속 유지되는 효과(예: 갈증 -> 탈수 구간에서도 갈증)는 다시 걸지 않으므로,
+        /// 주기 행동의 타이머가 구간이 바뀔 때마다 초기화되지 않습니다.
         /// 건 주체를 매니저로 두므로 다른 상태나 포션이 건 효과는 영향받지 않습니다.
         /// </summary>
         private void SyncEffects(object source, IReadOnlyList<StatusEffectData> effects)
@@ -167,7 +182,14 @@ namespace Enzeun.Runtime
                 return;
             }
 
-            buffContainer.RemoveBySource(source);
+            removeBuffer.Clear();
+            CollectRemovedEffects(buffContainer.buffs, source, effects);
+            CollectRemovedEffects(buffContainer.debuffs, source, effects);
+
+            for (int i = 0; i < removeBuffer.Count; i++)
+            {
+                buffContainer.Remove(removeBuffer[i], source);
+            }
 
             if (effects == null)
             {
@@ -176,8 +198,112 @@ namespace Enzeun.Runtime
 
             for (int i = 0; i < effects.Count; i++)
             {
-                buffContainer.Apply(effects[i], source);
+                if (!IsAppliedBy(buffContainer.buffs, source, effects[i]) && !IsAppliedBy(buffContainer.debuffs, source, effects[i]))
+                {
+                    buffContainer.Apply(effects[i], source);
+                }
             }
+        }
+
+        // 해당 주체가 건 효과 중 새 목록에 없는 것을 removeBuffer 에 모읍니다.
+        private void CollectRemovedEffects(IReadOnlyList<ActiveStatusEffect> active, object source, IReadOnlyList<StatusEffectData> effects)
+        {
+            for (int i = 0; i < active.Count; i++)
+            {
+                if (!Equals(active[i].source, source))
+                {
+                    continue;
+                }
+
+                bool isKept = false;
+                if (effects != null)
+                {
+                    for (int j = 0; j < effects.Count; j++)
+                    {
+                        if (effects[j] == active[i].data)
+                        {
+                            isKept = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!isKept)
+                {
+                    removeBuffer.Add(active[i].data);
+                }
+            }
+        }
+
+        // 해당 주체가 이미 이 효과를 걸어 두었는지 확인합니다.
+        private static bool IsAppliedBy(IReadOnlyList<ActiveStatusEffect> active, object source, StatusEffectData data)
+        {
+            for (int i = 0; i < active.Count; i++)
+            {
+                if (active[i].data == data && Equals(active[i].source, source))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // ==================== 주기 행동 (BuffContainer 가 발동 시점을 알려 주면 여기서 처리) ============================
+
+        /// <summary>
+        /// 주기 행동이 발동했을 때 호출됩니다. 컨테이너는 발동 시점만 관리하므로, 실제 행동은 여기서 처리합니다.
+        /// </summary>
+        private void HandlePeriodicAction(ActiveStatusEffect effect, PeriodicActionModule module)
+        {
+#if UNITY_EDITOR
+            Debug.Log($"[SurviveStatusManager] : 주기 행동 발동 {effect.data.statusEffectName} / {module.ActionType}");
+#endif
+
+            switch (module.ActionType)
+            {
+                case PeriodicActionType.StopPlayerMove:
+                    StopPlayerMove(module.DurationSeconds);
+                    break;
+
+                case PeriodicActionType.ConsumeFirstItem:
+                    // 아이템을 소모했을 때만 포만감을 채웁니다.
+                    if (ConsumeFirstInventoryItem())
+                    {
+                        ChangeStatus(SurviveStatusType.Satiation, module.Amount);
+                    }
+                    break;
+
+                case PeriodicActionType.DrinkHeldPotion:
+                    DrinkHeldPotion();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 플레이어의 이동을 durationSeconds 동안 막습니다. (추위)
+        /// </summary>
+        private void StopPlayerMove(float durationSeconds)
+        {
+            // 플레이어의 이동을 막는 코드를 여기 넣습니다.
+        }
+
+        /// <summary>
+        /// 인벤토리의 첫 번째 아이템을 소모합니다. (허기) 소모했으면 true 를 반환합니다.
+        /// </summary>
+        private bool ConsumeFirstInventoryItem()
+        {
+            // 인벤토리의 첫 번째 아이템을 소모하는 코드를 여기 넣습니다.
+            return false;
+        }
+
+        /// <summary>
+        /// 들고 있는 물약을 오른손, 왼손 순으로 하나 마십니다. (갈증)
+        /// 아무것도 들고 있지 않으면 아무것도 하지 않습니다. (줍는 즉시 마시는 처리는 줍는 쪽에서 갈증이 걸려 있는지 확인해서 처리)
+        /// </summary>
+        private void DrinkHeldPotion()
+        {
+            // 들고 있는 물약을 마시는 코드를 여기 넣습니다.
         }
 
         /// <summary>

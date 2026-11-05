@@ -19,13 +19,14 @@ namespace Enzeun.Runtime
             this.duration = duration;
             remaining = duration;
 
-            // 체력 증감 모듈이 있을 때만 틱 타이머를 만듭니다. 0 으로 시작하므로 첫 틱은 걸리자마자(다음 갱신에) 발생합니다.
+            // 틱이 필요한 모듈(체력 증감, 주기 행동)이 있을 때만 타이머를 만듭니다.
+            // 0 으로 시작하므로 첫 틱은 걸리자마자(다음 갱신에) 발생합니다.
             for (int i = 0; i < data.modules.Count; i++)
             {
-                if (data.modules[i] is HealthChangeModule)
+                if (data.modules[i] is HealthChangeModule || data.modules[i] is PeriodicActionModule)
                 {
                     _tickTimers = new float[data.modules.Count];
-                    HasHealthChange = true;
+                    HasTickModule = true;
                     break;
                 }
             }
@@ -49,9 +50,9 @@ namespace Enzeun.Runtime
         public float remaining { get; private set; }
 
         /// <summary>
-        /// 체력 증감 모듈(초당 대미지 등)을 가지고 있는지 여부입니다.
+        /// 시간이 지나며 주기적으로 발동하는 모듈(체력 증감, 주기 행동)을 가지고 있는지 여부입니다.
         /// </summary>
-        public bool HasHealthChange { get; }
+        public bool HasTickModule { get; }
 
         // 모듈별 다음 틱까지 남은 시간입니다. 모듈은 공유 SO 라서 타이머는 이 인스턴스가 가집니다.
         private readonly float[] _tickTimers;

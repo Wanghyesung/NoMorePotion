@@ -20,7 +20,15 @@ MonoBehaviour:
   _statusEffectType: 2
   _hasDuration: 0
   _stackPolicy: 1
-  _modules: []
+  _modules:
+  - rid: 4119466663539376510
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 4119466663539376510
+      type: {class: PeriodicActionModule, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _actionType: 1
+        _intervalSeconds: 5
+        _durationSeconds: 1
+        _amount: 0
