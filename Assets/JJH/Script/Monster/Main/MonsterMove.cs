@@ -4,6 +4,7 @@ using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using static JJH_Constants;
@@ -17,6 +18,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 {
     [Header("스크립트")]
     public MonsterAnimationController anim;
+    public MonsterCombat combat;
 
     [Header("AI 네비게이션")]
     public NavMeshAgent agent;
@@ -76,13 +78,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private void Start()
     {
         RegisterStates();
-
+/*
         // 이후 캐릭터 스폰 + 이동속도 받을 시 스폰으로 작동 위치 변경
         if (runSpeed == 0)
             StartAI(3.8f).Forget();
         else 
-            StartAI(runSpeed).Forget();
-
+            StartAI(runSpeed).Forget();*/
     }
 
     private void Update()
@@ -152,14 +153,15 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// </summary>
     /// <param name="speed"></param>
     /// <returns></returns>
-    public async UniTask StartAI(float speed)
+    public async UniTask StartAI(float speed, MonsterCombat combat)
     {
+        
         StopAI();
         anim.AnimatorRebind();
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
-
-        // 이전 생애 흔적 초기화
+        this.combat = combat;
+        // 이전 풀 정보 초기화
         state = new();
         nowTarget = null;
         IsAnimation = false;
@@ -252,9 +254,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 if (patrolTimerActive)
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
+                attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
                 
-                attackTimer += FSM_TIMER / MIL_SEC_F;
-
                 state.Stay();
             }
 
@@ -262,7 +263,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
     }
-    private void StopAI()
+    public void StopAI()
     {
         if (aiCts == null) return;
         aiCts.Cancel();

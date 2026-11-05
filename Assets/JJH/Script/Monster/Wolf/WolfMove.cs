@@ -54,7 +54,7 @@ public class WolfMove : MonsterMove
                 break;
         }
 
-        return state.GetStateType() == next ? null : stateGroup[next];
+        return state.GetStateType() == next ? null :  stateGroup[next];
     }
 
     protected override bool ShouldFaceTarget()

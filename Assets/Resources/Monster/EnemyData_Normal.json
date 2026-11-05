@@ -2,9 +2,10 @@
   {
     "Id": 40001,
     "HP": 300,
-    "Speed" :  3.2,
+    "Speed": 3.2,
     "DamageType": "Normal",
     "AtkPoint": 100,
+    "AttackPower": 1,
     "Immune": {
       "2": -10
     },
@@ -16,6 +17,7 @@
     "Speed": 3.5,
     "DamageType": "Normal",
     "AtkPoint": 150,
+    "AttackPower": 1,
     "Immune": {
       "2": -10
     },
@@ -27,6 +29,7 @@
     "Speed": 3.8,
     "DamageType": "Normal",
     "AtkPoint": 250,
+    "AttackPower": 1,
     "Immune": {
       "2": -40
     },
@@ -35,9 +38,10 @@
   {
     "Id": 40005,
     "HP": 1300,
-    "Speed": 5.3,
+    "Speed": 4.4,
     "DamageType": "Normal",
     "AtkPoint": 300,
+    "AttackPower": 1,
     "Immune": {
     },
     "SpawnArea": "Plain"

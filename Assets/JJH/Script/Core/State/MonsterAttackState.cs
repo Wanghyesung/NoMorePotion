@@ -31,9 +31,9 @@ public class MonsterAttackState : IMonsterState
 
     public void OnStay()
     {
-        if (mover.attackSpeed < mover.attackTimer)
+        if (mover.attackSpeed <= mover.attackTimer)
         {
-            mover.attackTimer = 0;
+            mover.attackTimer = -Random.Range(0f, 0.3f);
             mover.anim.IsNormalAttack();
         }
     }
