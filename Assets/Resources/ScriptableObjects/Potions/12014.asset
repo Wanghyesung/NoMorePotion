@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
+  m_Name: 12014
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
+  _potionIcon: {fileID: 0}
+  _potionID: 12014
+  _potionName: "\uAF41\uAF41 \uD3EC\uC158 (\uC911)"
+  _potionDesc: "\uC5BC\uC74C \uC18D\uC131 \uB300\uBBF8\uC9C0\uB97C \uC8FC\uB294 \uD3EC\uC158.\n\uC6A9\uB7C9\uC744
+    \uD0A4\uC6CC \uD6A8\uACFC\uAC00 \uC99D\uD3ED\uB418\uC5C8\uB2E4."
+  _potionEffect: "\uC5BC\uC74C \uC18D\uC131 \uB300\uBBF8\uC9C0 400\n\uC218\uBD84
+    + 10%\n\uD3EC\uB9CC\uAC10 - 10%\n\uC815\uC2E0\uB825 - 10%\n\uCCB4\uC628 - 10%"
+  _potionType: 3
+  _potionExplosionRange: 1
+  _potionCombinationType: 2
+  _maxHoldCount: 1
+  _recipeMaterials: []

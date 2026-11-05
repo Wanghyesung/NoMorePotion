@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
+  m_Name: 10013
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
+  _potionIcon: {fileID: 0}
+  _potionID: 10013
+  _potionName: "\uAEBC\uC5B5 \uD3EC\uC158 (\uC18C)"
+  _potionDesc: "\uD3EC\uB9CC\uAC10\uC744 \uB298\uB824\uC8FC\uB294 \uD3EC\uC158."
+  _potionEffect: "\uD3EC\uB9CC\uAC10 + 15%\n\uC218\uBD84 - 10%"
+  _potionType: 1
+  _potionExplosionRange: 1
+  _potionCombinationType: 1
+  _maxHoldCount: 1
+  _recipeMaterials:
+  - {fileID: 11400000, guid: 61b0a944398197042b924926a8a69f4d, type: 2}
+  - {fileID: 11400000, guid: e882d9f0d41bdc1439ffdfc0a0be225c, type: 2}

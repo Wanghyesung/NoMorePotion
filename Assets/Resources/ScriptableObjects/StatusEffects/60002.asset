@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28744d3fd95c3b040a4f82bc51b21e13, type: 3}
+  m_Name: 60002
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.StatusEffectData
+  _statusEffectIcon: {fileID: 0}
+  _statusEffectID: 60002
+  _statusEffectName: "\uCD09\uCD09\uD568"
+  _statusEffectDesc: "\uC544\uBB34 \uD6A8\uACFC\uAC00 \uC5C6\uB2E4.\n\uBAA9\uC18C\uB9AC\uAC00
+    \uC798\uB098\uC628\uB2E4\n\uAE30\uBD84\uC774 \uC88B\uB2E4\n\uCE68\uC774 \uB9CE\uC774
+    \uB098\uC628\uB2E4"
+  _statusEffectType: 1
+  _hasDuration: 0
+  _stackPolicy: 1
+  _modules: []
+  references:
+    version: 2
+    RefIds: []
