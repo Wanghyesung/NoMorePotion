@@ -23,7 +23,6 @@ public class BossHudBinder : MonoBehaviour
 
     private void Bind(NormalMonster data, string bossName)
     {
-        Debug.Log($"[Binder] Bind {bossName} {data.HP}/{data.MaxHP}", this);
         Unbind(bound);
         bound = data;
         bound.OnHPChanged += hud.HealthChange;
