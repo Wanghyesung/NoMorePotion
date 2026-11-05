@@ -7,10 +7,21 @@ public class FirebaseAuthService
 {
 
     private bool isInitialized;
+    private UniTask? pendingSignIn;     // 진행 중인 로그인 (중복 호출 시 같은 작업을 공유)
     public string UserId { get; private set; }
 
 
-    public async UniTask SignInAsync()
+    public UniTask SignInAsync()
+    {
+        // 타임아웃 후 재시도해도 이전 로그인이 아직 진행 중이면 새로 시작하지 않고 그 작업을 기다림
+        // Preserve : UniTask는 원래 한 번만 await 가능 → 여러 번 await 가능하게 만듦
+        if (pendingSignIn == null || pendingSignIn.Value.Status.IsCompleted())
+            pendingSignIn = SignInInternalAsync().Preserve();
+
+        return pendingSignIn.Value;
+    }
+
+    private async UniTask SignInInternalAsync()
     {
         // Firebase 초기화 (최초 1회)
 

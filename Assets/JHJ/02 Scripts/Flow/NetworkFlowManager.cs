@@ -4,6 +4,7 @@ using Photon.Realtime;
 using R3;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using PhotonPlayer = Photon.Realtime.Player;
@@ -29,6 +30,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private ReactiveProperty<string> nickname;
     private ReactiveProperty<List<PhotonPlayer>> players;
     private ReactiveProperty<bool> canStart;
+    private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
 
 
     public ReadOnlyReactiveProperty<string> Nickname => nickname;
@@ -120,7 +122,30 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             SetState(FlowState.InGame);
 
         else if (scene.name == SceneNames.OUT_GAME && CurrentState == FlowState.LeavingGame)
+        {
             SetState(FlowState.Title);
+            RaisePendingReturnErrorAsync().Forget();
+        }
+    }
+
+    // 아웃게임 복귀 전에 발생한 에러를 복귀 후에 알림
+    private async UniTaskVoid RaisePendingReturnErrorAsync()
+    {
+        string message = pendingReturnError;
+        pendingReturnError = null;
+
+        if (string.IsNullOrEmpty(message))
+            return;
+
+        // sceneLoaded는 새 씬의 Start보다 먼저 호출됨
+        // OutGameUI는 Start에서 Error를 구독하므로 한 프레임 뒤에 알림
+        bool canceled = await UniTask.NextFrame(this.GetCancellationTokenOnDestroy())
+            .SuppressCancellationThrow();
+
+        if (canceled)
+            return;
+
+        RaiseError(message);
     }
 
     #endregion
@@ -142,22 +167,37 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         SetState(FlowState.Connecting);
 
+        // 매니저가 파괴되면 대기 중인 로그인을 취소
+        CancellationToken destroyToken = this.GetCancellationTokenOnDestroy();
+
         try
         {
-            await authService.SignInAsync().Timeout(LoginTimeout);
+            await authService.SignInAsync()
+                .AttachExternalCancellation(destroyToken)
+                .Timeout(LoginTimeout);
+        }
+        catch (OperationCanceledException)
+        {
+            // 매니저 파괴로 취소됨 → 아무것도 하지 않음
+            return;
         }
         catch (TimeoutException e)
         {
             Debug.LogException(e);
-            RaiseError("Login timed out");
-            SetState(FlowState.Title);
+            FailConnecting("Login timed out");
             return;
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-            RaiseError("Login failed");
-            SetState(FlowState.Title);
+            FailConnecting("Login failed");
+            return;
+        }
+
+        // 로그인을 기다리는 동안 상태가 바뀌었으면 접속을 이어가지 않음
+        if (CurrentState != FlowState.Connecting)
+        {
+            Debug.Log($"[NetworkFlowManager] 로그인 완료 후 접속 중단: 현재 상태 = {CurrentState}");
             return;
         }
 
@@ -165,11 +205,22 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.ConnectUsingSettings())   // true = 접속 시도를 시작, false = 시도조차 실패
         {
-            RaiseError("Failed to connect to server");
-            SetState(FlowState.Title);
+            FailConnecting("Failed to connect to server");
         }
+    }
 
-        
+    #endregion
+
+    #region 내부
+
+    // 접속 중일 때만 실패 처리 (그 사이 다른 상태로 바뀌었으면 덮어쓰지 않음)
+    private void FailConnecting(string message)
+    {
+        if (CurrentState != FlowState.Connecting)
+            return;
+
+        RaiseError(message);
+        SetState(FlowState.Title);
     }
 
     #endregion
@@ -208,11 +259,25 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         if (CurrentState == FlowState.LeavingGame) return;
 
+        // 직접 연결을 끊은 경우(타이틀로 돌아가기)는 오류로 알리지 않음
+        string message = cause != DisconnectCause.DisconnectByClientLogic
+            ? $"Disconnected from server. ({cause})"
+            : null;
+
+        // 인게임 중 끊김: 상태만 바꾸면 인게임 씬에 남으므로 아웃게임 씬으로 복귀
+        // 에러 구독자(OutGameUI)가 인게임 씬에는 없으므로 복귀 후 알림
+        if (CurrentState == FlowState.InGame)
+        {
+            pendingReturnError = message;
+            SetState(FlowState.LeavingGame);
+            SceneManager.LoadScene(SceneNames.OUT_GAME);
+            return;
+        }
+
         SetState(FlowState.Title);
 
-        // 직접 연결을 끊은 경우(타이틀로 돌아가기)는 오류로 알리지 않음
-        if (cause != DisconnectCause.DisconnectByClientLogic)
-            RaiseError($"Disconnected from server. ({cause})");
+        if (message != null)
+            RaiseError(message);
     }
 
     #endregion
