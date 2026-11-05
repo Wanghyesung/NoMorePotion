@@ -118,6 +118,7 @@ public sealed class FSM : MonoBehaviour
 
     public void FixedUpdateState()
     {
+        
         CurrentState?.FixedUpdateState();
         CurrentActionState?.FixedUpdateState();
     }
@@ -199,6 +200,9 @@ public sealed class FSM : MonoBehaviour
         if (stateLocked == true || player.Character.HP <= 0)
             return false;
 
+        if (CurrentActionState != null && CurrentActionState.Type == StateType.Hit)
+            return false;
+
         PlayerState nextState = states[type];
         if (CurrentState == null || CurrentActionState == nextState || nextState.CanEnter() == false)
             return false;
@@ -208,6 +212,17 @@ public sealed class FSM : MonoBehaviour
         Animator.SetLayerWeight(upperBodyLayer, 1f);
         CurrentActionState.Enter();
         return true;
+    }
+
+    public void ResetActionState(PlayerState nextState)
+    {
+        if (player.Character.HP <= 0)
+            return;
+
+        ClearActionState();
+        CurrentActionState = nextState;
+        Animator.SetLayerWeight(upperBodyLayer, 1f);
+        CurrentActionState.Enter();
     }
 
     public void ClearActionState()

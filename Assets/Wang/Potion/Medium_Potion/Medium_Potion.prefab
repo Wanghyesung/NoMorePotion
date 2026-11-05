@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4347192446523376560}
   - component: {fileID: 1417736869826601}
   - component: {fileID: 8293469968150323575}
+  - component: {fileID: -3302644052985452405}
   m_Layer: 0
   m_Name: Medium_Potion
   m_TagString: Untagged
@@ -62,6 +63,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParabolicMovement
   speedMultiplier: 2
+--- !u!136 &-3302644052985452405
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710584622642429393}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &8031493873536460068
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -66,7 +66,7 @@ public sealed class Player : MonoBehaviour, IDamageable
     private void Update()
     {
         // 피격 테스트: O를 누르는 동안 전방 2m의 랜덤 위치에서 공격
-        bool testHit = Input.GetKey(KeyCode.O);
+        bool testHit = Input.GetKeyDown(KeyCode.O);
         bool testView = Input.GetKey(KeyCode.P);
         // P를 누르는 동안 한 번의 재생이 끝날 때마다 반복한다.
         if (testView == true && viewFeedbacks != null)
@@ -87,7 +87,8 @@ public sealed class Player : MonoBehaviour, IDamageable
             TakeDamage(new CommonStruct.AttackInfo
             {
                 Position = transform.position + attackDirection * 2.0f,
-                Damage = 100
+                Damage = 10,
+                AttackPower = 10
             });
         }
         
