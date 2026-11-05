@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7368753473853699296}
   - component: {fileID: 5955404539463193133}
   - component: {fileID: 6512177020031637344}
+  - component: {fileID: 8562001170237614411}
   m_Layer: 0
   m_Name: SurviveStatusManager
   m_TagString: Untagged
@@ -53,7 +54,7 @@ MonoBehaviour:
   hydrationManager: {fileID: 5955404539463193133}
   satiationManager: {fileID: 6512177020031637344}
   effectTable: {fileID: 11400000, guid: 1a247e9b74d25ca49a28f5e952b76b82, type: 2}
-  buffContainer: {fileID: 0}
+  buffContainer: {fileID: 8562001170237614411}
 --- !u!114 &859338245717457065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,3 +120,16 @@ MonoBehaviour:
   fullThreshold: 90
   hungryThreshold: 20
   starvingThreshold: 0
+--- !u!114 &8562001170237614411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483758140428914537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e828eb9ea848c14f85cd1696cf970f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
+  _assignOwnerOnAwake: 0

@@ -55,9 +55,30 @@ namespace Enzeun.Runtime
         [SerializeField, Required("구간별 상태 효과 표를 연결해 주세요.")]
         private SurviveStatusEffectTable effectTable;
 
-        // 상태 효과를 걸 대상(플레이어)의 컨테이너입니다. 씬에서 연결합니다.
-        [SerializeField, Required("플레이어의 BuffContainer 를 연결해 주세요.")]
+        // 내 플레이어 전용 컨테이너입니다. 이 매니저와 같은 오브젝트에 붙여서 연결합니다.
+        // (Awake 에서 자기 자신을 Owner 로 지정하는 옵션은 끄고, 플레이어가 생성된 뒤 BindPlayer 로 연결)
+        [SerializeField, Required("플레이어 전용 BuffContainer 를 연결해 주세요.")]
         private BuffContainer buffContainer;
+
+        /// <summary>
+        /// 내 플레이어의 BuffContainer 입니다. 포션 폭발 등에서 "내 플레이어인지" 판정할 때 사용합니다.
+        /// </summary>
+        public BuffContainer PlayerBuffContainer => buffContainer;
+
+        /// <summary>
+        /// 내 플레이어 오브젝트를 연결합니다. 로컬 플레이어가 생성된 뒤에 호출합니다.
+        /// 연결하면 체력 증감 효과(탈수 등)가 이 플레이어의 IDamageable 에게 적용됩니다.
+        /// </summary>
+        public void BindPlayer(GameObject player)
+        {
+            if (buffContainer == null)
+            {
+                Debug.LogWarning("[SurviveStatusManager]: BuffContainer 가 연결되지 않아 플레이어를 연결할 수 없습니다.");
+                return;
+            }
+
+            buffContainer.SetOwner(player);
+        }
 
         private void OnEnable()
         {
