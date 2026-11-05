@@ -28,25 +28,23 @@ public class MonsterCombat : MonoBehaviour, IDamageable
     private void Start()
     {
         InitTestData(prefabId);
-
-        Debug.Log(data.ToString());
     }
 
     // 스포너 구현 + 테스트 필요 없을 시 삭제
     protected virtual void InitTestData(int id)
     {
-        MonsterData data = EnemyDataLoader.Instance.LoadNormalData(id);
+        MonsterData monsterData = EnemyDataLoader.Instance.LoadNormalData(id);
         MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(id);
 
-        if (data == null || textData == null) return;
+        if (monsterData == null || textData == null) return;
 
-        Dictionary<DamageType, int> immuneVal = data.Immune
+        Dictionary<DamageType, int> immuneVal = monsterData.Immune
                     .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
                     .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
         // 인스턴트 아이디는 차후 스폰 시 구분용
-        Init(textData.Name,data.HP,data.HP,
-            immuneVal, data.Speed, data.Id, 0, 
-            data.SpawnArea,textData.Description, data.DamageType);
+        Init(textData.Name, monsterData.HP, monsterData.HP, monsterData.AtkPoint, 
+            monsterData.AttackPower, immuneVal, monsterData.Speed, monsterData.Id, 0,
+            monsterData.SpawnArea,textData.Description, monsterData.DamageType);
     }
 
     protected virtual void OnDisable()
@@ -68,10 +66,10 @@ public class MonsterCombat : MonoBehaviour, IDamageable
         mover.StartAI(data.Speed).Forget();
     }
 
-    public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune,float speed,
+    public void Init(string name,int maxHp, int hp, int atkPoint, int attackPower, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea, string description, DamageType damageType)
     {
-        SetData(new(name, maxHp, hp, immune, speed, id, instanceId, 
+        SetData(new(name, maxHp, hp, atkPoint, attackPower, immune, speed, id, instanceId, 
             spawnArea, description, damageType));
     }
 
@@ -112,6 +110,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable
     private void MonsterDead()
     {
         anim.IsDead();
+        mover.StopAI();
     }
     #endregion
 

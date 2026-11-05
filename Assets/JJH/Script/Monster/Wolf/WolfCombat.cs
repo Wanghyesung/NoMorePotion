@@ -40,31 +40,29 @@ public class WolfCombat : MonsterCombat
     /// </summary>
     protected override void InitTestData(int id)
     {
-        BossData data = EnemyDataLoader.Instance.LoadBossData(WolfMover.Pack.alphaId);
+        BossData bossData = EnemyDataLoader.Instance.LoadBossData(WolfMover.Pack.alphaId);
         MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(WolfMover.Pack.alphaId);
 
-        if (data == null || textData == null) return;
+        if (bossData == null || textData == null) return;
+        Dictionary<DamageType, int> immuneVal = bossData.Immune
+            .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
+            .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
+        int hp = 0;
+        if (bossData.BossSubData.TryGetValue(WOLF_SUB_DATA_NORMAL_WOLF_HP, out JToken hpVal)
+        && int.TryParse(hpVal.ToString(), out hp)){}
 
         // 노말 늑대는 일반 데이터, 알파만 보스 데이터
         if (WolfMover == null || !WolfMover.IsAlpha)
         {
             base.InitTestData(prefabId);
-
-            if(data.BossSubData.TryGetValue(WOLF_SUB_DATA_NORMAL_WOLF_HP, out JToken hpVal)
-                && int.TryParse(hpVal.ToString(), out int hp))
-            {
-                data.HP = hp;
-            }
+            data.HP = hp;
+            data.MaxHP = hp;
             return;
         }
-        Debug.Log("한번은 와야함");
-        Dictionary<DamageType, int> immuneVal = data.Immune
-            .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
-            .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
 
-        Init(textData.Name, data.HP, data.HP,
-            immuneVal, data.Speed, data.Id, 0,
-            data.SpawnArea, textData.Description, data.DamageType);
+        Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint, bossData.AttackPower,
+            immuneVal, bossData.Speed, bossData.Id, 0,
+            bossData.SpawnArea, textData.Description, bossData.BossSkills, hp, bossData.DamageType);
     }
 
     private void Update()
@@ -88,11 +86,11 @@ public class WolfCombat : MonsterCombat
     }
 
 
-    public void Init(string name,int maxHp, int hp, Dictionary<DamageType, int> immune, float speed,
+    public void Init(string name,int maxHp, int hp,int atkPoint,int attackPower, Dictionary<DamageType, int> immune, float speed,
         int id, int instanceId, string spawnArea, string description,
         List<BossSkill> bossSkill,int normalWolfHP, DamageType damageType)
     {
-        SetData(new WolfBoss(name, maxHp, hp, immune, speed, id, instanceId,
+        SetData(new WolfBoss(name, maxHp, hp, atkPoint,attackPower, immune, speed, id, instanceId,
             spawnArea, description, bossSkill,normalWolfHP ,damageType));
     }
 

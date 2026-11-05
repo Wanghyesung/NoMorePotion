@@ -10,6 +10,7 @@ public class BossData
 {
     public int Id;
     public int AtkPoint;
+    public int AttackPower;
     public int HP;
     public float Speed;
     [JsonConverter(typeof(StringEnumConverter))]

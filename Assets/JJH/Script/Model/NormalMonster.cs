@@ -8,6 +8,7 @@ public class NormalMonster : Character, IAttacker
     public float Speed;
     public float NowSpeed;
     public int AtkPoint;
+    public int AttackPower;
     public int FinalAtkPoint;
     public int InstanceId;
     public string SpawnArea;
@@ -16,7 +17,7 @@ public class NormalMonster : Character, IAttacker
 
     public Action OnDead;
 
-    public  NormalMonster(string name, int maxHp, int hp, Dictionary<DamageType, int> immune,float speed,
+    public  NormalMonster(string name, int maxHp, int hp,int atkPoint, int attackPower, Dictionary<DamageType, int> immune,float speed,
         int id, int instanceId, string spawnArea,string description, DamageType damageType
         ) : base(name, maxHp, hp, immune) 
     {
@@ -26,7 +27,10 @@ public class NormalMonster : Character, IAttacker
         Description = description;
         DamageType = damageType;
         Speed = speed;
+        NowSpeed = speed;
+        AtkPoint = atkPoint;
         FinalAtkPoint = AtkPoint;
+        AttackPower = attackPower;
     }
 
     public override string ToString()

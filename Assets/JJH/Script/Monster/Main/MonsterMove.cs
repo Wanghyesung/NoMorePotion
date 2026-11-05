@@ -76,13 +76,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private void Start()
     {
         RegisterStates();
-
+/*
         // 이후 캐릭터 스폰 + 이동속도 받을 시 스폰으로 작동 위치 변경
         if (runSpeed == 0)
             StartAI(3.8f).Forget();
         else 
-            StartAI(runSpeed).Forget();
-
+            StartAI(runSpeed).Forget();*/
     }
 
     private void Update()
@@ -159,7 +158,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
 
-        // 이전 생애 흔적 초기화
+        // 이전 풀 정보 초기화
         state = new();
         nowTarget = null;
         IsAnimation = false;
@@ -262,7 +261,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
     }
-    private void StopAI()
+    public void StopAI()
     {
         if (aiCts == null) return;
         aiCts.Cancel();
