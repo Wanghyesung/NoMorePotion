@@ -254,8 +254,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 if (patrolTimerActive)
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
-                if(attackTimer <= attackSpeed)
-                    attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
+                attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
                 
                 state.Stay();
             }
