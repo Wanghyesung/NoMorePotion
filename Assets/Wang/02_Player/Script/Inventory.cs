@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /*///////////////////////////////////////////
                     Inventory
@@ -8,9 +8,9 @@
 [System.Serializable]
 public sealed class Inventory
 {
-    [SerializeField] private Potion itemPrefab;
+    [SerializeField] private TestPotion itemPrefab;
 
-    public Potion GetItem()
+    public TestPotion GetItem()
     {
         return Object.Instantiate(itemPrefab);
     }

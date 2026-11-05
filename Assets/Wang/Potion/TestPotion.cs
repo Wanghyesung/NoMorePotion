@@ -1,12 +1,12 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /*///////////////////////////////////////////
-                       Potion
+                       TestPotion
 기능 : 인벤토리와 손에서 사용하는 포션 아이템 컴포넌트
  *///////////////////////////////////////////
 
 [RequireComponent(typeof(ParabolicMovement))]
-public class Potion : MonoBehaviour
+public class TestPotion : MonoBehaviour
 {
     private ParabolicMovement movement;
     [SerializeField] private LayerMask mask;
@@ -36,7 +36,7 @@ public class Potion : MonoBehaviour
                 Damage = 10,
                 AttackPower = 1,
                 Position = hitPoint,
-                //Debug.Log("Potion hit: " + other.name + " at " + hitPoint.ToString());
+                //Debug.Log("TestPotion hit: " + other.name + " at " + hitPoint.ToString());
             });
             //Debug.Log("Po
         }

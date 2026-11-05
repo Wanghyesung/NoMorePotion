@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputManager;
@@ -33,7 +33,7 @@ public sealed class PlayerThrowState : PlayerState
     #region RuntimeState
     private bool isAiming;
     private bool isThrowing;
-    private Potion throwingPotion;
+    private TestPotion throwingPotion;
     private Hand.Side throwingSide;
     private ThrowData throwData;
     private bool hasThrown;

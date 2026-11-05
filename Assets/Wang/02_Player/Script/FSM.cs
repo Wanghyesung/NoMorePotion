@@ -110,9 +110,7 @@ public sealed class FSM : MonoBehaviour
 
         if (Instance.HasGameplayInput == true && rotateLockMask == 0)
         {
-            rotateY = Mathf.Repeat(
-                rotateY + Instance.InputInfo.Delta.x * rotateSensitivity, 360f);
-
+            rotateY = Mathf.Repeat(rotateY + Instance.InputInfo.Delta.x * rotateSensitivity, 360f);
             Rigidbody.MoveRotation(ViewRotation);
         }
 
@@ -126,6 +124,7 @@ public sealed class FSM : MonoBehaviour
             return;
 
         Vel = Vector3.up * Rigidbody.linearVelocity.y;
+
         CurrentState?.FixedUpdateState();
         CurrentActionState?.FixedUpdateState();
 
