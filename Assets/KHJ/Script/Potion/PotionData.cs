@@ -4,6 +4,9 @@ using Sirenix.OdinInspector;
 
 namespace Enzeun.SO
 {
+    /// <summary>
+    /// 포션 타입을 정의하는 열거형입니다. 스탯 관리, 채집, 전투 로 나누어져 있습니다.
+    /// </summary>
     public enum PotionType
     {
         None,
@@ -12,6 +15,9 @@ namespace Enzeun.SO
         Battle,
     }
 
+    /// <summary>
+    /// 포션 폭발 범위를 정의하는 열거형입니다. 소,중,대 로 나누어져 있습니다.
+    /// </summary>
     public enum PotionExplosionRange
     {
         None,
@@ -20,6 +26,9 @@ namespace Enzeun.SO
         Large,
     }
 
+    /// <summary>
+    /// 포션 조합 타입을 정의하는 열거형입니다. Material 은 재료 조합, Potion 은 하위 포션2개 조합입니다.
+    /// </summary>
     public enum PotionCombinationType
     {
         None,
@@ -28,63 +37,65 @@ namespace Enzeun.SO
     }
 
     [CreateAssetMenu(fileName = "PotionData", menuName = "Scriptable Objects/PotionData")]
-    public class PotionData : ScriptableObject
+    public class PotionData : ScriptableObject, IItemData
     {
+        public int ID => _potionID;
+
         [PreviewField(100, ObjectFieldAlignment.Left)]
         [LabelText("포션 아이콘")]
         [PropertyOrder(1)]
-        [ShowInInspector]
+        [SerializeField]
         private Sprite _potionIcon = null;
         public Sprite potionIcon => _potionIcon;
 
         [LabelText("포션 ID"), BoxGroup("기본 정보")]
         [PropertyOrder(2)]
-        [ShowInInspector]
+        [SerializeField]
         private int _potionID = 10001;
         public int potionID => _potionID;
 
         [LabelText("포션 이름"), BoxGroup("기본 정보")]
         [PropertyOrder(3)]
-        [ShowInInspector]
+        [SerializeField]
         private string _potionName = "이름 입니다";
         public string potionName => _potionName;
 
         [LabelText("포션 설명"), BoxGroup("기본 정보")]
         [TextArea]
         [PropertyOrder(4)]
-        [ShowInInspector]
+        [SerializeField]
         private string _potionDesc = "설명 입니다";
         public string potionDesc => _potionDesc;
 
         [LabelText("포션 효과"), BoxGroup("기본 정보")]
         [TextArea]
         [PropertyOrder(5)]
-        [ShowInInspector]
+        [SerializeField]
         private string _potionEffect = "효과 입니다";
         public string potionEffect => _potionEffect;
 
         [LabelText("포션 타입"), BoxGroup("기본 정보")]
         [PropertyOrder(6)]
-        [ShowInInspector]
+        [SerializeField]
         private PotionType _potionType = PotionType.Status;
         public PotionType potionType => _potionType;
 
         [LabelText("포션 폭발 범위"), BoxGroup("기본 정보")]
         [PropertyOrder(7)]
-        [ShowInInspector]
+        [SerializeField]
         private PotionExplosionRange _potionExplosionRange = PotionExplosionRange.Small;
         public PotionExplosionRange potionExplosionRange => _potionExplosionRange;
 
         [LabelText("포션 조합 타입"), BoxGroup("기본 정보")]
         [PropertyOrder(8)]
-        [ShowInInspector]
+        [SerializeField]
         private PotionCombinationType _potionCombinationType = PotionCombinationType.Material;
         public PotionCombinationType potionCombinationType => _potionCombinationType;
 
         [BoxGroup("기본 정보")]
         [PropertyOrder(9)]
         [MinValue(-1), LabelText("최대 보유 개수"), MaxValue(99)]
-        [ShowInInspector]
+        [SerializeField]
         private int _maxHoldCount = 1;
         public int maxHoldCount => _maxHoldCount;
 
@@ -95,7 +106,7 @@ namespace Enzeun.SO
         public List<MaterialData> recipeMaterials => _recipeMaterials;
 
 #if UNITY_EDITOR
-        public void SetPotionID(int id)
+        public void SetID(int id)
         {
             _potionID = id;
         }
