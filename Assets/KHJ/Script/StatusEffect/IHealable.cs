@@ -6,6 +6,6 @@ namespace Enzeun.Runtime
     /// </summary>
     public interface IHealable
     {
-        void Heal(int amount);
+        public void Heal(int amount);
     }
 }

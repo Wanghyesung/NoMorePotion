@@ -25,3 +25,41 @@ MonoBehaviour:
   _recipeMaterials:
   - {fileID: 11400000, guid: db8b8f9608bdef545ae4b69ee5ab5e2d, type: 2}
   - {fileID: 11400000, guid: 61b0a944398197042b924926a8a69f4d, type: 2}
+  _effects:
+  - rid: 4119466663539376389
+  - rid: 4119466663539376390
+  - rid: 4119466663539376391
+  - rid: 4119466663539376392
+  - rid: 4119466663539376393
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376389
+      type: {class: WorldObjectDamagePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _targetTypes: 0500000006000000
+        _damage: 1
+    - rid: 4119466663539376390
+      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _healthChange:
+          _changeType: 1
+          _damageType: 1
+          _amount: 150
+          _intervalSeconds: 0
+        _durationSeconds: 0
+    - rid: 4119466663539376391
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: 5
+    - rid: 4119466663539376392
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: 5
+    - rid: 4119466663539376393
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 2
+        _percent: -10

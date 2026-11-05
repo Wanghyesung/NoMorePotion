@@ -24,3 +24,25 @@ MonoBehaviour:
   _recipeMaterials:
   - {fileID: 11400000, guid: 61b0a944398197042b924926a8a69f4d, type: 2}
   - {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}
+  _effects:
+  - rid: 4119466663539376303
+  - rid: 4119466663539376304
+  - rid: 4119466663539376305
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376303
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: 15
+    - rid: 4119466663539376304
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: -5
+    - rid: 4119466663539376305
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 1
+        _percent: -5

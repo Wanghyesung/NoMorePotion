@@ -23,3 +23,19 @@ MonoBehaviour:
   _potionCombinationType: 2
   _maxHoldCount: 1
   _recipeMaterials: []
+  _effects:
+  - rid: 4119466663539376322
+  - rid: 4119466663539376323
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376322
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: 40
+    - rid: 4119466663539376323
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: -10

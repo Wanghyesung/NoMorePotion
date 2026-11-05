@@ -88,9 +88,39 @@ namespace Enzeun.Editor
             tree.AddAllAssetsAtPath("재료 목록", materialFolderPath, typeof(MaterialData), true);
             tree.AddAllAssetsAtPath("포션 목록", potionFolderPath, typeof(PotionData), true);
             tree.AddAllAssetsAtPath("월드 오브젝트 목록", worldObjectFolderPath, typeof(WorldObjectData), true);
-            tree.AddAllAssetsAtPath("버프/디버프 목록", statusEffectFolderPath, typeof(StatusEffectData), true);
+            AddStatusEffectList(tree, "버프 목록", StatusEffectType.Buff);
+            AddStatusEffectList(tree, "디버프 목록", StatusEffectType.Debuff);
 
             return tree;
+        }
+
+        /// <summary>
+        /// 상태 효과 SO 중 지정한 종류(버프/디버프)만 골라 메뉴 트리에 추가합니다.
+        /// AddAllAssetsAtPath 는 타입으로만 거를 수 있어서, 같은 SO 타입인 버프/디버프를 직접 분리합니다.
+        /// </summary>
+        private void AddStatusEffectList(OdinMenuTree tree, string menuName, StatusEffectType type)
+        {
+            if (!Directory.Exists(statusEffectFolderPath))
+            {
+                return;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:StatusEffectData", new[] { statusEffectFolderPath });
+            Array.Sort(guids, (a, b) => string.CompareOrdinal(
+                AssetDatabase.GUIDToAssetPath(a), AssetDatabase.GUIDToAssetPath(b)));
+
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var data = AssetDatabase.LoadAssetAtPath<StatusEffectData>(path);
+
+                if (data == null || data.statusEffectType != type)
+                {
+                    continue;
+                }
+
+                tree.AddAssetAtPath($"{menuName}/{Path.GetFileNameWithoutExtension(path)}", path);
+            }
         }
 
 

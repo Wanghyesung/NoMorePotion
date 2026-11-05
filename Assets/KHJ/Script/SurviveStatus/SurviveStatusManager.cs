@@ -6,6 +6,19 @@ namespace Enzeun.Runtime
 {
 
     /// <summary>
+    /// 생존 상태 종류를 정의하는 열거형입니다. 체온, 정신력, 수분, 포만감 순서입니다.
+    /// 포션 효과 등 다른 시스템에서 어떤 생존 상태를 대상으로 하는지 가리킬 때 사용합니다.
+    /// </summary>
+    public enum SurviveStatusType
+    {
+        None,
+        BodyTemperature,
+        MentalStrength,
+        Hydration,
+        Satiation,
+    }
+
+    /// <summary>
     /// 생존 상태를 관리하는 클래스입니다. 체온, 정신력, 수분, 포만감 상태를 관리합니다.
     /// </summary>
     public class SurviveStatusManager : MonoBehaviour

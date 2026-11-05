@@ -23,3 +23,29 @@ MonoBehaviour:
   _potionCombinationType: 2
   _maxHoldCount: 1
   _recipeMaterials: []
+  _effects:
+  - rid: 4119466663539376402
+  - rid: 4119466663539376403
+  - rid: 4119466663539376404
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376402
+      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _healthChange:
+          _changeType: 2
+          _damageType: 1
+          _amount: 1050
+          _intervalSeconds: 0
+        _durationSeconds: 0
+    - rid: 4119466663539376403
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: 5
+    - rid: 4119466663539376404
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: 5

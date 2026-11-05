@@ -25,3 +25,48 @@ MonoBehaviour:
   _potionCombinationType: 2
   _maxHoldCount: 1
   _recipeMaterials: []
+  _effects:
+  - rid: 4119466663539376465
+  - rid: 4119466663539376466
+  - rid: 4119466663539376467
+  - rid: 4119466663539376468
+  - rid: 4119466663539376469
+  - rid: 4119466663539376470
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376465
+      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _healthChange:
+          _changeType: 1
+          _damageType: 3
+          _amount: 300
+          _intervalSeconds: 1
+        _durationSeconds: 10
+    - rid: 4119466663539376466
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: 5
+    - rid: 4119466663539376467
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: -5
+    - rid: 4119466663539376468
+      type: {class: ApplyStatusPotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _statusEffect: {fileID: 11400000, guid: 586eb330f3f77f941b1d8c4b75fadae9, type: 2}
+        _percent: -10
+        _durationSeconds: 10
+    - rid: 4119466663539376469
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 2
+        _percent: -5
+    - rid: 4119466663539376470
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 1
+        _percent: -5
