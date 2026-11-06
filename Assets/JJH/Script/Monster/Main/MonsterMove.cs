@@ -15,7 +15,6 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterCombat))]
 [RequireComponent(typeof(MonsterAnimationController))]
 [RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(BuffContainer))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
     [Header("스크립트")]

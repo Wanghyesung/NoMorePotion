@@ -14,6 +14,7 @@ using SF = UnityEngine.SerializeField;
 
 [RequireComponent(typeof(MonsterAnimationController))]
 [RequireComponent(typeof(MonsterMove))]
+[RequireComponent(typeof(BuffContainer))]
 public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
 {
     [Serializable]
@@ -58,6 +59,9 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
 
         if(mover == null)
             mover = GetComponent<MonsterMove>();
+
+        if(statusEffect ==null)
+            statusEffect = GetComponent<BuffContainer>();
     }
 
     private void Start()
