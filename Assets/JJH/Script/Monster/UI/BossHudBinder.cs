@@ -1,5 +1,3 @@
-using Firebase.Auth;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using SF = UnityEngine.SerializeField;
 

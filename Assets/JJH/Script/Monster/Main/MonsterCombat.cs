@@ -16,12 +16,20 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterMove))]
 public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
 {
+    [Serializable]
+    public class SkillHitbox
+    {
+        public string Name;
+        public Collider Hitbox;
+    }
+
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
     [SF] protected MonsterHPHud hud;
     [SF] protected BuffContainer statusEffect;
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
+    [SF] private List<SkillHitbox> skillHitboxes = new();
     protected NormalMonster data;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
@@ -127,6 +135,39 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
             spawnArea, description, damageType));
     }
 
+    #region 스킬용
+    private void SkillAnimationStart() => mover.IsAnimation = true;
+    private void SkillHitOn(string skillName) => SetSkillHitbox(skillName, true);
+    private void SkillHitOff(string skillName) => SetSkillHitbox(skillName, false);
+
+    private void SkillAnimationEnd(string skillName)
+    {
+        SetSkillHitbox(skillName, false);
+        mover.IsAnimation = false;
+        anim.SetSkill(skillName, false);
+    }
+
+    private void SetSkillHitbox(string skillName, bool on)
+    {
+        foreach (SkillHitbox h in skillHitboxes)
+        {
+            if (h.Name != skillName) continue;
+            h.Hitbox.gameObject.SetActive(on);
+            return;
+        }
+
+        Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillName}", this);
+    }
+
+    /// <summary>
+    /// 보스 데이터일 때만 스킬 반환, 일반 몬스터는 null
+    /// </summary>
+    public BossSkill GetBossSkill(string animationName)
+    {
+        return (data as BossMonster)?.BossSkill?.Find(x => x.AnimationName == animationName);
+    }
+    #endregion
+
     #region 전투 처리 관련 함수
     public int GetDamage()
     {
@@ -140,6 +181,11 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     public NormalMonster GetData()
     {
         return data;
+    }
+
+    public BuffContainer GetStatusEffect()
+    {
+        return statusEffect;
     }
 
     #endregion
@@ -172,6 +218,11 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
         mover.StopAI();
     }
+
+    /// <summary>
+    /// 속도 제어 반응 함수(속도가 감소했을 때)
+    /// </summary>
+    /// <param name="_"></param>
     private void ClipSpeedSet(ActiveStatusEffect _)
     {
         if (data == null) return;
@@ -194,43 +245,12 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     #region 인터페이스
     public void TakeDamage(AttackInfo attackInfo)
     {
-        int finalDamage =
-            Mathf.RoundToInt(
-                MultiplierCalc(attackInfo.Damage,
-                statusEffect.GetStatMultiplier(StatType.AttackPower))
-                );
-
-        float finalImmuneVal = statusEffect.GetStatMultiplier(StatType.Defense);
-
-        finalDamage = Mathf.Max(0, Mathf.RoundToInt(finalDamage * finalImmuneVal));
-
-        HPChange(finalDamage);
+        HPChange(CalcFinalDamage(attackInfo.Damage, null));
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
-        DamageType type = attacker.DamageType;
-
-        int finalDamage = 
-            Mathf.RoundToInt(
-                MultiplierCalc(attackInfo.Damage, 
-                statusEffect.GetStatMultiplier(StatType.AttackPower))
-                );
-
-        float finalImmuneVal = 100;
-
-        if (data.Immune.TryGetValue(type,out int val))
-        {
-            finalImmuneVal = Mathf.Max(0, finalImmuneVal - val);
-        }
-
-        finalImmuneVal /=  statusEffect.GetStatMultiplier(StatType.Defense);
-
-        float finalDamagerMultiplier = finalImmuneVal / 100;
-
-        finalDamage = Mathf.Max(0, Mathf.RoundToInt(finalDamage * finalDamagerMultiplier));
-
-        HPChange(finalDamage);
+        HPChange(CalcFinalDamage(attackInfo.Damage, attacker?.DamageType));
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
@@ -243,7 +263,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         HPChange(-amount);
     }
 
-    private float MultiplierCalc(float val, float multiplier)
+    public float MultiplierCalc(float val, float multiplier)
     {
         return Mathf.Max(0, val * multiplier);
     }
@@ -257,6 +277,27 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         data.OnHPChanged?.Invoke(before, data.HP);
 
         if (data.HP <= 0) data.OnDead?.Invoke();
+    }
+
+    /// <summary>
+    /// 기본 내성 + 내성 상태 변화를 적용한 최종 피해량
+    /// </summary>
+    /// <param name="damage"></param>
+    /// <param name="type"></param>
+    /// <returns>최종 피해량 int</returns>
+    private int CalcFinalDamage(int damage, DamageType? type)
+    {
+        if (data == null) return 0;
+
+        float rate = 100f;
+
+        if (type.HasValue && data.Immune.TryGetValue(type.Value, out int immune))
+            rate = Mathf.Max(0f, rate - immune);
+
+        if (statusEffect != null)
+            rate /= Mathf.Max(0.01f, statusEffect.GetStatMultiplier(StatType.Defense));
+
+        return Mathf.Max(0, Mathf.RoundToInt(damage * rate / 100f));
     }
 
     #endregion

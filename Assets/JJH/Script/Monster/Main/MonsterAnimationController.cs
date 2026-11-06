@@ -71,4 +71,22 @@ public class MonsterAnimationController : MonoBehaviour
     {
         animator.SetFloat(MoveSpeedHash, val);
     }
+
+    /// <summary>
+    /// 공격에 패턴이 있는 경우(ex. 스킬) 실행
+    /// </summary>
+    /// <param name="pattern"></param>
+    public void PlayAttack(AttackPattern pattern)
+    {
+        animator.SetBool(pattern.NameHash, true);
+    }
+    /// <summary>
+    /// 스킬 종료 제어
+    /// </summary>
+    /// <param name="skillName"></param>
+    /// <param name="value"></param>
+    public void SetSkill(string skillName, bool value)
+    {
+        animator.SetBool(skillName, value);
+    }
 }

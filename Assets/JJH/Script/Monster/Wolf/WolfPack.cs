@@ -274,10 +274,11 @@ public class WolfPack : MonoBehaviour
     private void SetEngaged(bool value)
     {
         if (engaged == value) return;
-        engaged = value;
-        
-        NormalMonster data = alphaCombat.GetData();
 
+        NormalMonster data = alphaCombat.GetData();
+        if (data == null) return;
+
+        engaged = value;
         if (value) BossEvents.Engage(data, data.Name);
         else BossEvents.Disengage(data);
     }

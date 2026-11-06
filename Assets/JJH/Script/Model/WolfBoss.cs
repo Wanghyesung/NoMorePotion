@@ -1,18 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WolfBoss : NormalMonster
+public class WolfBoss : BossMonster
 {
-    public List<BossSkill> BossSkill;
     public int NormalWolfHP;
+
     public WolfBoss(string name, int maxHp, int hp,int atkPoint,int attackPower, Dictionary<DamageType, int> immune, 
         float speed, int id, int instanceId, string spawnArea, string description, 
         List<BossSkill> bossSkill,int normalWolfHP, DamageType damageType) : 
-        base(name, maxHp, hp, atkPoint, attackPower, immune, speed, id, instanceId, spawnArea, description, damageType)
+        base(name, maxHp, hp, atkPoint, attackPower, immune, speed, id, instanceId, spawnArea, description, bossSkill, damageType)
     {
-        BossSkill = new(bossSkill);
         NormalWolfHP = normalWolfHP;
     }
-
-   
 }
