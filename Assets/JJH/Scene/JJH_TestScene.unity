@@ -878,6 +878,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813312791}
   m_CullTransparentMesh: 1
+--- !u!114 &919593952 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6703987181133384702, guid: 04044d500b75db94ca375d665e807be2, type: 3}
+  m_PrefabInstance: {fileID: 922428303854123970}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e828eb9ea848c14f85cd1696cf970f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
 --- !u!1 &927946152
 GameObject:
   m_ObjectHideFlags: 0
@@ -2156,6 +2167,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 408107982291945379, guid: 04044d500b75db94ca375d665e807be2, type: 3}
+      propertyPath: statusEffect
+      value: 
+      objectReference: {fileID: 919593952}
     - target: {fileID: 2396492141176985360, guid: 04044d500b75db94ca375d665e807be2, type: 3}
       propertyPath: m_Camera
       value: 
@@ -2225,9 +2240,17 @@ PrefabInstance:
       propertyPath: sceneViewId
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 990405476079918742, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: sceneViewId
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 1222167249365925507, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
       propertyPath: sceneViewId
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1550163214015114479, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
+      propertyPath: sceneViewId
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3270118461142374099, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
       propertyPath: sceneViewId
@@ -2239,7 +2262,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3445276007085165661, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5992183010661991021, guid: e0a33da9d0c4a5a40bb88e6357d753c3, type: 3}
       propertyPath: m_LocalPosition.x

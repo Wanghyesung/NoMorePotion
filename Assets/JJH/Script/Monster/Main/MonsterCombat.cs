@@ -1,8 +1,13 @@
 using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
+using Enzeun.SO;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static CommonStruct;
 using static JJH_Enums;
@@ -10,11 +15,12 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterAnimationController))]
 
 [RequireComponent(typeof(MonsterMove))]
-public class MonsterCombat : MonoBehaviour, IDamageable
+public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
 {
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
     [SF] protected MonsterHPHud hud;
+    [SF] protected BuffContainer statusEffect;
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
     protected NormalMonster data;
@@ -26,7 +32,17 @@ public class MonsterCombat : MonoBehaviour, IDamageable
         TakeDamage(new AttackInfo()
         {
             Damage = 100
-        });
+        }, new SH(DamageType.Fire));
+    }
+
+    private class SH : IAttacker
+    {
+        public DamageType DamageType { get; set; }
+
+        public SH(DamageType type)
+        {
+            DamageType = type;
+        }
     }
 
     private void Awake()
@@ -97,7 +113,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable
             spawnArea, description, damageType));
     }
 
-    #region
+    #region 전투 처리 관련 함수
     public int GetDamage()
     {
         return data.AtkPoint;
@@ -147,26 +163,70 @@ public class MonsterCombat : MonoBehaviour, IDamageable
     #region 인터페이스
     public void TakeDamage(AttackInfo attackInfo)
     {
-        ApplyDamage(attackInfo.Damage);
+        int finalDamage =
+            Mathf.RoundToInt(
+                MultiplierCalc(attackInfo.Damage,
+                statusEffect.GetStatMultiplier(StatType.AttackPower))
+                );
+
+        float finalImmuneVal = statusEffect.GetStatMultiplier(StatType.Defense);
+
+        finalDamage = Mathf.Max(0, Mathf.RoundToInt(finalDamage * finalImmuneVal));
+
+        HPChange(finalDamage);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
-        ApplyDamage(attackInfo.Damage);
+        DamageType type = attacker.DamageType;
+
+        int finalDamage = 
+            Mathf.RoundToInt(
+                MultiplierCalc(attackInfo.Damage, 
+                statusEffect.GetStatMultiplier(StatType.AttackPower))
+                );
+
+        float finalImmuneVal = 100;
+
+        if (data.Immune.TryGetValue(type,out int val))
+        {
+            finalImmuneVal = Mathf.Max(0, finalImmuneVal - val);
+        }
+
+        finalImmuneVal /=  statusEffect.GetStatMultiplier(StatType.Defense);
+
+        float finalDamagerMultiplier = finalImmuneVal / 100;
+
+        finalDamage = Mathf.Max(0, Mathf.RoundToInt(finalDamage * finalDamagerMultiplier));
+
+        HPChange(finalDamage);
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
-        ApplyDamage(attackInfo.Damage);
+        HPChange(attackInfo.Damage);
     }
 
-    private void ApplyDamage(int damage)
+    public void Heal(int amount)
+    {
+        HPChange(-amount);
+    }
+
+    private float MultiplierCalc(float val, float multiplier)
+    {
+        float calcVal = Mathf.Max(0, val * multiplier);
+
+        return calcVal;
+    }
+
+    private void HPChange(int damage)
     {
         if (data == null || data.HP <= 0) return;
 
         int before = data.HP;
         data.HP = Mathf.Max(0, data.HP - damage);
         data.OnHPChanged?.Invoke(before, data.HP);
+
         if (data.HP <= 0) data.OnDead?.Invoke();
     }
 

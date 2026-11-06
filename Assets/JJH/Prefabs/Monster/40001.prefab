@@ -611,7 +611,7 @@ Transform:
   m_GameObject: {fileID: 7406115627949075491}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.6253278, y: -0.00000008799725, z: 7.343757}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -754,6 +754,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterMove
   anim: {fileID: 4897887934074592584}
+  combat: {fileID: 0}
   agent: {fileID: 8677895748192469893}
   nextMoveDist: 8
   attackRange: 1.5
@@ -824,6 +825,7 @@ MonoBehaviour:
   anim: {fileID: 4897887934074592584}
   mover: {fileID: 6976874543293700478}
   hud: {fileID: 615632452494280003}
+  statusEffect: {fileID: 0}
   biteHitbox: {fileID: 1848998904580899107}
   prefabId: 40001
 --- !u!54 &6240099015131037102

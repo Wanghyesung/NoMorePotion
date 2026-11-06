@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 6482371396456325574}
   - component: {fileID: 2803974845606993070}
   - component: {fileID: 5779111543547568815}
+  - component: {fileID: 8475034963487508730}
   m_Layer: 8
   m_Name: 40004
   m_TagString: Untagged
@@ -37,7 +38,7 @@ Transform:
   m_GameObject: {fileID: 125290340501684549}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.37, y: 0, z: 10.679}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -270,6 +271,7 @@ MonoBehaviour:
   anim: {fileID: 2158663597128617275}
   mover: {fileID: 3602153555428429680}
   hud: {fileID: 0}
+  statusEffect: {fileID: 0}
   biteHitbox: {fileID: 3650813904817012338}
   prefabId: 40004
   poundHitbox: {fileID: 8713156697564349642}
@@ -350,6 +352,19 @@ MonoBehaviour:
   weightSpeed: 4
   followSpeed: 10
   releaseDuringAnimation: 1
+--- !u!114 &8475034963487508730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125290340501684549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e828eb9ea848c14f85cd1696cf970f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
+  _assignOwnerOnAwake: 1
 --- !u!1 &169888370203220499
 GameObject:
   m_ObjectHideFlags: 0
