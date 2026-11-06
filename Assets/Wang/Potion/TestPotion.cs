@@ -1,5 +1,6 @@
 using UnityEngine;
 using Enzeun.Runtime;
+using Enzeun.SO;
 
 /*///////////////////////////////////////////
                        TestPotion
@@ -7,22 +8,36 @@ using Enzeun.Runtime;
  *///////////////////////////////////////////
 
 [RequireComponent(typeof(ParabolicMovement))]
-[RequireComponent(typeof(Enzeun.Runtime.Potion))]
 public class TestPotion : MonoBehaviour
 {
     private ParabolicMovement movement;
-    private Enzeun.Runtime.Potion potion;
+    [SerializeField] private PotionData data;
+    public PotionData Data => data;
+    public PotionInstance Instance { get; private set; }
+    public bool HasExploded { get; private set; }
     private bool canExplodeOnContact;
     [SerializeField] private LayerMask mask;
+    [SerializeField] private AttackObject attackObjectPrefab;
+    [SerializeField] private GameObject impactPrefab;
+    [SerializeField, Min(0f)] private float impactLifetime = 5f;
     private void Awake()
     {
         movement = GetComponent<ParabolicMovement>();
-        potion = GetComponent<Enzeun.Runtime.Potion>();
+        // 기존 프리팹의 Potion에 연결된 데이터를 유지한다.
+        if (data == null && TryGetComponent(out Enzeun.Runtime.Potion legacyPotion) == true)
+            data = legacyPotion.Data;
+    }
+
+    public void Initialize(PotionData potionData)
+    {
+        Initialize(new PotionInstance(potionData));
     }
 
     public void Initialize(PotionInstance instance)
     {
-        potion.Initialize(instance);
+        Instance = instance;
+        data = instance != null ? instance.Data : null;
+        HasExploded = false;
         canExplodeOnContact = false;
     }
 
@@ -43,12 +58,31 @@ public class TestPotion : MonoBehaviour
     public void Drink(Vector3 position)
     {
         canExplodeOnContact = false;
-        potion.ExplodeAt(position);
+        ExplodeAt(position);
+    }
+
+    public void ExplodeAt(Vector3 position)
+    {
+        if (HasExploded == true)
+            return;
+
+        HasExploded = true;
+        canExplodeOnContact = false;
+        movement.enabled = false;
+        
+        //지금은 직렬화 했지만 SO에 넣으면 좋겠습니다.
+        if (attackObjectPrefab != null)
+        {
+            AttackObject attackObject = Instantiate(attackObjectPrefab, position, Quaternion.identity);
+            attackObject.Initialize(Instance ?? new PotionInstance(data));
+        }
+      
+        Destroy(gameObject);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!canExplodeOnContact || potion.HasExploded)
+        if (canExplodeOnContact == false || HasExploded == true)
             return;
        
         int otherLayer = (1 << other.gameObject.layer);
@@ -66,7 +100,12 @@ public class TestPotion : MonoBehaviour
 
             canExplodeOnContact = false;
             movement.enabled = false;
-            potion.ExplodeAt(hitPoint);
+            if (impactPrefab != null)
+            {
+                GameObject impact = Instantiate(impactPrefab, hitPoint, Quaternion.identity);
+                Destroy(impact, impactLifetime);
+            }
+            ExplodeAt(hitPoint);
         }
     }
 

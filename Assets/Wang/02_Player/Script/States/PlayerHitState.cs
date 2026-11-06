@@ -38,12 +38,17 @@ public sealed class PlayerHitState : PlayerState
 
     private void OnHit(CommonStruct.AttackInfo attackInfo)
     {
+        // 진행 중인 상체 액션은 피격으로 끊지 않는다.
+        if (owner.CurrentActionState != null)
+            return;
+
         knockbackPower = attackInfo.AttackPower;
         direction = attackInfo.Position - owner.transform.position;
         direction.y = 0f;
 
         if (direction.sqrMagnitude < 0.0001f)
             direction = owner.transform.forward;
+
         direction.Normalize();
         owner.ResetActionState(this);
     }
@@ -67,8 +72,7 @@ public sealed class PlayerHitState : PlayerState
     public override void FixedUpdateState()
     {
         owner.AddVel(knockbackVelocity);
-        knockbackVelocity = Vector3.MoveTowards(
-            knockbackVelocity, Vector3.zero, knockbackDeceleration * Time.fixedDeltaTime);
+        knockbackVelocity = Vector3.MoveTowards(knockbackVelocity, Vector3.zero, knockbackDeceleration * Time.fixedDeltaTime);
     }
 
     private void FinishHit(AnimationEvent animationEvent)

@@ -13,7 +13,6 @@ public sealed class PlayerDrinkState : PlayerState
     private AnimationEvent[] rightClipEvents;
     private Hand.Side drinkingSide;
     private TestPotion drinkingPotion;
-    private bool hasDrunk;
 
     public PlayerDrinkState(FSM owner, SODrinkState data) : base(owner, data)
     {
@@ -34,14 +33,7 @@ public sealed class PlayerDrinkState : PlayerState
 
     private void RegisterClipEvents(AnimationClip targetClip, AnimationEvent[] events)
     {
-        if (targetClip == null || events == null)
-            return;
-
-        if (events.Length < 2)
-        {
-            Debug.LogWarning("Drink 클립에는 마시기/종료 이벤트가 순서대로 필요합니다.");
-        }
-
+       
         if (events.Length > 0)
             animEvent.RegisterFrame(targetClip, events[0], DrinkPotion);
         if (events.Length > 1)
@@ -81,16 +73,14 @@ public sealed class PlayerDrinkState : PlayerState
         base.Enter();
         drinkingSide = hand.FocusedSide;
         drinkingPotion = hand.GetPotion(drinkingSide);
-        hasDrunk = false;
         owner.Animator.SetTrigger(drinkingSide == Hand.Side.Left ? drinkLeftHash : drinkRightHash);
     }
 
     private void DrinkPotion(AnimationEvent animationEvent)
     {
-        if (hasDrunk == true || drinkingPotion == null || hand.GetPotion(drinkingSide) != drinkingPotion)
+        if ( drinkingPotion == null || hand.GetPotion(drinkingSide) != drinkingPotion)
             return;
 
-        hasDrunk = true;
         hand.Drink(drinkingSide);
     }
 
