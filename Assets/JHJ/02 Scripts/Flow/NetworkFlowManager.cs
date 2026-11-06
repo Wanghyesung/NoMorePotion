@@ -49,6 +49,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         if (Instance != null && Instance != this)
         {
+            // Destroy는 프레임 끝에 실행됨 → 그 사이 OnEnable에서 Photon 콜백 대상으로 등록되어
+            // 초기화 안 된 중복 매니저가 콜백을 받지 않도록 먼저 비활성화
+            gameObject.SetActive(false);
             Destroy(gameObject);
             return;
         }

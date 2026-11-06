@@ -46,10 +46,14 @@ public class TitlePanelUI : MonoBehaviour
 
     private async UniTaskVoid QuitFlow()
     {
-        bool yes = await confirmPopup.ShowAsync("게임을 종료하시겠습니까?");
-
-        if(yes)
+        if (await Confirm("게임을 종료하시겠습니까?"))
             QuitGame.Quit();
+    }
+
+    // 확인 팝업이 없으면 바로 진행
+    private UniTask<bool> Confirm(string message)
+    {
+        return confirmPopup != null ? confirmPopup.ShowAsync(message) : UniTask.FromResult(true);
     }
 
 }

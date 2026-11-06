@@ -18,10 +18,14 @@ using UnityEngine;
 /// [직접 읽는 값]
 ///   PhaseProgress : float (0~1), Update에서 읽기
 ///   TotalElapsed  : float, 판 전체 경과 시간
+///   둘 다 시작 전에는 0, 시계가 멈춘 뒤에는 멈춘 시점 값 유지
 ///
 /// [예약 실행]
 ///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
 ///   Time.time 기준, 시계가 도는 동안 방장에서만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
+///
+/// [정지] 판이 끝나면(GameSessionManager.Phase == Ended) 자동으로 멈춤. 멈춘 뒤 값은 그대로 남음
+///   시작은 GameSessionManager가 StartClock()을 호출
 ///
 /// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
 ///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
@@ -30,11 +34,16 @@ public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
 
+    // 0이면 PhaseProgress 0 나누기, Tick의 while 무한 루프 → 최솟값 보장
+    private const float MIN_DURATION = 0.1f;
+
     [SerializeField] float dayDuration = 10; // [임시] 설정값
     [SerializeField] float nightDuration = 10;
 
     private TimerScheduler timer = new TimerScheduler();
+    // StartClock에서만 생성. null = 시작 전 (미리 생성하지 말 것)
     private TimeState state;
+    // 지금 시계가 돌고 있는지. 시작 여부는 state로 판단
     private bool isRunning;
     // 저장하지 않고 읽을 때마다 계산 → 단계가 바뀌면 자동으로 다음 단계 길이가 됨
     private float currentDuration => state.Phase == TimePhase.Day ? dayDuration : nightDuration;
@@ -53,15 +62,15 @@ public class TimeManager : MonoBehaviour
 
     /// <summary>
     /// 현재 단계 진행 비율(0~1). 매 프레임 바뀌므로 구독 대신 Update에서 직접 읽는다.
-    /// 시작 전에는 0.
+    /// 시작 전에는 0, 멈춘 뒤에는 멈춘 시점 값.
     /// </summary>
-    public float PhaseProgress => isRunning ? state.Elapsed / currentDuration : 0f;
-    /// <summary> 판 시작 후 흐른 게임 시간 총합. 플레이타임용. 시작 전 0 </summary>
-    public float TotalElapsed => isRunning ? state.TotalElapsed : 0f;
+    public float PhaseProgress => state != null ? state.Elapsed / currentDuration : 0f;
+    /// <summary> 판 시작 후 흐른 게임 시간 총합. 플레이타임용. 시작 전 0, 멈춘 뒤에는 멈춘 시점 값 </summary>
+    public float TotalElapsed => state != null ? state.TotalElapsed : 0f;
 
     private void Awake()
     {
-        if(Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Debug.LogWarning("[TimeManager] 인스턴스 중복, 삭제");
             Destroy(gameObject);
@@ -69,6 +78,27 @@ public class TimeManager : MonoBehaviour
         }
 
         Instance = this;
+    }
+
+    private void Start()
+    {
+        // GameSessionManager.Instance는 Awake에서 등록되므로 Start에서 구독
+        if (GameSessionManager.Instance == null)
+        {
+            Debug.LogWarning("[TimeManager] GameSessionManager 없음, 게임 종료 시 시계가 멈추지 않음");
+            return;
+        }
+
+        GameSessionManager.Instance.Phase
+            .Where(p => p == SessionPhase.Ended)
+            .Subscribe(_ => StopClock())
+            .AddTo(this);
+    }
+
+    private void OnValidate()
+    {
+        dayDuration = Mathf.Max(dayDuration, MIN_DURATION);
+        nightDuration = Mathf.Max(nightDuration, MIN_DURATION);
     }
 
     private void OnDestroy()
@@ -105,7 +135,22 @@ public class TimeManager : MonoBehaviour
         SyncPublicValues();
 
         Debug.Log("[TimeManager] 1일차 낮 시작");
+    }
 
+    /// <summary>
+    /// 시계를 멈춘다. 값(일차, 단계, 경과 시간)은 그대로 남는다. 돌고 있지 않으면 무시.
+    /// 예약 실행(Schedule)도 함께 멈춘다.
+    /// </summary>
+    public void StopClock()
+    {
+        if (!isRunning)
+        {
+            Debug.Log("[TimeManager] 돌고 있지 않음, 무시");
+            return;
+        }
+
+        isRunning = false;
+        Debug.Log($"[TimeManager] 시계 정지 ({state.DayCount}일차 {state.Phase}, 총 {state.TotalElapsed:F1}초)");
     }
 
     /// <summary>
@@ -123,7 +168,8 @@ public class TimeManager : MonoBehaviour
         state.TotalElapsed += deltaTime;
 
         // 넘친 시간을 다음 단계로 넘겨 오차가 쌓이지 않게
-        if (state.Elapsed >= currentDuration)
+        // while : 프레임 지연이 단계 길이보다 길어도 한 번에 따라잡음
+        while (state.Elapsed >= currentDuration)
         {
             state.Elapsed -= currentDuration;
             AdvancePhase();
@@ -137,7 +183,7 @@ public class TimeManager : MonoBehaviour
     /// <summary>낮↔밤 전환. 일차는 아침 기준으로 증가. 전환은 반드시 이 함수를 거침</summary>
     private void AdvancePhase()
     {
-        if(state.Phase == TimePhase.Day)
+        if (state.Phase == TimePhase.Day)
             state.Phase = TimePhase.Night;
 
         else

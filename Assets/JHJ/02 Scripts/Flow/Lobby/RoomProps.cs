@@ -19,9 +19,9 @@ public static class RoomProps
 
     public static string GetDisplayName(RoomInfo room)
     {
-        if (room.CustomProperties.TryGetValue(DISPLAY_NAME, out object value) && !string.IsNullOrEmpty((string)value))
+        if (room.CustomProperties.TryGetValue(DISPLAY_NAME, out object value) && value is string name && !string.IsNullOrEmpty(name))
         {
-            return (string)value;
+            return name;
         }
 
         return room.Name;
