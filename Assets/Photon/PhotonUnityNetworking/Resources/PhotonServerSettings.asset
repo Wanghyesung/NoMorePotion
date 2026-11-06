@@ -40,6 +40,11 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - RpcApply
+  - RpcDenied
+  - RpcReady
+  - RpcRequest
+  - RpcSnapshot
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

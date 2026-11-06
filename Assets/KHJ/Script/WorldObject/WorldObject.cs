@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using Enzeun.SO;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -22,6 +23,16 @@ namespace Enzeun.Runtime
         [SerializeField, LabelText("월드 오브젝트 데이터"), Required("월드 오브젝트 데이터를 연결해 주세요.")]
         private WorldObjectData _data;
         public WorldObjectData data => _data;
+
+        /// <summary>
+        /// 멀티플레이에서 이 오브젝트를 구분하는 번호입니다. 씬 안에서 고유한 1 이상의 값이며, 모든 클라이언트가 같은 값을 가져야 합니다.
+        /// 0 이면 동기화하지 않고 혼자 동작합니다. 번호는 메뉴 "Enzeun/월드 오브젝트/네트워크 번호 자동 부여"로 채웁니다.
+        /// </summary>
+        [SerializeField, LabelText("네트워크 번호 (0 = 동기화 안 함)"), MinValue(0)]
+        private int _networkId;
+        public int NetworkId => _networkId;
+
+        private bool UsesNetwork => _networkId > 0 && WorldObjectNetworkSyncManager.IsActive;
 
         [ShowInInspector, ReadOnly, LabelText("남은 횟수"), PropertyOrder(-2)]
         public int remainingCount { get; private set; }
@@ -79,18 +90,28 @@ namespace Enzeun.Runtime
                 return false;
             }
 
-            if (_data.worldObjectDropType != WorldObjectDropType.Interacting)
+            int decrease = WorldObjectRules.ComputeDecrease(_data, WorldObjectHitKind.Interact, 0, 0);
+
+            if (decrease <= 0)
             {
                 return false;
             }
 
-            return Decrease(1);
+            // 멀티플레이 중이면 직접 차감하지 않고 마스터에게 요청합니다. 결과는 ApplyNetworkCount 로 모든 클라이언트에 도착합니다.
+            if (UsesNetwork)
+            {
+                WorldObjectNetworkSyncManager.Instance.InteractAsync(_networkId).Forget();
+                return true;
+            }
+
+            return Decrease(decrease);
         }
 
         /// <summary>
         /// 포션의 월드 오브젝트 대미지 효과를 받습니다. 파괴 타입이고, 효과의 대상 종류에 이 오브젝트의 종류가 있을 때만 차감합니다.
+        /// 주의 : 멀티플레이에서는 폭발을 일으킨 클라이언트 한 곳에서만 호출해야 합니다. (모든 클라이언트가 호출하면 요청이 중복되어 대미지가 여러 번 들어갑니다)
         /// </summary>
-        /// <returns>횟수가 차감되었으면 true</returns>
+        /// <returns>횟수가 차감되었으면(멀티플레이에서는 요청을 보냈으면) true</returns>
         public bool ReceivePotionDamage(WorldObjectDamagePotionEffect effect)
         {
             if (_data == null || effect == null || isDepleted)
@@ -98,31 +119,50 @@ namespace Enzeun.Runtime
                 return false;
             }
 
-            // 상호작용 타입은 포션 대미지를 받지 않습니다. (상호작용으로만 소진)
-            if (_data.worldObjectDropType != WorldObjectDropType.Destroying)
+            int targetMask = WorldObjectRules.ToTargetMask(effect.targetTypes);
+            int decrease = WorldObjectRules.ComputeDecrease(_data, WorldObjectHitKind.PotionDamage, effect.damage, targetMask);
+
+            if (decrease <= 0)
             {
                 return false;
             }
 
-            if (!IsTarget(effect))
+            if (UsesNetwork)
             {
-                return false;
+                WorldObjectNetworkSyncManager.Instance.PotionDamageAsync(_networkId, effect.damage, targetMask).Forget();
+                return true;
             }
 
-            return Decrease(effect.damage);
+            return Decrease(decrease);
         }
 
-        private bool IsTarget(WorldObjectDamagePotionEffect effect)
+        /// <summary>
+        /// 마스터가 확정한 남은 횟수를 그대로 반영합니다. (WorldObjectNetworkSyncManager 가 호출)
+        /// 값이 바뀌면 OnCountChanged 가, 0 이 되는 순간 OnDepleted 가 한 번 발생합니다.
+        /// </summary>
+        public void ApplyNetworkCount(int remaining)
         {
-            for (int i = 0; i < effect.targetTypes.Count; i++)
+            int previous = remainingCount;
+
+            if (previous == remaining)
             {
-                if (effect.targetTypes[i] == _data.worldObjectType)
-                {
-                    return true;
-                }
+                return;
             }
 
-            return false;
+            bool wasDepleted = isDepleted;
+            remainingCount = remaining;
+            isDepleted = remaining <= 0;
+
+#if UNITY_EDITOR
+            Debug.Log($"[WorldObject] : {name} 횟수 {previous} -> {remaining} (네트워크)");
+#endif
+
+            OnCountChanged?.Invoke(previous, remaining);
+
+            if (isDepleted && !wasDepleted)
+            {
+                OnDepleted?.Invoke(this);
+            }
         }
 
         /// <summary>

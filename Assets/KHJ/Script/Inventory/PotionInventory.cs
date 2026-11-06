@@ -100,6 +100,20 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 모든 포션을 비웁니다. 전체 목록을 새로 받아 적용하기 전에 사용합니다.
+        /// </summary>
+        public void Clear()
+        {
+            if (_items.Count == 0)
+            {
+                return;
+            }
+
+            _items.Clear();
+            OnChanged?.Invoke();
+        }
+
+        /// <summary>
         /// 해당 인스턴스 ID 의 포션이 들어 있는지 확인합니다.
         /// </summary>
         public bool Contains(int instanceId)

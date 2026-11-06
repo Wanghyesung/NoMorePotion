@@ -137,20 +137,7 @@ namespace Enzeun.Runtime
 
                 for (int i = 0; i < slots.Count; i++)
                 {
-                    InventorySlot slot = slots[i];
-                    writer.Write((byte)slot.Kind);
-
-                    switch (slot.Kind)
-                    {
-                        case InventorySlotKind.Material:
-                            writer.Write(checked((ushort)slot.MaterialId));
-                            writer.Write(checked((ushort)slot.Count));
-                            break;
-
-                        case InventorySlotKind.Potion:
-                            WritePotion(writer, slot.Potion);
-                            break;
-                    }
+                    WriteSlot(writer, slots[i]);
                 }
 
                 writer.Flush();
@@ -169,37 +156,12 @@ namespace Enzeun.Runtime
 
                 for (int i = 0; i < count; i++)
                 {
-                    var kind = (InventorySlotKind)reader.ReadByte();
-
-                    switch (kind)
+                    if (!TryReadSlot(reader, out InventorySlot slot))
                     {
-                        case InventorySlotKind.Empty:
-                            break;
-
-                        case InventorySlotKind.Material:
-                            int materialId = reader.ReadUInt16();
-                            int amount = reader.ReadUInt16();
-
-                            if (!IsKnownMaterial(materialId) || amount <= 0)
-                            {
-                                return false;
-                            }
-
-                            result[i] = InventorySlot.OfMaterial(materialId, amount);
-                            break;
-
-                        case InventorySlotKind.Potion:
-                            if (!TryReadPotion(reader, out PotionInstance potion))
-                            {
-                                return false;
-                            }
-
-                            result[i] = InventorySlot.OfPotion(potion);
-                            break;
-
-                        default:
-                            return false;   // 알 수 없는 종류
+                        return false;
                     }
+
+                    result[i] = slot;
                 }
 
                 unpacked = result;
@@ -210,16 +172,84 @@ namespace Enzeun.Runtime
             return success;
         }
 
-        // ==================== 포션 한 개 (목록과 칸이 함께 사용) ============================
+        // ==================== 칸 한 개 (네트워크 메시지에서도 사용) ============================
 
-        private static void WritePotion(BinaryWriter writer, PotionInstance potion)
+        /// <summary>
+        /// 칸 한 개를 씁니다. 종류(byte 1) + [재료면 재료 ID, 개수 / 포션이면 포션 한 개]
+        /// </summary>
+        public static void WriteSlot(BinaryWriter writer, InventorySlot slot)
+        {
+            writer.Write((byte)slot.Kind);
+
+            switch (slot.Kind)
+            {
+                case InventorySlotKind.Material:
+                    writer.Write(checked((ushort)slot.MaterialId));
+                    writer.Write(checked((ushort)slot.Count));
+                    break;
+
+                case InventorySlotKind.Potion:
+                    WritePotion(writer, slot.Potion);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 칸 한 개를 읽습니다. 알 수 없는 종류, 알 수 없는 ID, 개수 0 이하이면 false 입니다.
+        /// </summary>
+        public static bool TryReadSlot(BinaryReader reader, out InventorySlot slot)
+        {
+            slot = default;
+
+            var kind = (InventorySlotKind)reader.ReadByte();
+
+            switch (kind)
+            {
+                case InventorySlotKind.Empty:
+                    return true;
+
+                case InventorySlotKind.Material:
+                    int materialId = reader.ReadUInt16();
+                    int amount = reader.ReadUInt16();
+
+                    if (!IsKnownMaterial(materialId) || amount <= 0)
+                    {
+                        return false;
+                    }
+
+                    slot = InventorySlot.OfMaterial(materialId, amount);
+                    return true;
+
+                case InventorySlotKind.Potion:
+                    if (!TryReadPotion(reader, out PotionInstance potion))
+                    {
+                        return false;
+                    }
+
+                    slot = InventorySlot.OfPotion(potion);
+                    return true;
+
+                default:
+                    return false;   // 알 수 없는 종류
+            }
+        }
+
+        // ==================== 포션 한 개 (목록, 칸, 네트워크 메시지가 함께 사용) ============================
+
+        /// <summary>
+        /// 포션 한 개를 씁니다. 인스턴스 ID(int 4) + 포션 ID(ushort 2) + 함정 키워드 ID(ushort 2, 없으면 0)
+        /// </summary>
+        public static void WritePotion(BinaryWriter writer, PotionInstance potion)
         {
             writer.Write(potion.InstanceId);
             writer.Write(checked((ushort)potion.Data.potionID));
             writer.Write(checked((ushort)(potion.TrapKeyword != null ? potion.TrapKeyword.KeywordID : 0)));
         }
 
-        private static bool TryReadPotion(BinaryReader reader, out PotionInstance potion)
+        /// <summary>
+        /// 포션 한 개를 읽습니다. 인스턴스 ID 가 0 이하이거나 알 수 없는 포션/키워드 ID 이면 false 입니다.
+        /// </summary>
+        public static bool TryReadPotion(BinaryReader reader, out PotionInstance potion)
         {
             potion = null;
 

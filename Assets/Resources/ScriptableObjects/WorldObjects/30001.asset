@@ -18,5 +18,8 @@ MonoBehaviour:
   _worldObjectDesc: "\uC124\uBA85 \uC785\uB2C8\uB2E4"
   _worldObjectType: 1
   _worldObjectDropType: 1
-  _dropMaterials:
-  - {fileID: 11400000, guid: 46d775b7670065c4ca18b83dce5b25ef, type: 2}
+  _maxCount: 1
+  _drops:
+  - _material: {fileID: 11400000, guid: 46d775b7670065c4ca18b83dce5b25ef, type: 2}
+    _min: 1
+    _max: 3

@@ -18,5 +18,8 @@ MonoBehaviour:
   _worldObjectDesc: 
   _worldObjectType: 4
   _worldObjectDropType: 1
-  _dropMaterials:
-  - {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}
+  _maxCount: 1
+  _drops:
+  - _material: {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}
+    _min: 1
+    _max: 3

@@ -81,11 +81,32 @@ namespace Enzeun.SO
         private int _maxCount = 1;
         public int maxCount => _maxCount;
 
-        [LabelText("드롭 재료"), BoxGroup("드롭 정보")]
+        [LabelText("드롭 재료와 개수"), BoxGroup("드롭 정보")]
         [SerializeField]
         [PropertyOrder(8)]
-        private List<MaterialData> _dropMaterials = new List<MaterialData>();
-        public List<MaterialData> DropMaterials => _dropMaterials;
+        private List<MaterialDrop> _drops = new List<MaterialDrop>();
+        public IReadOnlyList<MaterialDrop> Drops => _drops;
+
+        /// <summary>
+        /// 드롭할 재료와 개수를 굴려서 results 에 담습니다. (results 는 먼저 비웁니다)
+        /// 멀티플레이에서는 소진을 판정한 쪽(마스터)만 굴리고, 결과(재료 ID, 개수)만 공유해야 모든 클라이언트에서 같은 드롭이 됩니다.
+        /// </summary>
+        public void RollDrops(List<MaterialDropResult> results)
+        {
+            results.Clear();
+
+            for (int i = 0; i < _drops.Count; i++)
+            {
+                MaterialDrop drop = _drops[i];
+
+                if (drop == null || drop.Material == null)
+                {
+                    continue;
+                }
+
+                results.Add(new MaterialDropResult { MaterialId = drop.Material.materialID, Count = drop.Roll() });
+            }
+        }
 
 #if UNITY_EDITOR
         public void SetID(int id)

@@ -203,6 +203,34 @@ namespace Enzeun.Runtime
         /// <returns>하나라도 놓았으면 true</returns>
         public bool TryPlace(int index, InventorySlot content, out InventorySlot leftover)
         {
+            if (!PreviewPlace(index, content, out InventorySlot placed, out leftover))
+            {
+                return false;
+            }
+
+            if (_slots[index].IsEmpty)
+            {
+                _slots[index] = placed;
+            }
+            else
+            {
+                _slots[index].Count += placed.Count;
+            }
+
+            OnSlotChanged?.Invoke(index);
+            return true;
+        }
+
+        /// <summary>
+        /// TryPlace 를 실제로 하지 않고 결과만 계산합니다. (칸을 바꾸지 않음)
+        /// 멀티플레이에서 마스터가 "얼마나 들어가는가"를 검증한 뒤, 그 결과를 모든 클라이언트가 똑같이 적용하는 데 사용합니다.
+        /// </summary>
+        /// <param name="placed">실제로 놓이는 내용</param>
+        /// <param name="leftover">놓지 못하고 남는 내용</param>
+        /// <returns>하나라도 놓을 수 있으면 true</returns>
+        public bool PreviewPlace(int index, InventorySlot content, out InventorySlot placed, out InventorySlot leftover)
+        {
+            placed = default;
             leftover = content;
 
             if (!IsValidIndex(index) || content.IsEmpty)
@@ -212,9 +240,8 @@ namespace Enzeun.Runtime
 
             if (_slots[index].IsEmpty)
             {
-                _slots[index] = content;
+                placed = content;
                 leftover = default;
-                OnSlotChanged?.Invoke(index);
                 return true;
             }
 
@@ -230,9 +257,8 @@ namespace Enzeun.Runtime
                     return false;
                 }
 
-                _slots[index].Count += moved;
+                placed = InventorySlot.OfMaterial(content.MaterialId, moved);
                 leftover = content.Count - moved > 0 ? InventorySlot.OfMaterial(content.MaterialId, content.Count - moved) : default;
-                OnSlotChanged?.Invoke(index);
                 return true;
             }
 
