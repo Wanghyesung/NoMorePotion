@@ -35,9 +35,30 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 포션 두 개로 제작합니다. 조합할 수 없으면 null 입니다.
+        /// </summary>
+        /// <returns></returns>
+        public static PotionInstance CraftFromPotion(int firstMaterialID, int secondMaterialID)
+        {
+            if (PotionDataManager.Instance == null)
+            {
+                Debug.LogWarning("[PotionCrafter]: PotionDataManager 가 없어 제작할 수 없습니다.");
+                return null;
+            }
+
+            PotionData result = PotionDataManager.Instance.GetUpgradedPotion(firstMaterialID, secondMaterialID);
+            if (result == null)
+            {
+                return null;
+            }
+
+            return Craft(result, GetPlayerCraftFailChance());
+        }
+
+        /// <summary>
         /// 제작한 포션 데이터로 인스턴스를 만듭니다. failChancePercent(0~100)의 확률로 실패해서 함정 포션이 됩니다.
         /// </summary>
-        public static PotionInstance Craft(PotionData result, int failChancePercent)
+        private static PotionInstance Craft(PotionData result, int failChancePercent)
         {
             if (result == null)
             {
@@ -51,6 +72,7 @@ namespace Enzeun.Runtime
             if (Random.Range(0, 100) < chance)
             {
                 TrapPotionKeyword keyword = PickTrapKeyword();
+
                 if (keyword != null)
                 {
                     return new PotionInstance(result, keyword);

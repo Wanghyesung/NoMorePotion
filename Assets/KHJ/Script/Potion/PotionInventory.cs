@@ -33,7 +33,7 @@ namespace Enzeun.Runtime
         private readonly List<PotionInstance> _items = new List<PotionInstance>();
 
         /// <summary>
-        /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / TakeAt / TakeFirst 로만)
+        /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / TakeAt / TakeFirst / TakeRandom 로만)
         /// </summary>
         public IReadOnlyList<PotionInstance> Items => _items;
 
@@ -98,9 +98,13 @@ namespace Enzeun.Runtime
             return TakeAt(0);
         }
 
+        /// <summary>
+        /// 무작위 포션을 꺼냅니다. 비어 있으면 null 입니다.
+        /// </summary>
+        /// <returns></returns>
         public PotionInstance TakeRandom()
         {
-            return Items[UnityEngine.Random.Range(0, Items.Count)];
+            return TakeAt(UnityEngine.Random.Range(0, Count));
         }
     }
 }
