@@ -30,6 +30,9 @@ public class TimeManager : MonoBehaviour
 {
     public static TimeManager Instance { get; private set; }
 
+    // 0이면 PhaseProgress 0 나누기, Tick의 while 무한 루프 → 최솟값 보장
+    private const float MIN_DURATION = 0.1f;
+
     [SerializeField] float dayDuration = 10; // [임시] 설정값
     [SerializeField] float nightDuration = 10;
 
@@ -69,6 +72,12 @@ public class TimeManager : MonoBehaviour
         }
 
         Instance = this;
+    }
+
+    private void OnValidate()
+    {
+        dayDuration = Mathf.Max(dayDuration, MIN_DURATION);
+        nightDuration = Mathf.Max(nightDuration, MIN_DURATION);
     }
 
     private void OnDestroy()
@@ -123,7 +132,8 @@ public class TimeManager : MonoBehaviour
         state.TotalElapsed += deltaTime;
 
         // 넘친 시간을 다음 단계로 넘겨 오차가 쌓이지 않게
-        if (state.Elapsed >= currentDuration)
+        // while : 프레임 지연이 단계 길이보다 길어도 한 번에 따라잡음
+        while (state.Elapsed >= currentDuration)
         {
             state.Elapsed -= currentDuration;
             AdvancePhase();
