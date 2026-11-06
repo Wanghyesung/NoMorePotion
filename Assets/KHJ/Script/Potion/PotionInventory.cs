@@ -16,8 +16,6 @@ namespace Enzeun.Runtime
         /// </summary>
         public const int DefaultCapacity = 100;
 
-        private readonly List<PotionInstance> _items = new List<PotionInstance>();
-
         public PotionInventory(int capacity = DefaultCapacity)
         {
             Capacity = Mathf.Max(1, capacity);
@@ -31,6 +29,8 @@ namespace Enzeun.Runtime
         public int Count => _items.Count;
 
         public bool IsFull => _items.Count >= Capacity;
+
+        private readonly List<PotionInstance> _items = new List<PotionInstance>();
 
         /// <summary>
         /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / TakeAt / TakeFirst 로만)
@@ -96,6 +96,11 @@ namespace Enzeun.Runtime
         public PotionInstance TakeFirst()
         {
             return TakeAt(0);
+        }
+
+        public PotionInstance TakeRandom()
+        {
+            return Items[UnityEngine.Random.Range(0, Items.Count)];
         }
     }
 }
