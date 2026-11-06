@@ -7,6 +7,7 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(Animator))]
 public class MonsterAnimationController : MonoBehaviour
 {
+    private static readonly int MoveSpeedHash = Animator.StringToHash(ANIMATOR_MOVE_SPEED);
     private static readonly int IsDeadHash = Animator.StringToHash(IS_DEAD);
     private static readonly int IsNomalAttackHash = Animator.StringToHash(IS_NORMAL);
     private static readonly int IsRunHash = Animator.StringToHash(IS_RUN);
@@ -60,5 +61,14 @@ public class MonsterAnimationController : MonoBehaviour
     public void IsDead(bool type = true)
     {
         animator.SetBool(IsDeadHash, type);
+    }
+
+    /// <summary>
+    /// 이동 관련 애니메이션(run / walk) 속도 변경 함수
+    /// </summary>
+    /// <param name="val"> 요청 배율, 기본값 1</param>
+    public void SetMoveAnimationSpeed(float val = 1f)
+    {
+        animator.SetFloat(MoveSpeedHash, val);
     }
 }

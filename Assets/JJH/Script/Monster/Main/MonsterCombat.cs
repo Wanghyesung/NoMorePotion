@@ -24,8 +24,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
     protected NormalMonster data;
-    [ShowInInspector, ReadOnly]
-    private int DebugHP => data != null ? data.HP : -1;
+
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
     {
@@ -78,10 +77,26 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
             monsterData.SpawnArea,textData.Description, monsterData.DamageType);
     }
 
+    protected virtual void OnEnable()
+    {
+        if (statusEffect != null)
+        {
+            statusEffect.OnEffectAdded += ClipSpeedSet;
+            statusEffect.OnEffectRemoved += ClipSpeedReset;
+        }
+            
+    }
+
     protected virtual void OnDisable()
     {
         if(data != null)
             data.OnDead -= MonsterDead;
+
+        if(statusEffect != null)
+        {
+            statusEffect.OnEffectAdded -= ClipSpeedSet;
+            statusEffect.OnEffectRemoved -= ClipSpeedReset;
+        }
     }
 
     protected void SetData(NormalMonster newData)
@@ -158,6 +173,23 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
         mover.StopAI();
     }
+    private void ClipSpeedSet(ActiveStatusEffect _)
+    {
+        if (data == null) return;
+        float speedMultiplier = statusEffect.GetStatMultiplier(StatType.MoveSpeed);
+        data.NowSpeed = data.Speed * speedMultiplier;
+        anim.SetMoveAnimationSpeed(speedMultiplier);
+        mover.SetMoveSpeed(data.NowSpeed);
+    }
+
+    private void ClipSpeedReset(ActiveStatusEffect _)
+    {
+        if (data == null) return;
+
+        anim.SetMoveAnimationSpeed();
+        data.NowSpeed = data.Speed;
+        mover.SetMoveSpeed(data.Speed);
+    }
     #endregion
 
     #region 인터페이스
@@ -214,9 +246,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
 
     private float MultiplierCalc(float val, float multiplier)
     {
-        float calcVal = Mathf.Max(0, val * multiplier);
-
-        return calcVal;
+        return Mathf.Max(0, val * multiplier);
     }
 
     private void HPChange(int damage)

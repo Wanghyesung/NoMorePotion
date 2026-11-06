@@ -9,7 +9,8 @@ using static JJH_Enums;
 public class MonsterPatrolState : IMonsterState
 {
     private MonsterMove mover;
-
+    private const float StartGrace = 0.3f;
+    private float startTime;
     public MonsterPatrolState(MonsterMove mover)
     {
         this.mover = mover;
@@ -38,7 +39,8 @@ public class MonsterPatrolState : IMonsterState
                 moverAI.speed = mover.walkSpeed;
 
                 moverAI.SetDestination(newRandomPos);
-
+                // OnStart에서 SetPath 직후
+                startTime = Time.time;
                 mover.anim.IsWalk();
                 mover.anim.IsRun(false);
             }
@@ -63,6 +65,10 @@ public class MonsterPatrolState : IMonsterState
         if (moverAI.isStopped) return true;
         // 길찾기중인 경우
         if (moverAI.pathPending) return false;
+
+        // 출발 직후 보류
+        if (Time.time - startTime < StartGrace) return false;
+
         // 정지거리가 현재거리보다 긴 경우, 
         if (moverAI.remainingDistance <= moverAI.stoppingDistance)
         {

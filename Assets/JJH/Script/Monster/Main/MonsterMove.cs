@@ -168,8 +168,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         patrolTimer = attackTimer = 0;
         patrolTimerActive = false;
 
-        walkSpeed = speed / 2f;
-        runSpeed = speed;
+        SetMoveSpeed(speed);
         agent.speed = walkSpeed;
 
         StartAILoop(token).Forget();
@@ -263,6 +262,13 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
     }
+
+    public void SetMoveSpeed(float speed)
+    {
+        runSpeed = speed;
+        walkSpeed = speed / 2;
+    }
+
     public void StopAI()
     {
         if (aiCts == null) return;
