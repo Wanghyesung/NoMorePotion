@@ -370,6 +370,35 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 포션을 제작할 때 실패해서 함정 포션이 될 확률(%)입니다. 걸려 있는 상태 효과의 "제조 실패 확률" 중 가장 높은 값이며,
+        /// 해당 효과가 없으면 0 입니다. (예: 똑똑이 0%, 멍청함 50%)
+        /// </summary>
+        public int GetCraftFailChance()
+        {
+            return Mathf.Max(GetMaxCraftFailChance(_buffs), GetMaxCraftFailChance(_debuffs));
+        }
+
+        private static int GetMaxCraftFailChance(List<ActiveStatusEffect> list)
+        {
+            int max = 0;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                IReadOnlyList<StatusEffectModule> modules = list[i].data.modules;
+
+                for (int m = 0; m < modules.Count; m++)
+                {
+                    if (modules[m] is CraftFailChanceModule failChance && failChance.FailPercent > max)
+                    {
+                        max = failChance.FailPercent;
+                    }
+                }
+            }
+
+            return max;
+        }
+
+        /// <summary>
         /// 해당 상태 효과가 하나라도 걸려 있는지 확인합니다. (행동 변화만 있는 효과의 판정에 사용)
         /// </summary>
         public bool Has(StatusEffectData data)

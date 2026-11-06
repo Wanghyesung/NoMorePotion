@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b72333df77f66b4f8af205a98e45354, type: 3}
+  m_Name: 50004
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.TrapPotionKeyword
+  _keywordID: 50004
+  _keywordName: "\uD56B"
+  _effectDescription: "\uCCB4\uC628 25% \uC99D\uAC00"
+  _effects:
+  - rid: 4119466684650618962
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466684650618962
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 1
+        _percent: 25

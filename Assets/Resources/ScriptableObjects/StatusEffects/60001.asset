@@ -19,7 +19,12 @@ MonoBehaviour:
   _statusEffectType: 1
   _hasDuration: 0
   _stackPolicy: 1
-  _modules: []
+  _modules:
+  - rid: 4119466684650618957
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 4119466684650618957
+      type: {class: CraftFailChanceModule, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _failPercent: 0

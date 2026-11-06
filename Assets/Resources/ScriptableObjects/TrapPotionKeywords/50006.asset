@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b72333df77f66b4f8af205a98e45354, type: 3}
+  m_Name: 50006
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.TrapPotionKeyword
+  _keywordID: 50006
+  _keywordName: "\uC911\uB3C5"
+  _effectDescription: "\uCCB4\uB825 25% \uAC10\uC18C"
+  _effects:
+  - rid: 4119466684650618964
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466684650618964
+      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _healthChange:
+          _changeType: 1
+          _damageType: 0
+          _amount: 750
+          _intervalSeconds: 0
+        _durationSeconds: 0

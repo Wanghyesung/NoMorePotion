@@ -19,11 +19,28 @@ namespace Enzeun.Runtime
         public bool HasExploded { get; private set; }
 
         /// <summary>
-        /// 생성한 쪽에서 포션 데이터를 지정할 때 사용합니다.
+        /// 이 포션이 가진 제작 인스턴스입니다. 뱃속에서 꺼낸 포션이면 함정 여부가 들어 있고,
+        /// 지정하지 않으면(데이터만 연결한 경우) 정상 포션으로 취급합니다.
+        /// </summary>
+        public PotionInstance Instance { get; private set; }
+
+        /// <summary>
+        /// 생성한 쪽에서 포션 데이터만 지정할 때 사용합니다. (정상 포션)
         /// </summary>
         public void Initialize(PotionData data)
         {
             _data = data;
+            Instance = new PotionInstance(data);
+            HasExploded = false;
+        }
+
+        /// <summary>
+        /// 뱃속에서 꺼낸 제작 인스턴스를 지정할 때 사용합니다. 함정 포션이면 키워드 효과가 폭발에 더해집니다.
+        /// </summary>
+        public void Initialize(PotionInstance instance)
+        {
+            Instance = instance;
+            _data = instance != null ? instance.Data : null;
             HasExploded = false;
         }
 
@@ -38,13 +55,33 @@ namespace Enzeun.Runtime
         [Button("테스트: 폭발", ButtonSizes.Large)]
         public void Explode()
         {
+            ExplodeAt(transform.position);
+        }
+
+        /// <summary>
+        /// 지정한 위치에서 폭발합니다. 한 번만 동작합니다.
+        /// 던지기는 부딪힌 위치(Explode), 마시기는 마시는 플레이어의 위치로 호출합니다.
+        /// 어느 쪽이든 이 포션이 가진 인스턴스를 쓰므로 함정 키워드 효과가 함께 적용됩니다.
+        /// </summary>
+        public void ExplodeAt(Vector3 position)
+        {
             if (HasExploded)
             {
                 return;
             }
 
             HasExploded = true;
-            PotionExplosion.Explode(_data, transform.position);
+
+            // 인스턴스가 없으면(인스펙터에 데이터만 연결한 경우) 정상 포션으로 폭발합니다.
+            if (Instance != null)
+            {
+                PotionExplosion.Explode(Instance, position);
+            }
+            else
+            {
+                PotionExplosion.Explode(_data, position);
+            }
+
             Destroy(gameObject);
         }
     }

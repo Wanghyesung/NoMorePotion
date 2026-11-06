@@ -27,6 +27,16 @@ namespace Enzeun.Runtime
             }
 
             FindAllPotionRecipes();
+            LoadTrapKeywords();
+        }
+
+        /// <summary>
+        /// 저장소에 있는 모든 함정 키워드를 불러옵니다. (제작 실패 시 뽑을 후보)
+        /// </summary>
+        private void LoadTrapKeywords()
+        {
+            trapKeywords.Clear();
+            trapKeywords.AddRange(Resources.LoadAll<TrapPotionKeyword>(TrapPotionKeyword.FolderPath));
         }
 
         // 포션 폴더 경로를 상수로 정의
@@ -65,6 +75,10 @@ namespace Enzeun.Runtime
         // 포션 ID 로 포션 데이터를 찾기 위한 딕셔너리 (포션 + 포션 조합에서 사용)
         private Dictionary<int, PotionData> potionDataByID = new Dictionary<int, PotionData>();
 
+        // 함정 키워드(5만번대) 목록입니다. 제작 실패 시 이 중에서 균등 확률로 뽑습니다. 포션 SO 와 별도 폴더에서 불러옵니다.
+        private readonly List<TrapPotionKeyword> trapKeywords = new List<TrapPotionKeyword>();
+        public IReadOnlyList<TrapPotionKeyword> TrapKeywords => trapKeywords;
+
         private bool isDataInitialized = false;
 
         /// <summary>
@@ -85,7 +99,8 @@ namespace Enzeun.Runtime
                 // 포션 + 포션 조합(업그레이드)에서 ID 로 조회할 수 있도록 모든 포션을 등록
                 potionDataByID[potionData.potionID] = potionData;
 
-                if (potionData.potionCombinationType == PotionCombinationType.Potion)
+                // 재료 조합 포션만 레시피로 등록합니다. (포션 조합은 GetUpgradedPotion, 조합 타입이 None 인 함정 포션 등은 조합 대상 아님)
+                if (potionData.potionCombinationType != PotionCombinationType.Material)
                 {
                     continue;
                 }

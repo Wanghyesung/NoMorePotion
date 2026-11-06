@@ -36,8 +36,27 @@ namespace Enzeun.Runtime
                 return;
             }
 
-            IReadOnlyList<PotionEffect> effects = potion.effects;
+            Apply(potion.effects, potion, target, explosionPosition);
+        }
 
+        /// <summary>
+        /// 함정 키워드의 효과를 대상 한 개에게 적용합니다. (원래 포션의 효과에 더해서 적용)
+        /// </summary>
+        public static void Apply(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition)
+        {
+            if (keyword == null)
+            {
+                Debug.LogWarning("[PotionEffectApplier]: 적용할 함정 키워드가 null 입니다.");
+                return;
+            }
+
+            Apply(keyword.Effects, keyword, target, explosionPosition);
+        }
+
+        /// <param name="effects">적용할 효과 목록</param>
+        /// <param name="source">효과를 건 주체(포션 또는 키워드 SO). 같은 주체가 다시 걸었을 때 중첩 정책이 의도대로 동작하게 합니다.</param>
+        private static void Apply(IReadOnlyList<PotionEffect> effects, Object source, in PotionTarget target, Vector3 explosionPosition)
+        {
             for (int i = 0; i < effects.Count; i++)
             {
                 switch (effects[i])
@@ -45,8 +64,7 @@ namespace Enzeun.Runtime
                     case ApplyStatusPotionEffect status:
                         if (target.BuffContainer != null)
                         {
-                            // 건 주체를 포션 SO 로 넘겨서, 같은 포션을 다시 맞아도 중첩 정책이 의도대로 동작하게 합니다.
-                            target.BuffContainer.Apply(status.statusEffect, potion, status.percent, status.durationSeconds);
+                            target.BuffContainer.Apply(status.statusEffect, source, status.percent, status.durationSeconds);
                         }
                         break;
 

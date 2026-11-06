@@ -18,6 +18,7 @@ namespace Enzeun.Editor
         public static readonly string potionFolderPath = "Assets/Resources/" + PotionDataManager.potionFolderPath;
         public static readonly string worldObjectFolderPath = "Assets/Resources/" + WorldObjectDataManager.worldObjectFolderPath;
         public static readonly string statusEffectFolderPath = "Assets/Resources/" + StatusEffectData.folderPath;
+        public static readonly string trapKeywordFolderPath = "Assets/Resources/" + TrapPotionKeyword.FolderPath;
 
         [SerializeField, LabelText("재료 ID"), HideLabel]
         private int lastMaterialID = 20001;
@@ -34,11 +35,15 @@ namespace Enzeun.Editor
         [SerializeField, LabelText("디버프 ID"), HideLabel]
         private int lastDebuffID = 61001;
 
+        [SerializeField, LabelText("함정 키워드 ID"), HideLabel]
+        private int lastTrapKeywordID = 50001;
+
         CreateButton<MaterialData> createMaterialButton;
         CreateButton<PotionData> createPotionButton;
         CreateButton<WorldObjectData> createWorldObjectButton;
         CreateButton<StatusEffectData> createBuffButton;
         CreateButton<StatusEffectData> createDebuffButton;
+        CreateButton<TrapPotionKeyword> createTrapKeywordButton;
 
         [MenuItem("Tools/아이템 데이터 관리자")]
         private static void OpenWindow()
@@ -57,6 +62,7 @@ namespace Enzeun.Editor
             createWorldObjectButton?.Dispose();
             createBuffButton?.Dispose();
             createDebuffButton?.Dispose();
+            createTrapKeywordButton?.Dispose();
         }
 
         protected override OdinMenuTree BuildMenuTree()
@@ -85,11 +91,16 @@ namespace Enzeun.Editor
             createDebuffButton.OnCreate += data => lastDebuffID = CreateAsset(data, statusEffectFolderPath);
             tree.Add("Debuff SO 생성", createDebuffButton);
 
+            createTrapKeywordButton = new CreateButton<TrapPotionKeyword>(lastTrapKeywordID);
+            createTrapKeywordButton.OnCreate += data => lastTrapKeywordID = CreateAsset(data, trapKeywordFolderPath);
+            tree.Add("함정 키워드 SO 생성", createTrapKeywordButton);
+
             tree.AddAllAssetsAtPath("재료 목록", materialFolderPath, typeof(MaterialData), true);
             tree.AddAllAssetsAtPath("포션 목록", potionFolderPath, typeof(PotionData), true);
             tree.AddAllAssetsAtPath("월드 오브젝트 목록", worldObjectFolderPath, typeof(WorldObjectData), true);
             AddStatusEffectList(tree, "버프 목록", StatusEffectType.Buff);
             AddStatusEffectList(tree, "디버프 목록", StatusEffectType.Debuff);
+            tree.AddAllAssetsAtPath("함정 키워드 목록", trapKeywordFolderPath, typeof(TrapPotionKeyword), true);
 
             return tree;
         }

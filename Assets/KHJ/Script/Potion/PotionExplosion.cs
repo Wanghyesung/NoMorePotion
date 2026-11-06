@@ -27,6 +27,28 @@ namespace Enzeun.Runtime
         /// </summary>
         public static int Explode(PotionData potion, Vector3 position)
         {
+            return ExplodeCore(potion, null, position);
+        }
+
+        /// <summary>
+        /// 제작된 포션 인스턴스를 position 에서 폭발시킵니다. 함정 포션이면 원래 포션의 효과에 함정 키워드의 효과가 더해지고,
+        /// 폭발 범위는 원래 포션을 따릅니다.
+        /// </summary>
+        public static int Explode(PotionInstance instance, Vector3 position)
+        {
+            if (instance == null)
+            {
+                Debug.LogWarning("[PotionExplosion]: 폭발시킬 포션 인스턴스가 null 입니다.");
+                return 0;
+            }
+
+            return ExplodeCore(instance.Data, instance.TrapKeyword, position);
+        }
+
+        /// <param name="potion">효과와 폭발 범위의 기준이 되는 원래 포션</param>
+        /// <param name="trapKeyword">함정 키워드. 있으면 그 효과도 같이 적용합니다. (범위는 원래 포션을 따름)</param>
+        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position)
+        {
             if (potion == null)
             {
                 Debug.LogWarning("[PotionExplosion]: 폭발시킬 포션 데이터가 null 입니다.");
@@ -74,11 +96,18 @@ namespace Enzeun.Runtime
                 }
 
                 PotionEffectApplier.Apply(potion, target, position);
+
+                if (trapKeyword != null)
+                {
+                    PotionEffectApplier.Apply(trapKeyword, target, position);
+                }
+
                 targetCount++;
             }
 
 #if UNITY_EDITOR
-            Debug.Log($"[PotionExplosion] : {potion.potionName}({potion.potionID}) 폭발 / 반경 {radius}m / 대상 {targetCount}개");
+            string trapInfo = trapKeyword != null ? $" + 함정 키워드 {trapKeyword.KeywordName}({trapKeyword.KeywordID})" : "";
+            Debug.Log($"[PotionExplosion] : {potion.potionName}({potion.potionID}){trapInfo} 폭발 / 반경 {radius}m / 대상 {targetCount}개");
 #endif
 
             return targetCount;
