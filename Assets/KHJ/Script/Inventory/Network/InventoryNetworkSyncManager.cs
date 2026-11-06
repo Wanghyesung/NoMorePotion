@@ -35,9 +35,6 @@ namespace Enzeun.Runtime
         /// </summary>
         public TeamInventoryState State => _state;
 
-        public MaterialInventory TeamMaterials => _state.Materials;
-        public PotionInventory TeamPotions => _state.Potions;
-
         [ShowInInspector, ReadOnly, LabelText("사본 버전"), PropertyOrder(-2)]
         private int DebugVersion => _state != null ? _state.Version : 0;
 

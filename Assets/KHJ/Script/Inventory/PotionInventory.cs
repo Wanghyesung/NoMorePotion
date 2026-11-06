@@ -39,7 +39,7 @@ namespace Enzeun.Runtime
         public bool IsFull => _items.Count >= Capacity;
 
         /// <summary>
-        /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / Take(ID) / TakeAt / TakeFirst / TakeRandom / Clear 로만)
+        /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / Take(ID) / TakeAt / TakeRandom / Clear 로만)
         /// </summary>
         public IReadOnlyList<PotionInstance> Items => _items;
 
@@ -159,14 +159,6 @@ namespace Enzeun.Runtime
         public PotionInstance Take(int instanceId)
         {
             return TakeAt(IndexOf(instanceId));
-        }
-
-        /// <summary>
-        /// 가장 먼저 들어온 포션을 꺼냅니다. 비어 있으면 null 입니다.
-        /// </summary>
-        public PotionInstance TakeFirst()
-        {
-            return TakeAt(0);
         }
 
         /// <summary>

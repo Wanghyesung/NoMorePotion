@@ -119,12 +119,6 @@ namespace Enzeun.Runtime
         /// </summary>
         private void FindAllPotionRecipes()
         {
-            if (isDataInitialized)
-            {
-                Debug.LogWarning("[PotionDataManager]: 포션 데이터가 이미 초기화되었습니다.");
-                return;
-            }
-
             PotionData[] potionDataList = Resources.LoadAll<PotionData>(potionFolderPath);
 
             foreach (var potionData in potionDataList)
