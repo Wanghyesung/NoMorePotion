@@ -64,14 +64,13 @@ namespace Enzeun.Runtime
         public TrapPotionKeyword TrapKeyword { get; }
 
         /// <summary>
-        /// 함정 포션인지 여부입니다. 흔들어서 확인하기 전의 실제 값이므로, 플레이어에게 보여 줄 때는 Inspect 를 사용합니다.
+        /// 함정 포션인지 여부입니다. 실제 값이므로 플레이어에게 보여 줄 때는 Inspect 를 사용합니다.
         /// </summary>
         public bool IsTrap => TrapKeyword != null;
 
         /// <summary>
-        /// 포션을 흔들어서 함정인지와 키워드를 알려 줍니다. 값을 조회만 하고 상태를 바꾸지 않습니다.
-        /// "확인했다"는 상태를 저장하지 않으므로, R 을 누르는 동안만 보여 주고 떼면 숨기는 처리는 호출하는 쪽(입력/UI)이 맡습니다.
-        /// (누르는 동안 이 결과를 보여 주고, 떼면 보여 주기를 멈추면 됩니다.)
+        /// 포션을 흔들어서 함정인지와 키워드를 알려 줍니다. 조회만 하며 "확인했다"는 상태는 저장하지 않습니다.
+        /// R 을 누르는 동안만 보여 주고 떼면 숨기는 처리는 호출하는 쪽(입력/UI)이 맡습니다.
         /// </summary>
         /// <param name="trapKeyword">함정이면 함정 키워드, 정상 포션이면 null</param>
         /// <returns>함정 포션이면 true</returns>

@@ -102,7 +102,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 해당 재료의 개수를 지정한 값으로 정합니다. 마스터가 검증을 끝낸 결과나 전체 목록(스냅샷)을 적용할 때 사용합니다.
-        /// 한도 검사는 하지 않습니다. (권한을 가진 쪽이 이미 검증함)
+        /// 한도 검사는 하지 않습니다.
         /// </summary>
         public void SetCount(int materialId, int count)
         {

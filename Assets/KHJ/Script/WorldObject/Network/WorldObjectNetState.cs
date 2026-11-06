@@ -7,15 +7,8 @@ using Enzeun.SO;
 namespace Enzeun.Runtime
 {
     /// <summary>
-    /// 씬에 있는 월드 오브젝트들의 "남은 횟수" 사본입니다. 네트워크를 모르는 순수 C# 이라 에디터에서 마스터 1 + 클라이언트 2 를 흉내 내어 시험할 수 있습니다.
-    ///
-    /// 역할
-    /// - Register : 씬의 오브젝트를 번호와 함께 등록합니다. (모든 클라이언트가 같은 씬이므로 같은 번호로 등록됩니다)
-    /// - TryValidate : [마스터] 요청을 검증하고, 확정한 값(적용 메시지)을 만듭니다. 상태는 바꾸지 않습니다. 소진되면 드롭도 이때 한 번만 굴립니다.
-    /// - Apply : [전원] 적용 메시지를 사본에 반영합니다. 마스터도 같은 경로로 적용하므로 모든 사본이 같은 결과가 됩니다.
-    /// - CreateSnapshot / TryLoadSnapshot : 늦게 들어온 사람, 어긋난 사본을 위한 전체 목록. (기본값에서 바뀐 오브젝트만 담습니다)
-    ///
-    /// 알려진 한계 : 바닥에 이미 떨어져 있는 드롭은 전체 목록에 담지 않습니다. (줍기 동기화 단계에서 함께 다룹니다)
+    /// 씬에 있는 월드 오브젝트들의 "남은 횟수" 사본입니다. 네트워크를 모르는 순수 C# 입니다.
+    /// 마스터가 TryValidate 로 검증하고, 전원이 Apply 로 반영하며, 늦게 들어온 사람은 스냅샷으로 맞춥니다. (바닥의 드롭은 스냅샷에 없음)
     /// </summary>
     public sealed class WorldObjectNetState
     {
@@ -38,6 +31,9 @@ namespace Enzeun.Runtime
         /// </summary>
         public int Version => _version;
 
+        /// <summary>
+        /// 등록된 오브젝트 수입니다.
+        /// </summary>
         public int Count => _entries.Count;
 
         /// <summary>
@@ -66,11 +62,17 @@ namespace Enzeun.Runtime
             return true;
         }
 
+        /// <summary>
+        /// 해당 번호의 오브젝트가 등록되어 있는지 확인합니다.
+        /// </summary>
         public bool Contains(int networkId)
         {
             return _entries.ContainsKey(networkId);
         }
 
+        /// <summary>
+        /// 해당 번호 오브젝트의 남은 횟수를 돌려줍니다.
+        /// </summary>
         /// <returns>등록되지 않은 번호이면 -1</returns>
         public int GetRemaining(int networkId)
         {

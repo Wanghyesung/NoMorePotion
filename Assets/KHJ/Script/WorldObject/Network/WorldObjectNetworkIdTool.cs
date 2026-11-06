@@ -71,6 +71,9 @@ namespace Enzeun.Editor
             Debug.Log($"[WorldObjectNetworkIdTool] : 씬 '{scene.name}' 의 월드 오브젝트 {targets.Count}개 중 {needs.Count}개에 번호를 새로 부여했습니다. 씬을 저장해 주세요.");
         }
 
+        /// <summary>
+        /// 루트부터 "이름#형제 순서" 를 이어 붙인 계층 경로를 만듭니다. 번호 부여 순서를 고정하는 정렬 키로 씁니다.
+        /// </summary>
         private static string GetPath(Transform transform)
         {
             string path = transform.name + "#" + transform.GetSiblingIndex();

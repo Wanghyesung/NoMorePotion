@@ -13,7 +13,7 @@ namespace Enzeun.Runtime
     ///
     /// 흐름
     /// 1) 클라이언트가 요청(InventoryCommand)을 마스터에게 보냅니다.
-    /// 2) 마스터가 <see cref="TryValidate"/> 로 검증합니다. 이때는 사본을 바꾸지 않고, 확정된 값(실제 개수, 부여한 ID 등)이 담긴 적용 명령만 만듭니다.
+    /// 2) 마스터가 <see cref="TryValidate"/> 로 검증합니다. 이때는 사본 내용을 바꾸지 않고, 확정된 값(실제 개수, 부여한 ID 등)이 담긴 적용 명령만 만듭니다.
     ///    거부되면 이유를 요청한 사람에게만 알립니다.
     /// 3) 적용 명령을 마스터를 포함한 모든 클라이언트가 <see cref="Apply"/> 로 똑같이 적용합니다.
     /// 마스터가 직접 바꾸지 않고 적용 메시지를 받아서 바꾸는 이유는, 마스터도 같은 경로를 쓰게 해서 사본이 어긋날 틈을 없애기 위해서입니다.
@@ -33,14 +33,23 @@ namespace Enzeun.Runtime
         // 시체 상자 ID 발급 번호입니다. 마스터만 발급하며, 스냅샷에 담아 두어 마스터가 바뀌어도 이어 쓸 수 있게 합니다.
         private int _nextCorpseId = 1;
 
+        /// <summary>
+        /// 재료/포션 인벤토리를 지정하지 않으면 기본 설정으로 새로 만듭니다.
+        /// </summary>
         public TeamInventoryState(MaterialInventory materials = null, PotionInventory potions = null)
         {
             Materials = materials ?? new MaterialInventory();
             Potions = potions ?? new PotionInventory();
         }
 
+        /// <summary>
+        /// 팀 재료 인벤토리입니다.
+        /// </summary>
         public MaterialInventory Materials { get; }
 
+        /// <summary>
+        /// 팀 포션 인벤토리입니다.
+        /// </summary>
         public PotionInventory Potions { get; }
 
         /// <summary>
@@ -49,7 +58,7 @@ namespace Enzeun.Runtime
         public IReadOnlyDictionary<int, CorpseBox> Corpses => _corpses;
 
         /// <summary>
-        /// 마지막으로 적용한 사본 버전입니다. 마스터가 적용할 때마다 1씩 오릅니다.
+        /// 마지막으로 적용한 사본 버전입니다. 모든 클라이언트(마스터 포함)가 Apply 할 때마다 1씩 오릅니다.
         /// </summary>
         public int Version { get; private set; }
 
@@ -71,8 +80,10 @@ namespace Enzeun.Runtime
         // ==================== 마스터: 요청 검증 ============================
 
         /// <summary>
-        /// 요청을 검증합니다. (마스터에서만 호출) 사본은 바꾸지 않습니다.
+        /// 요청을 검증합니다. (마스터에서만 호출) 사본의 내용(재료, 포션, 시체 상자)은 바꾸지 않습니다.
         /// 통과하면 모든 클라이언트가 적용할 명령(apply)을 만들고, 거부하면 이유(reason)를 돌려줍니다.
+        /// 단, 발급 번호(포션 인스턴스 ID, 시체 상자 ID)는 여기서 소비합니다. 적용 메시지가 도착하기 전에 다음 요청이 검증되어도
+        /// 같은 번호가 나가지 않게 하려는 것이며, 이후 적용이 실패하면 번호만 건너뛸 뿐 문제는 없습니다.
         /// </summary>
         /// <param name="requesterActor">요청한 사람의 ActorNumber</param>
         public bool TryValidate(InventoryCommand request, int requesterActor, out InventoryCommand apply, out InventoryDenyReason reason)
@@ -165,7 +176,8 @@ namespace Enzeun.Runtime
 
                 case InventoryOp.CreateCorpse:
                 {
-                    if (request.Slots == null || request.Slots.Length == 0 || request.Slots.Length > MaxCorpseSlots || !HasAnyItem(request.Slots))
+                    if (request.Slots == null || request.Slots.Length == 0 || request.Slots.Length > MaxCorpseSlots
+                        || !HasAnyItem(request.Slots) || !AreSlotsValid(request.Slots))
                     {
                         reason = InventoryDenyReason.Invalid;
                         return false;
@@ -456,6 +468,36 @@ namespace Enzeun.Runtime
             }
 
             return false;
+        }
+
+        // 시체 상자에 들어올 칸들이 규칙을 지키는지 확인합니다. (요청한 클라이언트가 보낸 값이라 그대로 믿지 않음)
+        // 재료는 알려진 재료이고 한 칸 한도 이하여야 하며, 포션은 마스터가 발급한 ID 가 있어야 합니다.
+        private static bool AreSlotsValid(InventorySlot[] slots)
+        {
+            for (int i = 0; i < slots.Length; i++)
+            {
+                InventorySlot slot = slots[i];
+
+                switch (slot.Kind)
+                {
+                    case InventorySlotKind.Material:
+                        if (slot.MaterialId <= 0 || slot.Count <= 0 || !IsKnownMaterial(slot.MaterialId)
+                            || slot.Count > InventoryRules.GetMaterialLimit(slot.MaterialId))
+                        {
+                            return false;
+                        }
+                        break;
+
+                    case InventorySlotKind.Potion:
+                        if (slot.Potion == null || slot.Potion.InstanceId <= 0)
+                        {
+                            return false;
+                        }
+                        break;
+                }
+            }
+
+            return true;
         }
 
         // 길이(int) + 내용. 스냅샷 안에서 묶음 여러 개를 이어 붙일 때 사용합니다.

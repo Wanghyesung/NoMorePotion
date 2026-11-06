@@ -24,6 +24,10 @@ namespace Enzeun.Runtime
 
         // ==================== 요청 (클라이언트 -> 마스터) ============================
 
+        /// <summary>
+        /// 요청을 byte 배열로 묶습니다. 범위 초과 시 OverflowException.
+        /// (대미지는 ushort, 대상 종류 마스크는 byte 범위)
+        /// </summary>
         public static byte[] PackRequest(WorldObjectCommand command)
         {
             using (var stream = new MemoryStream())
@@ -41,6 +45,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 요청을 풉니다. 길이, 버전, 종류가 맞지 않으면 false 를 반환합니다.
+        /// </summary>
         public static bool TryUnpackRequest(byte[] data, out WorldObjectCommand command)
         {
             command = default;
@@ -92,6 +99,9 @@ namespace Enzeun.Runtime
 
         // ==================== 적용 (마스터 -> 전원) ============================
 
+        /// <summary>
+        /// 마스터가 확정한 적용 메시지를 byte 배열로 묶습니다. 값이 ushort/byte 범위를 넘으면 OverflowException.
+        /// </summary>
         public static byte[] PackApply(WorldObjectCommand command)
         {
             using (var stream = new MemoryStream())
@@ -123,6 +133,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 적용 메시지를 풉니다. 길이(드롭 수 포함)나 버전이 맞지 않으면 false 를 반환합니다.
+        /// </summary>
         public static bool TryUnpackApply(byte[] data, out WorldObjectCommand command)
         {
             command = default;
@@ -175,6 +188,9 @@ namespace Enzeun.Runtime
 
         // ==================== 거부 (마스터 -> 요청한 사람) ============================
 
+        /// <summary>
+        /// 거부 메시지(요청 번호, 이유)를 byte 배열로 묶습니다.
+        /// </summary>
         public static byte[] PackDeny(int requestId, WorldObjectDenyReason reason)
         {
             using (var stream = new MemoryStream())
@@ -189,6 +205,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 거부 메시지를 풉니다. 길이나 버전이 맞지 않으면 false 를 반환합니다.
+        /// </summary>
         public static bool TryUnpackDeny(byte[] data, out int requestId, out WorldObjectDenyReason reason)
         {
             requestId = 0;

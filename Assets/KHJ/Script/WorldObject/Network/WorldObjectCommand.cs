@@ -12,6 +12,7 @@ namespace Enzeun.Runtime
         NoEffect,       // 이 타격은 이 오브젝트에 효과가 없음 (타입 불일치 등)
         Timeout,        // 제한 시간 안에 답이 없음
         NotInRoom,      // 방에 들어와 있지 않음
+        OutOfSync,      // 사본이 어긋나 요청의 결과를 알 수 없음 (전체 목록을 다시 받는 중)
     }
 
     public enum WorldObjectApplyStatus

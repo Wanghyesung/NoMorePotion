@@ -10,17 +10,9 @@ namespace Enzeun.Runtime
 {
     /// <summary>
     /// 월드 오브젝트(꽃, 나무, 광물 등)의 남은 횟수를 팀 전체가 똑같이 보도록 동기화하는 매니저입니다. 씬에 한 개 배치합니다. (PhotonView 필요)
-    /// 규칙은 네트워크를 모르는 WorldObjectNetState / WorldObjectRules 가 맡고, 이 클래스는 메시지를 주고받고 씬의 WorldObject 에 결과를 전달합니다.
-    ///
-    /// 흐름 (InventoryNetworkSyncManager 와 같은 구조)
-    /// 1) 누군가 상호작용하거나 포션 대미지를 주면, 요청을 마스터에게 보냅니다. (RpcRequest)
-    /// 2) 마스터가 검증합니다. 이미 소진되었거나 효과가 없으면 요청한 사람에게만 거부를 알리고(RpcDenied),
-    ///    통과하면 확정한 값(남은 횟수, 소진 시 드롭 결과)을 전원에게 보냅니다. (RpcApply)
-    /// 3) 모든 클라이언트(마스터 포함)가 같은 값을 자기 사본과 씬의 WorldObject 에 적용합니다.
-    /// 드롭은 소진을 판정한 마스터가 한 번만 굴리므로 모든 클라이언트에 같은 결과가 전달됩니다.
-    ///
-    /// 월드 오브젝트는 WorldObject 의 "네트워크 번호"(씬 안에서 고유, 1 이상)로 구분합니다.
-    /// 번호가 0 이거나 방에 들어와 있지 않으면 WorldObject 는 예전처럼 혼자(로컬) 동작합니다.
+    /// 규칙은 WorldObjectNetState / WorldObjectRules 가 맡고, 이 클래스는 메시지를 주고받고 씬의 WorldObject 에 결과를 전달합니다.
+    /// 요청 -> 마스터 검증 -> 전원 적용 흐름은 InventoryNetworkSyncManager / TeamInventoryState 와 같습니다. (드롭은 마스터가 한 번만 굴림)
+    /// 네트워크 번호가 0 이거나 방에 없으면 WorldObject 는 혼자(로컬) 동작합니다.
     /// </summary>
     [RequireComponent(typeof(PhotonView))]
     public sealed class WorldObjectNetworkSyncManager : MonoBehaviourPunCallbacks
@@ -60,6 +52,9 @@ namespace Enzeun.Runtime
         /// </summary>
         public static bool IsActive => Instance != null && PhotonNetwork.InRoom;
 
+        /// <summary>
+        /// 싱글턴 등록 후 사본 이벤트를 구독합니다. 중복 매니저는 제거합니다.
+        /// </summary>
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -74,8 +69,17 @@ namespace Enzeun.Runtime
             _state.OnDropped += HandleDropped;
         }
 
+        /// <summary>
+        /// 씬의 WorldObject 를 모두 등록하고, 이미 방 안이면 전체 목록을 요청합니다.
+        /// </summary>
         private void Start()
         {
+            // 중복으로 만들어져 제거될 매니저는 아무것도 하지 않습니다. (같은 번호를 두 번 등록하는 것을 막음)
+            if (Instance != this)
+            {
+                return;
+            }
+
             // 모든 WorldObject 의 Awake 가 끝난 뒤이므로 씬의 오브젝트를 한꺼번에 등록합니다.
             WorldObject[] sceneObjects = FindObjectsByType<WorldObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 
@@ -90,11 +94,22 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 방에 들어오면 마스터에게 전체 목록을 요청합니다.
+        /// </summary>
         public override void OnJoinedRoom()
         {
+            if (Instance != this)
+            {
+                return;
+            }
+
             SendReady();
         }
 
+        /// <summary>
+        /// 이벤트 구독을 해제하고, 응답 대기 중인 요청은 NotInRoom 실패로 끝냅니다.
+        /// </summary>
         private void OnDestroy()
         {
             if (Instance == this)
@@ -191,6 +206,9 @@ namespace Enzeun.Runtime
             return WorldObjectResult.Fail(WorldObjectDenyReason.Timeout);
         }
 
+        /// <summary>
+        /// 기다리던 요청을 결과와 함께 끝냅니다. 이미 끝났거나 없는 요청이면 무시합니다.
+        /// </summary>
         private void Complete(int requestId, WorldObjectResult result)
         {
             if (_pending.TryGetValue(requestId, out UniTaskCompletionSource<WorldObjectResult> source))
@@ -202,6 +220,9 @@ namespace Enzeun.Runtime
 
         // ==================== 사본 변화 -> 씬 오브젝트 ============================
 
+        /// <summary>
+        /// 사본의 남은 횟수가 바뀌면 해당 씬 오브젝트에 반영합니다.
+        /// </summary>
         private void HandleChanged(int networkId, int previous, int remaining)
         {
             if (_objects.TryGetValue(networkId, out WorldObject worldObject) && worldObject != null)
@@ -210,9 +231,12 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 사본에서 드롭이 확정되면 해당 씬 오브젝트와 함께 OnDropped 로 알립니다.
+        /// </summary>
         private void HandleDropped(int networkId, WorldDrop[] drops)
         {
-            if (_objects.TryGetValue(networkId, out WorldObject worldObject))
+            if (_objects.TryGetValue(networkId, out WorldObject worldObject) && worldObject != null)
             {
                 OnDropped?.Invoke(worldObject, drops);
             }
@@ -274,15 +298,26 @@ namespace Enzeun.Runtime
             switch (status)
             {
                 case WorldObjectApplyStatus.Applied:
-                    if (PhotonNetwork.LocalPlayer != null && apply.RequesterActor == PhotonNetwork.LocalPlayer.ActorNumber)
+                    if (IsLocalActor(apply.RequesterActor))
                     {
                         Complete(apply.RequestId, result);
                     }
                     break;
 
+                case WorldObjectApplyStatus.Ignored:
                 case WorldObjectApplyStatus.VersionGap:
                 case WorldObjectApplyStatus.Inconsistent:
-                    RequestResync();
+                    // 내 요청의 적용인데 사본에 반영하지 못했다면 결과를 알 수 없습니다. 제한 시간까지 기다리지 않고 바로 알립니다.
+                    if (IsLocalActor(apply.RequesterActor))
+                    {
+                        Complete(apply.RequestId, WorldObjectResult.Fail(WorldObjectDenyReason.OutOfSync));
+                    }
+
+                    // Ignored 는 이미 반영된 오래된 메시지라 전체 목록을 다시 받을 필요는 없습니다.
+                    if (status != WorldObjectApplyStatus.Ignored)
+                    {
+                        RequestResync();
+                    }
                     break;
             }
         }
@@ -340,6 +375,11 @@ namespace Enzeun.Runtime
         private static bool IsFromMaster(PhotonMessageInfo info)
         {
             return info.Sender != null && info.Sender.IsMasterClient;
+        }
+
+        private static bool IsLocalActor(int actorNumber)
+        {
+            return PhotonNetwork.LocalPlayer != null && actorNumber == PhotonNetwork.LocalPlayer.ActorNumber;
         }
 
         private void SendReady()

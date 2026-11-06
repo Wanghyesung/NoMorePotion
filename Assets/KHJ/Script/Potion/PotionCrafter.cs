@@ -6,11 +6,8 @@ namespace Enzeun.Runtime
 {
     /// <summary>
     /// 포션 제작 결과를 판정해서 PotionInstance 를 만드는 정적 도우미입니다.
-    /// 제작하는 순간 실패 확률로 성공/실패를 판정하고, 실패하면 함정 키워드를 균등 확률로 하나 붙입니다.
-    ///
-    /// 실패 확률은 호출하는 쪽이 넘기므로, 확률을 정하는 규칙이 바뀌어도 이 클래스는 바뀌지 않습니다.
-    /// 기본 규칙은 플레이어에게 걸린 상태 효과의 "제조 실패 확률"입니다. (똑똑이 0%, 멍청함 50%)
-    /// 어떤 상태 효과가 걸릴지는 생존 상태(정신력)가 정하고, 이 클래스는 걸려 있는 효과만 읽습니다.
+    /// 실패 확률로 성공/실패를 판정하고, 실패하면 함정 키워드를 균등 확률로 하나 붙입니다. (함정 규칙은 PotionInstance 참고)
+    /// 실패 확률은 플레이어에게 걸린 상태 효과의 "제조 실패 확률"을 읽어 옵니다. (똑똑이 0%, 멍청함 50%)
     /// </summary>
     public static class PotionCrafter
     {
@@ -37,8 +34,9 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 포션 두 개로 제작합니다. 조합할 수 없으면 null 입니다.
         /// </summary>
-        /// <returns></returns>
-        public static PotionInstance CraftFromPotion(int firstMaterialID, int secondMaterialID)
+        /// <param name="firstPotionID">첫 번째 포션 ID (재료 ID 가 아님)</param>
+        /// <param name="secondPotionID">두 번째 포션 ID (재료 ID 가 아님)</param>
+        public static PotionInstance CraftFromPotion(int firstPotionID, int secondPotionID)
         {
             if (PotionDataManager.Instance == null)
             {
@@ -46,7 +44,7 @@ namespace Enzeun.Runtime
                 return null;
             }
 
-            PotionData result = PotionDataManager.Instance.GetUpgradedPotion(firstMaterialID, secondMaterialID);
+            PotionData result = PotionDataManager.Instance.GetUpgradedPotion(firstPotionID, secondPotionID);
             if (result == null)
             {
                 return null;

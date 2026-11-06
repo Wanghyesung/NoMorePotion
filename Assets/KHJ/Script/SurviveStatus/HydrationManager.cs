@@ -23,12 +23,9 @@ namespace Enzeun.Runtime
     public class HydrationManager : MonoBehaviour
     {
         // 기본값 : 50%
+        // 구간 판정 : 70% 이상 -> 촉촉함 버프 / 10% 이하 -> 갈증 디버프 / 0% -> 탈수 디버프(갈증보다 우선)
 
-        // 5초당 1% 감소 (러프)
-        // 10% 이하 -> 갈증 디버프
-        // 0% -> 갈증 에서 탈수 디버프로 변경
-
-        // 70% 이상 -> 촉촉함 버프
+        // TODO(미구현 기획): 5초당 1% 감소 (러프)
 
 
         // 수분 초기값
@@ -57,6 +54,10 @@ namespace Enzeun.Runtime
         public event Action<HydrationState, HydrationState> OnHydrationStateChanged;
 
         private int _hydration;
+
+        /// <summary>
+        /// 현재 수분 수치(0~100). 변경은 증감 메서드로만 합니다.
+        /// </summary>
         [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int hydration
         {
@@ -67,6 +68,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 값을 초기값으로 되돌리고 구간을 다시 판정합니다. 구간이 같으면 이벤트는 발생하지 않습니다.
+        /// </summary>
         public void ResetHydration()
         {
             _hydration = initialHydration;
@@ -76,6 +80,9 @@ namespace Enzeun.Runtime
             CheckCurrentHydration();
         }
 
+        /// <summary>
+        /// amount(양수)만큼 증가 후 0~100 으로 제한하고 구간을 다시 판정합니다.
+        /// </summary>
         [Button, LabelText("수분 증가")]
         public void IncreaseHydration(int amount)
         {
@@ -87,6 +94,9 @@ namespace Enzeun.Runtime
             CheckCurrentHydration();
         }
 
+        /// <summary>
+        /// amount(양수)만큼 감소 후 0~100 으로 제한하고 구간을 다시 판정합니다.
+        /// </summary>
         [Button, LabelText("수분 감소")]
         public void DecreaseHydration(int amount)
         {
@@ -98,6 +108,9 @@ namespace Enzeun.Runtime
             CheckCurrentHydration();
         }
 
+        /// <summary>
+        /// 현재 수치로 구간을 판정합니다. 구간이 바뀐 경우에만 이벤트가 발생합니다.
+        /// </summary>
         private void CheckCurrentHydration()
         {
             HydrationState prevState = currentHydrationState;

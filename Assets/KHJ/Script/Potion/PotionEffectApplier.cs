@@ -69,7 +69,7 @@ namespace Enzeun.Runtime
                         break;
 
                     case HealthChangePotionEffect health:
-                        // 지속시간이 있는 체력 증감(초당 대미지)은 필드에 만드는 별도 오브젝트가 맡으므로 여기서는 즉시 효과만 적용합니다.
+                        // 지속시간이 있는 체력 증감은 필드 오브젝트가 맡을 예정이며 아직 구현되지 않아 현재는 적용되지 않습니다 (TODO). 여기서는 즉시 효과만 적용합니다.
                         if (target.Damageable != null && health.durationSeconds <= 0f)
                         {
                             health.healthChange.Apply(target.Damageable, explosionPosition);

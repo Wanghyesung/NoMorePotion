@@ -27,11 +27,19 @@ namespace Enzeun.Runtime
         public int Capacity { get; }
 
         private readonly List<PotionInstance> _items = new List<PotionInstance>();
+
+        /// <summary>
+        /// 보관 중인 포션 개수입니다.
+        /// </summary>
         public int Count => _items.Count;
+
+        /// <summary>
+        /// 보관 한도에 도달했으면 true 입니다.
+        /// </summary>
         public bool IsFull => _items.Count >= Capacity;
 
         /// <summary>
-        /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / TakeAt / TakeFirst / TakeRandom 로만)
+        /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / Take(ID) / TakeAt / TakeFirst / TakeRandom / Clear 로만)
         /// </summary>
         public IReadOnlyList<PotionInstance> Items => _items;
 
@@ -47,24 +55,26 @@ namespace Enzeun.Runtime
         {
             if (potion == null)
             {
-                Debug.LogWarning("[PotionInventory]: null 포션은 넣을 수 없습니다.");
+                Debug.LogWarning("[PotionInventory] : null 포션은 넣을 수 없습니다.");
                 return false;
             }
 
             if (IsFull)
             {
-                Debug.LogWarning($"[PotionInventory]: 뱃속이 가득 찼습니다. ({Count}/{Capacity})");
+                Debug.LogWarning($"[PotionInventory] : 뱃속이 가득 찼습니다. ({Count}/{Capacity})");
                 return false;
             }
 
-            // ID 가 아직 없으면 발급하고, 이미 있으면 같은 ID 가 들어 있지 않은지 확인합니다.
-            if (potion.InstanceId == 0)
+            // 인스턴스 ID 는 마스터만 발급하므로 ID 가 없는 포션은 받지 않고, 같은 ID 가 이미 들어 있어도 받지 않습니다.
+            if (potion.InstanceId <= 0)
             {
-                potion.AssignInstanceId(PotionInstanceIds.Next());
+                Debug.LogWarning("[PotionInventory] : 인스턴스 ID 가 없는 포션은 넣을 수 없습니다. 마스터를 거쳐 ID 를 받은 포션만 넣어 주세요.");
+                return false;
             }
-            else if (Contains(potion.InstanceId))
+
+            if (Contains(potion.InstanceId))
             {
-                Debug.LogWarning($"[PotionInventory]: 같은 인스턴스 ID({potion.InstanceId})의 포션이 이미 있습니다.");
+                Debug.LogWarning($"[PotionInventory] : 같은 인스턴스 ID({potion.InstanceId})의 포션이 이미 있습니다.");
                 return false;
             }
 
@@ -162,7 +172,6 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 무작위 포션을 꺼냅니다. 비어 있으면 null 입니다.
         /// </summary>
-        /// <returns></returns>
         public PotionInstance TakeRandom()
         {
             return TakeAt(UnityEngine.Random.Range(0, Count));

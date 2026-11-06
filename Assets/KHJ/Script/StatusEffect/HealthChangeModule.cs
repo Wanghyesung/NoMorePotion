@@ -55,7 +55,9 @@ namespace Enzeun.SO
 
         /// <summary>
         /// 대상에게 한 번(한 틱)만큼 적용합니다. 대미지는 IDamageable, 회복은 IHealable 로 전달합니다.
+        /// Heal 은 대상이 IHealable 이 아니면 경고만 하고 무시합니다.
         /// </summary>
+        /// <param name="position">공격 위치. 대미지의 AttackInfo.Position 으로 전달됩니다.</param>
         public void Apply(IDamageable target, Vector3 position = default)
         {
             if (_amount <= 0)

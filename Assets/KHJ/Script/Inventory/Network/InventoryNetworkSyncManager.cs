@@ -11,14 +11,7 @@ namespace Enzeun.Runtime
     /// <summary>
     /// 팀이 공유하는 인벤토리(재료, 포션)와 시체 상자를 네트워크로 동기화하는 매니저입니다. 씬에 한 개 배치합니다. (PhotonView 필요)
     /// 실제 규칙(검증, 적용, 전체 목록)은 네트워크를 모르는 TeamInventoryState 가 맡고, 이 클래스는 메시지를 주고받는 일만 합니다.
-    ///
-    /// 흐름
-    /// 1) 아무 클라이언트나 *Async 메서드로 요청하면, 요청 번호를 붙여 마스터에게 보냅니다. (RpcRequest)
-    /// 2) 마스터가 검증합니다. 거부하면 요청한 사람에게만 알리고(RpcDenied), 통과하면 확정한 값을 전원에게 보냅니다. (RpcApply)
-    /// 3) 모든 클라이언트(마스터 포함)가 같은 값을 자기 사본에 적용합니다. 요청한 사람의 *Async 는 이때 결과를 돌려받고 끝납니다.
-    /// 씬 로딩이 끝난 클라이언트는 마스터에게 "준비됐다"고 알리고(RpcReady), 마스터가 전체 목록을 한 번 보냅니다. (RpcSnapshot)
-    /// 중간 메시지를 놓치거나 사본이 어긋나면 같은 방법으로 전체 목록을 다시 받습니다.
-    ///
+    /// 요청(*Async) → 마스터 검증 → 전원 적용의 흐름과 전체 목록 동기화는 TeamInventoryState 의 주석을 참고하세요.
     /// 오프라인 모드에서는 내가 마스터이므로 같은 코드가 그대로 동작합니다.
     /// </summary>
     [RequireComponent(typeof(PhotonView))]
@@ -66,6 +59,12 @@ namespace Enzeun.Runtime
 
         private void Start()
         {
+            // 중복으로 만들어져 제거될 매니저는 아무것도 하지 않습니다.
+            if (Instance != this)
+            {
+                return;
+            }
+
             // 이미 방에 있는 상태로 씬이 로딩되었으면 바로 "준비됐다"고 알립니다.
             if (PhotonNetwork.InRoom)
             {
@@ -75,6 +74,11 @@ namespace Enzeun.Runtime
 
         public override void OnJoinedRoom()
         {
+            if (Instance != this)
+            {
+                return;
+            }
+
             SendReady();
         }
 
@@ -194,6 +198,9 @@ namespace Enzeun.Runtime
             return InventoryResult.Fail(InventoryDenyReason.Timeout);
         }
 
+        /// <summary>
+        /// 기다리던 요청이 있으면 결과를 전달해 끝냅니다. 이미 끝났거나(제한 시간 등) 없는 요청 번호는 무시합니다.
+        /// </summary>
         private void Complete(int requestId, InventoryResult result)
         {
             if (_pending.TryGetValue(requestId, out UniTaskCompletionSource<InventoryResult> source))
@@ -261,15 +268,26 @@ namespace Enzeun.Runtime
             switch (status)
             {
                 case InventoryApplyStatus.Applied:
-                    if (PhotonNetwork.LocalPlayer != null && apply.RequesterActor == PhotonNetwork.LocalPlayer.ActorNumber)
+                    if (IsLocalActor(apply.RequesterActor))
                     {
                         Complete(apply.RequestId, InventoryResult.Ok(outcome));
                     }
                     break;
 
+                case InventoryApplyStatus.Ignored:
                 case InventoryApplyStatus.VersionGap:
                 case InventoryApplyStatus.Inconsistent:
-                    RequestResync();
+                    // 내 요청의 적용인데 사본에 반영하지 못했다면 결과를 알 수 없습니다. 제한 시간까지 기다리지 않고 바로 알립니다.
+                    if (IsLocalActor(apply.RequesterActor))
+                    {
+                        Complete(apply.RequestId, InventoryResult.Fail(InventoryDenyReason.OutOfSync));
+                    }
+
+                    // Ignored 는 이미 반영된 오래된 메시지라 전체 목록을 다시 받을 필요는 없습니다.
+                    if (status != InventoryApplyStatus.Ignored)
+                    {
+                        RequestResync();
+                    }
                     break;
             }
         }
@@ -292,7 +310,7 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
-        /// [마스터] 씬 로딩이 끝났거나 사본이 어긋난 클라이언트에게 전체 목록을 보냅니다.
+        /// [마스터] 씬 로딩이 끝났거나 사본이 어긋난 클라이언트의 "준비됐다/다시 달라"는 알림을 받아, 그 클라이언트에게만 전체 목록을 보냅니다.
         /// </summary>
         [PunRPC]
         public void RpcReady(PhotonMessageInfo info)
@@ -327,6 +345,11 @@ namespace Enzeun.Runtime
         private static bool IsFromMaster(PhotonMessageInfo info)
         {
             return info.Sender != null && info.Sender.IsMasterClient;
+        }
+
+        private static bool IsLocalActor(int actorNumber)
+        {
+            return PhotonNetwork.LocalPlayer != null && actorNumber == PhotonNetwork.LocalPlayer.ActorNumber;
         }
 
         private void SendReady()

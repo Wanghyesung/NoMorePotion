@@ -23,12 +23,9 @@ namespace Enzeun.Runtime
     public class SatiationManager : MonoBehaviour
     {
         // 기본값 : 50%
+        // 구간 판정 : 90% 이상 -> 배부름 디버프 / 20% 이하 -> 허기 디버프 / 0% -> 굶주림 디버프(허기보다 우선)
 
-        // 5초당 1% 감소 (러프)
-        // 20% 이하 -> 허기 디버프
-        // 0% -> 허기 에서 굶주림 디버프로 변경
-
-        // 90% 이상 -> 배부름 디버프
+        // TODO(미구현 기획): 5초당 1% 감소 (러프)
 
 
         // 포만감 초기값
@@ -57,6 +54,10 @@ namespace Enzeun.Runtime
         public event Action<SatiationState, SatiationState> OnSatiationStateChanged;
 
         private int _satiation;
+
+        /// <summary>
+        /// 현재 포만감 수치(0~100). 변경은 증감 메서드로만 합니다.
+        /// </summary>
         [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int satiation
         {
@@ -67,6 +68,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 값을 초기값으로 되돌리고 구간을 다시 판정합니다. 구간이 같으면 이벤트는 발생하지 않습니다.
+        /// </summary>
         public void ResetSatiation()
         {
             _satiation = initialSatiation;
@@ -76,6 +80,9 @@ namespace Enzeun.Runtime
             CheckCurrentSatiation();
         }
 
+        /// <summary>
+        /// amount(양수)만큼 증가 후 0~100 으로 제한하고 구간을 다시 판정합니다.
+        /// </summary>
         [Button, LabelText("포만감 증가")]
         public void IncreaseSatiation(int amount)
         {
@@ -87,6 +94,9 @@ namespace Enzeun.Runtime
             CheckCurrentSatiation();
         }
 
+        /// <summary>
+        /// amount(양수)만큼 감소 후 0~100 으로 제한하고 구간을 다시 판정합니다.
+        /// </summary>
         [Button, LabelText("포만감 감소")]
         public void DecreaseSatiation(int amount)
         {
@@ -98,6 +108,9 @@ namespace Enzeun.Runtime
             CheckCurrentSatiation();
         }
 
+        /// <summary>
+        /// 현재 수치로 구간을 판정합니다. 구간이 바뀐 경우에만 이벤트가 발생합니다.
+        /// </summary>
         private void CheckCurrentSatiation()
         {
             SatiationState prevState = currentSatiationState;

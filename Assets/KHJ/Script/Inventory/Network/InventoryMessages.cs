@@ -7,13 +7,11 @@ namespace Enzeun.Runtime
     /// <summary>
     /// 인벤토리 네트워크 메시지(요청, 적용, 거부)를 byte 배열로 묶고 푸는 정적 도우미입니다.
     /// 네트워크 라이브러리를 모르는 순수 C# 이라서 에디터에서 왕복 시험을 할 수 있습니다.
-    ///
-    /// 형식 (리틀 엔디언, 맨 앞은 항상 버전 1 byte)
-    /// - 요청  : 버전, 종류, 요청 번호(int), 종류별 내용
-    /// - 적용  : 버전, 종류, 요청 번호(int), 요청한 사람(int), 사본 버전(int), 종류별 내용
-    /// - 거부  : 버전, 요청 번호(int), 이유(byte)
-    /// 형식이 어긋나면(모자람, 남음, 모르는 값) 예외 없이 false 를 반환합니다.
-    /// 종류별 내용은 쓰는 코드와 읽는 코드를 바로 위아래에 붙여 순서가 어긋나지 않게 했습니다.
+    /// 형식 (리틀 엔디언, 맨 앞은 버전 1 byte)
+    /// - 요청 : 버전, 종류, 요청 번호(int), 종류별 내용
+    /// - 적용 : 버전, 종류, 요청 번호(int), 요청한 사람(int), 사본 버전(int), 종류별 내용
+    /// - 거부 : 버전, 요청 번호(int), 이유(byte)
+    /// 형식이 어긋나면 예외 없이 false 를 반환합니다.
     /// </summary>
     public static class InventoryMessages
     {
@@ -24,6 +22,9 @@ namespace Enzeun.Runtime
 
         // ==================== 요청 (클라이언트 -> 마스터) ============================
 
+        /// <summary>
+        /// 요청(마스터가 확정하기 전의 의도)을 byte 로 묶습니다.
+        /// </summary>
         public static byte[] PackRequest(InventoryCommand command)
         {
             using (var stream = new MemoryStream())
@@ -72,6 +73,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 요청을 풉니다. 형식이 어긋나거나 알 수 없는 종류이면 false 입니다.
+        /// </summary>
         public static bool TryUnpackRequest(byte[] data, out InventoryCommand command)
         {
             command = default;
@@ -174,6 +178,9 @@ namespace Enzeun.Runtime
 
         // ==================== 적용 (마스터 -> 전원) ============================
 
+        /// <summary>
+        /// 적용(마스터가 확정한 값)을 byte 로 묶습니다.
+        /// </summary>
         public static byte[] PackApply(InventoryCommand command)
         {
             using (var stream = new MemoryStream())
@@ -226,6 +233,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 적용을 풉니다. 형식이 어긋나거나 알 수 없는 종류/ID 이면 false 입니다.
+        /// </summary>
         public static bool TryUnpackApply(byte[] data, out InventoryCommand command)
         {
             command = default;
@@ -321,6 +331,9 @@ namespace Enzeun.Runtime
 
         // ==================== 거부 (마스터 -> 요청한 사람) ============================
 
+        /// <summary>
+        /// 거부(요청 번호 + 이유)를 byte 로 묶습니다.
+        /// </summary>
         public static byte[] PackDeny(int requestId, InventoryDenyReason reason)
         {
             using (var stream = new MemoryStream())
@@ -335,6 +348,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 거부를 풉니다. 길이나 버전이 맞지 않으면 false 입니다.
+        /// </summary>
         public static bool TryUnpackDeny(byte[] data, out int requestId, out InventoryDenyReason reason)
         {
             requestId = 0;

@@ -7,8 +7,7 @@ namespace Enzeun.Runtime
 {
     /// <summary>
     /// 월드에 떨어져 있는 재료 한 묶음(재료 + 개수)입니다. 월드 오브젝트가 소진되면 드롭 결과로 만들어집니다.
-    /// 포션이 PotionInstance 로 "데이터를 담은 런타임 개체"를 갖는 것처럼, 재료도 이 컴포넌트가 재료 데이터와 개수를 담아 월드에 존재합니다.
-    /// 인벤토리 안에서는 개수만 다루므로(InventorySlot / MaterialInventory) 별도 인스턴스 클래스는 두지 않고, 월드에 있는 동안만 이 컴포넌트를 씁니다.
+    /// 인벤토리 안에서는 개수만 다루므로(InventorySlot / MaterialInventory), 월드에 있는 동안만 이 컴포넌트가 재료 데이터와 개수를 담습니다.
     ///
     /// 네트워크로 만들 때는 재료 ID 와 개수 두 값만 보내고, 받는 쪽이 Initialize(재료 ID, 개수)로 복원하면 됩니다.
     /// </summary>

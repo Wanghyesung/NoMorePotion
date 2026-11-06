@@ -29,7 +29,7 @@ namespace Enzeun.Runtime
         public Vector3 Position { get; }
 
         /// <summary>
-        /// 상자의 칸입니다.
+        /// 상자의 칸입니다. 개인 인벤토리(PersonalInventory)와 같은 구조입니다.
         /// </summary>
         public PersonalInventory Slots { get; }
     }

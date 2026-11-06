@@ -24,19 +24,14 @@ namespace Enzeun.Runtime
     public class MentalStrengthManager : MonoBehaviour
     {
         // 기본값 : 50%
-        // 대미지를 입을 때마다 5% 감소
-        // 디버프 받을 때마다 5% 감소
+        // 구간 판정 : 50% 이하 -> 뭐라고? / 30% 이하 -> 혼란 / 10% 이하 -> 죽어라 / 90% 이상 -> Smart / 0% 이하 -> 사망 이벤트(한 번만)
+        // Smart(smartThreshold 이상) -> 똑똑이 버프, 그 외 90 미만 -> 멍청함 디버프는
+        // 이 클래스가 아니라 SurviveStatusEffectTable(상태 -> 효과)에서 설정합니다.
 
-        // 밝기 3단계 : 50% 이하면 50% 까지 2초당 1% 증가
-        // 밝기 2단계 : 3초당 1% 감소
-        // 밝기 1단계 : 3초당 2% 감소
-        // 50% 이하 시 뭐라고? 디버프 활성화,
-        // 50% 초과 뭐라고? 디버프 비활성화.
-        // 30% 이하 떨어지는 순간 혼란 디버프
-        // 10% 되면 죽어라 디버프 활성화
-        // 0% 되면 즉사
-
-        // 90% 이상 -> 멍청함 -> 똑똑이 버프로 변경
+        // TODO(미구현 기획): 대미지를 입을 때마다 5% 감소 / 디버프 받을 때마다 5% 감소
+        // TODO(미구현 기획): 밝기 3단계 : 50% 이하면 50% 까지 2초당 1% 증가
+        // TODO(미구현 기획): 밝기 2단계 : 3초당 1% 감소
+        // TODO(미구현 기획): 밝기 1단계 : 3초당 2% 감소
 
 
         // 정신력 초기값
@@ -81,6 +76,10 @@ namespace Enzeun.Runtime
         public event Action OnDeathThresholdReached;
 
         private int _mentalStrength;
+
+        /// <summary>
+        /// 현재 정신력 수치(0~100). 변경은 증감 메서드로만 합니다.
+        /// </summary>
         [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int mentalStrength
         {
@@ -91,6 +90,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 값을 초기값으로 되돌리고 구간을 다시 판정합니다. 구간이 같으면 이벤트는 발생하지 않습니다.
+        /// </summary>
         public void ResetMentalStrength()
         {
             isDead = false;
@@ -101,6 +103,9 @@ namespace Enzeun.Runtime
             CheckCurrentMentalStrength();
         }
 
+        /// <summary>
+        /// amount(양수)만큼 증가 후 0~100 으로 제한하고 구간을 다시 판정합니다.
+        /// </summary>
         [Button, LabelText("정신력 증가")]
         public void IncreaseMentalStrength(int amount)
         {
@@ -112,6 +117,9 @@ namespace Enzeun.Runtime
             CheckCurrentMentalStrength();
         }
 
+        /// <summary>
+        /// amount(양수)만큼 감소 후 0~100 으로 제한하고 구간을 다시 판정합니다.
+        /// </summary>
         [Button, LabelText("정신력 감소")]
         public void DecreaseMentalStrength(int amount)
         {
@@ -123,6 +131,9 @@ namespace Enzeun.Runtime
             CheckCurrentMentalStrength();
         }
 
+        /// <summary>
+        /// 현재 수치로 구간을 판정합니다. 구간이 바뀐 경우에만 이벤트가 발생합니다. 0 이하가 되면 사망 이벤트도 한 번 발생시킵니다.
+        /// </summary>
         private void CheckCurrentMentalStrength()
         {
             MentalState prevState = currentMentalState;

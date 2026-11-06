@@ -8,17 +8,11 @@ using UnityEngine;
 namespace Enzeun.Runtime
 {
     /// <summary>
-    /// 인벤토리 내용을 ID 만 담은 작은 byte 배열로 묶고(Pack) 다시 푸는(TryUnpack) 정적 도우미입니다.
-    /// SO 는 네트워크로 보낼 수 없으므로 모든 아이템을 ID 로 바꿔 보내고, 받는 쪽이 ID 로 SO 를 다시 찾습니다.
-    ///
-    /// 형식 (모든 값은 리틀 엔디언)
-    /// - 모든 묶음의 맨 앞은 버전 1 byte 입니다. 버전이 다르면 풀지 않습니다.
-    /// - 포션 한 개 : 인스턴스 ID(int 4) + 포션 ID(ushort 2) + 함정 키워드 ID(ushort 2, 없으면 0) = 8 byte
-    /// - 재료 : 재료 ID(ushort 2) + 개수(ushort 2) = 4 byte
-    /// - 칸 : 종류(byte 1) + [재료면 재료 ID, 개수 / 포션이면 포션 한 개]
-    ///
-    /// 풀기 실패는 예외 대신 false 를 반환합니다. (모자라거나 남는 byte, 알 수 없는 ID, 다른 버전 모두 실패)
-    /// 쓰기와 읽기의 순서가 어긋나지 않도록, 각 항목을 쓰는 코드와 읽는 코드를 바로 위아래에 붙여 두었습니다.
+    /// 인벤토리 내용을 ID 만 담은 byte 배열로 묶고(Pack) 다시 푸는(TryUnpack) 정적 도우미입니다.
+    /// SO 는 네트워크로 보낼 수 없으므로 ID 로 바꿔 보내고, 받는 쪽이 ID 로 SO 를 다시 찾습니다.
+    /// 모든 묶음의 맨 앞은 버전 1 byte 이며(리틀 엔디언), 버전이 다르면 풀지 않습니다.
+    /// 세부 형식은 각 Write/Read 메서드의 주석을 참고하세요.
+    /// 풀기 실패(모자라거나 남는 byte, 알 수 없는 ID, 다른 버전)는 예외 대신 false 를 반환합니다.
     /// </summary>
     public static class InventoryPacker
     {
@@ -29,6 +23,9 @@ namespace Enzeun.Runtime
 
         // ==================== 포션 목록 ============================
 
+        /// <summary>
+        /// 포션 목록을 byte 로 묶습니다. 버전 + 개수(ushort) + 포션들. 개수가 ushort 범위를 넘으면 OverflowException 입니다.
+        /// </summary>
         public static byte[] PackPotions(IReadOnlyList<PotionInstance> potions)
         {
             using (var stream = new MemoryStream())
@@ -47,6 +44,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 포션 목록을 풉니다. 형식이 어긋나거나 알 수 없는 ID 가 있으면 false 이고 potions 는 null 입니다.
+        /// </summary>
         public static bool TryUnpackPotions(byte[] data, out List<PotionInstance> potions)
         {
             List<PotionInstance> result = null;
@@ -76,6 +76,9 @@ namespace Enzeun.Runtime
 
         // ==================== 재료 ============================
 
+        /// <summary>
+        /// 재료 개수를 byte 로 묶습니다. 버전 + 종류 수(ushort) + (재료 ID, 개수)들. 값이 ushort 범위를 넘으면 OverflowException 입니다.
+        /// </summary>
         public static byte[] PackMaterials(IReadOnlyDictionary<int, int> counts)
         {
             using (var stream = new MemoryStream())
@@ -95,6 +98,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 재료 개수를 풉니다. 알 수 없는 ID, 개수 0 이하, ID 중복이면 false 이고 counts 는 null 입니다.
+        /// </summary>
         public static bool TryUnpackMaterials(byte[] data, out Dictionary<int, int> counts)
         {
             Dictionary<int, int> result = null;
@@ -127,6 +133,9 @@ namespace Enzeun.Runtime
 
         // ==================== 칸 (개인 인벤토리, 시체 상자) ============================
 
+        /// <summary>
+        /// 칸 배열을 byte 로 묶습니다. 버전 + 칸 수(byte) + 칸들. 칸 수가 byte 범위를 넘으면 OverflowException 입니다.
+        /// </summary>
         public static byte[] PackSlots(IReadOnlyList<InventorySlot> slots)
         {
             using (var stream = new MemoryStream())
@@ -145,6 +154,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// 칸 배열을 풉니다. 형식이 어긋나거나 알 수 없는 값이 있으면 false 이고 slots 는 null 입니다.
+        /// </summary>
         public static bool TryUnpackSlots(byte[] data, out InventorySlot[] slots)
         {
             InventorySlot[] unpacked = null;

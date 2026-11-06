@@ -8,15 +8,8 @@ using UnityEngine;
 namespace Enzeun.Runtime
 {
     /// <summary>
-    /// 씬에 배치된 월드 오브젝트(꽃, 나무, 광물 등) 한 개의 런타임 상태입니다. 남은 횟수를 관리합니다.
-    ///
-    /// 횟수 차감 규칙 (기획)
-    /// - 상호작용 타입(Interacting) : 상호작용 1회당 1 차감, 포션 대미지는 받지 않음
-    /// - 파괴 타입(Destroying) : 상호작용으로는 차감되지 않고, 맞는 종류의 대미지가 들어올 때만 대미지 수치만큼 차감
-    ///   예) 식물 대미지 1/2/3 을 주는 소/중/대 포션은 횟수를 1/2/3 씩 차감합니다.
-    /// - 횟수가 0 이 되면 소진되며, 소진 이벤트는 한 번만 발생합니다.
-    ///
-    /// SO(WorldObjectData)는 모든 오브젝트가 공유하는 설정값이라 남은 횟수 같은 변하는 값은 이 컴포넌트가 가집니다.
+    /// 씬에 배치된 월드 오브젝트(꽃, 나무, 광물 등) 한 개의 런타임 상태입니다. 남은 횟수를 관리하며, 0 이 되면 소진 이벤트를 한 번만 발생시킵니다.
+    /// 규칙은 WorldObjectRules 참고. SO(WorldObjectData)는 공유 설정값이라 남은 횟수 같은 변하는 값은 이 컴포넌트가 가집니다.
     /// </summary>
     public class WorldObject : MonoBehaviour
     {
@@ -53,13 +46,26 @@ namespace Enzeun.Runtime
 
         private void Awake()
         {
-            ResetCount();
+            InitializeCount();
         }
 
         /// <summary>
-        /// 남은 횟수를 SO 에 설정된 최대 횟수로 되돌리고 소진 상태를 다시 판정합니다.
+        /// 남은 횟수를 SO 에 설정된 최대 횟수로 되돌리고 소진 상태를 다시 판정합니다. 로컬 전용입니다.
+        /// 멀티플레이에는 "횟수 되돌리기" 메시지가 없어서, 방 안에서 호출하면 마스터 사본과 어긋나므로 경고만 하고 무시합니다.
         /// </summary>
         public void ResetCount()
+        {
+            if (UsesNetwork)
+            {
+                Debug.LogWarning($"[WorldObject]: {name} 은(는) 멀티플레이 동기화 중이라 횟수를 되돌릴 수 없습니다. (마스터 사본과 어긋남)");
+                return;
+            }
+
+            InitializeCount();
+        }
+
+        // 남은 횟수를 최대 횟수로 채웁니다. Awake 에서는 멀티플레이 여부와 상관없이 항상 호출합니다. (모든 클라이언트가 같은 값으로 시작)
+        private void InitializeCount()
         {
             if (_data == null)
             {
@@ -82,7 +88,7 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 상호작용합니다. 상호작용 타입이면 횟수를 1 차감하고, 파괴 타입이면 아무것도 차감하지 않습니다.
         /// </summary>
-        /// <returns>횟수가 차감되었으면 true</returns>
+        /// <returns>횟수가 차감되었으면 true. 멀티플레이에서는 마스터에게 요청을 보냈으면 true 이며, 실제 차감은 비동기로 도착합니다.</returns>
         public bool Interact()
         {
             if (_data == null || isDepleted)
@@ -196,6 +202,9 @@ namespace Enzeun.Runtime
 #if UNITY_EDITOR
         // ==================== 에디터 테스트용 ============================
 
+        /// <summary>
+        /// [테스트] Play 모드에서 상호작용을 한 번 실행합니다.
+        /// </summary>
         [Button("테스트: 상호작용", ButtonSizes.Large)]
         [GUIColor(1f, 0.8f, 0.4f)]
         private void InteractForTest()
@@ -209,6 +218,9 @@ namespace Enzeun.Runtime
             Interact();
         }
 
+        /// <summary>
+        /// [테스트] Play 모드에서 이 오브젝트의 종류를 대상으로 하는 포션 대미지를 damage 만큼 줍니다.
+        /// </summary>
         [Button("테스트: 대상 종류 대미지", ButtonSizes.Large)]
         [GUIColor(1f, 0.8f, 0.4f)]
         private void DamageForTest(int damage = 1)
@@ -229,6 +241,9 @@ namespace Enzeun.Runtime
             ReceivePotionDamage(effect);
         }
 
+        /// <summary>
+        /// [테스트] 남은 횟수를 최대 횟수로 되돌립니다. (멀티플레이 동기화 중에는 무시)
+        /// </summary>
         [Button("테스트: 횟수 초기화", ButtonSizes.Large)]
         [GUIColor(1f, 0.8f, 0.4f)]
         private void ResetForTest()

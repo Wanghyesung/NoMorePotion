@@ -12,6 +12,9 @@ using System;
 namespace Enzeun.Editor
 {
 
+    /// <summary>
+    /// 재료/포션/월드 오브젝트/버프/디버프/함정 키워드 SO 를 생성하고 목록으로 보는 에디터 창입니다. (Tools/아이템 데이터 관리자)
+    /// </summary>
     public class ItemDatabaseWindow : OdinMenuEditorWindow
     {
         public static readonly string materialFolderPath = "Assets/Resources/" + PotionDataManager.materialFolderPath;
@@ -45,6 +48,9 @@ namespace Enzeun.Editor
         CreateButton<StatusEffectData> createDebuffButton;
         CreateButton<TrapPotionKeyword> createTrapKeywordButton;
 
+        /// <summary>
+        /// 창을 엽니다.
+        /// </summary>
         [MenuItem("Tools/아이템 데이터 관리자")]
         private static void OpenWindow()
         {
@@ -53,6 +59,9 @@ namespace Enzeun.Editor
             window.Show();
         }
 
+        /// <summary>
+        /// 창이 닫힐 때 아직 에셋으로 저장되지 않은 생성용 임시 SO 를 정리합니다.
+        /// </summary>
         protected override void OnDestroy()
         {
             base.OnDestroy();
@@ -65,6 +74,9 @@ namespace Enzeun.Editor
             createTrapKeywordButton?.Dispose();
         }
 
+        /// <summary>
+        /// 생성 버튼과 종류별 에셋 목록으로 메뉴 트리를 만듭니다.
+        /// </summary>
         protected override OdinMenuTree BuildMenuTree()
         {
             var tree = new OdinMenuTree();

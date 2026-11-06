@@ -9,9 +9,6 @@ namespace Enzeun.Runtime
 {
     public class WorldObjectDataManager : MonoBehaviour
     {
-        // ==================== 싱글턴 & 스태틱 설정 ============================
-        // ==================== 언제든지 월드 오브젝트 데이터에 접근할 수 있도록 ============================
-
         public static WorldObjectDataManager Instance { get; private set; }
 
         private void Awake()
@@ -22,7 +19,9 @@ namespace Enzeun.Runtime
             }
             else
             {
+                // 중복 매니저는 데이터를 다시 불러오지 않고 제거합니다.
                 Destroy(gameObject);
+                return;
             }
 
             FindAllWorldObjectData();
@@ -32,9 +31,6 @@ namespace Enzeun.Runtime
         public static readonly string worldObjectFolderPath = "ScriptableObjects/WorldObjects";
 
         #region 월드 오브젝트 데이터 접근 메서드
-
-        // ==================== 월드 오브젝트 드롭 테이블 찾기 로직 ============================
-
 
         [ShowInInspector, ReadOnly]
         private Dictionary<int, WorldObjectData> worldObjectDataDictionary = new Dictionary<int, WorldObjectData>();

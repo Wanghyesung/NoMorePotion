@@ -4,7 +4,9 @@ using Sirenix.OdinInspector;
 
 namespace Enzeun.SO
 {
-
+    /// <summary>
+    /// 재료 데이터입니다. (20000번대) 최대 보유 개수가 -1 이면 기본 한도 99 를 사용합니다.
+    /// </summary>
     [CreateAssetMenu(fileName = "MaterialData", menuName = "Scriptable Objects/MaterialData")]
     public class MaterialData : ScriptableObject, IItemData
     {
@@ -44,6 +46,9 @@ namespace Enzeun.SO
         public int maxHoldCount => _maxHoldCount;
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// 에디터 전용: 생성 도구가 ID 를 지정한다.
+        /// </summary>
         public void SetID(int id)
         {
             _materialID = id;

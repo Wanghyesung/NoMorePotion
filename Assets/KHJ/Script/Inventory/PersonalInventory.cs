@@ -10,9 +10,7 @@ namespace Enzeun.Runtime
     /// 개인 인벤토리입니다. 고정된 칸(기본 10칸)이 있고, 어느 칸이든 재료 묶음이나 포션 한 개를 담을 수 있습니다.
     /// UI 칸과 1:1 로 대응하며, 칸끼리 자유롭게 옮길 수 있습니다. (같은 재료는 합쳐짐, 다른 것은 서로 바뀜)
     /// 죽은 플레이어가 남기는 시체 상자의 내용물도 같은 클래스를 사용합니다.
-    ///
-    /// 팀 공유 인벤토리와 달리 소유자 클라이언트에만 존재하고 네트워크로 동기화하지 않습니다.
-    /// (죽을 때 내용을 TakeAll 로 꺼내서 시체 상자를 만드는 데만 사용)
+    /// 팀 공유 인벤토리와 달리 소유자 클라이언트에만 존재하며(죽을 때 TakeAll 로 시체 상자를 만드는 데만 사용),
     /// 네트워크를 모르는 순수 C# 클래스입니다.
     /// </summary>
     public sealed class PersonalInventory
@@ -107,9 +105,9 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
-        /// 포션을 첫 번째 빈 칸에 넣습니다.
+        /// 포션을 첫 번째 빈 칸에 넣습니다. 마스터를 거쳐 인스턴스 ID 를 받은 포션만 받습니다.
         /// </summary>
-        /// <returns>들어간 칸의 위치. 빈 칸이 없거나 null 이면 -1</returns>
+        /// <returns>들어간 칸의 위치. 빈 칸이 없거나, null 이거나, ID 가 없으면 -1 (ID 가 없는 포션은 받지 않고 버려집니다)</returns>
         public int AddPotion(PotionInstance potion)
         {
             if (potion == null)
@@ -117,11 +115,11 @@ namespace Enzeun.Runtime
                 return -1;
             }
 
-            // ID 가 없는 포션은 네트워크로 묶을 수 없어(풀 때 실패해서 시체 상자 내용이 사라짐) 여기서 발급해 둡니다.
-            // 멀티플레이에서는 제작 단계에서 마스터가 이미 ID 를 정하므로, 보통은 이미 ID 가 있는 포션이 들어옵니다.
-            if (potion.InstanceId == 0)
+            // 포션 ID 는 마스터만 발급합니다. 로컬에서 만든 채 ID 가 없는 포션을 받으면 ID 가 겹치거나 네트워크로 묶지 못해 시체 상자가 깨집니다.
+            if (potion.InstanceId <= 0)
             {
-                potion.AssignInstanceId(PotionInstanceIds.Next());
+                Debug.LogWarning("[PersonalInventory]: 인스턴스 ID 가 없는 포션은 넣을 수 없어 버립니다. 마스터를 거쳐 ID 를 받은 포션만 넣어 주세요.");
+                return -1;
             }
 
             for (int i = 0; i < _slots.Length; i++)
@@ -240,6 +238,22 @@ namespace Enzeun.Runtime
 
             if (_slots[index].IsEmpty)
             {
+                // 빈 칸이어도 재료는 한 칸의 한도를 넘겨 놓을 수 없습니다. (한도를 넘는 묶음이 시체 상자 검증을 통과하는 것을 막음)
+                if (content.Kind == InventorySlotKind.Material)
+                {
+                    int limit = _limitProvider(content.MaterialId);
+
+                    if (limit <= 0 || content.Count <= 0)
+                    {
+                        return false;
+                    }
+
+                    int placedCount = Math.Min(limit, content.Count);
+                    placed = InventorySlot.OfMaterial(content.MaterialId, placedCount);
+                    leftover = content.Count - placedCount > 0 ? InventorySlot.OfMaterial(content.MaterialId, content.Count - placedCount) : default;
+                    return true;
+                }
+
                 placed = content;
                 leftover = default;
                 return true;
@@ -306,7 +320,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 칸 배열을 그대로 불러옵니다. 시체 상자를 만들 때 TakeAll 결과나 네트워크로 받은 내용을 적용하는 데 사용합니다.
-        /// 기존 내용은 지워지고, 칸 수보다 많은 입력은 무시합니다.
+        /// 기존 내용은 지워지고, 칸 수보다 많은 입력은 무시합니다. OnSlotChanged 를 모든 칸에 발생시킵니다.
         /// </summary>
         public void Load(IReadOnlyList<InventorySlot> source)
         {
