@@ -14,8 +14,8 @@ public enum RankingSubmitResult
 /// 랭킹 등록 창구. 클리어한 판만 등록, 오프라인 싱글은 등록하지 않음.
 /// </summary>
 /// <remarks>
-/// GameEndManager가 판정 순간 방장에서 1번만 호출한다. UI 등 다른 곳에서 호출하지 말 것 (중복 등록)
-/// TODO(온라인) : 서버(Firebase 등) 등록 구현. 비동기가 되면 UniTask 반환 + Pending 상태 추가
+/// GameSessionManager가 판정 순간 방장에서 1번만 호출한다. UI 등 다른 곳에서 호출하지 말 것 (중복 등록)
+/// TODO(온라인): 서버(Firebase 등) 등록 구현. 비동기가 되면 UniTask 반환 + Pending 상태 추가
 /// </remarks>
 public static class RankingService
 {

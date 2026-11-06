@@ -24,7 +24,8 @@ using UnityEngine;
 ///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
 ///   Time.time 기준, 시계가 도는 동안 방장에서만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
 ///
-/// [정지] 게임 종료(GameEndManager.Result) 시 자동으로 멈춤. 멈춘 뒤 값은 그대로 남음
+/// [정지] 판이 끝나면(GameSessionManager.Phase == Ended) 자동으로 멈춤. 멈춘 뒤 값은 그대로 남음
+///   시작은 GameSessionManager가 StartClock()을 호출
 ///
 /// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
 ///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
@@ -81,15 +82,15 @@ public class TimeManager : MonoBehaviour
 
     private void Start()
     {
-        // GameEndManager.Instance는 Awake에서 등록되므로 Start에서 구독
-        if (GameEndManager.Instance == null)
+        // GameSessionManager.Instance는 Awake에서 등록되므로 Start에서 구독
+        if (GameSessionManager.Instance == null)
         {
-            Debug.LogWarning("[TimeManager] GameEndManager 없음, 게임 종료 시 시계가 멈추지 않음");
+            Debug.LogWarning("[TimeManager] GameSessionManager 없음, 게임 종료 시 시계가 멈추지 않음");
             return;
         }
 
-        GameEndManager.Instance.Result
-            .Where(r => r != GameResult.None)
+        GameSessionManager.Instance.Phase
+            .Where(p => p == SessionPhase.Ended)
             .Subscribe(_ => StopClock())
             .AddTo(this);
     }

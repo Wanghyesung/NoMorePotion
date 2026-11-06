@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 판 종료(클리어/패배) 시 결과창 표시. 닫으면 아웃게임으로 나감.
-/// GameEndManager를 구독만 하며, GameEndManager는 결과창을 모른다.
+/// GameSessionManager를 구독만 하며, GameSessionManager는 결과창을 모른다.
 /// </summary>
 /// <remarks>
 /// 항상 켜져 있는 오브젝트(캔버스)에 붙이고 popupRoot만 켜고 끈다.
@@ -34,23 +34,26 @@ public class GameResultPopupUI : MonoBehaviour
 
     private void Start()
     {
-        // GameEndManager.Instance는 Awake에서 등록되므로 Start에서 구독
-        if (GameEndManager.Instance == null)
+        // GameSessionManager.Instance는 Awake에서 등록되므로 Start에서 구독
+        if (GameSessionManager.Instance == null)
         {
-            Debug.LogWarning("[GameResultPopupUI] GameEndManager 없음, 결과창이 뜨지 않음");
+            Debug.LogWarning("[GameResultPopupUI] GameSessionManager 없음, 결과창이 뜨지 않음");
             return;
         }
 
-        // 기록은 GameEndManager가 판정 순간에 만든 값만 표시 (여기서 TimeManager를 읽거나 등록하지 않음)
-        GameEndManager.Instance.Record
-            .Where(r => r.HasValue)
-            .Subscribe(r => Show(r.Value))
+        // Ended 알림 시점엔 Record가 이미 채워져 있음 (GameSessionManager.Finish의 순서 보장)
+        // 표시만 하고 TimeManager를 읽거나 랭킹을 등록하지 않음
+        GameSessionManager.Instance.Phase
+            .Where(r => r == SessionPhase.Ended)
+            .Subscribe(r => Show(GameSessionManager.Instance.Record.Value))
             .AddTo(this);
 
         // 등록 결과는 기록보다 늦게 올 수 있으므로 따로 구독
-        GameEndManager.Instance.RankingSubmit
+        GameSessionManager.Instance.RankingSubmit
             .Subscribe(s => rankingText.text = ToRankingMessage(s))
             .AddTo(this);
+
+        // 등록 결과는 기록보다 늦게 올 수 있으므로 따로 구독 (온라인 등록이 비동기가 될 때 대비)
     }
 
 
