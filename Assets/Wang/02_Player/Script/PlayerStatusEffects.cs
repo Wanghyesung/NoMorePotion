@@ -35,8 +35,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
     // 임시 테스트: P를 누를 때마다 테스트 버프를 적용/해제한다.
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P))
-            ToggleTestBuff();
+        //if (Input.GetKeyDown(KeyCode.P))
+        //    ToggleTestBuff();
     }
 
     private void ToggleTestBuff()
