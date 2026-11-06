@@ -1,4 +1,5 @@
 using UnityEngine;
+using Enzeun.Runtime;
 
 /*///////////////////////////////////////////
                        TestPotion
@@ -6,18 +7,50 @@ using UnityEngine;
  *///////////////////////////////////////////
 
 [RequireComponent(typeof(ParabolicMovement))]
+[RequireComponent(typeof(Enzeun.Runtime.Potion))]
 public class TestPotion : MonoBehaviour
 {
     private ParabolicMovement movement;
+    private Enzeun.Runtime.Potion potion;
+    private bool canExplodeOnContact;
     [SerializeField] private LayerMask mask;
     private void Awake()
     {
         movement = GetComponent<ParabolicMovement>();
+        potion = GetComponent<Enzeun.Runtime.Potion>();
     }
 
+    public void Initialize(PotionInstance instance)
+    {
+        potion.Initialize(instance);
+        canExplodeOnContact = false;
+    }
+
+    // 손에 보관하는 동안에는 Trigger에 닿아도 폭발하지 않는다.
+    public void Hold(Transform owner)
+    {
+        canExplodeOnContact = false;
+        movement.enabled = false;
+    }
+
+    public void Throw(ThrowData data)
+    {
+        movement.enabled = true;
+        movement.Launch(data);
+        canExplodeOnContact = true;
+    }
+
+    public void Drink(Vector3 position)
+    {
+        canExplodeOnContact = false;
+        potion.ExplodeAt(position);
+    }
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!canExplodeOnContact || potion.HasExploded)
+            return;
+       
         int otherLayer = (1 << other.gameObject.layer);
 
         if((otherLayer & mask) != 0)
@@ -31,14 +64,9 @@ public class TestPotion : MonoBehaviour
             else
                 hitPoint = other.ClosestPoint(transform.position);
 
-            other.GetComponent<IDamageable>()?.TakeDamage(new CommonStruct.AttackInfo
-            {
-                Damage = 10,
-                AttackPower = 1,
-                Position = hitPoint,
-                //Debug.Log("TestPotion hit: " + other.name + " at " + hitPoint.ToString());
-            });
-            //Debug.Log("Po
+            canExplodeOnContact = false;
+            movement.enabled = false;
+            potion.ExplodeAt(hitPoint);
         }
     }
 

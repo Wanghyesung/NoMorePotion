@@ -32,6 +32,7 @@ public sealed class PlayerThrowState : PlayerState
 
     #region RuntimeState
     private bool isAiming;
+    public bool IsAiming => isAiming;
     private bool isThrowing;
     private TestPotion throwingPotion;
     private Hand.Side throwingSide;
@@ -61,7 +62,6 @@ public sealed class PlayerThrowState : PlayerState
         animEvent.RegisterFrame(rightClip, rightClipEvents[1], ThrowPotion);
         animEvent.RegisterFrame(rightClip, rightClipEvents[2], FinishThrow);
 
-        Instance.Skill0Action.performed += RequestThrow;
         Instance.AimAction.performed += RequestAim;
         Instance.AimAction.canceled += CancelAim;
         
@@ -80,7 +80,6 @@ public sealed class PlayerThrowState : PlayerState
 
         if (Instance != null)
         {
-            Instance.Skill0Action.performed -= RequestThrow;
             Instance.AimAction.performed -= RequestAim;
             Instance.AimAction.canceled -= CancelAim;
         }
@@ -103,7 +102,7 @@ public sealed class PlayerThrowState : PlayerState
         playerView.rotation = targetRotation;
     }
 
-    private void RequestThrow(InputAction.CallbackContext context)
+    public void RequestThrow()
     {
         if (owner.CurrentActionState == this)
         {

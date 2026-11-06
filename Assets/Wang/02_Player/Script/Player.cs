@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using static InputManager;
-using Enzeun.Runtime;
 
 /*///////////////////////////////////////////
                       Player
@@ -19,6 +19,13 @@ public class PlayerCharacter : Character
 public sealed class Player : MonoBehaviour, IDamageable
 {
     private FSM fsm;
+    [SerializeField, Min(0.01f)] private float drinkHoldSeconds = 1f;
+    private Hand hand;
+    private InputAction useAction;
+    private float pressedAt;
+    private bool pending;
+
+
 
     private Character character = null;
     public Character Character => character;
@@ -46,12 +53,28 @@ public sealed class Player : MonoBehaviour, IDamageable
 
         fsm = GetComponent<FSM>();
         fsm.Init(this);
+        hand = GetComponent<Hand>();
     }
 
    
 
+    private void Start()
+    {
+        useAction = InputManager.Instance.Skill0Action;
+        SubscribePotionInput();
+    }
+
+    private void SubscribePotionInput()
+    {
+        useAction.started += OnPressed;
+        useAction.canceled += OnReleased;
+        fsm.OnHitAction += OnHit;
+    }
+
     private void OnEnable()
     {
+        if (useAction != null)
+            SubscribePotionInput();
         if (fsm.isActiveAndEnabled == true)
             fsm.StartState();
 
@@ -59,23 +82,30 @@ public sealed class Player : MonoBehaviour, IDamageable
     }
 
     //나중에 버릴 코드
+    //private void Update()
+    //{
+    //    // 피격 테스트: O를 누르는 동안 전방 2m의 랜덤 위치에서 공격
+
+    //    bool testHit = Input.GetKeyDown(KeyCode.O);
+    //    if (Character.HP > 0 && testHit == true)
+    //    {
+    //        Vector3 attackDirection = Quaternion.AngleAxis(Random.Range(-45f, 45f), Vector3.up)
+    //            * transform.forward;
+    //        TakeDamage(new CommonStruct.AttackInfo
+    //        {
+    //            Position = transform.position + attackDirection * 2.0f,
+    //            Damage = 10,
+    //            AttackPower = 10
+    //        });
+    //    }
+        
+    //    if (Character.HP > 0)
+    //        fsm.UpdateState();
+    //}
+
     private void Update()
     {
-        // 피격 테스트: O를 누르는 동안 전방 2m의 랜덤 위치에서 공격
-
-        bool testHit = Input.GetKeyDown(KeyCode.O);
-        if (Character.HP > 0 && testHit == true)
-        {
-            Vector3 attackDirection = Quaternion.AngleAxis(Random.Range(-45f, 45f), Vector3.up)
-                * transform.forward;
-            TakeDamage(new CommonStruct.AttackInfo
-            {
-                Position = transform.position + attackDirection * 2.0f,
-                Damage = 10,
-                AttackPower = 10
-            });
-        }
-        
+        UpdatePotionInput();
         if (Character.HP > 0)
             fsm.UpdateState();
     }
@@ -88,42 +118,98 @@ public sealed class Player : MonoBehaviour, IDamageable
 
     private void OnDisable()
     {
+        CancelPending();
+        if (useAction != null)
+        {
+            useAction.started -= OnPressed;
+            useAction.canceled -= OnReleased;
+            fsm.OnHitAction -= OnHit;
+        }
         fsm.Stop();
     }
 
-    /*//////////////////////////////////////////
-                상태이상 <나중에 컴포넌트화>
-    //////////////////////////////////////////*/
 
-    // 수분 상태 변경: 정상, 촉촉함, 갈증, 탈수. oldState는 이전 상태, newState는 변경된 상태.
-    private void ChangeHydration(HydrationState oldState, HydrationState newState)
+    private bool CheckState()
     {
-
+        return isActiveAndEnabled == true && Character.HP > 0;
     }
 
-    // 체온 상태 변경: 정상, 추움, 더움. 이전 상태의 효과를 해제하고 새 상태의 효과를 적용할 위치.
-    private void ChangeBodyTemperature(BodyTemperatureState oldState, BodyTemperatureState newState)
+    private bool CanStartUse()
     {
+        if (CheckState() == false)
+            return false;
 
+        if (fsm.CurrentActionState != null || fsm.CurrentState == null)
+            return false;
+
+        if (fsm.CurrentState.Type != FSM.StateType.Idle && fsm.CurrentState.Type != FSM.StateType.Walk)
+            return false;
+
+        if (hand.FocusedPotion == null)
+            return false;
+
+        return true;
     }
 
-    // 정신력 상태 변경: 정상, 똑똑이, 뭐라고?, 혼란, 죽어라. 정신력 0의 사망 처리는 별도 함수에서 담당.
-    private void ChangeMentalState(MentalState oldState, MentalState newState)
+    private void OnPressed(InputAction.CallbackContext context)
     {
+        CancelPending();
+        if (CheckState() == false)
+            return;
 
+        if (fsm.CurrentActionState is PlayerThrowState throwing && throwing.IsAiming == true)
+        {
+            throwing.RequestThrow();
+            return;
+        }
+
+        if (CanStartUse() == false)
+            return;
+
+        pressedAt = Time.unscaledTime;
+        pending = true;
     }
 
-    // 포만감 상태 변경: 정상, 배부름, 허기, 굶주림. 이전 상태의 효과를 해제하고 새 상태의 효과를 적용할 위치.
-    private void ChangeSatiation(SatiationState oldState, SatiationState newState)
+    private void UpdatePotionInput()
     {
+        if (pending == false)
+            return;
 
+        if (CanStartUse() == false)
+        {
+            CancelPending();
+            return;
+        }
+
+        if (Time.unscaledTime - pressedAt >= drinkHoldSeconds)
+        {
+            CancelPending();
+            fsm.ChangeActionState(FSM.StateType.Drink);
+        }
     }
 
-    // 정신력이 0 이하가 되었을 때의 사망 처리를 추가할 위치. 현재 이벤트에는 연결하지 않음.
-    private void OnDeathThresholdReached()
+    private void OnReleased(InputAction.CallbackContext context)
     {
+        if (pending == false)
+            return;
 
+        bool valid = CanStartUse();
+        bool held = Time.unscaledTime - pressedAt >= drinkHoldSeconds;
+        CancelPending();
+        if (valid == true)
+            fsm.ChangeActionState(held == true ? FSM.StateType.Drink : FSM.StateType.Throw);
     }
 
+    private void OnHit(CommonStruct.AttackInfo info) => CancelPending();
 
+    private void OnApplicationFocus(bool focused)
+    {
+        if (focused == false)
+            CancelPending();
+    }
+
+    private void CancelPending()
+    {
+        pending = false;
+    }
 }

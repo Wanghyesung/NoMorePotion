@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1417736869826601}
   - component: {fileID: 8293469968150323575}
   - component: {fileID: -3302644052985452405}
+  - component: {fileID: 1394458779707385990}
   m_Layer: 0
   m_Name: Medium_Potion
   m_TagString: Untagged
@@ -62,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb5324848e76ba344962f2060f3f379e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParabolicMovement
-  speedMultiplier: 2
+  speedMultiplier: 3
 --- !u!136 &-3302644052985452405
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -86,6 +87,19 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1394458779707385990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710584622642429393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 734ded42a47f48946a27fa5e8eeb7710, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.Potion
+  _data: {fileID: 11400000, guid: dad80a017b385534784724186a5f0c73, type: 2}
 --- !u!1001 &8031493873536460068
 PrefabInstance:
   m_ObjectHideFlags: 0

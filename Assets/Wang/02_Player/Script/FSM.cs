@@ -25,6 +25,7 @@ public sealed class FSM : MonoBehaviour
         Hit = 6,
         Take = 7,
         Dead = 8,
+        Drink = 9,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
 

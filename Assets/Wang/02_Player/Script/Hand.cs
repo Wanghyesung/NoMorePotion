@@ -49,6 +49,7 @@ public sealed class Hand : MonoBehaviour
         if (GetPotion(side) != null)
             return false;
 
+        potion.Hold(transform);
         potion.transform.SetParent(side == Side.Left ? leftSocket : rightSocket, true);
         potion.transform.localPosition = Vector3.zero;
         potion.transform.localRotation = Quaternion.identity;
@@ -72,7 +73,7 @@ public sealed class Hand : MonoBehaviour
 
         SetPotion(side, null);
         potion.transform.SetParent(null, true);
-        potion.GetComponent<ParabolicMovement>().Launch(throwData);
+        potion.Throw(throwData);
     }
 
     public void Drink(Side side)
@@ -83,7 +84,7 @@ public sealed class Hand : MonoBehaviour
 
         SetPotion(side, null);
         OnDrink.Invoke(potion);
-        Destroy(potion.gameObject);
+        potion.Drink(transform.position);
     }
 
     public void Drink() => Drink(focusedSide);
