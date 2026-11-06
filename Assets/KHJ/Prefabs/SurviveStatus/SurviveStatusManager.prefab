@@ -9,12 +9,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3075701503704671629}
+  - component: {fileID: 8562001170237614411}
   - component: {fileID: 7294657976271382606}
   - component: {fileID: 859338245717457065}
   - component: {fileID: 7368753473853699296}
   - component: {fileID: 5955404539463193133}
   - component: {fileID: 6512177020031637344}
-  - component: {fileID: 8562001170237614411}
   m_Layer: 0
   m_Name: SurviveStatusManager
   m_TagString: Untagged
@@ -37,6 +37,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8562001170237614411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483758140428914537}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e828eb9ea848c14f85cd1696cf970f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
+  _assignOwnerOnAwake: 0
 --- !u!114 &7294657976271382606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,16 +133,3 @@ MonoBehaviour:
   fullThreshold: 90
   hungryThreshold: 20
   starvingThreshold: 0
---- !u!114 &8562001170237614411
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1483758140428914537}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e828eb9ea848c14f85cd1696cf970f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
-  _assignOwnerOnAwake: 0
