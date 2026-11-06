@@ -28,6 +28,7 @@ namespace Enzeun.Runtime
 
             FindAllPotionRecipes();
             LoadTrapKeywords();
+            LoadMaterials();
         }
 
         /// <summary>
@@ -36,8 +37,35 @@ namespace Enzeun.Runtime
         private void LoadTrapKeywords()
         {
             trapKeywords.Clear();
+            trapKeywordByID.Clear();
             trapKeywords.AddRange(Resources.LoadAll<TrapPotionKeyword>(TrapPotionKeyword.FolderPath));
+
+            foreach (TrapPotionKeyword keyword in trapKeywords)
+            {
+                trapKeywordByID[keyword.KeywordID] = keyword;
+            }
         }
+
+        /// <summary>
+        /// 저장소에 있는 모든 재료 데이터를 ID 로 찾을 수 있게 불러옵니다. (인벤토리의 보관 한도, 네트워크로 받은 ID 복원에 사용)
+        /// </summary>
+        private void LoadMaterials()
+        {
+            materialDataByID.Clear();
+
+            foreach (MaterialData material in Resources.LoadAll<MaterialData>(materialFolderPath))
+            {
+                materialDataByID[material.materialID] = material;
+            }
+        }
+
+        // ID 로 데이터를 찾는 조회입니다. 인벤토리 패킹/언패킹처럼 ID 만 오가는 곳에서 사용합니다.
+        public bool TryGetPotionData(int potionID, out PotionData data) => potionDataByID.TryGetValue(potionID, out data);
+        public bool TryGetMaterialData(int materialID, out MaterialData data) => materialDataByID.TryGetValue(materialID, out data);
+        public bool TryGetTrapKeyword(int keywordID, out TrapPotionKeyword keyword) => trapKeywordByID.TryGetValue(keywordID, out keyword);
+
+        private readonly Dictionary<int, TrapPotionKeyword> trapKeywordByID = new Dictionary<int, TrapPotionKeyword>();
+        private readonly Dictionary<int, MaterialData> materialDataByID = new Dictionary<int, MaterialData>();
 
         // 포션 폴더 경로를 상수로 정의
         public static readonly string materialFolderPath = "ScriptableObjects/Materials";

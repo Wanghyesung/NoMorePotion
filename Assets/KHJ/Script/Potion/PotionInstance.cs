@@ -24,6 +24,35 @@ namespace Enzeun.Runtime
             TrapKeyword = trapKeyword;
         }
 
+        /// <param name="instanceId">이미 정해진 인스턴스 ID. 네트워크로 받은 포션을 복원할 때 사용합니다.</param>
+        public PotionInstance(PotionData data, TrapPotionKeyword trapKeyword, int instanceId)
+            : this(data, trapKeyword)
+        {
+            InstanceId = instanceId;
+        }
+
+        /// <summary>
+        /// 포션 한 개를 구분하는 고유 ID 입니다. 0 이면 아직 정해지지 않은 상태입니다.
+        /// 같은 포션 종류여도 인스턴스마다 다르고, 보관함이 바뀌어도 유지됩니다. (네트워크에서는 "이 포션을 꺼내 달라"를 이 ID 로 요청)
+        /// ID 는 한 곳(권한을 가진 쪽)에서만 정합니다. <see cref="PotionInstanceIds"/>
+        /// </summary>
+        public int InstanceId { get; private set; }
+
+        /// <summary>
+        /// 인스턴스 ID 를 정합니다. 이미 정해진 포션은 바꿀 수 없습니다.
+        /// </summary>
+        /// <returns>정해졌으면 true</returns>
+        public bool AssignInstanceId(int instanceId)
+        {
+            if (InstanceId != 0 || instanceId <= 0)
+            {
+                return false;
+            }
+
+            InstanceId = instanceId;
+            return true;
+        }
+
         /// <summary>
         /// 제작한 원래 포션 데이터입니다. 폭발 범위와 기본 효과의 기준입니다.
         /// </summary>

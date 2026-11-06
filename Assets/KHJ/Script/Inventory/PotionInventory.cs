@@ -26,11 +26,9 @@ namespace Enzeun.Runtime
         /// </summary>
         public int Capacity { get; }
 
-        public int Count => _items.Count;
-
-        public bool IsFull => _items.Count >= Capacity;
-
         private readonly List<PotionInstance> _items = new List<PotionInstance>();
+        public int Count => _items.Count;
+        public bool IsFull => _items.Count >= Capacity;
 
         /// <summary>
         /// 보관 중인 포션 목록입니다. (읽기 전용 · 넣고 빼는 것은 Add / TakeAt / TakeFirst / TakeRandom 로만)
@@ -56,6 +54,17 @@ namespace Enzeun.Runtime
             if (IsFull)
             {
                 Debug.LogWarning($"[PotionInventory]: 뱃속이 가득 찼습니다. ({Count}/{Capacity})");
+                return false;
+            }
+
+            // ID 가 아직 없으면 발급하고, 이미 있으면 같은 ID 가 들어 있지 않은지 확인합니다.
+            if (potion.InstanceId == 0)
+            {
+                potion.AssignInstanceId(PotionInstanceIds.Next());
+            }
+            else if (Contains(potion.InstanceId))
+            {
+                Debug.LogWarning($"[PotionInventory]: 같은 인스턴스 ID({potion.InstanceId})의 포션이 이미 있습니다.");
                 return false;
             }
 
@@ -88,6 +97,44 @@ namespace Enzeun.Runtime
 
             OnChanged?.Invoke();
             return potion;
+        }
+
+        /// <summary>
+        /// 해당 인스턴스 ID 의 포션이 들어 있는지 확인합니다.
+        /// </summary>
+        public bool Contains(int instanceId)
+        {
+            return IndexOf(instanceId) >= 0;
+        }
+
+        /// <summary>
+        /// 해당 인스턴스 ID 의 포션 위치를 반환합니다. 없으면 -1 입니다.
+        /// </summary>
+        public int IndexOf(int instanceId)
+        {
+            if (instanceId <= 0)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < _items.Count; i++)
+            {
+                if (_items[i].InstanceId == instanceId)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// 인스턴스 ID 로 포션을 꺼냅니다. 없으면 null 입니다.
+        /// 멀티플레이에서는 위치(index)가 사람마다 어긋날 수 있어서, 꺼내기는 이 메서드(ID 기준)를 사용합니다.
+        /// </summary>
+        public PotionInstance Take(int instanceId)
+        {
+            return TakeAt(IndexOf(instanceId));
         }
 
         /// <summary>
