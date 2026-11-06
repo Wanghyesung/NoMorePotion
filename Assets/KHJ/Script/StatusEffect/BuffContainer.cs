@@ -10,7 +10,7 @@ namespace Enzeun.Runtime
     /// <summary>
     /// 대상(플레이어 등)에게 런타임에 걸려 있는 버프/디버프 목록을 가지고 있는 컨테이너입니다.
     /// - 버프와 디버프는 각각의 목록으로 따로 보관합니다. (StatusEffectData 의 종류로 구분)
-    /// - 스탯 보정은 곱연산이며, 효과 하나(상태 효과 ID 기준)당 한 번만 반영합니다.
+    /// - 스탯 보정은 곱연산입니다. Unique/RefreshDuration 효과는 같은 효과가 여러 건이어도 가장 강한 한 건만, Stackable 효과는 전부 반영합니다.
     /// - 같은 효과도 건 주체별로 따로 보관하므로, 주체 단위로 제거할 수 있습니다.
     /// - Owner : 이 컨테이너의 주인입니다. 몬스터는 자기 자신이 기본 Owner 이고, 플레이어는 SetOwner 로 연결합니다.
     /// - 중첩 정책은 StackPolicy 참고, 틱은 ProcessTickModules/OnPeriodicAction 참고.
@@ -47,7 +47,19 @@ namespace Enzeun.Runtime
         // 스탯 종류 개수는 한 번만 구합니다. (인스턴스마다 Enum.GetValues 를 호출하면 GC 할당 발생)
         private static readonly int StatTypeCount = Enum.GetValues(typeof(StatType)).Length;
 
+        /// <summary>
+        /// 버프 전체를 곱한 배율이 늘어날 수 있는 최대치(%)입니다. (일괄 적용)
+        /// </summary>
+        public const int MaxBuffPercent = 70;
+
+        /// <summary>
+        /// 디버프 전체를 곱한 배율이 줄어들 수 있는 최대치(%)입니다. (일괄 적용)
+        /// </summary>
+        public const int MaxDebuffPercent = 80;
+
         private readonly float[] _statMultipliers = new float[StatTypeCount];
+        private readonly float[] _buffMultipliers = new float[StatTypeCount];
+        private readonly float[] _debuffMultipliers = new float[StatTypeCount];
         private bool _isStatMultiplierDirty = true;
 
 
@@ -243,7 +255,7 @@ namespace Enzeun.Runtime
         /// 중첩 정책별 동작
         /// - Unique : 같은 효과를 같은 주체가 이미 걸었으면 무시합니다.
         /// - RefreshDuration : 지속시간만 갱신합니다. 새로 넘긴 percentOverride 는 무시되고 기존 건의 값을 유지합니다.
-        /// - StrongestWins : FindSame 을 쓰지 않으므로 같은 주체가 반복해서 Apply 해도 매번 새 건이 추가됩니다. (지속시간은 각자)
+        /// - Stackable : FindSame 을 쓰지 않으므로 같은 주체가 반복해서 Apply 해도 매번 새 건이 추가됩니다. (지속시간은 각자, 스탯은 전부 곱연산)
         /// </remarks>
         /// <returns>목록에 반영되었으면 true (새로 추가 또는 지속시간 갱신), 무시되었으면 false</returns>
         public bool Apply(StatusEffectData data, object source, int percentOverride = 0, float duration = 0f)
@@ -293,7 +305,7 @@ namespace Enzeun.Runtime
                     }
                     break;
 
-                case StackPolicy.StrongestWins:
+                case StackPolicy.Stackable:
                     break;
             }
 
@@ -422,6 +434,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 해당 스탯에 적용되는 최종 배율을 반환합니다. 모든 보정을 곱연산한 값입니다. (보정이 없으면 1)
+        /// 버프끼리 곱한 값은 최대 +70%(1.7), 디버프끼리 곱한 값은 최대 -80%(0.2)로 제한한 뒤 둘을 곱합니다.
         /// 예) 이동속도 +40%(1.4) 와 -30%(0.7) 가 같이 걸려 있으면 0.98
         /// </summary>
         public float GetStatMultiplier(StatType stat)
@@ -581,31 +594,43 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 버프/디버프 전체를 다시 훑어 스탯별 배율 캐시를 1 부터 새로 계산합니다.
+        /// 버프끼리, 디버프끼리 각각 곱한 뒤 상한(MaxBuffPercent, MaxDebuffPercent)을 적용하고 둘을 곱합니다.
         /// </summary>
         private void RecalculateStatMultipliers()
         {
             for (int i = 0; i < _statMultipliers.Length; i++)
             {
-                _statMultipliers[i] = 1f;
+                _buffMultipliers[i] = 1f;
+                _debuffMultipliers[i] = 1f;
             }
 
-            AccumulateStatMultipliers(_buffs);
-            AccumulateStatMultipliers(_debuffs);
+            AccumulateStatMultipliers(_buffs, _buffMultipliers);
+            AccumulateStatMultipliers(_debuffs, _debuffMultipliers);
+
+            float buffLimit = 1f + MaxBuffPercent / 100f;
+            float debuffLimit = 1f - MaxDebuffPercent / 100f;
+
+            for (int i = 0; i < _statMultipliers.Length; i++)
+            {
+                _statMultipliers[i] = Mathf.Min(_buffMultipliers[i], buffLimit) * Mathf.Max(_debuffMultipliers[i], debuffLimit);
+            }
 
             _isStatMultiplierDirty = false;
         }
 
-        private void AccumulateStatMultipliers(List<ActiveStatusEffect> list)
+        // 목록의 스탯 보정을 multipliers 에 곱해 넣습니다. (상한은 호출한 쪽에서 적용)
+        private void AccumulateStatMultipliers(List<ActiveStatusEffect> list, float[] multipliers)
         {
             for (int i = 0; i < list.Count; i++)
             {
-                // 같은 상태 효과가 여러 건이면 수치가 가장 큰 한 건만 반영합니다.
-                if (!IsStrongest(list, i))
+                ActiveStatusEffect effect = list[i];
+
+                // Stackable 은 전부 곱연산하고, 그 외에는 같은 상태 효과가 여러 건이어도 수치가 가장 큰 한 건만 반영합니다.
+                if (effect.data.stackPolicy != StackPolicy.Stackable && !IsStrongest(list, i))
                 {
                     continue;
                 }
 
-                ActiveStatusEffect effect = list[i];
                 IReadOnlyList<StatusEffectModule> modules = effect.data.modules;
 
                 for (int m = 0; m < modules.Count; m++)
@@ -615,7 +640,7 @@ namespace Enzeun.Runtime
                         int percent = effect.percentOverride != 0 ? effect.percentOverride : statModule.percent;
                         percent = Mathf.Max(percent, -100);   // 배율이 음수가 되지 않도록 하한 고정
 
-                        _statMultipliers[(int)statModule.stat] *= 1f + percent / 100f;
+                        multipliers[(int)statModule.stat] *= 1f + percent / 100f;
                     }
                 }
             }
@@ -623,12 +648,13 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 같은 상태 효과 중에서 이 건이 가장 강한지 확인합니다. 수치가 같으면 먼저 걸린 것이 이깁니다.
-        /// 비교 기준은 현재 percentOverride 의 절댓값뿐이며 SO 기본값은 반영하지 않습니다.
+        /// 비교 기준은 실제로 적용되는 수치(GetStrength)입니다. 스탯 보정이 없는 효과(체력 증감 등)는 모두 0 이라 먼저 걸린 건이 이깁니다.
+        /// 스탯은 Stackable 이 아닐 때만, 틱(체력 증감, 주기 행동)은 정책과 상관없이 한 건만 발동하도록 이 판정을 씁니다.
         /// </summary>
         private bool IsStrongest(List<ActiveStatusEffect> list, int index)
         {
             ActiveStatusEffect target = list[index];
-            int targetStrength = Mathf.Abs(target.percentOverride);
+            int targetStrength = GetStrength(target);
 
             for (int i = 0; i < list.Count; i++)
             {
@@ -637,7 +663,7 @@ namespace Enzeun.Runtime
                     continue;
                 }
 
-                int otherStrength = Mathf.Abs(list[i].percentOverride);
+                int otherStrength = GetStrength(list[i]);
 
                 if (i < index ? otherStrength >= targetStrength : otherStrength > targetStrength)
                 {
@@ -646,6 +672,31 @@ namespace Enzeun.Runtime
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 효과의 실제 적용 수치(%)의 절댓값입니다. 넘겨받은 수치(percentOverride)가 있으면 그것을, 0 이면 SO 의 스탯 보정 수치를 씁니다.
+        /// 스탯 보정 모듈이 없으면 0 입니다.
+        /// </summary>
+        private static int GetStrength(ActiveStatusEffect effect)
+        {
+            if (effect.percentOverride != 0)
+            {
+                return Mathf.Abs(effect.percentOverride);
+            }
+
+            int strength = 0;
+            IReadOnlyList<StatusEffectModule> modules = effect.data.modules;
+
+            for (int m = 0; m < modules.Count; m++)
+            {
+                if (modules[m] is StatModifierModule statModule && statModule.stat != StatType.None)
+                {
+                    strength = Mathf.Max(strength, Mathf.Abs(statModule.percent));
+                }
+            }
+
+            return strength;
         }
 
 #if UNITY_EDITOR
