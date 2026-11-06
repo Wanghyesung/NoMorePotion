@@ -23,11 +23,14 @@ namespace Enzeun.Runtime
             }
             else
             {
+                // 중복 매니저는 데이터를 다시 불러오지 않고 제거합니다.
                 Destroy(gameObject);
+                return;
             }
 
             FindAllPotionRecipes();
             LoadTrapKeywords();
+            LoadMaterials();
         }
 
         /// <summary>
@@ -36,8 +39,38 @@ namespace Enzeun.Runtime
         private void LoadTrapKeywords()
         {
             trapKeywords.Clear();
+            trapKeywordByID.Clear();
             trapKeywords.AddRange(Resources.LoadAll<TrapPotionKeyword>(TrapPotionKeyword.FolderPath));
+
+            foreach (TrapPotionKeyword keyword in trapKeywords)
+            {
+                trapKeywordByID[keyword.KeywordID] = keyword;
+            }
         }
+
+        /// <summary>
+        /// 저장소에 있는 모든 재료 데이터를 ID 로 찾을 수 있게 불러옵니다. (인벤토리의 보관 한도, 네트워크로 받은 ID 복원에 사용)
+        /// </summary>
+        private void LoadMaterials()
+        {
+            materialDataByID.Clear();
+
+            foreach (MaterialData material in Resources.LoadAll<MaterialData>(materialFolderPath))
+            {
+                materialDataByID[material.materialID] = material;
+            }
+        }
+
+        // ID 로 데이터를 찾는 조회입니다. 인벤토리 패킹/언패킹처럼 ID 만 오가는 곳에서 사용합니다.
+        /// <summary>포션 ID 로 조회합니다. 없으면 false 입니다.</summary>
+        public bool TryGetPotionData(int potionID, out PotionData data) => potionDataByID.TryGetValue(potionID, out data);
+        /// <summary>재료 ID 로 조회합니다. 없으면 false 입니다.</summary>
+        public bool TryGetMaterialData(int materialID, out MaterialData data) => materialDataByID.TryGetValue(materialID, out data);
+        /// <summary>함정 키워드 ID 로 조회합니다. 없으면 false 입니다.</summary>
+        public bool TryGetTrapKeyword(int keywordID, out TrapPotionKeyword keyword) => trapKeywordByID.TryGetValue(keywordID, out keyword);
+
+        private readonly Dictionary<int, TrapPotionKeyword> trapKeywordByID = new Dictionary<int, TrapPotionKeyword>();
+        private readonly Dictionary<int, MaterialData> materialDataByID = new Dictionary<int, MaterialData>();
 
         // 포션 폴더 경로를 상수로 정의
         public static readonly string materialFolderPath = "ScriptableObjects/Materials";
@@ -48,7 +81,6 @@ namespace Enzeun.Runtime
 
         // ==================== 포션 레시피 찾기 로직 ============================
 
-        // 수정 후 코드
         public struct PotionRecipeSet : IEquatable<PotionRecipeSet>
         {
             public int firstIngredientID;
@@ -83,15 +115,10 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 저장소에 있는 모든 포션의 레시피 등록
+        /// 재료 순서와 무관하게 오름차순 키로 등록하며, 재료 조합(Material) 포션만 레시피가 됩니다.
         /// </summary>
         private void FindAllPotionRecipes()
         {
-            if (isDataInitialized)
-            {
-                Debug.LogWarning("[PotionDataManager]: 포션 데이터가 이미 초기화되었습니다.");
-                return;
-            }
-
             PotionData[] potionDataList = Resources.LoadAll<PotionData>(potionFolderPath);
 
             foreach (var potionData in potionDataList)
@@ -125,6 +152,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 포션의 레시피를 추가하는 메서드
+        /// 재료 순서와 무관하게 작은 ID, 큰 ID 순(오름차순)의 키로 등록합니다.
         /// </summary>
         /// <param name="firstIngredientID">재료1</param>
         /// <param name="secondIngredientID">재료2</param>
@@ -145,7 +173,6 @@ namespace Enzeun.Runtime
         /// </summary>
         /// <param name="firstIngredientID">재료1</param>
         /// <param name="secondIngredientID">재료2</param>
-        /// <returns></returns>
         [Button("레시피로 포션 데이터 가져오기", ButtonSizes.Large)]
         [GUIColor(0.4f, 0.8f, 1f)]
         public PotionData GetPotionDataFromRecipe(int firstIngredientID, int secondIngredientID)

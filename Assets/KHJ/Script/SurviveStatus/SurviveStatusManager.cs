@@ -26,10 +26,12 @@ namespace Enzeun.Runtime
     public class SurviveStatusManager : MonoBehaviour
     {
 
-        // ==================== 싱글턴 & 스태틱 설정 ============================
-        // ==================== 언제든지 생존상태 데이터에 접근할 수 있도록 ============================
+        // ==================== 싱글턴 (어디서든 생존 상태에 접근) ============================
         public static SurviveStatusManager Instance { get; private set; }
 
+        /// <summary>
+        /// 싱글턴 등록, 중복 인스턴스는 제거합니다.
+        /// </summary>
         private void Awake()
         {
             if (Instance == null)
@@ -39,6 +41,14 @@ namespace Enzeun.Runtime
             else
             {
                 Destroy(gameObject);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
             }
         }
 
@@ -55,8 +65,7 @@ namespace Enzeun.Runtime
         [SerializeField, Required("구간별 상태 효과 표를 연결해 주세요.")]
         private SurviveStatusEffectTable effectTable;
 
-        // 내 플레이어 전용 컨테이너입니다. 이 매니저와 같은 오브젝트에 붙여서 연결합니다.
-        // (Awake 에서 자기 자신을 Owner 로 지정하는 옵션은 끄고, 플레이어가 생성된 뒤 BindPlayer 로 연결)
+        // 내 플레이어 전용 컨테이너입니다. 이 매니저와 같은 오브젝트에 붙이고, 플레이어 생성 후 BindPlayer 로 Owner 를 연결합니다.
         [SerializeField, Required("플레이어 전용 BuffContainer 를 연결해 주세요.")]
         private BuffContainer buffContainer;
 
@@ -73,13 +82,16 @@ namespace Enzeun.Runtime
         {
             if (buffContainer == null)
             {
-                Debug.LogWarning("[SurviveStatusManager]: BuffContainer 가 연결되지 않아 플레이어를 연결할 수 없습니다.");
+                Debug.LogWarning("[SurviveStatusManager] : BuffContainer 가 연결되지 않아 플레이어를 연결할 수 없습니다.");
                 return;
             }
 
             buffContainer.SetOwner(player);
         }
 
+        /// <summary>
+        /// 각 생존 상태의 구간 변경 이벤트와 주기 행동 이벤트를 구독합니다.
+        /// </summary>
         private void OnEnable()
         {
             bodyTemperatureManager.OnBodyTemperatureStateChanged += HandleBodyTemperatureStateChanged;
@@ -93,6 +105,9 @@ namespace Enzeun.Runtime
             }
         }
 
+        /// <summary>
+        /// OnEnable 에서 구독한 이벤트를 대칭으로 해제합니다.
+        /// </summary>
         private void OnDisable()
         {
             bodyTemperatureManager.OnBodyTemperatureStateChanged -= HandleBodyTemperatureStateChanged;
@@ -109,12 +124,18 @@ namespace Enzeun.Runtime
         // 다른 시스템이 Awake 에서 이벤트를 구독할 수 있도록, 초기화는 Start 에서 일괄 수행합니다.
         private void Start()
         {
+            // 제거될 중복 인스턴스는 초기화하지 않습니다.
+            if (Instance != this)
+            {
+                return;
+            }
+
             ResetAllStatus();
         }
 
         /// <summary>
-        /// 모든 생존 상태를 초기화합니다. 체온, 정신력, 수분, 포만감 상태를 초기값으로 재설정합니다.
-        /// 초기 구간의 상태 효과도 다시 겁니다. (구간이 바뀌지 않으면 이벤트가 오지 않아 놓치기 때문)
+        /// 모든 생존 상태를 초기값으로 재설정하고, 초기 구간의 상태 효과도 다시 겁니다.
+        /// (구간이 바뀌지 않으면 이벤트가 오지 않기 때문)
         /// </summary>
         [Button, LabelText("모든 상태 초기화")]
         public void ResetAllStatus()
@@ -156,7 +177,7 @@ namespace Enzeun.Runtime
         {
             if (effectTable == null || buffContainer == null)
             {
-                Debug.LogWarning("[SurviveStatusManager]: 상태 효과 표 또는 BuffContainer 가 연결되지 않아 구간별 상태 효과를 적용하지 않습니다.");
+                Debug.LogWarning("[SurviveStatusManager] : 상태 효과 표 또는 BuffContainer 가 연결되지 않아 구간별 상태 효과를 적용하지 않습니다.");
                 return;
             }
 
@@ -170,10 +191,8 @@ namespace Enzeun.Runtime
         private readonly List<StatusEffectData> removeBuffer = new List<StatusEffectData>();
 
         /// <summary>
-        /// 해당 상태 매니저가 건 효과를 새 구간의 목록과 맞춥니다. 목록에 없는 효과만 빼고, 아직 걸려 있지 않은 효과만 새로 겁니다.
-        /// 구간이 바뀌어도 계속 유지되는 효과(예: 갈증 -> 탈수 구간에서도 갈증)는 다시 걸지 않으므로,
-        /// 주기 행동의 타이머가 구간이 바뀔 때마다 초기화되지 않습니다.
-        /// 건 주체를 매니저로 두므로 다른 상태나 포션이 건 효과는 영향받지 않습니다.
+        /// 해당 상태 매니저(source)가 건 효과를 새 구간의 목록과 맞춥니다. 목록에 없는 효과만 빼고, 안 걸린 효과만 새로 겁니다.
+        /// 유지되는 효과는 다시 걸지 않아 주기 행동 타이머가 초기화되지 않으며, 다른 상태나 포션이 건 효과는 영향받지 않습니다.
         /// </summary>
         private void SyncEffects(object source, IReadOnlyList<StatusEffectData> effects)
         {
@@ -205,7 +224,9 @@ namespace Enzeun.Runtime
             }
         }
 
-        // 해당 주체가 건 효과 중 새 목록에 없는 것을 removeBuffer 에 모읍니다.
+        /// <summary>
+        /// 해당 주체가 건 효과 중 새 목록에 없는 것을 removeBuffer 에 모읍니다.
+        /// </summary>
         private void CollectRemovedEffects(IReadOnlyList<ActiveStatusEffect> active, object source, IReadOnlyList<StatusEffectData> effects)
         {
             for (int i = 0; i < active.Count; i++)
@@ -235,7 +256,9 @@ namespace Enzeun.Runtime
             }
         }
 
-        // 해당 주체가 이미 이 효과를 걸어 두었는지 확인합니다.
+        /// <summary>
+        /// 해당 주체가 이미 이 효과를 걸어 두었는지 확인합니다.
+        /// </summary>
         private static bool IsAppliedBy(IReadOnlyList<ActiveStatusEffect> active, object source, StatusEffectData data)
         {
             for (int i = 0; i < active.Count; i++)
@@ -299,7 +322,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 들고 있는 물약을 오른손, 왼손 순으로 하나 마십니다. (갈증)
-        /// 아무것도 들고 있지 않으면 아무것도 하지 않습니다. (줍는 즉시 마시는 처리는 줍는 쪽에서 갈증이 걸려 있는지 확인해서 처리)
+        /// 아무것도 들고 있지 않으면 아무것도 하지 않습니다.
         /// </summary>
         private void DrinkHeldPotion()
         {
@@ -336,7 +359,7 @@ namespace Enzeun.Runtime
                     else satiationManager.DecreaseSatiation(-amount);
                     break;
                 default:
-                    Debug.LogWarning($"[SurviveStatusManager]: 증감할 생존 상태가 지정되지 않았습니다. ({type})");
+                    Debug.LogWarning($"[SurviveStatusManager] : 증감할 생존 상태가 지정되지 않았습니다. ({type})");
                     break;
             }
         }

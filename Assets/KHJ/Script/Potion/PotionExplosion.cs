@@ -126,6 +126,7 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 같은 대상을 구분하는 키입니다. 대상이 가진 컴포넌트 중 우선순위가 가장 높은 것을 사용합니다.
         /// 한 대상의 여러 콜라이더는 같은 컴포넌트를 찾으므로 같은 키가 됩니다.
+        /// 반환값이 null 이면 효과 대상이 아니므로 호출하는 쪽에서 건너뜁니다.
         /// </summary>
         private static Object GetTargetKey(in PotionTarget target)
         {

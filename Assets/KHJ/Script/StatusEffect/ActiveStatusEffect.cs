@@ -6,8 +6,7 @@ namespace Enzeun.Runtime
 {
     /// <summary>
     /// 런타임에 대상에게 걸려 있는 상태 효과 한 건입니다. (StatusEffectData 는 공유 설정값, 이 클래스는 걸린 상태)
-    /// 남은 시간, 다음 틱까지의 시간처럼 변하는 값은 SO 가 아니라 여기에 둡니다. (SO 는 모든 사용자가 공유하므로 런타임 값을 쓰면 안 됨)
-    /// 저장하지 않는 런타임 상태라서 자동 프로퍼티로 두고, 인스펙터 확인용으로 [ShowInInspector] 를 붙입니다.
+    /// 남은 시간, 다음 틱까지의 시간처럼 변하는 값은 공유 SO 가 아니라 여기에 둡니다.
     /// </summary>
     public class ActiveStatusEffect
     {

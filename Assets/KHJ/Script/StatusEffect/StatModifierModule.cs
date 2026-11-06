@@ -31,10 +31,5 @@ namespace Enzeun.SO
         [SerializeField, LabelText("증감 (%)"), MinValue(-100)]
         private int _percent = 0;
         public int percent => _percent;
-
-        /// <summary>
-        /// 곱연산에 사용하는 배율입니다. 예) +40% -> 1.4 / -30% -> 0.7
-        /// </summary>
-        public float multiplier => 1f + _percent / 100f;
     }
 }

@@ -50,7 +50,7 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
-        /// 현재 위치에서 폭발합니다. 한 번만 동작합니다.
+        /// 이 오브젝트의 현재 위치에서 폭발합니다. 한 번만 동작합니다. (위치를 직접 지정하려면 ExplodeAt)
         /// </summary>
         [Button("테스트: 폭발", ButtonSizes.Large)]
         public void Explode()
@@ -59,7 +59,7 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
-        /// 지정한 위치에서 폭발합니다. 한 번만 동작합니다.
+        /// 지정한 위치에서 폭발합니다. 한 번만 동작합니다. (Explode 는 현재 위치, 이쪽은 지정 위치)
         /// 던지기는 부딪힌 위치(Explode), 마시기는 마시는 플레이어의 위치로 호출합니다.
         /// 어느 쪽이든 이 포션이 가진 인스턴스를 쓰므로 함정 키워드 효과가 함께 적용됩니다.
         /// </summary>

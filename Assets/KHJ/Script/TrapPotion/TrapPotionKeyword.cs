@@ -8,7 +8,6 @@ namespace Enzeun.SO
     /// <summary>
     /// 함정 포션 키워드 데이터입니다. (50000번대)
     /// 포션 제작에 실패해서 함정 포션이 되면 원래 포션에 이 키워드 하나가 붙고, 키워드의 효과가 원래 포션의 효과에 더해집니다.
-    /// 키워드는 직접 제작하거나 보관하는 포션이 아니라 제작 결과에 붙는 수식어라서, 포션 SO(PotionData)와 별도의 SO 로 둡니다.
     /// 예) 달팽이 : 느림보 디버프 30초 (20%) / 폭발 : 범위 폭발 피해
     /// </summary>
     [CreateAssetMenu(fileName = "TrapPotionKeyword", menuName = "Scriptable Objects/TrapPotionKeyword")]
@@ -45,6 +44,9 @@ namespace Enzeun.SO
         public IReadOnlyList<PotionEffect> Effects => _effects;
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// 에디터 전용: 생성 도구가 ID 를 지정한다.
+        /// </summary>
         public void SetID(int id)
         {
             _keywordID = id;

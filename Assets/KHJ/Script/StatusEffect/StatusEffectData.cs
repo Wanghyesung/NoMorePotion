@@ -17,14 +17,16 @@ namespace Enzeun.SO
 
     /// <summary>
     /// 같은 상태 효과가 다시 걸렸을 때의 중첩 규칙을 정의하는 열거형입니다.
-    /// Unique : 하나만 유지 / RefreshDuration : 지속시간 갱신 / StrongestWins : 가장 강한 수치만 적용(지속시간은 각자)
+    /// Unique : 하나만 유지 / RefreshDuration : 지속시간 갱신 /
+    /// Stackable : 중첩 시 스탯은 곱연산이고 지속시간은 각자 (예: 40% 5초 + 30% 10초 → 5초간 둘 다 곱해지고, 이후 5초는 30%만)
+    /// 값은 에셋에 숫자로 저장되므로 순서를 바꾸지 마세요. (3 = Stackable, 예전 이름 StrongestWins)
     /// </summary>
     public enum StackPolicy
     {
         None,
         Unique,
         RefreshDuration,
-        StrongestWins,
+        Stackable,
     }
 
     [CreateAssetMenu(fileName = "StatusEffectData", menuName = "Scriptable Objects/StatusEffectData")]

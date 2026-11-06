@@ -29,6 +29,9 @@ namespace Enzeun.SO
     }
 
 
+    /// <summary>
+    /// 월드 오브젝트의 공유 설정 데이터입니다. 규칙은 WorldObjectRules 참고.
+    /// </summary>
     [CreateAssetMenu(fileName = "WorldObjectData", menuName = "Scriptable Objects/WorldObjectData")]
     public class WorldObjectData : ScriptableObject, IItemData
     {
@@ -72,8 +75,7 @@ namespace Enzeun.SO
         public WorldObjectDropType worldObjectDropType => _worldObjectDropType;
 
         /// <summary>
-        /// 횟수 규칙 : 상호작용 타입은 상호작용 1회당 1씩 차감(포션 대미지는 받지 않음), 파괴 타입은 맞는 종류의 대미지가 들어올 때만 대미지 수치만큼 차감합니다.
-        /// 0 이 되면 소진(드롭)됩니다. 예) 나무(소) 1 / 나무(중) 2 / 나무(대) 3 -> 식물 대미지 소 1, 중 2, 대 3 으로 각각 한 번에 소진
+        /// 규칙은 WorldObjectRules 참고. 0 이 되면 소진(드롭)됩니다.
         /// </summary>
         [LabelText("횟수 (차감되어 0 이 되면 소진)"), BoxGroup("기본 정보")]
         [SerializeField, MinValue(1)]
@@ -81,13 +83,37 @@ namespace Enzeun.SO
         private int _maxCount = 1;
         public int maxCount => _maxCount;
 
-        [LabelText("드롭 재료"), BoxGroup("드롭 정보")]
+        [LabelText("드롭 재료와 개수"), BoxGroup("드롭 정보")]
         [SerializeField]
         [PropertyOrder(8)]
-        private List<MaterialData> _dropMaterials = new List<MaterialData>();
-        public List<MaterialData> DropMaterials => _dropMaterials;
+        private List<MaterialDrop> _drops = new List<MaterialDrop>();
+        public IReadOnlyList<MaterialDrop> Drops => _drops;
+
+        /// <summary>
+        /// 드롭할 재료와 개수를 굴려서 results 에 담습니다. (results 는 먼저 비웁니다)
+        /// 멀티플레이에서는 소진을 판정한 쪽(마스터)만 굴리고, 결과(재료 ID, 개수)만 공유해야 모든 클라이언트에서 같은 드롭이 됩니다.
+        /// </summary>
+        public void RollDrops(List<MaterialDropResult> results)
+        {
+            results.Clear();
+
+            for (int i = 0; i < _drops.Count; i++)
+            {
+                MaterialDrop drop = _drops[i];
+
+                if (drop == null || drop.Material == null)
+                {
+                    continue;
+                }
+
+                results.Add(new MaterialDropResult { MaterialId = drop.Material.materialID, Count = drop.Roll() });
+            }
+        }
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// 에디터 전용: 생성 도구가 ID 를 지정한다.
+        /// </summary>
         public void SetID(int id)
         {
             _worldObjectID = id;
