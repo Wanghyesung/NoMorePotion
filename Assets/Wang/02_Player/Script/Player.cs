@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Enzeun.Runtime;
+using Enzeun.SO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputManager;
@@ -16,12 +18,12 @@ public class PlayerCharacter : Character
 
 
 [DisallowMultipleComponent]
-public sealed class Player : MonoBehaviour, IDamageable
+public sealed class Player : MonoBehaviour, IDamageable, IHealable, IStatusEffectReceiver
 {
     private FSM fsm;
-    [SerializeField, Min(0.01f)] private float drinkHoldSeconds = 1f;
+    private BuffContainer buffContainer;
+    [SerializeField, Min(0.01f)] private float drinkHoldSeconds = 0.3f;
     private Hand hand;
-    private InputAction useAction;
     private float pressedAt;
     private bool pending;
 
@@ -30,13 +32,42 @@ public sealed class Player : MonoBehaviour, IDamageable
     private Character character = null;
     public Character Character => character;
 
+    public bool ApplyStatusEffect(StatusEffectData data, object source, int percentOverride = 0, float duration = 0f)
+    {
+        return buffContainer.Apply(data, source, percentOverride, duration);
+    }
+
+    public int RemoveStatusEffects(object source)
+    {
+        if (buffContainer == null)
+            return 0;
+
+        return buffContainer.RemoveBySource(source);
+    }
+
+
+    public void Heal(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        if (character.HP <= 0)
+            return;
+
+        character.HP += Mathf.Min(amount, Mathf.Max(0, character.MaxHP - character.HP));
+    }
 
     public void TakeDamage(CommonStruct.AttackInfo attackInfo)
     {
         if (character.HP <= 0)
             return;
 
-        character.HP = Mathf.Max(0, character.HP - attackInfo.Damage);
+        float defenseMultiplier = 1f;
+        if (buffContainer != null)
+            defenseMultiplier = buffContainer.GetStatMultiplier(StatType.Defense);
+
+        int damage = Mathf.Max(0, Mathf.RoundToInt(attackInfo.Damage / Mathf.Max(0.01f, defenseMultiplier)));
+        character.HP = Mathf.Max(0, character.HP - damage);
         fsm.TakeDamage(attackInfo);
     }
 
@@ -60,48 +91,43 @@ public sealed class Player : MonoBehaviour, IDamageable
 
     private void Start()
     {
-        useAction = InputManager.Instance.Skill0Action;
+        // 매니저의 Awake가 끝난 뒤 기존 로컬 플레이어 컨테이너를 연결한다.
+        SurviveStatusManager statusManager = SurviveStatusManager.Instance;
+        if (statusManager != null)
+        {
+            buffContainer = statusManager.PlayerBuffContainer;
+            statusManager.BindPlayer(gameObject);
+        }
+        else
+        {
+            Debug.LogWarning("SurviveStatusManager가 없어 Player의 BuffContainer를 연결하지 못했습니다.", this);
+        }
+
         SubscribePotionInput();
     }
 
     private void SubscribePotionInput()
     {
-        useAction.started += OnPressed;
-        useAction.canceled += OnReleased;
+        InputManager.Instance.Skill0Action.started += OnPressed;
+        InputManager.Instance.Skill0Action.canceled += OnReleased;
         fsm.OnHitAction += OnHit;
+    }
+
+    private void OnDestroy()
+    {
+        if (buffContainer != null && buffContainer.Owner == gameObject)
+            buffContainer.SetOwner(null);
     }
 
     private void OnEnable()
     {
-        if (useAction != null)
+        if (InputManager.Instance.Skill0Action != null)
             SubscribePotionInput();
         if (fsm.isActiveAndEnabled == true)
             fsm.StartState();
 
 
     }
-
-    //나중에 버릴 코드
-    //private void Update()
-    //{
-    //    // 피격 테스트: O를 누르는 동안 전방 2m의 랜덤 위치에서 공격
-
-    //    bool testHit = Input.GetKeyDown(KeyCode.O);
-    //    if (Character.HP > 0 && testHit == true)
-    //    {
-    //        Vector3 attackDirection = Quaternion.AngleAxis(Random.Range(-45f, 45f), Vector3.up)
-    //            * transform.forward;
-    //        TakeDamage(new CommonStruct.AttackInfo
-    //        {
-    //            Position = transform.position + attackDirection * 2.0f,
-    //            Damage = 10,
-    //            AttackPower = 10
-    //        });
-    //    }
-        
-    //    if (Character.HP > 0)
-    //        fsm.UpdateState();
-    //}
 
     private void Update()
     {
@@ -119,10 +145,10 @@ public sealed class Player : MonoBehaviour, IDamageable
     private void OnDisable()
     {
         CancelPending();
-        if (useAction != null)
+        if (InputManager.Instance != null)
         {
-            useAction.started -= OnPressed;
-            useAction.canceled -= OnReleased;
+            InputManager.Instance.Skill0Action.started -= OnPressed;
+            InputManager.Instance.Skill0Action.canceled -= OnReleased;
             fsm.OnHitAction -= OnHit;
         }
         fsm.Stop();

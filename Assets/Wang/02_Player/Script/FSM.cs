@@ -28,6 +28,19 @@ public sealed class FSM : MonoBehaviour
         Drink = 9,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
+    public bool ReverseMovement { get; set; }
+    public float MoveSpeedMultiplier { get; set; } = 1f;
+    public Vector2 MoveInput
+    {
+        get
+        {
+            Vector2 input = Instance.InputInfo.MoveDir;
+            if (ReverseMovement == true)
+                input = -input;
+
+            return input;
+        }
+    }
 
     #region Components
     private Player player;

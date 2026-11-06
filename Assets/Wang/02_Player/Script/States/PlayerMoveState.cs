@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static InputManager;
 
 public sealed class PlayerMoveState : PlayerState
 {
@@ -10,7 +9,7 @@ public sealed class PlayerMoveState : PlayerState
     private Vector2 moveDir;
     public override Vector2 MoveDirection => moveDir;
     public override Vector3 Velocity => owner.ViewRotation * new Vector3(moveDir.x, 0f, moveDir.y)
-        * (moveSpeed * moveInput.magnitude);
+        * (moveSpeed * owner.MoveSpeedMultiplier * moveInput.magnitude);
 
     public PlayerMoveState(FSM owner, SOState data, float moveSpeed, float directionTurnSpeed)
         : base(owner, data)
@@ -50,7 +49,7 @@ public sealed class PlayerMoveState : PlayerState
 
     private void UpdateMovement()
     {
-        moveInput = Vector2.ClampMagnitude(Instance.InputInfo.MoveDir, 1f);
+        moveInput = Vector2.ClampMagnitude(owner.MoveInput, 1f);
 
         if (moveInput.sqrMagnitude <= 0.001f)
         {
@@ -77,7 +76,7 @@ public sealed class PlayerMoveState : PlayerState
 
     public static FSM.StateType SelectState(FSM owner)
     {
-        if (owner.HasGameplayInput == false || Instance.InputInfo.MoveDir.sqrMagnitude <= 0.001f)
+        if (owner.HasGameplayInput == false || owner.MoveInput.sqrMagnitude <= 0.001f)
             return FSM.StateType.Idle;
 
         return FSM.StateType.Walk;

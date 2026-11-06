@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1417736869826601}
   - component: {fileID: 8293469968150323575}
   - component: {fileID: -3302644052985452405}
+  - component: {fileID: -5984873498432976886}
   m_Layer: 0
   m_Name: Medium_Potion
   m_TagString: Untagged
@@ -50,7 +51,7 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: 7619f3db48627884482fb0f37613dc23, type: 2}
   mask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 448
   attackObjectPrefab: {fileID: 2193618573197271339, guid: 2239228d9681d1842b00922f67bcfb6b, type: 3}
   impactPrefab: {fileID: 1860508455090463011, guid: ff9f371b9095a474daf717c11261d546, type: 3}
   impactLifetime: 5
@@ -90,6 +91,33 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &-5984873498432976886
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710584622642429393}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1001 &8031493873536460068
 PrefabInstance:
   m_ObjectHideFlags: 0

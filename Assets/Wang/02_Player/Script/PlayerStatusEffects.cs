@@ -8,12 +8,12 @@ using Enzeun.SO;
 public sealed class PlayerStatusEffects : MonoBehaviour
 {
     [SerializeField] private VisionEffect visionEffect;
-    [SerializeField] private StatusEffectData testBuff;
+    private FSM fsm;
     private BuffContainer playerBuffContainer;
-    private bool testingBuff;
 
     private void Awake()
     {
+        fsm = GetComponent<FSM>();
         if (visionEffect == null)
             visionEffect = FindFirstObjectByType<VisionEffect>();
     }
@@ -32,40 +32,16 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         SubscribeBuffEvents();
     }
 
-    // 임시 테스트: P를 누를 때마다 테스트 버프를 적용/해제한다.
-    private void Update()
-    {
-        //if (Input.GetKeyDown(KeyCode.P))
-        //    ToggleTestBuff();
-    }
-
-    private void ToggleTestBuff()
-    {
-        if (playerBuffContainer == null || testBuff == null)
-            return;
-
-        if (testingBuff == true)
-        {
-            playerBuffContainer.RemoveBySource(this);
-            testingBuff = false;
-        }
-        else
-        {
-            testingBuff = playerBuffContainer.Apply(testBuff, this);
-        }
-    }
-
     private void OnDisable()
     {
+        fsm.ReverseMovement = false;
+        fsm.MoveSpeedMultiplier = 1f;
         if (playerBuffContainer != null)
         {
             playerBuffContainer.OnEffectAdded -= OnBuffAdded;
             playerBuffContainer.OnEffectRemoved -= OnBuffRemoved;
             playerBuffContainer.OnPeriodicAction -= OnBuffPeriodicAction;
-            if (testingBuff)
-                playerBuffContainer.RemoveBySource(this);
         }
-        testingBuff = false;
         if (visionEffect != null)
             visionEffect.Stop();
     }
@@ -78,6 +54,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         playerBuffContainer.OnEffectAdded += OnBuffAdded;
         playerBuffContainer.OnEffectRemoved += OnBuffRemoved;
         playerBuffContainer.OnPeriodicAction += OnBuffPeriodicAction;
+        RefreshMovementReversal();
+        RefreshMoveSpeed();
         RefreshBuffVision();
     }
 
@@ -85,7 +63,7 @@ public sealed class PlayerStatusEffects : MonoBehaviour
                 상태이상
     //////////////////////////////////////////*/
 
-    // 시야 이외의 효과는 분기만 준비한다.
+    // 상태 효과가 추가되면 이동 반전, 이동속도와 시야를 갱신한다.
     private void OnBuffAdded(ActiveStatusEffect effect)
     {
         HandleBuffChanged(effect);
@@ -101,8 +79,9 @@ public sealed class PlayerStatusEffects : MonoBehaviour
     {
         switch (effect.data.ID)
         {
-            case 61003: // 혼란: 방향키 반전은 추후 연결
-            case 61009: // 죽어라: 이동속도 감소는 추후 연결
+            case 61003: // 혼란
+            case 61009: // 죽어라
+                RefreshMovementReversal();
                 break;
             case 60001: // 똑똑이
             case 61010: // 멍청함: 제조 확률
@@ -135,7 +114,34 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         }
 
         // 제거된 효과만 보고 복구하지 않고, 다른 주체의 효과까지 포함해 재계산한다.
+        RefreshMoveSpeed();
         RefreshBuffVision();
+    }
+
+    private void RefreshMoveSpeed()
+    {
+        if (playerBuffContainer == null)
+            return;
+
+        fsm.MoveSpeedMultiplier = playerBuffContainer.GetStatMultiplier(StatType.MoveSpeed);
+    }
+
+    private void RefreshMovementReversal()
+    {
+        fsm.ReverseMovement = false;
+        if (playerBuffContainer == null)
+            return;
+
+        // 같은 효과를 건 다른 주체나 다른 반전 디버프가 남아 있으면 유지한다.
+        for (int i = 0; i < playerBuffContainer.debuffs.Count; i++)
+        {
+            int id = playerBuffContainer.debuffs[i].data.ID;
+            if (id == 61003 || id == 61009)
+            {
+                fsm.ReverseMovement = true;
+                return;
+            }
+        }
     }
 
     private void RefreshBuffVision()

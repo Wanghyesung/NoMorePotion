@@ -18,8 +18,6 @@ public sealed class AttackObject : MonoBehaviour
     private void Awake()
     {
         attackCollider = GetComponent<SphereCollider>();
-        attackCollider.isTrigger = true;
-        attackCollider.enabled = false;
     }
 
     public void Initialize(PotionInstance potionInstance)
@@ -33,10 +31,9 @@ public sealed class AttackObject : MonoBehaviour
         }
 
         instance = potionInstance;
-        // 루트 스케일은 1로 유지해 Explode의 월드 반지름과 일치시킨다.
-        transform.localScale = Vector3.one;
-        attackCollider.center = Vector3.zero;
-        attackCollider.radius = config.GetRadius(instance.Data.potionExplosionRange);
+        // 로컬 반지름 1 × 루트 스케일 = Explode가 검사하는 월드 반지름.
+        float radius = config.GetRadius(instance.Data.potionExplosionRange);
+        transform.localScale = Vector3.one * radius;
         targetLayers = config.TargetLayers;
 
         attackCollider.enabled = true;

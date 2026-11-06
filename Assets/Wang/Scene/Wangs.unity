@@ -38578,7 +38578,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4608c2021523c545933d53d866dc1e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  drinkHoldSeconds: 0.5
+  drinkHoldSeconds: 0.1
 --- !u!4 &7460462695635570161
 Transform:
   m_ObjectHideFlags: 0
@@ -39629,7 +39629,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStatusEffects
   visionEffect: {fileID: 857253178}
-  testBuff: {fileID: 11400000, guid: 9d09f0b6670133c4e860aedac373ccaa, type: 2}
 --- !u!4 &9030156167703065850
 Transform:
   m_ObjectHideFlags: 0
