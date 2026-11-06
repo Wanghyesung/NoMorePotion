@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
 using Photon.Pun;
 using System.Collections.Generic;
 using System.Threading;
@@ -11,6 +12,10 @@ using HIn = UnityEngine.HideInInspector;
 using SF = UnityEngine.SerializeField;
 
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(MonsterCombat))]
+[RequireComponent(typeof(MonsterAnimationController))]
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(BuffContainer))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
     [Header("스크립트")]
@@ -60,6 +65,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
         if(anim == null)
             anim = GetComponent<MonsterAnimationController>();
+        if (combat == null)
+            combat = GetComponent<MonsterCombat>();
 
         state = new();
 

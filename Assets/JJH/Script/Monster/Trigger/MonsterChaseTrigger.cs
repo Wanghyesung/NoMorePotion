@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using static JJH_Constants;
 using SF = UnityEngine.SerializeField;
+
+[RequireComponent(typeof(SphereCollider))]
 public class MonsterChaseTrigger : MonoBehaviour
 {
     [SF] private MonsterMove mover;
