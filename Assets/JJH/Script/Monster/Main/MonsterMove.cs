@@ -1,10 +1,8 @@
 using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
 using Photon.Pun;
-using Sirenix.OdinInspector;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using static JJH_Constants;
@@ -14,11 +12,16 @@ using HIn = UnityEngine.HideInInspector;
 using SF = UnityEngine.SerializeField;
 
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(MonsterCombat))]
+[RequireComponent(typeof(MonsterAnimationController))]
+[RequireComponent(typeof(Rigidbody))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
     [Header("스크립트")]
     public MonsterAnimationController anim;
     public MonsterCombat combat;
+    [SF] protected AttackSelector attackSelector = new();
+    public AttackSelector AttackSelector => attackSelector;
 
     [Header("AI 네비게이션")]
     public NavMeshAgent agent;
@@ -61,6 +64,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
         if(anim == null)
             anim = GetComponent<MonsterAnimationController>();
+        if (combat == null)
+            combat = GetComponent<MonsterCombat>();
 
         state = new();
 
@@ -155,7 +160,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     public async UniTask StartAI(float speed, MonsterCombat combat)
     {
-        
+        attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
         aiCts = new CancellationTokenSource();
@@ -168,8 +173,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         patrolTimer = attackTimer = 0;
         patrolTimerActive = false;
 
-        walkSpeed = speed / 2f;
-        runSpeed = speed;
+        SetMoveSpeed(speed);
         agent.speed = walkSpeed;
 
         StartAILoop(token).Forget();
@@ -213,9 +217,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
         
         float distance = Vector3.Distance(transform.position, nowTarget.transform.position);
-        
+
         // 공격 범위 안
-        if (distance <= attackRange)
+        if (IsInAttackRange(distance))
         {
 
             result = stateGroup[MonsterState.Attack];
@@ -263,6 +267,15 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
     }
+
+    public void SetMoveSpeed(float speed)
+    {
+        runSpeed = speed;
+        walkSpeed = speed / 2;
+    }
+    public bool IsInAttackRange(float distance) =>
+    distance <= attackRange || attackSelector.AnyReadyInRange(distance);
+
     public void StopAI()
     {
         if (aiCts == null) return;

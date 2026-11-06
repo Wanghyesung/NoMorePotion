@@ -33,34 +33,63 @@ public class WolfCombat : MonsterCombat
     private bool isJumping;
     private bool isWindup;
 
-    private WolfBoss BossData => data as WolfBoss;
-
     /// <summary>
     ///  테스트용
     /// </summary>
     protected override void InitTestData(int id, int hpOverride = -1)
     {
-        BossData bossData = EnemyDataLoader.Instance.LoadBossData(WolfMover.Pack.alphaId);
-        MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(WolfMover.Pack.alphaId);
-
-        if (bossData == null || textData == null) return;
-        Dictionary<DamageType, int> immuneVal = bossData.Immune
-            .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
-            .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
-        int hp = 0;
-        if (bossData.BossSubData.TryGetValue(WOLF_SUB_DATA_NORMAL_WOLF_HP, out JToken hpVal)
-        && int.TryParse(hpVal.ToString(), out hp)){}
-
-        // 노말 늑대는 일반 데이터, 알파만 보스 데이터
-        if (WolfMover == null || !WolfMover.IsAlpha)
+        // 무리 없는 늑대는 일반 몬스터로 처리
+        if (WolfMover == null || WolfMover.Pack == null)
         {
-            base.InitTestData(prefabId, hp);
+            base.InitTestData(prefabId);
             return;
         }
 
+        int alphaId = WolfMover.Pack.alphaId;
+        BossData bossData = EnemyDataLoader.Instance.LoadBossData(alphaId);
+        if (bossData == null) return;
+
+        // 노말 늑대 강화 체력 (없으면 -1 → 일반 테이블 체력 사용)
+        int normalWolfHp = bossData.BossSubData.TryGetValue(WOLF_SUB_DATA_NORMAL_WOLF_HP, out JToken hpToken)
+            ? hpToken.Value<int>()
+            : -1;
+
+        // 노말 늑대는 일반 데이터 + 강화 체력
+        if (!WolfMover.IsAlpha)
+        {
+            base.InitTestData(prefabId, normalWolfHp);
+            return;
+        }
+
+        // 알파: 보스 데이터
+        MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(alphaId);
+        if (textData == null) return;
+
+        Dictionary<DamageType, int> immuneVal = bossData.Immune
+            .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
+            .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
+
         Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint, bossData.AttackPower,
             immuneVal, bossData.Speed, bossData.Id, 0,
-            bossData.SpawnArea, textData.Description, bossData.BossSkills, hp, bossData.DamageType);
+            bossData.SpawnArea, textData.Description, bossData.BossSkills, normalWolfHp, bossData.DamageType);
+
+        // 선택기가 사용할 스킬 주입
+        var patterns = new List<AttackPattern>();
+        foreach (BossSkill s in bossData.BossSkills)
+        {
+            if (s.Scripted) continue;
+            patterns.Add(new AttackPattern
+            {
+                Name = s.AnimationName,
+                Kind = AttackKind.Skill,
+                MinRange = s.MinRange,
+                MaxRange = s.MaxRange,
+                Cooldown = s.Cooldown,
+                Weight = s.Weight,
+            });
+        }
+
+        mover.AttackSelector.SetPatterns(patterns);
     }
 
     private void Update()
@@ -251,9 +280,4 @@ public class WolfCombat : MonsterCombat
         agent.updatePosition = true;
     }
     #endregion
-
-    public BossSkill GetBossSkill(string animationName)
-    {
-        return BossData.BossSkill.Find(x => x.AnimationName == animationName);
-    }
 }

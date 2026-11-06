@@ -63,13 +63,9 @@ public class MobTestPlayer : MonoBehaviour, IDamageable
         Hp = -attackInfo.Damage;
     }
 
-    public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
-    {
-        throw new System.NotImplementedException();
-    }
+    public void TakeDamage(AttackInfo attackInfo, IAttacker attacker) 
+        => TakeDamage(attackInfo);
 
-    public void TakeDamage(CommonStruct.AttackInfo attackInfo, Character attacker)
-    {
-        throw new System.NotImplementedException();
-    }
+    public void TakeDamage(AttackInfo attackInfo, Character attacker) 
+        => TakeDamage(attackInfo);
 }

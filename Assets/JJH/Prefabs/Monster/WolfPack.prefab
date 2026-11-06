@@ -16,7 +16,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5992183010661991021
 Transform:
   m_ObjectHideFlags: 0
@@ -58,9 +58,9 @@ MonoBehaviour:
   followLeash: 4
   turnRadius: 6
   turnSpeed: 60
-  poundDelay: 8
+  poundDelay: 7
   poundRange: 6
-  poundCooldown: 20
+  poundCooldown: 15
   poundTimeout: 3
   loseDistance: 15
   reachability:

@@ -5,10 +5,17 @@ using static CommonStruct;
 
 using SF = UnityEngine.SerializeField;
 
+[RequireComponent(typeof(BoxCollider))]
 public class MonsterAttackTrigger : MonoBehaviour
 {
-    [SF] private MonsterCombat combat;
+    [SF] protected MonsterCombat combat;
     private readonly HashSet<IDamageable> hitTargets = new();
+
+    private void Awake()
+    {
+        if (combat == null)
+            combat = GetComponentInParent<MonsterCombat>();
+    }
 
     private void OnEnable() 
     {
@@ -26,7 +33,7 @@ public class MonsterAttackTrigger : MonoBehaviour
         if (!other.TryGetComponent(out IDamageable target)) return;
         if (!hitTargets.Add(target)) return;
 
-        target.TakeDamage(GetAttackInfo());
+        target.TakeDamage(GetAttackInfo(), (IAttacker)combat.GetData());
     }
 
     protected virtual AttackInfo GetAttackInfo()

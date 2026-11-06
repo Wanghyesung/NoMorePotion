@@ -47,10 +47,10 @@ public class WolfMove : MonsterMove
                 next = IsAlpha ? MonsterState.Pound : MonsterState.Encircle;
                 break;
 
-            default: // Assault: 기존 Chase / Attack 재사용
+            default:
                 if (nowTarget == null) return base.UpdateState();
                 float dist = Vector3.Distance(transform.position, nowTarget.transform.position);
-                next = dist <= AttackRange ? MonsterState.Attack : MonsterState.Chase;
+                next = IsInAttackRange(dist) ? MonsterState.Attack : MonsterState.Chase;
                 break;
         }
 
