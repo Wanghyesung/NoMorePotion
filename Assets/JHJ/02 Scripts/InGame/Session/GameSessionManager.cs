@@ -46,7 +46,7 @@ public class GameSessionManager : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning("[GameSeesionManager] 인스턴스 중복, 삭제");
+            Debug.LogWarning("[GameSessionManager] 인스턴스 중복, 삭제");
             Destroy(gameObject);
             return;
         }

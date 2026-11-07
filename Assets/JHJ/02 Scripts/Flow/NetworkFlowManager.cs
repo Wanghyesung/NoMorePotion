@@ -20,7 +20,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
 
     private ReactiveProperty<FlowState> state;
-    private ReactiveProperty<List<RoomInfo>> roomList;
+    private ReactiveProperty<IReadOnlyList<RoomInfo>> roomList;
     private Subject<string> error;
     private FirebaseAuthService authService = new FirebaseAuthService();
     private RoomListCache roomListCache = new RoomListCache();
@@ -28,15 +28,16 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomOptions pendingRoomOptions;
     private NicknameStore nicknameStore = new NicknameStore();
     private ReactiveProperty<string> nickname;
-    private ReactiveProperty<List<PhotonPlayer>> players;
+    private ReactiveProperty<IReadOnlyList<PhotonPlayer>> players;
     private ReactiveProperty<bool> canStart;
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
 
 
     public ReadOnlyReactiveProperty<string> Nickname => nickname;
     public ReadOnlyReactiveProperty<FlowState> State => state;
-    public ReadOnlyReactiveProperty<List<RoomInfo>> RoomList => roomList;
-    public ReadOnlyReactiveProperty<List<PhotonPlayer>> Players => players;
+    // 읽기 전용 목록으로 공개 → 구독하는 쪽에서 목록을 수정할 수 없음
+    public ReadOnlyReactiveProperty<IReadOnlyList<RoomInfo>> RoomList => roomList;
+    public ReadOnlyReactiveProperty<IReadOnlyList<PhotonPlayer>> Players => players;
     public ReadOnlyReactiveProperty<bool> CanStart => canStart;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
@@ -70,9 +71,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         // 에러: 구독 이후에 발생한 메세지만 전달
         error = new Subject<string>();
 
-        roomList = new ReactiveProperty<List<RoomInfo>>(new List<RoomInfo>());
+        roomList = new ReactiveProperty<IReadOnlyList<RoomInfo>>(new List<RoomInfo>());
 
-        players = new ReactiveProperty<List<PhotonPlayer>>(new List<PhotonPlayer>());
+        players = new ReactiveProperty<IReadOnlyList<PhotonPlayer>>(new List<PhotonPlayer>());
 
         canStart = new ReactiveProperty<bool>(false);
 
@@ -159,7 +160,17 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     #region 요청
 
-    public async UniTaskVoid RequestConnectOnline()
+    // 다른 Request 함수와 같은 형태 (호출하는 쪽에서 .Forget() 불필요)
+    public void RequestConnectOnline()
+    {
+        ConnectOnlineAsync().Forget();
+    }
+
+    #endregion
+
+    #region 내부
+
+    private async UniTaskVoid ConnectOnlineAsync()
     {
         if (CurrentState != FlowState.Title) return;
 
@@ -211,10 +222,6 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             FailConnecting("Failed to connect to server");
         }
     }
-
-    #endregion
-
-    #region 내부
 
     // 접속 중일 때만 실패 처리 (그 사이 다른 상태로 바뀌었으면 덮어쓰지 않음)
     private void FailConnecting(string message)
@@ -598,6 +605,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private void ClearPlayers()
     {
         players.Value = new List<PhotonPlayer>();
+        canStart.Value = false;     // 방을 나간 뒤 이전 방의 시작 가능 값이 남지 않도록
     }
 
     private bool CheckCanStart()
@@ -761,15 +769,4 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #endregion
 
     #endregion
-
-    //===============================================================
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    #region Debug
-    public void Debug_SetState(FlowState newState) => SetState(newState);
-    public void Debug_RaiseError(string message) => RaiseError(message);
-
-
-    #endregion
-#endif
 }

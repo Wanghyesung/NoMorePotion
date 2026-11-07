@@ -1,7 +1,7 @@
 using UnityEngine;
 using R3;
 
-// 테스트용, 커밋하지 않음
+// 테스트용 : TimeManager 구독 값을 콘솔에 출력 (TestInGameScene에서 사용 중)
 public class TimeManagerTestLogger : MonoBehaviour
 {
     private void Start()
