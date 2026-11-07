@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using Photon.Pun;
 using R3;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ using UnityEngine;
 /// </summary>
 /// <remarks>
 /// [보고] GameSessionManager.Instance.ReportClear() / ReportDefeat()
-///   방장에서, Playing 단계일 때만 반영. 먼저 온 보고만 유효
+///   판정 권한(GameAuthority)이 있고 Playing 단계일 때만 반영. 먼저 온 보고만 유효
 ///
 /// [구독] 알림은 Phase 하나뿐. 끝났을 때 기록이 필요하면 Ended를 받은 뒤 Record를 읽는다
 ///   GameSessionManager.Instance.Phase
@@ -100,9 +99,9 @@ public class GameSessionManager : MonoBehaviour
     private void Finish(GameResult gameResult)
     {
         // TODO(멀티): 방장 외 클라이언트에 결과 전달 필요
-        if (!PhotonNetwork.IsMasterClient)
+        if (!GameAuthority.HasAuthority)
         {
-            Debug.Log($"[GameSessionManager] 방장 아님, 무시 : {gameResult}");
+            Debug.Log($"[GameSessionManager] 판정 권한 없음, 무시 : {gameResult}");
             return;
         }
 

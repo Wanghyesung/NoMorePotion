@@ -1,4 +1,3 @@
-using Photon.Pun;
 using R3;
 using System;
 using UnityEngine;
@@ -22,7 +21,7 @@ using UnityEngine;
 ///
 /// [예약 실행]
 ///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
-///   Time.time 기준, 시계가 도는 동안 방장에서만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
+///   Time.time 기준, 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
 ///
 /// [정지] 판이 끝나면(GameSessionManager.Phase == Ended) 자동으로 멈춤. 멈춘 뒤 값은 그대로 남음
 ///   시작은 GameSessionManager가 StartClock()을 호출
@@ -116,7 +115,7 @@ public class TimeManager : MonoBehaviour
     {
         if (!isRunning) return;
         // TODO(멀티): 방장만 진행하므로 다른 클라이언트는 값이 갱신되지 않음. 동기화 어떻게할지
-        if (!PhotonNetwork.IsMasterClient) return;
+        if (!GameAuthority.HasAuthority) return;
 
         Tick(Time.deltaTime);
     }
@@ -155,7 +154,7 @@ public class TimeManager : MonoBehaviour
 
     /// <summary>
     /// delay초(Time.time 기준) 뒤 callback 실행 예약. 반환값을 AddTo(this) 하면 오브젝트 파괴 시 자동 취소.
-    /// 시계가 도는 동안 방장에서만 실행됨.
+    /// 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행됨.
     /// </summary>
     public IDisposable Schedule(float delay, Action callback)
     {
