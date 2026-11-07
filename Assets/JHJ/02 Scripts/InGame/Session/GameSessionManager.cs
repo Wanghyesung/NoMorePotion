@@ -4,8 +4,9 @@ using UnityEngine;
 
 /// <summary>
 /// 한 판의 진행 단계 관리 (준비 → 플레이 → 끝).
-/// 시작 순서와 끝 판정·기록만 맡는다. 다른 매니저는 "시작 함수"만 호출하고,
+/// 시작 순서와 끝 판정·기록만 맡는다. 다른 매니저는 "시작·정지 함수"만 호출하고,
 /// 스폰·불러오기·승패 조건의 구현은 각 담당. 앱 흐름·인게임 나가기는 NetworkFlowManager.
+/// 의존은 한 방향 (세션 → TimeManager). TimeManager는 세션을 모른다.
 /// </summary>
 /// <remarks>
 /// [보고] GameSessionManager.Instance.ReportClear() / ReportDefeat()
@@ -70,7 +71,7 @@ public class GameSessionManager : MonoBehaviour
 
     /// <summary>
     /// 한 판의 시작 순서. 순서가 곧 규칙이므로 다른 매니저의 시작 함수를 여기서 직접 호출한다.
-    /// (끝날 때는 순서가 중요하지 않아 각자 Phase를 구독)
+    /// (끝날 때 시계 정지도 Finish에서 직접 호출. 그 외 반응(결과창 등)은 각자 Phase를 구독)
     /// </summary>
     private async UniTaskVoid RunStartSequence()
     {
@@ -112,8 +113,14 @@ public class GameSessionManager : MonoBehaviour
             return;
         }
 
-        // 순서 중요: 기록 → 단계 변경. 구독자는 Ended를 받는 순간 Record를 읽으므로 기록이 먼저 있어야 함
+        // 순서 중요: 기록 → 시계 정지 → 단계 변경
+        // 기록이 먼저 : 판정 순간의 시간을 고정. 구독자는 Ended를 받는 순간 Record를 읽으므로 기록이 먼저 있어야 함
+        // 정지가 단계 변경보다 먼저 : Ended 구독자가 이미 멈춘 시계를 보게 됨
         record = CreateRecord(gameResult);
+
+        if (TimeManager.Instance != null)
+            TimeManager.Instance.StopClock();
+
         ChangePhase(SessionPhase.Playing, SessionPhase.Ended);
 
         Debug.Log($"[GameSessionManager] 게임 종료 : {gameResult} ({record.Value.DayCount}일차, {record.Value.PlayTime:F1}초)");
@@ -142,7 +149,7 @@ public class GameSessionManager : MonoBehaviour
     }
 
 
-    // 판정 순간의 시간 값을 고정. 시계는 Ended를 받고 멈추지만, 그 전에 읽어도 같은 프레임이라 값이 같음
+    // 판정 순간의 시간 값을 고정. 시계는 기록 직후 Finish에서 멈춤
     private GameRecord CreateRecord(GameResult gameResult)
     {
         TimeManager timeManager = TimeManager.Instance;
