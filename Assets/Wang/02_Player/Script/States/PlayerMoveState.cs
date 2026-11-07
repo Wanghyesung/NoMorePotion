@@ -8,6 +8,7 @@ public sealed class PlayerMoveState : PlayerState
     private Vector2 moveInput;
     private Vector2 moveDir;
     public override Vector2 MoveDirection => moveDir;
+    // 걷기 속도에만 버프 배율을 곱한다. 합산 후 전체 속도에 곱하면 넉백까지 달라진다.
     public override Vector3 Velocity => owner.ViewRotation * new Vector3(moveDir.x, 0f, moveDir.y)
         * (moveSpeed * owner.MoveSpeedMultiplier * moveInput.magnitude);
 

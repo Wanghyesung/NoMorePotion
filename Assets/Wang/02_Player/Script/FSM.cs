@@ -35,6 +35,7 @@ public sealed class FSM : MonoBehaviour
         get
         {
             Vector2 input = Instance.InputInfo.MoveDir;
+            // 조작 방향만 반전한다. 외부에서 더하는 넉백 속도에는 영향을 주지 않는다.
             if (ReverseMovement == true)
                 input = -input;
 
@@ -137,6 +138,7 @@ public sealed class FSM : MonoBehaviour
         if (Rigidbody.isKinematic)
             return;
 
+        // 기존 수직 속도는 유지하고, 이번 물리 프레임의 이동·넉백 속도를 새로 합산한다.
         Vel = Vector3.up * Rigidbody.linearVelocity.y;
 
         CurrentState?.FixedUpdateState();
