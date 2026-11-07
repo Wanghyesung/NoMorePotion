@@ -21,7 +21,8 @@ using UnityEngine;
 ///
 /// [예약 실행]
 ///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
-///   Time.time 기준, 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
+///   게임 시간(TotalElapsed) 기준, 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행
+///   시계가 멈추면 남은 시간도 멈춤. 내 화면 연출용 대기는 UniTask.Delay 사용
 ///
 /// [시작·정지] StartClock() / StopClock(). 인게임에서는 GameSessionManager가 호출
 ///   TimeManager는 세션을 모름 → 세션 없는 씬에서도 직접 호출해 단독 테스트 가능
@@ -139,12 +140,13 @@ public class TimeManager : MonoBehaviour
     }
 
     /// <summary>
-    /// delay초(Time.time 기준) 뒤 callback 실행 예약. 반환값을 AddTo(this) 하면 오브젝트 파괴 시 자동 취소.
-    /// 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행됨.
+    /// 게임 시간으로 delay초 뒤 callback 실행 예약. 반환값을 AddTo(this) 하면 오브젝트 파괴 시 자동 취소.
+    /// 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행됨. 시계가 멈춘 동안은 남은 시간도 멈춤.
+    /// 시작 전에 예약하면 시작 시점부터 delay초 뒤 실행.
     /// </summary>
     public IDisposable Schedule(float delay, Action callback)
     {
-        return timer.Schedule(delay, callback);
+        return timer.Schedule(TotalElapsed, delay, callback);
     }
 
     private void Tick(float deltaTime)
@@ -162,7 +164,7 @@ public class TimeManager : MonoBehaviour
 
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
 
-        timer.Tick();
+        timer.Tick(state.TotalElapsed);
     }
 
     /// <summary>낮↔밤 전환. 일차는 아침 기준으로 증가. 전환은 반드시 이 함수를 거침</summary>
