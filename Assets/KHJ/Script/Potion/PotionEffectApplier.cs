@@ -69,9 +69,12 @@ namespace Enzeun.Runtime
                         break;
 
                     case HealthChangePotionEffect health:
-                        // 포션이 터질 때는 첫 번째 체력 증감만 적용합니다. 지속시간이 있는 체력 증감(초당 대미지)의 이후 틱은
-                        // 필드에 만드는 별도 오브젝트(장판)가 맡습니다. (TODO: 장판 구현. 장판은 두 번째 틱부터 시작해야 첫 틱이 겹치지 않음)
-                        if (target.Damageable != null)
+                        // 대상에게 붙는 지속 효과다. 범위를 벗어나도 컨테이너가 남은 시간을 처리한다.
+                        if (target.BuffContainer != null)
+                        {
+                            target.BuffContainer.ApplyPotionHealth(health, source, explosionPosition);
+                        }
+                        else if (target.Damageable != null)
                         {
                             health.healthChange.Apply(target.Damageable, explosionPosition);
                         }

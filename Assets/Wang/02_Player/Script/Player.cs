@@ -165,7 +165,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable, IStatusEffec
 
     private bool CheckState()
     {
-        return isActiveAndEnabled == true && Character.HP > 0;
+        return isActiveAndEnabled == true && Character.HP > 0 && fsm.IsFrozen == false;
     }
 
     private bool CanStartUse()
