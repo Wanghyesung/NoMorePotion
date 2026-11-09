@@ -62,6 +62,9 @@ namespace Enzeun.Runtime
                 return 0;
             }
 
+            // 화면 단위 연출(카메라, 후처리 등)은 씬의 허브가 맡습니다. 허브가 없으면 아무 일도 일어나지 않습니다.
+            ExplosionFeedbackHub.Play(position, potion.potionSize);
+
             float radius = config.GetRadius(potion.potionExplosionRange);
             int hitCount = Physics.OverlapSphereNonAlloc(position, radius, ColliderBuffer, config.TargetLayers, QueryTriggerInteraction.Collide);
 
