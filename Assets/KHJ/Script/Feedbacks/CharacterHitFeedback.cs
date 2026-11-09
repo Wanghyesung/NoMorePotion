@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MoreMountains.Feedbacks;
 using MoreMountains.Tools;
 using Sirenix.OdinInspector;
@@ -15,8 +16,13 @@ namespace Enzeun.Runtime
     /// - MMF_Player 에 MMF_SquashAndStretch / MMF_Blink 를 추가하면, 대상이 비어 있는 피드백은 아래 연결값으로 자동으로 채웁니다.
     /// - 피격을 알리는 쪽은 Play(damageRatio) 를 호출합니다. (damageRatio = 받은 피해 / 최대 체력)
     ///
+    /// 찌그러짐 세기 : Feel 은 플레이어의 세기를 Remap Curve One 에 그대로 곱하는데, Absolute 모드(Zero 1, One 0.75 처럼 1 근처 값)에서는
+    /// 곱하면 방향이 뒤집힙니다. (세기 1.5 → 1.125 = 눌리지 않고 늘어남) 그래서 찌그러짐 피드백은 Feel 의 세기 곱셈을 끄고(Constant Intensity),
+    /// 이 컴포넌트가 "Zero 에서 One 까지의 변화량"에 세기를 곱한 값으로 Remap Curve One 을 매번 정해서 넘깁니다.
+    /// 결과적으로 인스펙터의 One 값은 "세기 1 일 때의 최종 스케일"이고, 세기 0.5 는 변화량의 절반만 눌립니다. (Additive 모드도 같은 식으로 동작)
+    ///
     /// 주의 : 찌그러짐 대상(모델 루트)은 콜라이더, NavMeshAgent, Rigidbody 가 붙은 루트가 아니라 그 아래의 모델이어야 합니다.
-    /// 스케일이 (1, 1, 1) 로 정규화되어 있어야 하고, 애니메이터가 그 스케일을 직접 바꾸면 안 됩니다.
+    /// Absolute 모드는 스케일을 절대값으로 쓰므로 대상의 스케일이 (1, 1, 1) 이어야 하고, 애니메이터가 그 스케일을 직접 바꾸면 안 됩니다.
     /// </summary>
     public class CharacterHitFeedback : MonoBehaviour
     {
@@ -44,6 +50,15 @@ namespace Enzeun.Runtime
 
         [SerializeField, LabelText("재생 간격 (초)"), BoxGroup("겹침 제어"), MinValue(0f)]
         private float _cooldownSeconds = 0.1f;
+
+        // 찌그러짐 피드백과, 인스펙터에 설정된 Remap Curve One 의 원래 값입니다. 재생할 때마다 세기를 반영해 다시 계산합니다.
+        private readonly List<SquashEntry> _squashEntries = new List<SquashEntry>();
+
+        private struct SquashEntry
+        {
+            public MMF_SquashAndStretch Feedback;
+            public float BaseRemapOne;
+        }
 
         private float _lastPlayTime = float.NegativeInfinity;
 
@@ -84,6 +99,14 @@ namespace Enzeun.Runtime
             float t = Mathf.InverseLerp(_lightRatio, _heavyRatio, damageRatio);
             float intensity = Mathf.Lerp(_lightIntensity, _heavyIntensity, t);
 
+            // 찌그러짐은 Feel 이 세기를 곱하지 않으므로, 변화량(Zero → One)에 세기를 곱한 값을 직접 넣습니다.
+            for (int i = 0; i < _squashEntries.Count; i++)
+            {
+                SquashEntry entry = _squashEntries[i];
+                float zero = entry.Feedback.RemapCurveZero;
+                entry.Feedback.RemapCurveOne = zero + (entry.BaseRemapOne - zero) * intensity;
+            }
+
             _player.PlayFeedbacks(transform.position, intensity);
         }
 
@@ -102,9 +125,16 @@ namespace Enzeun.Runtime
             {
                 MMF_Feedback feedback = _player.FeedbacksList[i];
 
-                if (feedback is MMF_SquashAndStretch squash && squash.SquashAndStretchTarget == null)
+                if (feedback is MMF_SquashAndStretch squash)
                 {
-                    squash.SquashAndStretchTarget = _visualRoot;
+                    if (squash.SquashAndStretchTarget == null)
+                    {
+                        squash.SquashAndStretchTarget = _visualRoot;
+                    }
+
+                    // Feel 의 세기 곱셈을 끄고(세기는 Play 에서 직접 반영), 인스펙터의 원래 One 값을 기억해 둡니다.
+                    squash.Timing.ConstantIntensity = true;
+                    _squashEntries.Add(new SquashEntry { Feedback = squash, BaseRemapOne = squash.RemapCurveOne });
                 }
                 else if (feedback is MMF_Blink blink && blink.TargetBlink == null)
                 {
