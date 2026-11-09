@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 
@@ -73,5 +74,18 @@ namespace Enzeun.Runtime
 
             PlayerHitFeedbackHub.Play(damageRatio);
         }
+
+#if UNITY_EDITOR
+
+        [Button(ButtonSizes.Large)]
+        public void TestHit()
+        {
+            CommonStruct.AttackInfo attack = new CommonStruct.AttackInfo
+            {
+                Damage = 500
+            };
+            HandleHit(attack);
+        }
+#endif
     }
 }
