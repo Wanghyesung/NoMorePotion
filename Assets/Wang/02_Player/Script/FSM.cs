@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static InputManager;
@@ -28,6 +28,23 @@ public sealed class FSM : MonoBehaviour
         Drink = 9,
     }
     public bool HasGameplayInput => Instance.HasGameplayInput;
+    public bool IsFrozen => freezeRemaining > 0f;
+    private float freezeRemaining;
+    private float animatorSpeedBeforeFreeze;
+    public bool ReverseMovement { get; set; }
+    public float MoveSpeedMultiplier { get; set; } = 1f;
+    public Vector2 MoveInput
+    {
+        get
+        {
+            Vector2 input = Instance.InputInfo.MoveDir;
+            // 조작 방향만 반전한다. 외부에서 더하는 넉백 속도에는 영향을 주지 않는다.
+            if (ReverseMovement == true)
+                input = -input;
+
+            return input;
+        }
+    }
 
     #region Components
     private Player player;
@@ -52,6 +69,7 @@ public sealed class FSM : MonoBehaviour
     public PlayerState CurrentActionState { get; private set; }
     public PlayerState PreviousState { get; private set; }
     public event Action<CommonStruct.AttackInfo> OnHitAction;
+
     #endregion
 
     #region Rotate
@@ -61,6 +79,7 @@ public sealed class FSM : MonoBehaviour
     private float rotateY;
     // 하위 16비트: 기본 상태, 상위 16비트: 액션 상태
     private int rotateLockMask;
+    public bool IsRotationLocked => rotateLockMask != 0;
     private bool stateLocked;
     public Quaternion ViewRotation => Quaternion.Euler(0f, rotateY, 0f);
     #endregion
@@ -103,6 +122,12 @@ public sealed class FSM : MonoBehaviour
 
     public void UpdateState()
     {  
+        // 상태 업데이트를 건너뛰어도 해제 타이머는 반드시 진행한다.
+        TickFreeze(Time.deltaTime);
+
+        if (IsFrozen == true)
+            return;
+
         if (CurrentState == null)
         {
             if (StartState() == false)
@@ -121,9 +146,13 @@ public sealed class FSM : MonoBehaviour
 
     public void FixedUpdateState()
     {
+        if (IsFrozen == true)
+            return;
+
         if (Rigidbody.isKinematic)
             return;
 
+        // 기존 수직 속도는 유지하고, 이번 물리 프레임의 이동·넉백 속도를 새로 합산한다.
         Vel = Vector3.up * Rigidbody.linearVelocity.y;
 
         CurrentState?.FixedUpdateState();
@@ -158,6 +187,9 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeState(StateType type)
     {
+        if (IsFrozen == true)
+            return false;
+
         if (stateLocked == true || player.Character.HP <= 0)
             return false;
 
@@ -176,6 +208,7 @@ public sealed class FSM : MonoBehaviour
     {
         if (player.Character.HP <= 0)
         {
+            Unfreeze();
             PlayerDeadState dead = (PlayerDeadState)states[StateType.Dead];
             if (CurrentState == dead)
                 return;
@@ -210,6 +243,9 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeActionState(StateType type)
     {
+        if (IsFrozen == true)
+            return false;
+
         if (stateLocked == true || player.Character.HP <= 0)
             return false;
 
@@ -249,6 +285,7 @@ public sealed class FSM : MonoBehaviour
 
     public void Stop()
     {
+        Unfreeze();
         ClearActionState();
         if (CurrentState != null)
         {
@@ -261,6 +298,41 @@ public sealed class FSM : MonoBehaviour
         rotateLockMask = 0;
         stateLocked = false;
         Animator.speed = 1f;
+    }
+
+    // 현재 상태는 유지한다. 중복 호출은 남은 시간을 연장하며 원래 재생 속도를 덮어쓰지 않는다.
+    public void Freeze(float duration)
+    {
+        if (duration <= 0f || player.Character.HP <= 0)
+            return;
+
+        if (IsFrozen == false)
+            animatorSpeedBeforeFreeze = Animator.speed;
+
+        freezeRemaining = Mathf.Max(freezeRemaining, duration);
+        Animator.speed = 0f;
+        // FixedUpdate를 건너뛰어도 기존 속도로 미끄러지지 않도록 진입할 때만 멈춘다.
+        StopHorizontalMovement();
+    }
+
+    private void TickFreeze(float deltaTime)
+    {
+        if (IsFrozen == false)
+            return;
+
+        if (deltaTime >= freezeRemaining)
+            Unfreeze();
+        else
+            freezeRemaining -= deltaTime;
+    }
+
+    public void Unfreeze()
+    {
+        if (IsFrozen == false)
+            return;
+
+        freezeRemaining = 0f;
+        Animator.speed = animatorSpeedBeforeFreeze;
     }
 
     public void StopHorizontalMovement()

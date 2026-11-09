@@ -59,7 +59,13 @@ public sealed class PlayerDrinkState : PlayerState
 
     public override bool CanEnter()
     {
-        if (owner.CurrentActionState != null || owner.CurrentState == null)
+        if (owner.CurrentState == null)
+            return false;
+
+        // 갈증으로 포션을 잡는 순간에는 줍기/꺼내기 액션이 아직 진행 중일 수 있다.
+        if (owner.CurrentActionState != null
+            && owner.CurrentActionState.Type != FSM.StateType.Pick
+            && owner.CurrentActionState.Type != FSM.StateType.Take)
             return false;
 
         if (owner.CurrentState.Type != FSM.StateType.Idle && owner.CurrentState.Type != FSM.StateType.Walk)

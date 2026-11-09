@@ -4,7 +4,7 @@ using UnityEngine;
 
 // 범위 진입과 반복 공격 시점만 관리한다. 실제 대상 탐색과 효과는 PotionExplosion에 맡긴다.
 [RequireComponent(typeof(SphereCollider))]
-public sealed class AttackObject : MonoBehaviour
+public sealed class PotionDetector : MonoBehaviour
 {
     [SerializeField] private bool attackOnce = true;
     [SerializeField, Min(0.02f)] private float lifetime = 5f; //여기 잡 큐로 바꾸기
@@ -18,8 +18,6 @@ public sealed class AttackObject : MonoBehaviour
     private void Awake()
     {
         attackCollider = GetComponent<SphereCollider>();
-        attackCollider.isTrigger = true;
-        attackCollider.enabled = false;
     }
 
     public void Initialize(PotionInstance potionInstance)
@@ -27,16 +25,15 @@ public sealed class AttackObject : MonoBehaviour
         PotionExplosionConfig config = PotionExplosionConfig.Instance;
         if (potionInstance == null || potionInstance.Data == null || config == null)
         {
-            Debug.LogError("AttackObject에 포션 데이터와 폭발 범위 설정이 필요합니다.", this);
+            Debug.LogError("PotionDetector에 포션 데이터와 폭발 범위 설정이 필요합니다.", this);
             Destroy(gameObject);
             return;
         }
 
         instance = potionInstance;
-        // 루트 스케일은 1로 유지해 Explode의 월드 반지름과 일치시킨다.
-        transform.localScale = Vector3.one;
-        attackCollider.center = Vector3.zero;
-        attackCollider.radius = config.GetRadius(instance.Data.potionExplosionRange);
+        // 로컬 반지름 1 × 루트 스케일 = Explode가 검사하는 월드 반지름.
+        float radius = config.GetRadius(instance.Data.potionExplosionRange);
+        transform.localScale = Vector3.one * radius;
         targetLayers = config.TargetLayers;
 
         attackCollider.enabled = true;
@@ -66,7 +63,7 @@ public sealed class AttackObject : MonoBehaviour
         if (Time.time < nextAttackTime)
             return;
 
-        nextAttackTime = Time.time + 1f;
+        nextAttackTime = Time.time + 1f; // 지속 공격은 콜라이더 개수와 무관하게 범위 전체를 초당 한 번 검사한다.
         hasAttacked = true;
         if (attackOnce == true)
             attackCollider.enabled = false;
