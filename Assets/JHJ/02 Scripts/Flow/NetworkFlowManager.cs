@@ -391,6 +391,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        // 인게임에서 나갈 때 꺼 둔 씬 동기화를 다시 켬 (방장이 LoadLevel하면 전원 같은 씬으로)
+        PhotonNetwork.AutomaticallySyncScene = true;
+
        if (PhotonNetwork.OfflineMode)
         {
             StartGameInternal();
@@ -569,6 +572,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             // 멀티: 나만 방을 나가고 로비로. 남은 사람은 방에 그대로 (방장이면 다른 사람에게 넘어감)
             // 흐름: LeaveRoom → OnLeftRoom → 마스터 서버 재접속(OnConnectedToMaster) → JoinLobby → OnJoinedLobby(Lobby)
             isLeavingToLobby = true;
+
+            // 씬 동기화 끄기: 켜 둔 채 방장이 아웃게임 씬을 불러오면 PUN이 그 씬을 방 속성에 기록하려 함
+            //  → 방을 나가는 중이라 "SetProperties not called ... Leaving" 에러, 성공하면 남은 사람까지 아웃게임으로 끌려감
+            // 다시 켜는 곳: OnJoinedRoom (다음 방에 들어갈 때)
+            PhotonNetwork.AutomaticallySyncScene = false;
 
             // false = 요청을 보내지 못함(방 안이 아님 등) → 로비로 갈 수 없으니 연결을 끊고 타이틀로
             // (끊김은 LeavingGame 중이라 OnDisconnected에서 에러 없이 넘어가고, 씬 로드 후 Title)
