@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using Unity.VisualScripting;
 
 namespace Enzeun.SO
 {
@@ -34,6 +35,16 @@ namespace Enzeun.SO
         None,
         Material,
         Potion,
+    }
+
+    /// <summary>
+    /// 포션 크기를 정의하는 열거형입니다. 소,중,대 로 나누어져 있습니다.
+    /// </summary>
+    public enum PotionSize
+    {
+        Small,
+        Medium,
+        Large,
     }
 
     [CreateAssetMenu(fileName = "PotionData", menuName = "Scriptable Objects/PotionData")]
@@ -80,36 +91,59 @@ namespace Enzeun.SO
         private PotionType _potionType = PotionType.Status;
         public PotionType potionType => _potionType;
 
-        [LabelText("포션 폭발 범위"), BoxGroup("기본 정보")]
+        [LabelText("포션 크기"), BoxGroup("기본 정보")]
         [PropertyOrder(7)]
+        [SerializeField]
+        private PotionSize _potionSize = PotionSize.Small;
+        public PotionSize potionSize => _potionSize;
+
+        [LabelText("포션 액체 색상"), BoxGroup("기본 정보")]
+        [PropertyOrder(8)]
+        [SerializeField]
+        private Color _potionColor = Color.white;
+        public Color potionColor => _potionColor;
+
+        [LabelText("포션 폭발 범위"), BoxGroup("기본 정보")]
+        [PropertyOrder(9)]
         [SerializeField]
         private PotionExplosionRange _potionExplosionRange = PotionExplosionRange.Small;
         public PotionExplosionRange potionExplosionRange => _potionExplosionRange;
 
         [LabelText("포션 조합 타입"), BoxGroup("기본 정보")]
-        [PropertyOrder(8)]
+        [PropertyOrder(10)]
         [SerializeField]
         private PotionCombinationType _potionCombinationType = PotionCombinationType.Material;
         public PotionCombinationType potionCombinationType => _potionCombinationType;
 
         [BoxGroup("기본 정보")]
-        [PropertyOrder(9)]
+        [PropertyOrder(11)]
         [MinValue(-1), LabelText("최대 보유 개수"), MaxValue(99)]
         [SerializeField]
         private int _maxHoldCount = 1;
         public int maxHoldCount => _maxHoldCount;
 
+        // ========================================================
+
+        [LabelText("폭발 프리팹"), BoxGroup("폭발 오브젝트")]
+        [PropertyOrder(12)]
+        [SerializeField]
+        private GameObject _explosionPrefab;
+        public GameObject explosionPrefab => _explosionPrefab;
+
+
         [HideIf("potionCombinationType", PotionCombinationType.Potion)]
         [SerializeField, LabelText("포션 레시피 재료 목록"), BoxGroup("레시피 정보")]
-        [PropertyOrder(10)]
+        [PropertyOrder(13)]
         private List<MaterialData> _recipeMaterials;
         public List<MaterialData> recipeMaterials => _recipeMaterials;
 
         [LabelText("효과 목록"), BoxGroup("효과 정보")]
-        [PropertyOrder(11)]
+        [PropertyOrder(14)]
         [SerializeReference]
         private List<PotionEffect> _effects = new List<PotionEffect>();
         public IReadOnlyList<PotionEffect> effects => _effects;
+
+
 
 #if UNITY_EDITOR
         public void SetID(int id)
