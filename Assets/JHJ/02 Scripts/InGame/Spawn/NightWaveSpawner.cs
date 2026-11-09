@@ -76,6 +76,7 @@ public class NightWaveSpawner : MonoBehaviour
         Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {order}마리 예약");
     }
 
+    // TODO(전멸 알림): 생성한 몬스터 OnDead 구독 → 살아 있는 수 관리 (밤 채집금지 기획 확정 시)
     private void SpawnOne(GameObject prefab)
     {
         Transform point = PickSpawnPoint();
