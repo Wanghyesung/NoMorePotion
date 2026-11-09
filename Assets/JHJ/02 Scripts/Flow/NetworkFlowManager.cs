@@ -25,6 +25,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private NicknameService nicknameService;    // 닉네임 검증·저장·Photon 반영 (Awake에서 생성)
     private RoomSession room;               // 방 안의 플레이어·레디 관리 (Awake에서 생성)
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
+    private bool isLeavingToLobby;          // 멀티 인게임에서 나가는 중 (방 나가기 → 로비 입장까지)
 
 
     // 실제 값은 NicknameService가 가짐. UI는 기존처럼 매니저를 통해 구독
@@ -153,7 +154,10 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         else if (scene.name == SceneNames.OUT_GAME && CurrentState == FlowState.LeavingGame)
         {
-            SetState(FlowState.Title);
+            // 멀티 나가기: 씬이 먼저 바뀌고 로비 입장은 아직 → 접속 중 화면으로 대기, OnJoinedLobby에서 Lobby
+            // (Title로 두면 로비 입장 전까지 타이틀 버튼이 눌려 접속이 꼬일 수 있음)
+            // 싱글 나가기·인게임 중 연결 끊김: 타이틀로
+            SetState(isLeavingToLobby ? FlowState.Connecting : FlowState.Title);
             RaisePendingReturnErrorAsync().Forget();
         }
     }
@@ -267,8 +271,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-
-        if(CurrentState == FlowState.LeavingGame)
+        // 멀티 나가기 중이면 방을 나와 마스터 서버로 돌아온 것 → 아래에서 로비 입장
+        if(CurrentState == FlowState.LeavingGame && !isLeavingToLobby)
         {
             Debug.Log("[NetworkFlowManager] 인게임 나가는 중이라 마스터 접속 처리 무시");
             return;
@@ -285,12 +289,18 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby()
     {
+        // 멀티 나가기 완료 (씬 로드보다 먼저 와도 됨 → OnSceneLoaded는 Lobby 상태라 건드리지 않음)
+        isLeavingToLobby = false;
+
         match.ClearRoomList();
         SetState(FlowState.Lobby);
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
+        // 멀티 나가기 도중 끊기면 로비로 못 감 → 씬 로드 후 타이틀로 가도록 해제
+        isLeavingToLobby = false;
+
         match.ClearRoomList();
         room.Clear();
         room.ResetReady();
@@ -547,15 +557,28 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     {
         if (!Require(FlowState.InGame)) return;
 
-        // TODO : 멀티 나가기 구현 추후
-        if (!PhotonNetwork.OfflineMode)
-        {
-            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 멀티 나가기 미구현");
-            return;
-        }
-
         SetState(FlowState.LeavingGame);
-        PhotonNetwork.OfflineMode = false;
+
+        if (PhotonNetwork.OfflineMode)
+        {
+            // 싱글: 오프라인 방을 닫고 타이틀로 (OnSceneLoaded에서 Title)
+            PhotonNetwork.OfflineMode = false;
+        }
+        else
+        {
+            // 멀티: 나만 방을 나가고 로비로. 남은 사람은 방에 그대로 (방장이면 다른 사람에게 넘어감)
+            // 흐름: LeaveRoom → OnLeftRoom → 마스터 서버 재접속(OnConnectedToMaster) → JoinLobby → OnJoinedLobby(Lobby)
+            isLeavingToLobby = true;
+
+            // false = 요청을 보내지 못함(방 안이 아님 등) → 로비로 갈 수 없으니 연결을 끊고 타이틀로
+            // (끊김은 LeavingGame 중이라 OnDisconnected에서 에러 없이 넘어가고, 씬 로드 후 Title)
+            if (!PhotonNetwork.LeaveRoom())
+            {
+                Debug.LogWarning("[NetworkFlowManager] 방 나가기 요청 실패, 연결 종료 후 타이틀로");
+                isLeavingToLobby = false;
+                PhotonNetwork.Disconnect();
+            }
+        }
 
         // 혼자 떠나는 이동이라 동기화 없는 LoadScene 사용 (LoadLevel은 방 전원 이동용)
         SceneManager.LoadScene(SceneNames.OUT_GAME);
