@@ -30,10 +30,11 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private bool pending;
 
 
-
-    private Character character = null;
+    private PlayerCharacter character = null;
     public Character Character => character;
     public bool ConfusePotionUse { get; set; }
+
+    [SerializeField] private UISlider playerHPSlider;
 
     public void Heal(int amount)
     {
@@ -59,8 +60,13 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         // 피해 / 방어력 배율: +20%(1.2배)이면 피해 100 → 83. 0.01은 0 나눗셈 방지용 하한이다.
         int damage = Mathf.Max(0, Mathf.RoundToInt(attackInfo.Damage / Mathf.Max(0.01f, defenseMultiplier)));
         character.HP = Mathf.Max(0, character.HP - damage);
+
         // HP 차감량만 보정한다. 피격 위치·넉백에 쓰는 원본 공격 정보는 유지한다.
         fsm.TakeDamage(attackInfo);
+
+        playerHPSlider.UpdateSlider(character.HP);
+
+        //여기 데미지 들어왔을 떄 어떤 애인지 알아야할듯 무조건 애니메이션이 발동되네
     }
 
     public void TakeDamage(CommonStruct.AttackInfo attackInfo, IAttacker attacker)
@@ -73,11 +79,13 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     {
         Dictionary<DamageType, int> immune = new();
         // 현재 플레이어의 기본 최대 HP / 시작 HP. 버프 컨테이너는 HP 자체를 보관하지 않는다.
-        character = new PlayerCharacter("Player", 100, 100, immune);
+        character = new PlayerCharacter("Player", 10000, 10000, immune);
 
         fsm = GetComponent<FSM>();
         fsm.Init(this);
         hand = GetComponent<Hand>();
+
+        playerHPSlider.SetRange(character.MaxHP, character.HP);
     }
 
    

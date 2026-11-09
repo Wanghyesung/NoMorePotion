@@ -4,7 +4,7 @@ using UnityEngine;
 
 // 범위 진입과 반복 공격 시점만 관리한다. 실제 대상 탐색과 효과는 PotionExplosion에 맡긴다.
 [RequireComponent(typeof(SphereCollider))]
-public sealed class AttackObject : MonoBehaviour
+public sealed class PotionDetector : MonoBehaviour
 {
     [SerializeField] private bool attackOnce = true;
     [SerializeField, Min(0.02f)] private float lifetime = 5f; //여기 잡 큐로 바꾸기
@@ -25,7 +25,7 @@ public sealed class AttackObject : MonoBehaviour
         PotionExplosionConfig config = PotionExplosionConfig.Instance;
         if (potionInstance == null || potionInstance.Data == null || config == null)
         {
-            Debug.LogError("AttackObject에 포션 데이터와 폭발 범위 설정이 필요합니다.", this);
+            Debug.LogError("PotionDetector에 포션 데이터와 폭발 범위 설정이 필요합니다.", this);
             Destroy(gameObject);
             return;
         }
