@@ -60,6 +60,7 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         bool holdVision = Keyboard.current != null && Application.isFocused == true
             && InputManager.Instance != null && InputManager.Instance.HasGameplayInput == true
             && (Keyboard.current.digit6Key.isPressed == true || Keyboard.current.numpad6Key.isPressed == true);
+
         if (testStrongVision != holdVision)
         {
             testStrongVision = holdVision;
@@ -67,10 +68,6 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         }
 
         if (playerBuffContainer == null || Keyboard.current == null)
-            return;
-        if (Application.isFocused == false || InputManager.Instance == null)
-            return;
-        if (InputManager.Instance.HasGameplayInput == false)
             return;
 
         // 윗줄 숫자키와 숫자패드 모두 지원한다. 누를 때 한 번만 적용/해제한다.

@@ -4,7 +4,6 @@ public sealed class PlayerMoveState : PlayerState
 {
     private static readonly int walkHash = Animator.StringToHash("Walk");
     private readonly float moveSpeed;
-    private readonly float directionTurnSpeed;
     private Vector2 moveInput;
     private Vector2 moveDir;
     public override Vector2 MoveDirection => moveDir;
@@ -12,11 +11,10 @@ public sealed class PlayerMoveState : PlayerState
     public override Vector3 Velocity => owner.ViewRotation * new Vector3(moveDir.x, 0f, moveDir.y)
         * (moveSpeed * owner.MoveSpeedMultiplier * moveInput.magnitude);
 
-    public PlayerMoveState(FSM owner, SOState data, float moveSpeed, float directionTurnSpeed)
+    public PlayerMoveState(FSM owner, SOState data, float moveSpeed)
         : base(owner, data)
     {
         this.moveSpeed = moveSpeed;
-        this.directionTurnSpeed = directionTurnSpeed;
     }
 
     public override bool CanEnter() => SelectState(owner) == Type;
@@ -25,7 +23,6 @@ public sealed class PlayerMoveState : PlayerState
     {
         base.Enter();
         owner.Animator.SetBool(walkHash, true);
-        moveDir = owner.PreviousState.MoveDirection;
 
         UpdateMovement();
     }
@@ -58,21 +55,10 @@ public sealed class PlayerMoveState : PlayerState
             return;
         }
 
-        float targetAngle = Mathf.Atan2(moveInput.x, moveInput.y) * Mathf.Rad2Deg;
-        float angle = targetAngle;
-        if (moveDir.sqrMagnitude > 0f)
-        {
-            float currentAngle = Mathf.Atan2(moveDir.x, moveDir.y) * Mathf.Rad2Deg;
-
-            if (Mathf.Abs(Mathf.DeltaAngle(currentAngle, targetAngle)) <= 45f)
-            {
-                angle = Mathf.MoveTowardsAngle(currentAngle, targetAngle,
-                    directionTurnSpeed * Time.deltaTime);
-            }
-        }
-
-        float radians = angle * Mathf.Deg2Rad;
-        moveDir = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
+        // 이동 기준은 마우스로 회전한 루트다. View 회전은 이동 계산에 다시 섞지 않는다.
+        moveDir = moveInput.normalized;
+        if (owner.IsRotationLocked == false)
+            owner.PlayerView.localRotation = Quaternion.LookRotation(new Vector3(moveDir.x, 0f, moveDir.y));
     }
 
     public static FSM.StateType SelectState(FSM owner)

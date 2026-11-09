@@ -18,7 +18,7 @@ public class PlayerCharacter : Character
 
 
 [DisallowMultipleComponent]
-public sealed class Player : MonoBehaviour, IDamageable, IHealable, IStatusEffectReceiver
+public sealed class Player : MonoBehaviour, IDamageable, IHealable
 {
     private FSM fsm;
     private BuffContainer buffContainer;
@@ -34,21 +34,6 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable, IStatusEffec
     private Character character = null;
     public Character Character => character;
     public bool ConfusePotionUse { get; set; }
-
-    // 외부 시스템용 입구. source별로 제거하며, percentOverride가 0이면 상태 SO의 수치를 사용한다.
-    public bool ApplyStatusEffect(StatusEffectData data, object source, int percentOverride = 0, float duration = 0f)
-    {
-        return buffContainer.Apply(data, source, percentOverride, duration);
-    }
-
-    public int RemoveStatusEffects(object source)
-    {
-        if (buffContainer == null)
-            return 0;
-
-        return buffContainer.RemoveBySource(source);
-    }
-
 
     public void Heal(int amount)
     {
@@ -104,6 +89,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable, IStatusEffec
         if (statusManager != null)
         {
             buffContainer = statusManager.PlayerBuffContainer;
+            buffContainer.SetOwner(gameObject);
             statusManager.BindPlayer(gameObject);
         }
         else

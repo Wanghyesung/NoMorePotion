@@ -79,6 +79,7 @@ public sealed class FSM : MonoBehaviour
     private float rotateY;
     // 하위 16비트: 기본 상태, 상위 16비트: 액션 상태
     private int rotateLockMask;
+    public bool IsRotationLocked => rotateLockMask != 0;
     private bool stateLocked;
     public Quaternion ViewRotation => Quaternion.Euler(0f, rotateY, 0f);
     #endregion

@@ -63,7 +63,7 @@ public sealed class AttackObject : MonoBehaviour
         if (Time.time < nextAttackTime)
             return;
 
-        nextAttackTime = Time.time + 1f;
+        nextAttackTime = Time.time + 1f; // 지속 공격은 콜라이더 개수와 무관하게 범위 전체를 초당 한 번 검사한다.
         hasAttacked = true;
         if (attackOnce == true)
             attackCollider.enabled = false;
