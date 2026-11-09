@@ -26,6 +26,15 @@ public static class JJH_Constants
     public const int FSM_TIMER = 100;
     public const int MIL_SEC = 1000;
 
+    // 인벤토리 관련
+    public const int PUBLIC_INVENTORY_SIZE = 250;
+    public const int MAX_INVENTORY_SIZE_X = 1760;
+    public const int MIN_INVENTORY_SIZE_X = 1240;
+    public const float INVEN_SLIDE_TIME = 0.15f;
+    public const float COMMON_FADE_TIME = 0.1f;
+
+
     public const float MIL_SEC_F = 1000f;
 
+    
 }
