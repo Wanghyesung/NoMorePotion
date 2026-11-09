@@ -148,6 +148,30 @@ namespace Enzeun.Runtime
             }
 
             isDataInitialized = true;
+
+            ValidateUpgradeChain();
+        }
+
+        /// <summary>
+        /// 포션 + 포션 조합 데이터가 규칙을 지키는지 확인하고, 어긋나면 경고합니다. (시작할 때 한 번)
+        /// 조합 타입이 Potion 인 포션은 바로 앞 ID 의 포션이 존재하고, 그 크기가 한 단계 작아야 합니다.
+        /// 같은 계열인지까지는 알 수 없어서 크기와 ID 순서만 확인합니다.
+        /// </summary>
+        private void ValidateUpgradeChain()
+        {
+            foreach (PotionData potion in potionDataByID.Values)
+            {
+                if (potion.potionCombinationType != PotionCombinationType.Potion)
+                {
+                    continue;
+                }
+
+                if (!potionDataByID.TryGetValue(potion.potionID - 1, out PotionData lower)
+                    || lower.potionSize + 1 != potion.potionSize)
+                {
+                    Debug.LogWarning($"[PotionDataManager]: 포션 조합 포션 {potion.potionName}({potion.potionID})의 바로 앞 ID 포션이 한 단계 작은 크기가 아닙니다. 데이터를 확인하세요.");
+                }
+            }
         }
 
         /// <summary>
@@ -203,7 +227,8 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 포션 + 포션 조합 결과를 가져오는 메서드입니다.
         /// 기획 규칙 : 중 = 소 + 소, 대 = 중 + 중. 같은 포션 2개를 합치면 다음 ID(ID + 1)의 포션이 결과이며,
-        /// 그 포션의 조합 타입이 Potion 이어야 합니다. (대 + 대는 ID + 1 이 다른 계열의 소 포션이라 거절됩니다)
+        /// 그 포션의 조합 타입이 Potion 이고 크기가 정확히 한 단계 커야 합니다. 대는 더 올릴 수 없습니다.
+        /// (계열을 구분하는 정보가 따로 없어서 "같은 계열은 ID 가 소, 중, 대 순서로 붙어 있다"는 약속을 크기로 검증합니다)
         /// </summary>
         /// <param name="firstPotionID">첫 번째 포션 ID</param>
         /// <param name="secondPotionID">두 번째 포션 ID</param>
@@ -222,8 +247,17 @@ namespace Enzeun.Runtime
                 return null;
             }
 
-            if (potionDataByID.TryGetValue(firstPotionID + 1, out PotionData upgradedPotion)
-                && upgradedPotion.potionCombinationType == PotionCombinationType.Potion)
+            if (!potionDataByID.TryGetValue(firstPotionID, out PotionData currentPotion))
+            {
+                Debug.LogWarning($"[PotionDataManager]: 포션 데이터를 찾지 못했습니다. 포션 ID: {firstPotionID}");
+                return null;
+            }
+
+            // 대는 가장 큰 크기라 더 올릴 수 없습니다.
+            if (currentPotion.potionSize < PotionSize.Large
+                && potionDataByID.TryGetValue(firstPotionID + 1, out PotionData upgradedPotion)
+                && upgradedPotion.potionCombinationType == PotionCombinationType.Potion
+                && upgradedPotion.potionSize == currentPotion.potionSize + 1)
             {
                 return upgradedPotion;
             }
