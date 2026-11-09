@@ -1,11 +1,11 @@
 using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
 using Enzeun.SO;
-using MCPForUnity.Editor.Tools;
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
-
+using static UnityEngine.InputSystem.InputAction;
 using SF = UnityEngine.SerializeField;
 public class CombinationController : ItemInventory
 {
@@ -25,7 +25,7 @@ public class CombinationController : ItemInventory
 
         public void Clear()
         {
-            image = null;
+            image.sprite = null;
             id = 0;
             instanceId = 0;
         }
@@ -37,6 +37,32 @@ public class CombinationController : ItemInventory
 
     private bool leftFull;
     private bool rightFull;
+
+    InputAction combineAction;
+
+    private void OnEnable()
+    {
+        combineAction = new InputAction(
+            name: "Close",
+            binding: "<Keyboard>/space",
+            type: InputActionType.Button
+        );
+        combineAction.performed += PotionCraftBtnCallback;
+
+        combineAction.Enable();
+    }
+
+    private void OnDisable()
+    {
+        if (combineAction != null)
+        {
+            combineAction.Disable();
+            combineAction.performed -= PotionCraftBtnCallback;
+
+            combineAction.Dispose();
+            combineAction = null;
+        }
+    }
 
     public void BoundSlot(int id, int instanceId)
     {
@@ -96,10 +122,16 @@ public class CombinationController : ItemInventory
         resultSlot.Clear();
     }
 
+    public void PotionCraftBtnCallback(CallbackContext ev)
+    {
+        PotionCraft();
+    }
+
     public void PotionCraft()
     {
+        if (leftSlot.id == 0 || rightSlot.id == 0) return;
+
         PotionCombination(leftSlot.id, rightSlot.id).Forget();
-        
     }
 
     public async UniTask PotionCombination(int leftId, int rightId,bool type = false)
@@ -117,14 +149,10 @@ public class CombinationController : ItemInventory
             return;
         }
 
-
-        InventoryResult result = 
-            await InventoryNetworkSyncManager.Instance.AddPotionAsync(potion);
-
         if (leftSlot.instanceId == 0 && leftSlot.instanceId == 0)
         {
-            await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(leftSlot.id, 1);
-            await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(rightSlot.id, 1);
+            /*await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(leftSlot.id, 1);
+            await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(rightSlot.id, 1);*/
         }
         else
         {

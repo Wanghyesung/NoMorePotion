@@ -80,7 +80,6 @@ public class InventoryController : MonoBehaviour
             binding: "<Keyboard>/tab",
             type: InputActionType.Button
         );
-
         closeAction.performed += OnTabPressed;
 
         closeAction.Enable();

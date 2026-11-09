@@ -74,7 +74,7 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
 
     // ==================== 재료 ====================
 
-    [Button("재료 받기"), BoxGroup("재료")]
+/*    [Button("재료 받기"), BoxGroup("재료")]
     private void GiveMaterial(MaterialData data, int count = 10) => GiveMaterialAsync(data, count).Forget();
 
     [Button("테스트 재료 전부 받기"), BoxGroup("재료")]
@@ -84,8 +84,8 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
     private void GiveRecipeMaterials(PotionData potion, int sets = 1) => GiveRecipeAsync(potion, sets).Forget();
 
     [Button("재료 빼기"), BoxGroup("재료")]
-    private void RemoveMaterial(MaterialData data, int count = 1) => RemoveMaterialAsync(data, count).Forget();
-
+    private void RemoveMaterial(MaterialData data, int count = 1) => RemoveMaterialAsync(data, count).Forget();*/
+/*
     private async UniTaskVoid GiveMaterialAsync(MaterialData data, int count)
     {
         if (!Has(data, "재료 데이터") || !Ready()) return;
@@ -172,7 +172,7 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
         InventoryResult result = await Manager.TakePotionAsync(first.InstanceId);
         Debug.Log($"[테스트] 포션 꺼내기 {first.Data.potionName}({first.InstanceId}) → {Describe(result)}");
     }
-
+*/
     // ==================== 로그용 ====================
 
     // InventoryResult 처럼 ToString 이 없는 구조체의 공개 필드/속성을 "이름=값" 으로 풀어 씁니다. (테스트 전용)
