@@ -762,6 +762,9 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 0
     Name: IsHit
+  - Type: 1
+    SynchronizeType: 0
+    Name: MoveSpeed
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
@@ -779,6 +782,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterMove
   anim: {fileID: 0}
   combat: {fileID: 0}
+  attackSelector:
+    patterns: []
+    repeatPenalty: 0.3
   agent: {fileID: 5676486964343060467}
   nextMoveDist: 8
   attackRange: 2
@@ -849,9 +855,10 @@ MonoBehaviour:
   anim: {fileID: 5471541347697044551}
   mover: {fileID: 3567176340273345213}
   hud: {fileID: 3393696187943443315}
-  statusEffect: {fileID: 0}
+  statusEffect: {fileID: 6703987181133384702}
   biteHitbox: {fileID: 9059199847216090800}
   prefabId: 40003
+  skillHitboxes: []
 --- !u!54 &525331187225737773
 Rigidbody:
   m_ObjectHideFlags: 0
