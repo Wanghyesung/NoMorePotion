@@ -28,8 +28,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomOptions pendingRoomOptions;
     private NicknameStore nicknameStore = new NicknameStore();
     private ReactiveProperty<string> nickname;
-    private ReactiveProperty<IReadOnlyList<PhotonPlayer>> players;
-    private ReactiveProperty<bool> canStart;
+    private RoomSession room;               // 방 안의 플레이어·레디 관리 (Awake에서 생성)
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
 
 
@@ -37,8 +36,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public ReadOnlyReactiveProperty<FlowState> State => state;
     // 읽기 전용 목록으로 공개 → 구독하는 쪽에서 목록을 수정할 수 없음
     public ReadOnlyReactiveProperty<IReadOnlyList<RoomInfo>> RoomList => roomList;
-    public ReadOnlyReactiveProperty<IReadOnlyList<PhotonPlayer>> Players => players;
-    public ReadOnlyReactiveProperty<bool> CanStart => canStart;
+    // 실제 값은 RoomSession이 가짐. UI는 기존처럼 매니저를 통해 구독
+    public ReadOnlyReactiveProperty<IReadOnlyList<PhotonPlayer>> Players => room.Players;
+    public ReadOnlyReactiveProperty<bool> CanStart => room.CanStart;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
     public bool HasSavedNickname { get; private set; }
@@ -73,9 +73,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         roomList = new ReactiveProperty<IReadOnlyList<RoomInfo>>(new List<RoomInfo>());
 
-        players = new ReactiveProperty<IReadOnlyList<PhotonPlayer>>(new List<PhotonPlayer>());
-
-        canStart = new ReactiveProperty<bool>(false);
+        room = new RoomSession();
 
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
@@ -99,8 +97,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         error?.Dispose();
         roomList?.Dispose();
         nickname?.Dispose();
-        players?.Dispose();
-        canStart?.Dispose();
+        room?.Dispose();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
@@ -264,8 +261,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         ClearRoomList();
-        ClearPlayers();
-        ResetReady();
+        room.Clear();
+        room.ResetReady();
 
         if (CurrentState == FlowState.LeavingGame) return;
 
@@ -433,7 +430,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        RefreshPlayers();
+        // 순서: 목록 먼저 → 상태. RoomPanel이 켜질 때 목록이 이미 채워져 있도록
+        room.Refresh();
         SetState(FlowState.Room);
     }
 
@@ -522,14 +520,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if (PhotonNetwork.IsMasterClient)
-        {
-            Debug.Log("[NetworkFlowManager] 준비 무시됨: 현재 방장");
-            return;
-        }
-
-        bool isReady = PlayerProps.IsReady(PhotonNetwork.LocalPlayer);
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, !isReady } });
+        room.ToggleReady();
     }
 
     public void RequestStartGame()
@@ -552,7 +543,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if(!CheckCanStart())
+        if(!room.CheckCanStart())
         {
             Debug.Log("[NetworkFlowManager] 시작 무시됨: 시작할 수 있지않음");
             return;
@@ -568,67 +559,33 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     public override void OnLeftRoom()
     {
-        ClearPlayers();
-        ResetReady();
+        room.Clear();
+        room.ResetReady();
     }
 
     public override void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     #endregion
 
     #region 내부
-
-    private void RefreshPlayers()
-    {
-        players.Value = new List<PhotonPlayer>(PhotonNetwork.PlayerList);
-        canStart.Value = CheckCanStart();
-    }
-
-    private void ClearPlayers()
-    {
-        players.Value = new List<PhotonPlayer>();
-        canStart.Value = false;     // 방을 나간 뒤 이전 방의 시작 가능 값이 남지 않도록
-    }
-
-    private bool CheckCanStart()
-    {
-        if (!PhotonNetwork.IsMasterClient)
-            return false;
-
-        foreach(PhotonPlayer player in PhotonNetwork.PlayerList)
-        {
-            if (player.IsMasterClient)
-                continue;
-
-            if (!PlayerProps.IsReady(player))
-                return false;
-        }
-
-        return true;
-    }
-
-    private void ResetReady()
-    {
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, false } });
-    }
 
     private void StartGameInternal()        // 오프라인 게임도 여기로 시작
     {
