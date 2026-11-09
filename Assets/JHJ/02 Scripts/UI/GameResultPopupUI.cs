@@ -102,9 +102,10 @@ public class GameResultPopupUI : MonoBehaviour
     {
         switch (submit)
         {
-            case RankingSubmitResult.Submitted:      return "랭킹에 등록되었습니다";
+            case RankingSubmitResult.Pending:       return "랭킹 등록 중...";
+            case RankingSubmitResult.Submitted:      return "랭킹에 등록되었습니다!";
             case RankingSubmitResult.Offline:        return "오프라인 모드에서는 랭킹에 등록되지 않습니다";
-            case RankingSubmitResult.NotImplemented: return "랭킹 등록은 준비 중입니다";
+            case RankingSubmitResult.Failed:        return "랭킹 등록에 실패했습니다.";
             case RankingSubmitResult.NotEligible:    return "클리어 시 랭킹에 등록됩니다";
             default:                                 return "";   // None : 등록 결과 대기
         }
