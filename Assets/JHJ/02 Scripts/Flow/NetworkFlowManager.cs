@@ -4,6 +4,7 @@ using Photon.Realtime;
 using R3;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -12,36 +13,34 @@ using UnityEngine.SceneManagement;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks
 {
-    private const int MAX_CREATE_RETRY = 5;
-
     public static NetworkFlowManager Instance { get; private set; }
 
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
 
 
     private ReactiveProperty<FlowState> state;
-    private ReactiveProperty<IReadOnlyList<RoomInfo>> roomList;
     private Subject<string> error;
     private FirebaseAuthService authService = new FirebaseAuthService();
-    private RoomListCache roomListCache = new RoomListCache();
-    private int createRetryCount;
-    private RoomOptions pendingRoomOptions;
-    private NicknameStore nicknameStore = new NicknameStore();
-    private ReactiveProperty<string> nickname;
-    private ReactiveProperty<IReadOnlyList<PhotonPlayer>> players;
-    private ReactiveProperty<bool> canStart;
+    private RoomMatchService match;         // 방 목록·생성·입장·퀵매치 (Awake에서 생성)
+    private NicknameService nicknameService;    // 닉네임 검증·저장·Photon 반영 (Awake에서 생성)
+    private RoomSession room;               // 방 안의 플레이어·레디 관리 (Awake에서 생성)
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
+    private bool isLeavingToLobby;          // 멀티 인게임에서 나가는 중 (방 나가기 → 로비 입장까지)
 
 
-    public ReadOnlyReactiveProperty<string> Nickname => nickname;
+    // 실제 값은 NicknameService가 가짐. UI는 기존처럼 매니저를 통해 구독
+    public ReadOnlyReactiveProperty<string> Nickname => nicknameService.Nickname;
+    public bool HasSavedNickname => nicknameService.HasSaved;
+    /// <summary> Firebase 익명 로그인 UID. 온라인 접속(로그인) 전·오프라인에서는 null </summary>
+    public string UserId => authService.UserId;
     public ReadOnlyReactiveProperty<FlowState> State => state;
-    // 읽기 전용 목록으로 공개 → 구독하는 쪽에서 목록을 수정할 수 없음
-    public ReadOnlyReactiveProperty<IReadOnlyList<RoomInfo>> RoomList => roomList;
-    public ReadOnlyReactiveProperty<IReadOnlyList<PhotonPlayer>> Players => players;
-    public ReadOnlyReactiveProperty<bool> CanStart => canStart;
+    // 실제 값은 RoomMatchService가 가짐. UI는 기존처럼 매니저를 통해 구독
+    public ReadOnlyReactiveProperty<IReadOnlyList<RoomInfo>> RoomList => match.RoomList;
+    // 실제 값은 RoomSession이 가짐. UI는 기존처럼 매니저를 통해 구독
+    public ReadOnlyReactiveProperty<IReadOnlyList<PhotonPlayer>> Players => room.Players;
+    public ReadOnlyReactiveProperty<bool> CanStart => room.CanStart;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
-    public bool HasSavedNickname { get; private set; }
 
     //===============================================================
 
@@ -71,20 +70,16 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         // 에러: 구독 이후에 발생한 메세지만 전달
         error = new Subject<string>();
 
-        roomList = new ReactiveProperty<IReadOnlyList<RoomInfo>>(new List<RoomInfo>());
+        // 서비스는 error 생성 이후에 만들어야 함 (생성자에서 RaiseError를 받음)
+        match = new RoomMatchService(RaiseError);
 
-        players = new ReactiveProperty<IReadOnlyList<PhotonPlayer>>(new List<PhotonPlayer>());
-
-        canStart = new ReactiveProperty<bool>(false);
+        room = new RoomSession();
 
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
 
-        string savedNickname = nicknameStore.Load();
-        HasSavedNickname = !string.IsNullOrEmpty(savedNickname);
-
-        nickname = new ReactiveProperty<string>(HasSavedNickname ? savedNickname : nicknameStore.CreateDefault() );
-        PhotonNetwork.NickName = nickname.Value;
+        // 저장된 닉네임 불러오기 + PhotonNetwork.NickName 반영 (error 생성 이후에 만들어야 함)
+        nicknameService = new NicknameService(RaiseError);
 
     }
 
@@ -97,10 +92,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         // ?. : 중복 매니저는 Awake에서 return해서 null이므로 건너뜀
         state?.Dispose();
         error?.Dispose();
-        roomList?.Dispose();
-        nickname?.Dispose();
-        players?.Dispose();
-        canStart?.Dispose();
+        match?.Dispose();
+        nicknameService?.Dispose();
+        room?.Dispose();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
@@ -120,6 +114,39 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         error.OnNext(message);
     }
 
+    // ── Request 함수 입구 검사 ──
+    // 조건이 맞지 않으면 무시 로그를 남기고 false. caller는 컴파일러가 호출한 함수 이름을 자동으로 넣음
+
+    /// <summary> 현재 상태가 expected일 때만 true </summary>
+    private bool Require(FlowState expected, [CallerMemberName] string caller = "")
+    {
+        if (CurrentState == expected)
+            return true;
+
+        Debug.Log($"[NetworkFlowManager] {caller} 무시됨: 현재 상태 = {CurrentState}");
+        return false;
+    }
+
+    /// <summary> 로비 상태이고 PUN도 로비에 들어가 있을 때만 true (방 생성·입장·퀵매치 요청 중이면 false) </summary>
+    private bool RequireLobbyReady([CallerMemberName] string caller = "")
+    {
+        if (CurrentState == FlowState.Lobby && PhotonNetwork.NetworkClientState == ClientState.JoinedLobby)
+            return true;
+
+        Debug.Log($"[NetworkFlowManager] {caller} 무시됨: 상태 = {CurrentState}, PUN = {PhotonNetwork.NetworkClientState}");
+        return false;
+    }
+
+    /// <summary> 방 상태이고 실제로 방 안에 있을 때만 true (방 나가는 중이면 false) </summary>
+    private bool RequireInRoom([CallerMemberName] string caller = "")
+    {
+        if (CurrentState == FlowState.Room && PhotonNetwork.InRoom)
+            return true;
+
+        Debug.Log($"[NetworkFlowManager] {caller} 무시됨: 상태 = {CurrentState}, 방 안 = {PhotonNetwork.InRoom}");
+        return false;
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == SceneNames.IN_GAME)
@@ -127,7 +154,10 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         else if (scene.name == SceneNames.OUT_GAME && CurrentState == FlowState.LeavingGame)
         {
-            SetState(FlowState.Title);
+            // 멀티 나가기: 씬이 먼저 바뀌고 로비 입장은 아직 → 접속 중 화면으로 대기, OnJoinedLobby에서 Lobby
+            // (Title로 두면 로비 입장 전까지 타이틀 버튼이 눌려 접속이 꼬일 수 있음)
+            // 싱글 나가기·인게임 중 연결 끊김: 타이틀로
+            SetState(isLeavingToLobby ? FlowState.Connecting : FlowState.Title);
             RaisePendingReturnErrorAsync().Forget();
         }
     }
@@ -163,6 +193,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     // 다른 Request 함수와 같은 형태 (호출하는 쪽에서 .Forget() 불필요)
     public void RequestConnectOnline()
     {
+        // 첫 await 전에 상태를 Connecting으로 바꾸므로, 여기서 검사해도 중복 접속이 막힘
+        if (!Require(FlowState.Title)) return;
+
         ConnectOnlineAsync().Forget();
     }
 
@@ -170,10 +203,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     #region 내부
 
+    // 상태 검사는 RequestConnectOnline에서 함
     private async UniTaskVoid ConnectOnlineAsync()
     {
-        if (CurrentState != FlowState.Title) return;
-
         if (PhotonNetwork.OfflineMode)
         {
             PhotonNetwork.OfflineMode = false;
@@ -239,8 +271,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-
-        if(CurrentState == FlowState.LeavingGame)
+        // 멀티 나가기 중이면 방을 나와 마스터 서버로 돌아온 것 → 아래에서 로비 입장
+        if(CurrentState == FlowState.LeavingGame && !isLeavingToLobby)
         {
             Debug.Log("[NetworkFlowManager] 인게임 나가는 중이라 마스터 접속 처리 무시");
             return;
@@ -257,15 +289,21 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby()
     {
-        ClearRoomList();
+        // 멀티 나가기 완료 (씬 로드보다 먼저 와도 됨 → OnSceneLoaded는 Lobby 상태라 건드리지 않음)
+        isLeavingToLobby = false;
+
+        match.ClearRoomList();
         SetState(FlowState.Lobby);
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        ClearRoomList();
-        ClearPlayers();
-        ResetReady();
+        // 멀티 나가기 도중 끊기면 로비로 못 감 → 씬 로드 후 타이틀로 가도록 해제
+        isLeavingToLobby = false;
+
+        match.ClearRoomList();
+        room.Clear();
+        room.ResetReady();
 
         if (CurrentState == FlowState.LeavingGame) return;
 
@@ -303,103 +341,39 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     // 로비에서 타이틀로: 서버 연결을 끊으면 OnDisconnected에서 Title 상태로 바뀜
     public void RequestReturnToTitle()
     {
-        if (CurrentState != FlowState.Lobby)
-        {
-            Debug.Log($"[NetworkFlowManager] 타이틀로 돌아가기 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.Lobby)) return;
 
         PhotonNetwork.Disconnect();
     }
 
     public void RequestCreateRoom(string displayName, int maxPlayers, bool isPublic)
     {
-        // 로비 상태가 아니거나 펀 상태가 로비가 아니면
-        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
-            return;
+        if (!RequireLobbyReady()) return;
 
-        CreateRoomInternal(displayName, maxPlayers, isPublic);
-    }
-
-    // 검사 없이 방 생성 시작 (방 만들기 요청, 퀵매치 실패 후 새 방 생성에서 호출)
-    private void CreateRoomInternal(string displayName, int maxPlayers, bool isPublic)
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = $"{PhotonNetwork.NickName}의 방";
-
-        RoomOptions option = new RoomOptions
-        {
-            MaxPlayers = maxPlayers,
-            IsVisible = isPublic,
-
-            // 방에 저장할 커스텀 속성 : 키 => 값
-            CustomRoomProperties = new Hashtable
-        {
-            { RoomProps.DISPLAY_NAME, displayName }
-        },
-
-            // 로비목록에서도 보이게 할 키 목록
-            CustomRoomPropertiesForLobby = new[] { RoomProps.DISPLAY_NAME }
-        };
-
-        createRetryCount = 0;
-        pendingRoomOptions = option;
-
-        TryCreateRoom();
-    }
-
-    private void TryCreateRoom()
-    {
-        string code = RoomCodeGenerator.Generate();
-
-        // false = 요청을 보내지 못함 → 실패 콜백이 오지 않으므로 직접 처리
-        if (!PhotonNetwork.CreateRoom(code, pendingRoomOptions))
-        {
-            Debug.LogWarning($"[NetworkFlowManager] 방 생성 요청 실패: {code}");
-            RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
-            RejoinLobby();
-        }
+        match.CreateRoom(displayName, maxPlayers, isPublic);
     }
 
     public void RequestJoinRoom(string roomCode)
     {
-        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
-            return;
+        if (!RequireLobbyReady()) return;
 
-        if (!PhotonNetwork.JoinRoom(roomCode))
-        {
-            Debug.LogWarning($"[NetworkFlowManager] 방 입장 요청 실패: {roomCode}");
-            RaiseError("방에 입장하지 못했습니다.");
-        }
+        match.JoinRoom(roomCode);
     }
 
     public void RequestJoinByCode(string roomCode)
     {
-        string code = (roomCode ?? "").Trim().ToUpperInvariant();
-
-        if (code.Length != RoomCodeGenerator.CODE_LENGTH)
-        {
-            RaiseError("방 코드 6자리를 입력해 주세요.");
+        // 형식이 틀리면 RoomMatchService가 에러를 알림
+        if (!match.TryNormalizeCode(roomCode, out string code))
             return;
-        }
 
         RequestJoinRoom(code);
     }
 
     public void RequestQuickMatch()
     {
-        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
-        {
-            Debug.Log($"[NetworkFlowManager] 퀵매치 무시됨 - 상태: {CurrentState}, PUN: {PhotonNetwork.NetworkClientState}");
-            return;
-        }
+        if (!RequireLobbyReady()) return;
 
-        if (!PhotonNetwork.JoinRandomRoom())
-        {
-            Debug.LogWarning($"[NetworkFlowManager] 퀵 매치 실패");
-            RaiseError("빠른 입장에 실패했습니다.");
-            RejoinLobby();
-        }
+        match.QuickMatch();
     }
 
     #endregion
@@ -407,93 +381,39 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region Photon Callbacks
     public override void OnRoomListUpdate(List<RoomInfo> changedRoomList)
     {
-        roomListCache.Apply(changedRoomList);
-        roomList.Value = roomListCache.ToList();
+        match.ApplyRoomListUpdate(changedRoomList);
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        if (returnCode == ErrorCode.GameIdAlreadyExists && createRetryCount < MAX_CREATE_RETRY)
-        {
-            createRetryCount++;
-            TryCreateRoom();
-            return;
-        }
-
-        Debug.LogWarning($"[NetworkFlowManager] 방 생성 실패 ({returnCode}): {message}");
-        RaiseError("방을 만들지 못했습니다. 다시 시도해주세요.");
-        RejoinLobby();
+        match.HandleCreateRoomFailed(returnCode, message);
     }
 
     public override void OnJoinedRoom()
     {
+        // 인게임에서 나갈 때 꺼 둔 씬 동기화를 다시 켬 (방장이 LoadLevel하면 전원 같은 씬으로)
+        PhotonNetwork.AutomaticallySyncScene = true;
+
        if (PhotonNetwork.OfflineMode)
         {
             StartGameInternal();
             return;
         }
 
-        RefreshPlayers();
+        // 순서: 목록 먼저 → 상태. RoomPanel이 켜질 때 목록이 이미 채워져 있도록
+        room.Refresh();
         SetState(FlowState.Room);
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        Debug.LogWarning($"[NetworkFlowManager] 방 입장 실패 사유 : {message} , (코드){returnCode}");
-
-        string msg = null;
-
-        switch (returnCode)
-        {
-            case ErrorCode.GameFull:
-                msg = "방이 가득 찼습니다.";
-                break;
-
-            case ErrorCode.GameClosed:
-                msg = "이미 게임이 시작된 방입니다.";
-                break;
-
-            case ErrorCode.GameDoesNotExist:
-                msg = "방을 찾을 수 없습니다.";
-                break;
-
-            default:
-                msg = "방에 입장하지 못했습니다.";
-                break;
-        }
-
-        RaiseError(msg);
-        RejoinLobby();
+        match.HandleJoinRoomFailed(returnCode, message);
     }
 
+    // 들어갈 방이 없으면 RoomMatchService가 새 공개 방을 만듦
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        if (returnCode == ErrorCode.NoRandomMatchFound)
-        {
-            CreateRoomInternal("", RoomRules.MAX_PLAYERS, true);
-            return;
-        }
-
-        Debug.LogWarning($"[NetworkFlowManager] 빠른 입장 실패 ({returnCode}): {message}");
-        RaiseError("빠른 입장에 실패했습니다.");
-        RejoinLobby();
-    }
-
-    #endregion
-
-    #region 내부
-    // 캐시를 비우고 UI에도 빈 목록을 알림 (로비 입장, 연결 끊김 시 호출)
-    private void ClearRoomList()
-    {
-        roomListCache.Clear();
-        roomList.Value = roomListCache.ToList();
-    }
-
-    // 방 입장, 생성 요청 시 PUN이 로비에서 빠지고 실패하면 마스터 서버에만 남음 → 로비 재입장 필요
-    private void RejoinLobby()
-    {
-        if (PhotonNetwork.NetworkClientState == ClientState.ConnectedToMasterServer)
-            PhotonNetwork.JoinLobby();
+        match.HandleJoinRandomFailed(returnCode, message);
     }
 
     #endregion
@@ -508,37 +428,23 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public void RequestLeaveRoom()
     {
-        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
-            return;
+        if (!RequireInRoom()) return;
 
         PhotonNetwork.LeaveRoom();
     }
 
     public void RequestToggleReady()
     {
-        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
-        {
-            Debug.Log($"[NetworkFlowManager] 준비 무시됨: 현재 위치 = {CurrentState}");
-            return;
-        }
+        if (!RequireInRoom()) return;
 
-        if (PhotonNetwork.IsMasterClient)
-        {
-            Debug.Log("[NetworkFlowManager] 준비 무시됨: 현재 방장");
-            return;
-        }
-
-        bool isReady = PlayerProps.IsReady(PhotonNetwork.LocalPlayer);
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, !isReady } });
+        room.ToggleReady();
     }
 
     public void RequestStartGame()
     {
-        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
-        {
-            Debug.Log($"[NetworkFlowManager] 시작 무시됨: 현재 위치 = {CurrentState}");
-            return;
-        }
+        if (!RequireInRoom()) return;
+
+        // 아래는 시작 조건별로 사유가 달라서 개별 검사
 
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -552,7 +458,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if(!CheckCanStart())
+        if(!room.CheckCanStart())
         {
             Debug.Log("[NetworkFlowManager] 시작 무시됨: 시작할 수 있지않음");
             return;
@@ -568,67 +474,33 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     public override void OnLeftRoom()
     {
-        ClearPlayers();
-        ResetReady();
+        room.Clear();
+        room.ResetReady();
     }
 
     public override void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
     {
-        RefreshPlayers();
+        room.Refresh();
     }
 
     #endregion
 
     #region 내부
-
-    private void RefreshPlayers()
-    {
-        players.Value = new List<PhotonPlayer>(PhotonNetwork.PlayerList);
-        canStart.Value = CheckCanStart();
-    }
-
-    private void ClearPlayers()
-    {
-        players.Value = new List<PhotonPlayer>();
-        canStart.Value = false;     // 방을 나간 뒤 이전 방의 시작 가능 값이 남지 않도록
-    }
-
-    private bool CheckCanStart()
-    {
-        if (!PhotonNetwork.IsMasterClient)
-            return false;
-
-        foreach(PhotonPlayer player in PhotonNetwork.PlayerList)
-        {
-            if (player.IsMasterClient)
-                continue;
-
-            if (!PlayerProps.IsReady(player))
-                return false;
-        }
-
-        return true;
-    }
-
-    private void ResetReady()
-    {
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, false } });
-    }
 
     private void StartGameInternal()        // 오프라인 게임도 여기로 시작
     {
@@ -651,33 +523,21 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public void RequestEnterOffline()
     {
-        if (CurrentState != FlowState.Title)
-        {
-            Debug.Log($"[NetworkFlowManager] 싱글 진입 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.Title)) return;
 
         SetState(FlowState.OfflineSetup);
     }
 
     public void RequestLeaveOffline()
     {
-        if (CurrentState != FlowState.OfflineSetup)
-        {
-            Debug.Log($"[NetworkFlowManager] 오프라인 나가기 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.OfflineSetup)) return;
 
         SetState(FlowState.Title);
     }
 
     public void RequestStartOffline()
     {
-        if (CurrentState != FlowState.OfflineSetup)
-        {
-            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.OfflineSetup)) return;
 
         if (PhotonNetwork.OfflineMode)
         {
@@ -698,21 +558,35 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     [ContextMenu("인게임 나가기")]
     public void RequestLeaveGame()
     {
-        if(CurrentState != FlowState.InGame)
-        {
-            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
-
-        // TODO : 멀티 나가기 구현 추후
-        if (!PhotonNetwork.OfflineMode)
-        {
-            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 멀티 나가기 미구현");
-            return;
-        }
+        if (!Require(FlowState.InGame)) return;
 
         SetState(FlowState.LeavingGame);
-        PhotonNetwork.OfflineMode = false;
+
+        if (PhotonNetwork.OfflineMode)
+        {
+            // 싱글: 오프라인 방을 닫고 타이틀로 (OnSceneLoaded에서 Title)
+            PhotonNetwork.OfflineMode = false;
+        }
+        else
+        {
+            // 멀티: 나만 방을 나가고 로비로. 남은 사람은 방에 그대로 (방장이면 다른 사람에게 넘어감)
+            // 흐름: LeaveRoom → OnLeftRoom → 마스터 서버 재접속(OnConnectedToMaster) → JoinLobby → OnJoinedLobby(Lobby)
+            isLeavingToLobby = true;
+
+            // 씬 동기화 끄기: 켜 둔 채 방장이 아웃게임 씬을 불러오면 PUN이 그 씬을 방 속성에 기록하려 함
+            //  → 방을 나가는 중이라 "SetProperties not called ... Leaving" 에러, 성공하면 남은 사람까지 아웃게임으로 끌려감
+            // 다시 켜는 곳: OnJoinedRoom (다음 방에 들어갈 때)
+            PhotonNetwork.AutomaticallySyncScene = false;
+
+            // false = 요청을 보내지 못함(방 안이 아님 등) → 로비로 갈 수 없으니 연결을 끊고 타이틀로
+            // (끊김은 LeavingGame 중이라 OnDisconnected에서 에러 없이 넘어가고, 씬 로드 후 Title)
+            if (!PhotonNetwork.LeaveRoom())
+            {
+                Debug.LogWarning("[NetworkFlowManager] 방 나가기 요청 실패, 연결 종료 후 타이틀로");
+                isLeavingToLobby = false;
+                PhotonNetwork.Disconnect();
+            }
+        }
 
         // 혼자 떠나는 이동이라 동기화 없는 LoadScene 사용 (LoadLevel은 방 전원 이동용)
         SceneManager.LoadScene(SceneNames.OUT_GAME);
@@ -738,32 +612,10 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region 요청
     public bool RequestChangeNickname(string nick)
     {
-        if (CurrentState != FlowState.Lobby)
-        {
-            Debug.Log($"[NetworkFlowManager] 닉네임 수정 무시됨: 현재상태 = {CurrentState}");
-            return false;
-        }
+        if (!Require(FlowState.Lobby)) return false;
 
-        nick = (nick ?? "").Trim();
-
-        if (string.IsNullOrEmpty(nick))
-        {
-            RaiseError("닉네임을 입력하세요.");
-            return false;
-        }
-
-        // [임시] 닉네임 길이 규칙 확인
-        if (nick.Length > NicknameStore.MAX_LENGTH)
-        {
-            RaiseError($"닉네임 글자 수를 {NicknameStore.MAX_LENGTH}자 이내로 입력하세요.");
-            return false;
-        }
-
-        nicknameStore.Save(nick);
-        HasSavedNickname = true;
-        nickname.Value = nick;
-        PhotonNetwork.NickName = nick;
-        return true;
+        // 검증 실패 시 NicknameService가 에러를 알리고 false 반환
+        return nicknameService.TryChange(nick);
     }
 
     #endregion

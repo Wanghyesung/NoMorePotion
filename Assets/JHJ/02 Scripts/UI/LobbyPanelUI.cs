@@ -24,12 +24,14 @@ public class LobbyPanelUI : MonoBehaviour
     [SerializeField] private Button quickMatchBtn;
     [FormerlySerializedAs("quitBtn")]                     // 기존 연결 유지 (종료 버튼 → 설정 버튼)
     [SerializeField] private Button settingsBtn;
+    [SerializeField] private Button rankingBtn;
     [SerializeField] private Button nicknameEditBtn;
 
     [Header("popup")]
     [SerializeField] private CreateRoomPopupUI createPopup;
     [SerializeField] private NicknamePopupUI changeNickPopup;
     [SerializeField] private SettingsPopupUI settingsPopup;
+    [SerializeField] private RankingPopupUI rankingPopup;
 
 
     private NetworkFlowManager manager;
@@ -58,6 +60,7 @@ public class LobbyPanelUI : MonoBehaviour
         quickMatchBtn.onClick.AddListener(() => manager.RequestQuickMatch());
         createBtn.onClick.AddListener(() => createPopup.Open());
         settingsBtn.onClick.AddListener(() => settingsPopup.Open());
+        rankingBtn.onClick.AddListener(() => rankingPopup.Open());
     }
 
     private void OnEnable()
