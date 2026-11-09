@@ -20,7 +20,8 @@ public sealed class Hand : MonoBehaviour
 
     private TestPotion leftPotion;
     private TestPotion rightPotion;
-    [SerializeField] private Inventory inventory = new Inventory();
+    [SerializeField] private TestPotion itemPrefab;
+    //[SerializeField] private Inventory inventory = new Inventory();
     [SerializeField] private UnityEvent<TestPotion> OnDrink = new UnityEvent<TestPotion>();
 
     public Side FocusedSide => focusedSide;
@@ -64,7 +65,9 @@ public sealed class Hand : MonoBehaviour
         if (FocusedPotion != null && OtherPotion != null)
             return false;
 
-        return Hold(TakeSide, inventory.GetItem());
+
+        var obj = GameObject.Instantiate(itemPrefab, transform.position, Quaternion.identity);
+        return Hold(TakeSide, obj);
     }
 
     public void Throw(Side side, ThrowData throwData)
