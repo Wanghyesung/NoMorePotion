@@ -33,8 +33,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private PlayerCharacter character = null;
     public Character Character => character;
     public bool ConfusePotionUse { get; set; }
+    [SerializeField] private Transform cameraPosition;
+    public Transform CameraPosition => cameraPosition;
 
-    [SerializeField] private UISlider playerHPSlider;
 
     public void Heal(int amount)
     {
@@ -64,7 +65,6 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         // HP 차감량만 보정한다. 피격 위치·넉백에 쓰는 원본 공격 정보는 유지한다.
         fsm.TakeDamage(attackInfo);
 
-        playerHPSlider.UpdateSlider(character.HP);
 
         //여기 데미지 들어왔을 떄 어떤 애인지 알아야할듯 무조건 애니메이션이 발동되네
     }
@@ -85,7 +85,6 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         fsm.Init(this);
         hand = GetComponent<Hand>();
 
-        playerHPSlider.SetRange(character.MaxHP, character.HP);
     }
 
    

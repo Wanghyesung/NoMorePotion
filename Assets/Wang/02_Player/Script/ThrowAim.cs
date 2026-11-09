@@ -42,6 +42,8 @@ public sealed class ThrowAim : MonoBehaviour
     public bool HasTarget { get; private set; }
     #endregion
 
+    public void SetCamera(Camera camera) => aimCamera = camera;
+
     private void Awake()
     {
         lineRenderer = GetComponent<LineRenderer>();
@@ -108,6 +110,9 @@ public sealed class ThrowAim : MonoBehaviour
     public bool TryCreateThrowData(Vector3 throwOrigin, out ThrowData data)
     {
         data = default;
+        if (aimCamera == null)
+            return false;
+
         Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         if (Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
                 QueryTriggerInteraction.Ignore) == false)

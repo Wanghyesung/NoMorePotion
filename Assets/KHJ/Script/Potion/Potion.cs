@@ -18,7 +18,6 @@ namespace Enzeun.Runtime
         [ShowInInspector, ReadOnly, LabelText("폭발 여부")]
         public bool HasExploded { get; private set; }
 
-
         /// <summary>
         /// 이 포션이 가진 제작 인스턴스입니다. 뱃속에서 꺼낸 포션이면 함정 여부가 들어 있고,
         /// 지정하지 않으면(데이터만 연결한 경우) 정상 포션으로 취급합니다.
@@ -33,7 +32,6 @@ namespace Enzeun.Runtime
             _data = data;
             Instance = new PotionInstance(data);
             HasExploded = false;
-
         }
 
         /// <summary>

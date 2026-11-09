@@ -37,7 +37,12 @@ public sealed class PotionDetector : MonoBehaviour
         targetLayers = config.TargetLayers;
 
         attackCollider.enabled = true;
-        Destroy(gameObject, lifetime);
+
+        //이거 PoolManager가 먼저 사라지면 터짐
+        TimeManager.Instance.Schedule(lifetime, () =>
+        {
+            PoolManager.Instance.Release(gameObject);
+        });
     }
 
     private void OnTriggerEnter(Collider other)
