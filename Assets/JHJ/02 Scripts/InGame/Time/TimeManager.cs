@@ -1,4 +1,3 @@
-using Photon.Pun;
 using R3;
 using System;
 using UnityEngine;
@@ -22,10 +21,12 @@ using UnityEngine;
 ///
 /// [예약 실행]
 ///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
-///   Time.time 기준, 시계가 도는 동안 방장에서만 실행. 내 화면 연출용 대기는 UniTask.Delay 사용
+///   게임 시간(TotalElapsed) 기준, 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행
+///   시계가 멈추면 남은 시간도 멈춤. 내 화면 연출용 대기는 UniTask.Delay 사용
 ///
-/// [정지] 판이 끝나면(GameSessionManager.Phase == Ended) 자동으로 멈춤. 멈춘 뒤 값은 그대로 남음
-///   시작은 GameSessionManager가 StartClock()을 호출
+/// [시작·정지] StartClock() / StopClock(). 인게임에서는 GameSessionManager가 호출
+///   TimeManager는 세션을 모름 → 세션 없는 씬에서도 직접 호출해 단독 테스트 가능
+///   멈춘 뒤 값은 그대로 남음
 ///
 /// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
 ///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
@@ -80,21 +81,6 @@ public class TimeManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
-    {
-        // GameSessionManager.Instance는 Awake에서 등록되므로 Start에서 구독
-        if (GameSessionManager.Instance == null)
-        {
-            Debug.LogWarning("[TimeManager] GameSessionManager 없음, 게임 종료 시 시계가 멈추지 않음");
-            return;
-        }
-
-        GameSessionManager.Instance.Phase
-            .Where(p => p == SessionPhase.Ended)
-            .Subscribe(_ => StopClock())
-            .AddTo(this);
-    }
-
     private void OnValidate()
     {
         dayDuration = Mathf.Max(dayDuration, MIN_DURATION);
@@ -116,7 +102,7 @@ public class TimeManager : MonoBehaviour
     {
         if (!isRunning) return;
         // TODO(멀티): 방장만 진행하므로 다른 클라이언트는 값이 갱신되지 않음. 동기화 어떻게할지
-        if (!PhotonNetwork.IsMasterClient) return;
+        if (!GameAuthority.HasAuthority) return;
 
         Tick(Time.deltaTime);
     }
@@ -154,12 +140,13 @@ public class TimeManager : MonoBehaviour
     }
 
     /// <summary>
-    /// delay초(Time.time 기준) 뒤 callback 실행 예약. 반환값을 AddTo(this) 하면 오브젝트 파괴 시 자동 취소.
-    /// 시계가 도는 동안 방장에서만 실행됨.
+    /// 게임 시간으로 delay초 뒤 callback 실행 예약. 반환값을 AddTo(this) 하면 오브젝트 파괴 시 자동 취소.
+    /// 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행됨. 시계가 멈춘 동안은 남은 시간도 멈춤.
+    /// 시작 전에 예약하면 시작 시점부터 delay초 뒤 실행.
     /// </summary>
     public IDisposable Schedule(float delay, Action callback)
     {
-        return timer.Schedule(delay, callback);
+        return timer.Schedule(TotalElapsed, delay, callback);
     }
 
     private void Tick(float deltaTime)
@@ -177,7 +164,7 @@ public class TimeManager : MonoBehaviour
 
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
 
-        timer.Tick();
+        timer.Tick(state.TotalElapsed);
     }
 
     /// <summary>낮↔밤 전환. 일차는 아침 기준으로 증가. 전환은 반드시 이 함수를 거침</summary>

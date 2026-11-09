@@ -23,7 +23,7 @@ public class TitlePanelUI : MonoBehaviour
             return;
         }
 
-        multiBtn.onClick.AddListener(OnClickMulti);
+        multiBtn.onClick.AddListener(manager.RequestConnectOnline);
         singleBtn.onClick.AddListener(manager.RequestEnterOffline);
         quitBtn.onClick.AddListener( () => QuitFlow().Forget() );
 
@@ -36,12 +36,6 @@ public class TitlePanelUI : MonoBehaviour
 
             })   //해당 값을 받아서 interactable에 대입
             .AddTo(this);
-    }
-
-    private void OnClickMulti()
-    {
-        // UniTask라서 붙임, 결과를 기다리지않고 실행만
-        manager.RequestConnectOnline().Forget();
     }
 
     private async UniTaskVoid QuitFlow()

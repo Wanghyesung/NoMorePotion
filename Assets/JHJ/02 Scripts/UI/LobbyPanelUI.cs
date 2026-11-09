@@ -66,7 +66,7 @@ public class LobbyPanelUI : MonoBehaviour
             changeNickPopup.Open(manager.Nickname.CurrentValue, false);
     }
 
-    private void RenderRoomList(List<RoomInfo> rooms)
+    private void RenderRoomList(IReadOnlyList<RoomInfo> rooms)
     {
         // 기존 줄 삭제
         foreach (Transform child in content)

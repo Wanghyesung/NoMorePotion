@@ -76,7 +76,7 @@ public class RoomPanelUI : MonoBehaviour
         }
     }
 
-    private void RenderSlots(List<PhotonPlayer> players)
+    private void RenderSlots(IReadOnlyList<PhotonPlayer> players)
     {
         // 방에서 나간 직후(빈 목록 알림)에는 CurrentRoom이 null일 수 있음
         Room room = PhotonNetwork.CurrentRoom;
