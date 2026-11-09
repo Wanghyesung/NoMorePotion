@@ -12,19 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
   m_Name: 10025
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
-  _potionIcon: {fileID: 0}
+  _potionIcon: {fileID: 21300000, guid: 548e26cce20a9444db116a50c0c49f41, type: 3}
   _potionID: 10025
   _potionName: "\uB2E8\uB2E8 \uD3EC\uC158 (\uC18C)"
   _potionDesc: "\uC77C\uC815\uC2DC\uAC04 \uBC29\uC5B4\uB825\uC774 \uC99D\uAC00\uD558\uB294
     \uD3EC\uC158."
   _potionEffect: "\uBC29\uC5B4\uB825 + 20%\n\uC218\uBD84 + 5%\n\uD3EC\uB9CC\uAC10
     + 5%"
-  _potionSize: 0
   _potionType: 1
+  _potionSize: 0
+  _potionColor: {r: 0.6117647, g: 0.5686275, b: 0.5803922, a: 1}
   _potionExplosionRange: 1
   _potionCombinationType: 1
   _maxHoldCount: 1
-  _potionColor: {r: 0.5, g: 0.55, b: 0.68, a: 1}
   _explosionPrefab: {fileID: 0}
   _recipeMaterials:
   - {fileID: 11400000, guid: fb6db91d21f96804a8eb250946e29ce4, type: 2}
