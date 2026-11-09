@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7019623046179973611
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6682191145410841904}
+  - component: {fileID: 6019326239706691193}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6682191145410841904
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019623046179973611}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6019326239706691193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7019623046179973611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4231b76289c0ec743b1b7c17f28bf443, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputManager
+  moveActionReference: {fileID: 1362923723815063622, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  jumpActionReference: {fileID: 272674901877830939, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  rollActionReference: {fileID: 3441318492486080362, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  deltaActionReference: {fileID: -5393320689699530508, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  skill0ActionReference: {fileID: -9198285863541222352, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  aimActionReference: {fileID: -1121112793972443107, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  switchHandActionReference: {fileID: -5250457105573351116, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  interactActionReference: {fileID: 5118529933362088448, guid: a73a8df1138d14241bee27555820501c, type: 3}
+  takeOutPotionActionReference: {fileID: 716991868008101297, guid: a73a8df1138d14241bee27555820501c, type: 3}
