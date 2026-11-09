@@ -7,6 +7,8 @@ using SF = UnityEngine.SerializeField;
 
 public class InventoryIcon : MonoBehaviour
 {
+
+    [SF] private ItemInventory inventory;
     // 아이템 아이콘
     [SF] private Image itemImage;
     // 아이템 개수 텍스트
@@ -28,6 +30,11 @@ public class InventoryIcon : MonoBehaviour
                 itemSlotNum.text = "0";
         }
             
+    }
+
+    public void SetParentInventory(ItemInventory inven)
+    {
+        inventory = inven;
     }
 
     public void Init(ItemInstance item)
@@ -64,6 +71,11 @@ public class InventoryIcon : MonoBehaviour
         if (!enabled) return;
 
         itemImage.sprite = Item.itemImage;
+    }
+
+    public void ItemCombination()
+    {
+
     }
 
     private void OnDestroy()

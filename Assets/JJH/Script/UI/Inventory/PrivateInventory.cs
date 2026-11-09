@@ -5,32 +5,43 @@ using UnityEngine;
 using UnityEngine.InputSystem.Utilities;
 using SF = UnityEngine.SerializeField;
 
-public class PrivateInventory : MonoBehaviour
+public class PrivateInventory : ItemInventory
 {
     [SF] private List<InventoryIcon> privateInventories;
+
+    public void OnEnable()
+    {
+        inven.OnPrivateListAdded += GetItem;
+        inven.OnPrivateListRemoved += RemoveItem;
+    }
+
+    public void OnDisable()
+    {
+        inven.OnPrivateListAdded -= GetItem;
+        inven.OnPrivateListRemoved -= RemoveItem;
+    }
 
     /// <summary>
     /// 개인 인벤토리 슬롯에 넣을 때
     /// </summary>
     public void GetItem(ItemInstance data)
     {
-        foreach (var item in privateInventories)
+        InventoryIcon icon = privateInventories.Find(x=> x.Item.itemId == data.itemId);
+
+        if(icon == null)
         {
-            if(item.Item == null)
+            foreach (var item in privateInventories)
             {
-                item.Init(data);
-                break;
+                if (item.Item == null)
+                {
+                    item.SetParentInventory(this);
+                    item.Init(data);
+                    break;
+                }
             }
         }
-    }
-
-    /// <summary>
-    /// 특정 개인 인벤토리 슬롯에 직접 넣을 때
-    /// </summary>
-    /// <param name="slotNum"></param>
-    public void GetItem(ItemInstance data, int slotNum)
-    {
-        privateInventories[slotNum].Init(data);
+        else
+            icon.Item.ItemCount += data.ItemCount;
     }
 
     /// <summary>
@@ -40,7 +51,10 @@ public class PrivateInventory : MonoBehaviour
     /// <param name="moveType"></param>
     public void MoveItem(int slotNum, bool moveType = false)
     {
+        if(moveType)
+            inven.GetPublicItem(privateInventories[slotNum].Item);
 
+        RemoveItem(slotNum);
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using Enzeun.Runtime;
 using System;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ using SF = UnityEngine.SerializeField;
 public class ItemInstance
 {
     [SF] private int count = 1;
+
+    public InventorySlotKind kind;
 
     public int itemId;
     // 아이템 아이콘
@@ -23,10 +26,12 @@ public class ItemInstance
 
     public event Action OnChanged;
 
-    public ItemInstance(int id, Sprite sprite, int count = 1)
+    public ItemInstance(int id, Sprite sprite, InventorySlotKind kind, int count = 1)
     {
         itemId = id;
         itemImage = sprite;
+        this.kind = kind;
         this.count = count;
+        
     }
 }
