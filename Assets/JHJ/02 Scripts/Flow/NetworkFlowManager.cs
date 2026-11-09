@@ -26,13 +26,16 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomListCache roomListCache = new RoomListCache();
     private int createRetryCount;
     private RoomOptions pendingRoomOptions;
-    private NicknameStore nicknameStore = new NicknameStore();
-    private ReactiveProperty<string> nickname;
+    private NicknameService nicknameService;    // 닉네임 검증·저장·Photon 반영 (Awake에서 생성)
     private RoomSession room;               // 방 안의 플레이어·레디 관리 (Awake에서 생성)
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
 
 
-    public ReadOnlyReactiveProperty<string> Nickname => nickname;
+    // 실제 값은 NicknameService가 가짐. UI는 기존처럼 매니저를 통해 구독
+    public ReadOnlyReactiveProperty<string> Nickname => nicknameService.Nickname;
+    public bool HasSavedNickname => nicknameService.HasSaved;
+    /// <summary> Firebase 익명 로그인 UID. 온라인 접속(로그인) 전·오프라인에서는 null </summary>
+    public string UserId => authService.UserId;
     public ReadOnlyReactiveProperty<FlowState> State => state;
     // 읽기 전용 목록으로 공개 → 구독하는 쪽에서 목록을 수정할 수 없음
     public ReadOnlyReactiveProperty<IReadOnlyList<RoomInfo>> RoomList => roomList;
@@ -41,7 +44,6 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public ReadOnlyReactiveProperty<bool> CanStart => room.CanStart;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
-    public bool HasSavedNickname { get; private set; }
 
     //===============================================================
 
@@ -78,11 +80,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         // 상태 변경 로그 (구독권을 매니저 수명에 묶음 → 매니저 파괴 시 자동 해제)
         state.Subscribe(s => Debug.Log($"[NetworkFlowManager] 상태 변경: {s}")).AddTo(this);
 
-        string savedNickname = nicknameStore.Load();
-        HasSavedNickname = !string.IsNullOrEmpty(savedNickname);
-
-        nickname = new ReactiveProperty<string>(HasSavedNickname ? savedNickname : nicknameStore.CreateDefault() );
-        PhotonNetwork.NickName = nickname.Value;
+        // 저장된 닉네임 불러오기 + PhotonNetwork.NickName 반영 (error 생성 이후에 만들어야 함)
+        nicknameService = new NicknameService(RaiseError);
 
     }
 
@@ -96,7 +95,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         state?.Dispose();
         error?.Dispose();
         roomList?.Dispose();
-        nickname?.Dispose();
+        nicknameService?.Dispose();
         room?.Dispose();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -701,26 +700,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return false;
         }
 
-        nick = (nick ?? "").Trim();
-
-        if (string.IsNullOrEmpty(nick))
-        {
-            RaiseError("닉네임을 입력하세요.");
-            return false;
-        }
-
-        // [임시] 닉네임 길이 규칙 확인
-        if (nick.Length > NicknameStore.MAX_LENGTH)
-        {
-            RaiseError($"닉네임 글자 수를 {NicknameStore.MAX_LENGTH}자 이내로 입력하세요.");
-            return false;
-        }
-
-        nicknameStore.Save(nick);
-        HasSavedNickname = true;
-        nickname.Value = nick;
-        PhotonNetwork.NickName = nick;
-        return true;
+        // 검증 실패 시 NicknameService가 에러를 알리고 false 반환
+        return nicknameService.TryChange(nick);
     }
 
     #endregion
