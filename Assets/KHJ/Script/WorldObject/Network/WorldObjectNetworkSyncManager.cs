@@ -24,6 +24,10 @@ namespace Enzeun.Runtime
 
         private const float ResyncCooldownSeconds = 1f;
 
+        // 한 오브젝트에서 여러 재료 주머니가 나올 때 오브젝트 중심에서 떨어뜨려 놓는 거리입니다.
+        [SerializeField, LabelText("주머니를 흩어 놓는 거리 (m)"), MinValue(0f)]
+        private float _pouchScatterRadius = 0.7f;
+
         private readonly WorldObjectNetState _state = new WorldObjectNetState();
         private readonly Dictionary<int, WorldObject> _objects = new Dictionary<int, WorldObject>();
         private readonly Dictionary<int, UniTaskCompletionSource<WorldObjectResult>> _pending = new Dictionary<int, UniTaskCompletionSource<WorldObjectResult>>();
@@ -34,7 +38,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 월드 오브젝트가 소진되어 재료가 떨어질 때 (월드 오브젝트, 드롭 목록)으로 발생합니다. 모든 클라이언트에서 같은 값으로 발생합니다.
-        /// 바닥 아이템(MaterialItem)을 만드는 쪽이 구독합니다. 드롭 번호(DropId)는 마스터가 발급한 고유 번호입니다.
+        /// 화면 연출 등 소진 직후의 후처리를 하는 쪽이 구독합니다. (바닥 주머니는 마스터가 인벤토리 상태에 만들고 GroundPouchSpawner 가 화면에 만듭니다)
         /// </summary>
         public event Action<WorldObject, WorldDrop[]> OnDropped;
 
@@ -239,7 +243,48 @@ namespace Enzeun.Runtime
             if (_objects.TryGetValue(networkId, out WorldObject worldObject) && worldObject != null)
             {
                 OnDropped?.Invoke(worldObject, drops);
+
+                // 바닥 주머니는 마스터가 한 번만 만들어 모든 클라이언트에 알립니다. (주우면 인벤토리 상태에서 한 번에 옮겨지므로 같은 곳에서 관리)
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    SpawnGroundPouches(worldObject.transform.position, drops);
+                }
             }
+        }
+
+        /// <summary>
+        /// 소진된 월드 오브젝트의 드롭(재료 종류별 개수)을 바닥 주머니로 만듭니다. 한 종류당 주머니 한 개이고, 주머니는 오브젝트 주위에 흩어 놓습니다.
+        /// 위치는 마스터가 정해서 모든 클라이언트에 같은 값으로 전달됩니다. 땅이 보이면 땅 위에 놓고, 아니면 오브젝트와 같은 높이에 놓습니다.
+        /// </summary>
+        private void SpawnGroundPouches(Vector3 center, WorldDrop[] drops)
+        {
+            if (drops == null || drops.Length == 0 || InventoryNetworkSyncManager.Instance == null)
+            {
+                return;
+            }
+
+            var spawns = new List<GroundSpawn>(drops.Length);
+
+            for (int i = 0; i < drops.Length; i++)
+            {
+                Vector3 position = center;
+
+                if (drops.Length > 1)
+                {
+                    float angle = 360f * i / drops.Length;
+                    position += Quaternion.Euler(0f, angle, 0f) * Vector3.forward * _pouchScatterRadius;
+                }
+
+                // 위에서 아래로 쏘아 땅 높이를 찾습니다. (시작점이 오브젝트 안에 파묻히지 않도록 조금 위에서)
+                if (Physics.Raycast(position + Vector3.up * 0.5f, Vector3.down, out RaycastHit hit, 5f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                {
+                    position = hit.point;
+                }
+
+                spawns.Add(new GroundSpawn { MaterialId = drops[i].MaterialId, Count = drops[i].Count, Position = position });
+            }
+
+            InventoryNetworkSyncManager.Instance.SpawnGroundDrops(spawns);
         }
 
         // ==================== 네트워크 메시지 (RPC) ============================

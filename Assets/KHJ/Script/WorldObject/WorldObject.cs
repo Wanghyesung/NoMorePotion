@@ -27,6 +27,19 @@ namespace Enzeun.Runtime
 
         private bool UsesNetwork => _networkId > 0 && WorldObjectNetworkSyncManager.IsActive;
 
+        // 소진되면 월드에서 사라지게 합니다. 사라지면 콜라이더도 꺼지므로 더 이상 맞거나 탐지되지 않습니다.
+        // 멀티플레이에서는 마스터가 확정한 소진이 모든 클라이언트에 반영될 때 각자 사라지므로 모두에게 같이 사라집니다. (늦게 들어온 사람은 전체 목록을 받을 때 사라짐)
+        [SerializeField, LabelText("소진되면 사라지게 하기"), BoxGroup("소진 처리")]
+        private bool _hideOnDepleted = true;
+
+        // 비워 두면 이 오브젝트 전체를 끕니다. 소진 연출(MMF_Player 등)을 이 오브젝트에서 재생하려면 모델만 끄도록 모델 쪽 오브젝트를 지정하세요.
+        [SerializeField, LabelText("사라질 대상 (비우면 이 오브젝트)"), BoxGroup("소진 처리"), ShowIf(nameof(_hideOnDepleted))]
+        private GameObject _hideTarget;
+
+        // 소진 연출을 보여 줄 시간입니다. 이 시간이 지난 뒤에 사라집니다. (0 이면 바로)
+        [SerializeField, LabelText("사라지기까지 대기 (초)"), BoxGroup("소진 처리"), ShowIf(nameof(_hideOnDepleted)), MinValue(0f)]
+        private float _hideDelaySeconds = 0f;
+
         [ShowInInspector, ReadOnly, LabelText("남은 횟수"), PropertyOrder(-2)]
         public int remainingCount { get; private set; }
 
@@ -62,6 +75,12 @@ namespace Enzeun.Runtime
             }
 
             InitializeCount();
+
+            // 소진되어 사라졌던 오브젝트를 되살립니다.
+            if (_hideOnDepleted && !isDepleted)
+            {
+                GetHideTarget().SetActive(true);
+            }
         }
 
         // 남은 횟수를 최대 횟수로 채웁니다. Awake 에서는 멀티플레이 여부와 상관없이 항상 호출합니다. (모든 클라이언트가 같은 값으로 시작)
@@ -168,6 +187,7 @@ namespace Enzeun.Runtime
             if (isDepleted && !wasDepleted)
             {
                 OnDepleted?.Invoke(this);
+                HideAfterDepleted();
             }
         }
 
@@ -194,9 +214,45 @@ namespace Enzeun.Runtime
             {
                 isDepleted = true;
                 OnDepleted?.Invoke(this);
+                HideAfterDepleted();
             }
 
             return true;
+        }
+
+        private GameObject GetHideTarget()
+        {
+            return _hideTarget != null ? _hideTarget : gameObject;
+        }
+
+        /// <summary>
+        /// 소진 이벤트 처리가 끝난 뒤에 월드에서 사라지게 합니다. (구독자의 소진 연출이 먼저 시작됩니다)
+        /// 대기 시간이 있으면 그 시간 뒤에 사라지고, 그 사이에 복구(ResetCount)되었으면 사라지지 않습니다.
+        /// </summary>
+        private void HideAfterDepleted()
+        {
+            if (!_hideOnDepleted)
+            {
+                return;
+            }
+
+            HideAsync().Forget();
+        }
+
+        private async UniTaskVoid HideAsync()
+        {
+            if (_hideDelaySeconds > 0f)
+            {
+                bool canceled = await UniTask.Delay(TimeSpan.FromSeconds(_hideDelaySeconds), cancellationToken: this.GetCancellationTokenOnDestroy())
+                    .SuppressCancellationThrow();
+
+                if (canceled || !isDepleted)
+                {
+                    return;
+                }
+            }
+
+            GetHideTarget().SetActive(false);
         }
 
 #if UNITY_EDITOR

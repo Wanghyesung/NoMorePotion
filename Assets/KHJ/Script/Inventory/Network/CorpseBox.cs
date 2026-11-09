@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 
@@ -10,11 +11,12 @@ namespace Enzeun.Runtime
     /// </summary>
     public sealed class CorpseBox
     {
-        public CorpseBox(int id, Vector3 position, InventorySlot[] slots)
+        /// <param name="limitProvider">재료 한 칸의 한도를 알려 주는 함수. 지정하지 않으면 재료 SO 의 값을 사용</param>
+        public CorpseBox(int id, Vector3 position, InventorySlot[] slots, Func<int, int> limitProvider = null)
         {
             Id = id;
             Position = position;
-            Slots = new PersonalInventory(slots != null ? slots.Length : PersonalInventory.DefaultCapacity);
+            Slots = new PersonalInventory(slots != null ? slots.Length : PersonalInventory.DefaultCapacity, limitProvider);
             Slots.Load(slots);
         }
 
@@ -32,5 +34,24 @@ namespace Enzeun.Runtime
         /// 상자의 칸입니다. 개인 인벤토리(PersonalInventory)와 같은 구조입니다.
         /// </summary>
         public PersonalInventory Slots { get; }
+
+        /// <summary>
+        /// 비어 있는 상자인지 여부입니다.
+        /// </summary>
+        public bool IsEmpty
+        {
+            get
+            {
+                for (int i = 0; i < Slots.Capacity; i++)
+                {
+                    if (!Slots.Slots[i].IsEmpty)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
     }
 }

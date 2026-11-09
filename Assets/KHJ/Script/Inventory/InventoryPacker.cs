@@ -21,6 +21,11 @@ namespace Enzeun.Runtime
         /// </summary>
         public const byte Version = 1;
 
+        /// <summary>
+        /// 재료와 포션 ID 를 확인할 때 쓰는 게임 데이터 창구입니다. 기본은 씬의 PotionDataManager 이고, 시험에서는 가짜 데이터로 바꿉니다.
+        /// </summary>
+        public static IInventoryData Data { get; set; } = DefaultInventoryData.Instance;
+
         // ==================== 포션 목록 ============================
 
         /// <summary>
@@ -269,14 +274,13 @@ namespace Enzeun.Runtime
             int potionId = reader.ReadUInt16();
             int keywordId = reader.ReadUInt16();
 
-            PotionDataManager manager = PotionDataManager.Instance;
-            if (manager == null || instanceId <= 0 || !manager.TryGetPotionData(potionId, out PotionData data))
+            if (instanceId <= 0 || !Data.TryGetPotion(potionId, out PotionData data))
             {
                 return false;
             }
 
             TrapPotionKeyword keyword = null;
-            if (keywordId != 0 && !manager.TryGetTrapKeyword(keywordId, out keyword))
+            if (keywordId != 0 && !Data.TryGetKeyword(keywordId, out keyword))
             {
                 return false;
             }
@@ -289,8 +293,7 @@ namespace Enzeun.Runtime
 
         private static bool IsKnownMaterial(int materialId)
         {
-            return PotionDataManager.Instance != null
-                && PotionDataManager.Instance.TryGetMaterialData(materialId, out MaterialData _);
+            return Data.IsKnownMaterial(materialId);
         }
 
         /// <summary>
