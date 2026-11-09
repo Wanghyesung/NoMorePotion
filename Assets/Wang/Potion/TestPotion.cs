@@ -1,6 +1,7 @@
-using UnityEngine;
 using Enzeun.Runtime;
 using Enzeun.SO;
+using ExitGames.Client.Photon.StructWrapping;
+using UnityEngine;
 
 /*///////////////////////////////////////////
                        TestPotion
@@ -17,17 +18,29 @@ public class TestPotion : MonoBehaviour
     public bool HasExploded { get; private set; }
     private bool canExplodeOnContact;
     [SerializeField] private LayerMask mask;
-    [SerializeField] private PotionDetector attackObjectPrefab;
+    [SerializeField] private PotionDetector attackObjectPrefab;   //실제 범위 탐지 주체
     [SerializeField] private GameObject impactPrefab;
+    [SerializeField] private Renderer potionRenderer;
+
     [SerializeField, Min(0f)] private float impactLifetime = 5f;
     private void Awake()
     {
+        if(potionRenderer == null || impactPrefab == null)
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning("포션 렌더러 , 파티클이 연결되지 않았습니다. 포션 색상 변경이 적용되지 않습니다.", this);
+#endif
+        }
         movement = GetComponent<ParabolicMovement>();
         // 기존 프리팹의 Potion에 연결된 데이터를 유지한다.
         if (data == null && TryGetComponent(out Enzeun.Runtime.Potion legacyPotion) == true)
             data = legacyPotion.Data;
     }
 
+    private void OnEnable()
+    {
+        potionRenderer.material.color = data != null ? data.potionColor : Color.white;
+    }
     public void Initialize(PotionData potionData)
     {
         Initialize(new PotionInstance(potionData));
@@ -69,9 +82,16 @@ public class TestPotion : MonoBehaviour
         HasExploded = true;
         canExplodeOnContact = false;
         movement.enabled = false;
-        
-        //지금은 직렬화 했지만 SO에 넣으면 좋겠습니다.
-        if (attackObjectPrefab != null)
+
+
+        if (data.explosionPrefab != null)
+        {
+            GameObject explosion = PoolManager.Instance.Get(data.explosionPrefab, position, Quaternion.identity);
+            explosion.GetComponent<PotionDetector>()?.Initialize(Instance ?? new PotionInstance(data));
+
+        }
+        //Tem
+        else if (attackObjectPrefab != null)
         {
             PotionDetector detector = Instantiate(attackObjectPrefab, position, Quaternion.identity);
             detector.Initialize(Instance ?? new PotionInstance(data));
@@ -100,11 +120,28 @@ public class TestPotion : MonoBehaviour
 
             canExplodeOnContact = false;
             movement.enabled = false;
+
+
+
             if (impactPrefab != null)
             {
-                GameObject impact = Instantiate(impactPrefab, hitPoint, Quaternion.identity);
-                Destroy(impact, impactLifetime);
+                GameObject particleObj =
+                    PoolManager.Instance.Get(impactPrefab, hitPoint, Quaternion.identity);
+
+                var particle = particleObj.GetComponent<ParticleSystem>();
+                particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+                Color color = data != null ? data.potionColor : Color.white;
+                var main = particle.main;
+                main.startColor = color;
+
+                particle.Play(true);
+                TimeManager.Instance.Schedule(1.0f, () =>
+                {
+                    PoolManager.Instance.Release(particleObj);
+                });
             }
+
             ExplodeAt(hitPoint);
         }
     }
