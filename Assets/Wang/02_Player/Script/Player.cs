@@ -240,7 +240,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     {
         // 사용 의도가 확정될 때 한 번만 판정한다. 조준 중 발사 확정은 이 경로를 거치지 않는다.
         // 테스트용 50%: 정수 0~99 중 0~49에서 교체한다. 기획 확률은 5%다.
-        if (ConfusePotionUse == true && Random.Range(0, 100) < 50)
+        if (ConfusePotionUse == true && Random.Range(0, 100) < 5)
             return requestedType == FSM.StateType.Throw ? FSM.StateType.Drink : FSM.StateType.Throw;
 
         return requestedType;

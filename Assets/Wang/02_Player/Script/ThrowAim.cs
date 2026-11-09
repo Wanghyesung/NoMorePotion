@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /*///////////////////////////////////////////
                   ThrowAim
-기능 : 마우스 화면 좌표로 목표 지점을 선택하고 도착 궤적을 역산
+기능 : 카메라 화면 중앙으로 목표 지점을 선택하고 도착 궤적을 역산
        거리에 따라 포물선 높이를 조절하고 List 좌표를 LineRenderer에 표시
  *///////////////////////////////////////////
 
@@ -77,13 +76,12 @@ public sealed class ThrowAim : MonoBehaviour
             return;
         }
 
-        Draw(Mouse.current.position.ReadValue());
+        Draw();
     }
 
-    // screenPosition: 화면의 마우스 X·Y 좌표. 카메라 Ray로 월드 목표 위치를 구함
-    private void Draw(Vector2 screenPosition)
+    private void Draw()
     {
-        if (TryCreateThrowData(origin.position, screenPosition, out ThrowData data) == false)
+        if (TryCreateThrowData(origin.position, out ThrowData data) == false)
         {
             ClearLine();
             return;
@@ -106,11 +104,11 @@ public sealed class ThrowAim : MonoBehaviour
         UpdateLineFade();
     }
 
-    // throwOrigin: 포션의 월드 위치, screenPosition: 목표를 고를 화면 좌표
-    public bool TryCreateThrowData(Vector3 throwOrigin, Vector2 screenPosition, out ThrowData data)
+    // 커서 위치와 무관하게 실제 카메라 뷰포트 중앙을 조준한다.
+    public bool TryCreateThrowData(Vector3 throwOrigin, out ThrowData data)
     {
         data = default;
-        Ray ray = aimCamera.ScreenPointToRay(screenPosition);
+        Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         if (Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
                 QueryTriggerInteraction.Ignore) == false)
         {

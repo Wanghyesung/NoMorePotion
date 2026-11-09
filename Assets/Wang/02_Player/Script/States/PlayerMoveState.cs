@@ -57,6 +57,10 @@ public sealed class PlayerMoveState : PlayerState
 
         // 이동 기준은 마우스로 회전한 루트다. View 회전은 이동 계산에 다시 섞지 않는다.
         moveDir = moveInput.normalized;
+        // 던지는 동안은 이동 방향으로 몸을 돌리지 않고 Player 루트의 정면을 유지한다.
+        if (owner.CurrentActionState != null && owner.CurrentActionState.Type == FSM.StateType.Throw)
+            return;
+
         if (owner.IsRotationLocked == false)
             owner.PlayerView.localRotation = Quaternion.LookRotation(new Vector3(moveDir.x, 0f, moveDir.y));
     }

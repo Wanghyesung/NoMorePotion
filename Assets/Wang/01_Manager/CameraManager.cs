@@ -13,6 +13,7 @@ public sealed class CameraManager : CinemachineExtension
     #region CameraSettings
     [SerializeField] private CinemachineCamera targetCamera;
     [SerializeField] private CinemachineFollow cameraFollow;
+    [SerializeField, Min(0f)] private float pitchSensitivity = 0.15f;
     #endregion
 
     #region CameraPoints
@@ -21,6 +22,7 @@ public sealed class CameraManager : CinemachineExtension
     #endregion
 
     private Quaternion rotationOffset = Quaternion.identity;
+    private Vector3 rotationAngles;
 
     protected override void Awake()
     {
@@ -30,6 +32,21 @@ public sealed class CameraManager : CinemachineExtension
         cameraFollow.TrackerSettings.BindingMode = BindingMode.LockToTarget;
         cameraFollow.FollowOffset = GetOffset(baseCameraPos);
         rotationOffset = Quaternion.Inverse(baseTarget.rotation) * baseCameraPos.rotation;
+        rotationAngles = rotationOffset.eulerAngles;
+        rotationAngles.x = Mathf.Clamp(Mathf.DeltaAngle(0f, rotationAngles.x), -15f, 30f);
+        rotationOffset = Quaternion.Euler(rotationAngles);
+    }
+
+    private void Update()
+    {
+        InputManager input = InputManager.Instance;
+        if (input == null || input.HasGameplayInput == false)
+            return;
+
+        // 마우스를 올리면 위를 본다. Player 루트는 기울이지 않고 카메라 피치만 제한한다.
+        rotationAngles.x = Mathf.Clamp(
+            rotationAngles.x - input.InputInfo.Delta.y * pitchSensitivity, -15f, 30f);
+        rotationOffset = Quaternion.Euler(rotationAngles);
     }
 
     private Vector3 GetOffset(Transform point)
