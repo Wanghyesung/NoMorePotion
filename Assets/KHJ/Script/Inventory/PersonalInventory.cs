@@ -349,6 +349,54 @@ namespace Enzeun.Runtime
             return total;
         }
 
+        /// <summary>
+        /// 같은 칸 수와 한도 규칙을 가진 복사본을 만듭니다. 마스터가 요청을 검증할 때 "해 보고 결과만 보기"에 사용합니다. (이벤트는 복사하지 않음)
+        /// </summary>
+        public PersonalInventory Clone()
+        {
+            var copy = new PersonalInventory(_slots.Length, _limitProvider);
+            Array.Copy(_slots, copy._slots, _slots.Length);
+            return copy;
+        }
+
+        /// <summary>
+        /// 칸의 내용을 지정한 값으로 정합니다. (빈 칸 값이면 비움) 마스터가 확정한 변경을 적용할 때만 사용하며, 규칙 검사는 하지 않습니다.
+        /// </summary>
+        /// <returns>위치가 잘못되었으면 false</returns>
+        public bool SetSlot(int index, InventorySlot content)
+        {
+            if (!IsValidIndex(index))
+            {
+                return false;
+            }
+
+            _slots[index] = content;
+            OnSlotChanged?.Invoke(index);
+            return true;
+        }
+
+        /// <summary>
+        /// 칸에서 재료 count 개를 덜어 냅니다. 포션 칸이거나 개수가 모자라면 아무것도 바꾸지 않고 false 입니다. 0 개가 되면 칸을 비웁니다.
+        /// </summary>
+        public bool TakeFromSlot(int index, int count)
+        {
+            if (!IsValidIndex(index) || count <= 0
+                || _slots[index].Kind != InventorySlotKind.Material || _slots[index].Count < count)
+            {
+                return false;
+            }
+
+            _slots[index].Count -= count;
+
+            if (_slots[index].Count <= 0)
+            {
+                _slots[index] = default;
+            }
+
+            OnSlotChanged?.Invoke(index);
+            return true;
+        }
+
         private bool IsValidIndex(int index)
         {
             return index >= 0 && index < _slots.Length;

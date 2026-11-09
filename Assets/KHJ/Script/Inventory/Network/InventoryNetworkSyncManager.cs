@@ -9,10 +9,13 @@ using UnityEngine;
 namespace Enzeun.Runtime
 {
     /// <summary>
-    /// 팀이 공유하는 인벤토리(재료, 포션)와 시체 상자를 네트워크로 동기화하는 매니저입니다. 씬에 한 개 배치합니다. (PhotonView 필요)
+    /// 팀이 함께 쓰는 모든 보관 장소(공용 인벤, 개인 인벤, 공용 창고, 시체 상자, 바닥 주머니)를 네트워크로 동기화하는 매니저입니다.
+    /// 씬에 한 개 배치합니다. (PhotonView 필요)
     /// 실제 규칙(검증, 적용, 전체 목록)은 네트워크를 모르는 TeamInventoryState 가 맡고, 이 클래스는 메시지를 주고받는 일만 합니다.
     /// 요청(*Async) → 마스터 검증 → 전원 적용의 흐름과 전체 목록 동기화는 TeamInventoryState 의 주석을 참고하세요.
     /// 오프라인 모드에서는 내가 마스터이므로 같은 코드가 그대로 동작합니다.
+    ///
+    /// 결과를 알 수 없는 경우(Timeout, OutOfSync)에는 State 를 읽어서 확인하세요. 모든 변경이 사본에 복제되어 있습니다.
     /// </summary>
     [RequireComponent(typeof(PhotonView))]
     public sealed class InventoryNetworkSyncManager : MonoBehaviourPunCallbacks
@@ -21,6 +24,10 @@ namespace Enzeun.Runtime
 
         [SerializeField, LabelText("요청 제한 시간 (초)"), MinValue(0.5f)]
         private float _requestTimeoutSeconds = 5f;
+
+        // 플레이어가 방을 나갈 때 시체 상자를 둘 위치를 정하는 곳입니다. (예: 마을 중앙) 마지막 위치를 알려 주는 함수가 있으면 그것이 우선입니다.
+        [SerializeField, LabelText("나간 플레이어의 시체 상자 위치 (대체)")]
+        private Transform _leaveFallbackSpot;
 
         // 전체 목록을 다시 요청하는 최소 간격입니다. (어긋난 상태에서 메시지가 연달아 와도 요청을 쏟아내지 않기 위함)
         private const float ResyncCooldownSeconds = 1f;
@@ -31,9 +38,19 @@ namespace Enzeun.Runtime
         private float _lastResyncRequestTime = float.NegativeInfinity;
 
         /// <summary>
-        /// 팀 공유 인벤토리 상태의 사본입니다. 읽기와 이벤트 구독에 사용하고, 바꾸는 것은 *Async 요청으로만 합니다.
+        /// 팀 보관 장소들의 사본입니다. 읽기와 이벤트 구독에 사용하고, 바꾸는 것은 *Async 요청으로만 합니다.
         /// </summary>
         public TeamInventoryState State => _state;
+
+        /// <summary>
+        /// 플레이어가 방을 나갔을 때 그 플레이어(ActorNumber)의 마지막 위치를 알려 주는 함수입니다. 지정하지 않으면 대체 위치를 씁니다.
+        /// </summary>
+        public Func<int, Vector3> PlayerPositionResolver { get; set; }
+
+        /// <summary>
+        /// 내 플레이어 번호(ActorNumber)입니다. 방에 없으면 0 입니다.
+        /// </summary>
+        public int LocalActor => PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer != null ? PhotonNetwork.LocalPlayer.ActorNumber : 0;
 
         [ShowInInspector, ReadOnly, LabelText("사본 버전"), PropertyOrder(-2)]
         private int DebugVersion => _state != null ? _state.Version : 0;
@@ -79,6 +96,26 @@ namespace Enzeun.Runtime
             SendReady();
         }
 
+        /// <summary>
+        /// [마스터] 플레이어가 방을 나가면 그 플레이어의 개인 인벤토리를 시체 상자로 남기고 지웁니다.
+        /// </summary>
+        public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
+        {
+            if (Instance != this || !PhotonNetwork.IsMasterClient || otherPlayer == null)
+            {
+                return;
+            }
+
+            Vector3 position = PlayerPositionResolver != null
+                ? PlayerPositionResolver(otherPlayer.ActorNumber)
+                : (_leaveFallbackSpot != null ? _leaveFallbackSpot.position : Vector3.zero);
+
+            if (_state.TryCreateLeave(otherPlayer.ActorNumber, position, out InventoryCommand apply))
+            {
+                BroadcastApply(apply);
+            }
+        }
+
         private void OnDestroy()
         {
             if (Instance == this)
@@ -98,72 +135,139 @@ namespace Enzeun.Runtime
         // ==================== 요청 (어느 클라이언트에서나 호출) ============================
 
         /// <summary>
-        /// 팀 재료 인벤토리에 재료를 넣습니다. 한도를 넘으면 들어간 만큼만 넣고, Outcome.Value 에 실제로 넣은 개수가 담깁니다.
+        /// 아이템을 한 장소에서 다른 장소로 옮깁니다. 공용 인벤, 개인 인벤, 공용 창고, 시체 상자 사이의 모든 이동과 바닥 주머니 줍기가 이 요청입니다.
+        /// - 칸 구조(개인, 시체 상자)에서 꺼낼 때는 from.Slot 으로 가리키고, 공용 인벤/창고에서 꺼낼 때는 materialId + count 또는 instanceId 로 가리킵니다.
+        /// - 받는 곳이 칸 구조이고 to.Slot 이 -1 이면 알아서 고릅니다. (같은 재료 칸을 먼저 채우고, 남으면 빈 칸)
+        /// - 가득 차서 일부만 들어가면 들어간 만큼만 옮기고 나머지는 원래 자리에 남습니다. Outcome.Value 가 실제로 옮긴 개수입니다.
+        /// - 공용 창고는 베이스캠프에서만 쓸 수 있고, 남의 개인 인벤토리는 쓸 수 없습니다. (NoAccess)
         /// </summary>
-        public UniTask<InventoryResult> AddMaterialAsync(int materialId, int count)
+        public UniTask<InventoryResult> TransferAsync(ContainerRef from, ContainerRef to, int materialId = 0, int count = 0, int instanceId = 0)
         {
-            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.AddMaterial, MaterialId = materialId, Count = count });
-        }
-
-        /// <summary>
-        /// 팀 재료 인벤토리에서 재료를 뺍니다. 개수가 모자라면 아무것도 빼지 않고 NotEnough 로 실패합니다.
-        /// </summary>
-        public UniTask<InventoryResult> RemoveMaterialAsync(int materialId, int count)
-        {
-            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.RemoveMaterial, MaterialId = materialId, Count = count });
-        }
-
-        /// <summary>
-        /// 제작한 포션을 팀 포션 인벤토리에 넣습니다. 인스턴스 ID 는 마스터가 부여하며, Outcome.Potion 에 ID 가 부여된 포션이 담깁니다.
-        /// </summary>
-        public UniTask<InventoryResult> AddPotionAsync(PotionInstance crafted)
-        {
-            if (crafted == null || crafted.Data == null)
-            {
-                return UniTask.FromResult(InventoryResult.Fail(InventoryDenyReason.Invalid));
-            }
-
             return SendRequestAsync(new InventoryCommand
             {
-                Op = InventoryOp.AddPotion,
-                PotionId = crafted.Data.potionID,
-                KeywordId = crafted.TrapKeyword != null ? crafted.TrapKeyword.KeywordID : 0,
+                Op = InventoryOp.Transfer,
+                From = from,
+                To = to,
+                MaterialId = materialId,
+                Count = count,
+                InstanceId = instanceId,
             });
         }
 
         /// <summary>
-        /// 팀 포션 인벤토리에서 포션을 꺼냅니다. 여러 명이 같은 포션을 동시에 요청하면 먼저 도착한 한 명만 성공합니다.
+        /// 바닥 재료 주머니를 통째로 줍습니다. to 를 지정하지 않으면 공용 인벤으로 받습니다.
+        /// 공용 인벤이 가득 차서 일부만 들어가면 남은 만큼은 주머니에 남습니다. 두 명이 동시에 주우면 먼저 도착한 한 명만 성공합니다.
         /// </summary>
-        public UniTask<InventoryResult> TakePotionAsync(int instanceId)
+        public UniTask<InventoryResult> PickupAsync(int dropId, ContainerRef to = default)
         {
-            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.TakePotion, InstanceId = instanceId });
+            if (to.Kind == ContainerKind.None)
+            {
+                to = ContainerRef.PackRef;
+            }
+
+            return TransferAsync(ContainerRef.Ground(dropId), to);
         }
 
         /// <summary>
-        /// 죽은 자리에 시체 상자를 만듭니다. slots 는 개인 인벤토리의 TakeAll 결과(칸 위치 그대로)를 넣습니다.
-        /// 실패하면 아이템이 사라지지 않도록 호출한 쪽이 slots 를 가지고 있다가 다시 시도하거나 되돌려야 합니다.
+        /// 내 개인 인벤토리 안에서 칸을 옮깁니다. (빈 칸이면 이동, 같은 재료면 합침, 그 외에는 서로 바꿈)
+        /// 다른 사람과 충돌하지 않으므로 마스터가 확정하기 전에 내 화면에는 먼저 반영하고, 마스터가 거부하면 전체 목록으로 바로잡습니다.
         /// </summary>
-        public UniTask<InventoryResult> CreateCorpseAsync(Vector3 position, InventorySlot[] slots)
+        public async UniTask<InventoryResult> MovePersonalAsync(int fromSlot, int toSlot)
         {
-            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.CreateCorpse, Position = position, Slots = slots });
+            int actor = LocalActor;
+            if (actor <= 0)
+            {
+                return InventoryResult.Fail(InventoryDenyReason.NotInRoom);
+            }
+
+            // 마스터는 곧바로 같은 결과가 적용되므로 따로 미리 반영하지 않습니다.
+            bool predicted = false;
+            PersonalInventory mine = _state.GetPersonal(actor);
+            if (!PhotonNetwork.IsMasterClient && mine != null)
+            {
+                predicted = mine.Move(fromSlot, toSlot);
+            }
+
+            InventoryResult result = await TransferAsync(ContainerRef.Personal(actor, fromSlot), ContainerRef.Personal(actor, toSlot));
+
+            if (!result.Success && predicted)
+            {
+                RequestResync();
+            }
+
+            return result;
         }
 
         /// <summary>
-        /// 시체 상자의 칸 하나를 통째로 꺼냅니다. 성공하면 Outcome.Slot 에 꺼낸 내용이 담기며, 받은 쪽이 자기 개인 인벤토리에 넣어야 합니다.
+        /// 재료 두 개(재료+재료 또는 같은 포션+같은 포션)를 조합합니다. 재료는 공용 인벤 또는 내 개인 인벤에서만 쓸 수 있고, 창고는 쓸 수 없습니다.
+        /// 마스터가 레시피, 재료 보유, 결과를 놓을 자리를 한 번에 확인하고 재료 차감과 포션 추가를 함께 적용합니다. 어느 하나라도 안 되면 아무것도 바뀌지 않습니다.
+        /// 결과 포션은 내 개인 인벤토리에 받고, 빈 칸이 없으면 공용 인벤에 받습니다. Outcome.Potion 이 ID 가 부여된 포션입니다.
+        /// keywordId 는 제작 실패 판정(PotionCrafter)으로 정해진 함정 키워드이고, 정상이면 0 입니다.
         /// </summary>
-        public UniTask<InventoryResult> TakeCorpseSlotAsync(int corpseId, int slotIndex)
+        public UniTask<InventoryResult> CraftAsync(Ingredient first, Ingredient second, int keywordId = 0)
         {
-            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.TakeCorpseSlot, CorpseId = corpseId, SlotIndex = slotIndex });
+            return SendRequestAsync(new InventoryCommand
+            {
+                Op = InventoryOp.Craft,
+                IngredientA = first,
+                IngredientB = second,
+                KeywordId = keywordId,
+            });
         }
 
         /// <summary>
-        /// 시체 상자의 칸에 내용을 넣습니다. 같은 재료는 한도까지만 합쳐지고, 놓지 못한 만큼은 Outcome.Leftover 로 돌아오므로
-        /// 요청한 쪽이 자기 개인 인벤토리에 되돌려야 합니다. 거부되면 아무것도 놓이지 않아 전부 되돌려야 합니다.
+        /// 죽었을 때 호출합니다. 마스터가 내 개인 인벤토리의 내용을 시체 상자로 옮깁니다. 남길 것이 없으면 Invalid 로 거부됩니다.
+        /// 공용 인벤과 공용 창고는 그대로 남습니다. Outcome.CorpseId 가 만들어진 상자의 ID 입니다.
         /// </summary>
-        public UniTask<InventoryResult> PutCorpseSlotAsync(int corpseId, int slotIndex, InventorySlot content)
+        public UniTask<InventoryResult> DieAsync(Vector3 position)
         {
-            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.PutCorpseSlot, CorpseId = corpseId, SlotIndex = slotIndex, Slot = content });
+            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.Die, Position = position });
         }
+
+        /// <summary>
+        /// [개발용] 재료를 만들어 넣습니다. TeamInventoryState.AllowGrant 가 꺼져 있으면 거부됩니다.
+        /// </summary>
+        public UniTask<InventoryResult> GrantMaterialAsync(ContainerRef to, int materialId, int count)
+        {
+            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.Grant, To = to, MaterialId = materialId, Count = count });
+        }
+
+        /// <summary>
+        /// [개발용] 포션을 만들어 넣습니다. 인스턴스 ID 는 마스터가 부여합니다. TeamInventoryState.AllowGrant 가 꺼져 있으면 거부됩니다.
+        /// </summary>
+        public UniTask<InventoryResult> GrantPotionAsync(ContainerRef to, int potionId, int keywordId = 0)
+        {
+            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.Grant, To = to, PotionId = potionId, KeywordId = keywordId });
+        }
+
+        // ==================== 마스터 전용 ============================
+
+        /// <summary>
+        /// [마스터 전용] 바닥에 재료 주머니를 만들어 모든 클라이언트에 알립니다. 월드 오브젝트가 소진될 때 마스터가 호출합니다.
+        /// 마스터가 아니거나 만들 것이 없으면 false 입니다.
+        /// </summary>
+        public bool SpawnGroundDrops(IReadOnlyList<GroundSpawn> spawns)
+        {
+            if (!PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom)
+            {
+                return false;
+            }
+
+            if (!_state.TryCreateGroundSpawn(spawns, out InventoryCommand apply))
+            {
+                return false;
+            }
+
+            BroadcastApply(apply);
+            return true;
+        }
+
+        private void BroadcastApply(InventoryCommand apply)
+        {
+            photonView.RPC(nameof(RpcApply), RpcTarget.All, InventoryMessages.PackApply(apply));
+        }
+
+        // ==================== 요청 처리 ============================
 
         private async UniTask<InventoryResult> SendRequestAsync(InventoryCommand request)
         {
@@ -191,13 +295,10 @@ namespace Enzeun.Runtime
 
             // 제한 시간이 지나도 답이 없으면 포기합니다. 늦게 도착한 적용은 사본에는 반영되지만 이 요청에는 전달되지 않습니다.
             _pending.Remove(request.RequestId);
-            Debug.LogWarning($"[InventoryNetworkSyncManager]: {request.Op} 요청({request.RequestId})의 응답이 {_requestTimeoutSeconds}초 안에 오지 않았습니다.");
+            Debug.LogWarning($"[InventoryNetworkSyncManager]: {request.Op} 요청({request.RequestId})의 응답이 {_requestTimeoutSeconds}초 안에 오지 않았습니다. 결과는 State 로 확인하세요.");
             return InventoryResult.Fail(InventoryDenyReason.Timeout);
         }
 
-        /// <summary>
-        /// 기다리던 요청이 있으면 결과를 전달해 끝냅니다. 이미 끝났거나(제한 시간 등) 없는 요청 번호는 무시합니다.
-        /// </summary>
         private void Complete(int requestId, InventoryResult result)
         {
             if (_pending.TryGetValue(requestId, out UniTaskCompletionSource<InventoryResult> source))
@@ -238,7 +339,7 @@ namespace Enzeun.Runtime
                 return;
             }
 
-            photonView.RPC(nameof(RpcApply), RpcTarget.All, InventoryMessages.PackApply(apply));
+            BroadcastApply(apply);
         }
 
         /// <summary>
@@ -307,7 +408,8 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
-        /// [마스터] 씬 로딩이 끝났거나 사본이 어긋난 클라이언트의 "준비됐다/다시 달라"는 알림을 받아, 그 클라이언트에게만 전체 목록을 보냅니다.
+        /// [마스터] 씬 로딩이 끝났거나 사본이 어긋난 클라이언트에게 전체 목록을 보냅니다.
+        /// 요청한 클라이언트는 이 목록을 받을 때까지 기다리던 마스터 밖의 변경이 없으므로 안전합니다.
         /// </summary>
         [PunRPC]
         public void RpcReady(PhotonMessageInfo info)
