@@ -63,7 +63,7 @@ public class GameResultPopupUI : MonoBehaviour
 
         titleText.text = isClear ? "클리어!" : "패배";
         titleText.color = isClear ? clearColor : defeatColor;
-        playTimeText.text = FormatPlayTime(record.PlayTime);
+        playTimeText.text = TimeFormat.ToPlayTime(record.PlayTime);
         dayText.SetText("{0}일차", record.DayCount);
 
         closeBtn.interactable = true;
@@ -85,17 +85,6 @@ public class GameResultPopupUI : MonoBehaviour
         }
 
         manager.RequestLeaveGame();
-    }
-
-    // 1시간 미만은 분:초, 이상은 시:분:초
-    private static string FormatPlayTime(float seconds)
-    {
-        int total = Mathf.FloorToInt(seconds);
-        int h = total / 3600;
-        int m = total % 3600 / 60;
-        int s = total % 60;
-
-        return h > 0 ? $"{h}:{m:00}:{s:00}" : $"{m:00}:{s:00}";
     }
 
     private static string ToRankingMessage(RankingSubmitResult submit)

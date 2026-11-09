@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Firebase.Database;
+using System.Collections.Generic;
 using System.Threading;
 
 public class FirebaseRankingStore
@@ -18,6 +19,24 @@ public class FirebaseRankingStore
     {
         await root.Child(key).SetValueAsync(entry.ToDictionary()).AsUniTask().AttachExternalCancellation(ct);
         
+    }
+
+    public async UniTask<List<RankingEntry>> LoadTopAsync(int count, CancellationToken ct)
+    {
+        DataSnapshot snapshot = await root
+            .OrderByChild(RankingEntry.KEY_PLAY_TIME)
+            .LimitToFirst(count)
+            .GetValueAsync().AsUniTask().AttachExternalCancellation(ct);
+
+        List<RankingEntry> list = new List<RankingEntry>();
+        foreach(DataSnapshot child in snapshot.Children)
+        {
+            RankingEntry entry = RankingEntry.FromSnapshot(child);
+            if (entry != null)
+                list.Add(entry);
+        }
+
+        return list;
     }
 
     public async UniTask<bool> ExistsAsync(string key, CancellationToken ct)

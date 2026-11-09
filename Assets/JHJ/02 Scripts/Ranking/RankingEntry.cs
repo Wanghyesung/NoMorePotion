@@ -1,5 +1,7 @@
 using Firebase.Database;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class RankingEntry
 {
@@ -27,5 +29,32 @@ public class RankingEntry
             { KEY_DAY_COUNT,    DayCount },
             { KEY_CLEARED_AT,   ServerValue.Timestamp },       // 서버가 저장 순간의 시각으로 채움
         };
+    }
+
+    public static RankingEntry FromSnapshot(DataSnapshot snapshot)
+    {
+        try
+        {
+            List<string> members = new List<string>();
+
+            foreach (DataSnapshot child in snapshot.Child(KEY_MEMBERS).Children)
+            {
+                if (child.Value is string name) members.Add(name);
+            }
+
+            return new RankingEntry
+            {
+                Uid = snapshot.Child(KEY_UID).Value as string,
+                Members = members,
+                MemberCount = Convert.ToInt32(snapshot.Child(KEY_MEMBER_COUNT).Value),
+                PlayTime = Convert.ToDouble(snapshot.Child(KEY_PLAY_TIME).Value),
+                DayCount = Convert.ToInt32(snapshot.Child(KEY_DAY_COUNT).Value)
+            };
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[RankingEntry] 읽기 실패 {snapshot.Key}: {e.Message}");
+            return null;
+        }
     }
 }

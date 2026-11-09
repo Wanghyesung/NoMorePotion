@@ -1,9 +1,9 @@
 using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using Photon.Pun;
 using System;
 using System.Linq;
 using System.Threading;
-using UnityEditor;
 using UnityEngine;
 
 public enum RankingSubmitResult
@@ -111,5 +111,10 @@ public static class RankingService
 
         reason = RankingSubmitResult.None;      // 쓰지 않는 값
         return true;
+    }
+
+    public static UniTask<List<RankingEntry>> LoadTopAsync(int count, CancellationToken ct)
+    {
+        return store.LoadTopAsync(count, ct);
     }
 }
