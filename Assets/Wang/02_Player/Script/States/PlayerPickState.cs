@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using Enzeun.Runtime;
 
 /*///////////////////////////////////////////
                  PlayerPickState
@@ -39,7 +40,7 @@ public sealed class PlayerPickState : PlayerState
         animEvent.UnregisterFrame(clip, clipEvents[0], Pick);
         animEvent.UnregisterFrame(clip, clipEvents[1], FinishPick);
 
-        if(InputManager.Instance != null)
+        if (InputManager.Instance != null)
             InputManager.Instance.InteractAction.performed -= RequestPick;
     }
 
@@ -75,6 +76,7 @@ public sealed class PlayerPickState : PlayerState
 
         hasPicked = true;
         Debug.Log($"Pick: {Target.name}", Target);
+        Target.GetComponentInParent<GroundPouch>()?.RequestPickup();
     }
 
     private void FinishPick(AnimationEvent animationEvent)

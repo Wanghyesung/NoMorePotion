@@ -38,7 +38,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 월드 오브젝트가 소진되어 재료가 떨어질 때 (월드 오브젝트, 드롭 목록)으로 발생합니다. 모든 클라이언트에서 같은 값으로 발생합니다.
-        /// 바닥 아이템(MaterialItem)을 만드는 쪽이 구독합니다. 드롭 번호(DropId)는 마스터가 발급한 고유 번호입니다.
+        /// 화면 연출 등 소진 직후의 후처리를 하는 쪽이 구독합니다. (바닥 주머니는 마스터가 인벤토리 상태에 만들고 GroundPouchSpawner 가 화면에 만듭니다)
         /// </summary>
         public event Action<WorldObject, WorldDrop[]> OnDropped;
 
