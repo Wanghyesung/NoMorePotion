@@ -1,40 +1,56 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 using SF = UnityEngine.SerializeField;
 
-public class InventoryIcon : MonoBehaviour
+public class InventoryIcon : MonoBehaviour, IPointerClickHandler
 {
 
     [SF] private ItemInventory inventory;
+    [SF] private CanvasGroup alphaCanvas;
     // 아이템 아이콘
     [SF] private Image itemImage;
     // 아이템 개수 텍스트
     [SF] private TextMeshProUGUI itemCountText;
     [SF] private TextMeshProUGUI itemSlotNum;
+    [SF] private Button button;
+    public bool isCombinedSlot = false;
     public int slotNum = -1;
+
+    [SF, Range(0f, 1f)] private float emptyAlpha = 0.3f;
 
     public ItemInstance Item { get; private set; }
 
+    public int BoundInstanceId => Item != null ? Item.instanceId : 0;
+
+    public event Action<InventoryIcon> OnClicked;
     private void Awake()
     {
-        if(itemSlotNum != null && 
-            itemSlotNum.gameObject.activeSelf &&
-            slotNum >= 0)
-        {
-            if(slotNum + 1 < 10)
-                itemSlotNum.text = (slotNum + 1).ToString();
-            else
-                itemSlotNum.text = "0";
-        }
-            
+        if (button != null)
+            button.onClick.AddListener(() => OnClicked?.Invoke(this));
+
+        SetSlotNum(slotNum);
     }
 
     public void SetParentInventory(ItemInventory inven)
     {
         inventory = inven;
+    }
+    public void SetAlpha(float alpha)
+    {
+        alphaCanvas.alpha = alpha;
+    }
+    /// <summary>단축키 번호 표시 (0~8 → 1~9, 9 → 0)</summary>
+    public void SetSlotNum(int num)
+    {
+        slotNum = num;
+        if (itemSlotNum == null || num < 0) return;
+        
+        itemSlotNum.gameObject.SetActive(true);
+        itemSlotNum.text = num + 1 < 10 ? (num + 1).ToString() : "0";
     }
 
     public void Init(ItemInstance item)
@@ -48,6 +64,8 @@ public class InventoryIcon : MonoBehaviour
         // 자동 새로고침 구독해제
         if (Item != null) 
             Item.OnChanged += Reload;
+
+        Reload();
     }
 
     /// <summary>
@@ -73,9 +91,15 @@ public class InventoryIcon : MonoBehaviour
         itemImage.sprite = Item.itemImage;
     }
 
-    public void ItemCombination()
+    public void OnPointerClick(PointerEventData e)
     {
-
+        if (e.button == PointerEventData.InputButton.Right)
+        {
+            if (Item == null || Item.ItemCount <= 0) return;
+            inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId);
+        }
+        else if(isCombinedSlot)
+            inventory.potionCombined.Clear();
     }
 
     private void OnDestroy()

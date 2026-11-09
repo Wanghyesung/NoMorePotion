@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Enzeun.Runtime;
+using Photon.Pun;
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,7 @@ public class InventoryController : MonoBehaviour
     public InventoryIcon iconPrefab;
 
     [Header("공용 인벤토리")]
+    [SF] private PublicInventory publicInventory;
     [SF] private GameObject publicInven;
     [SF] private ScrollRect publicInventScrollRect;
     [SF] private RectTransform publicInventContentRect;
@@ -48,6 +50,13 @@ public class InventoryController : MonoBehaviour
     private void Awake()
     {
         publicList = new();
+    }
+
+    private void Start()
+    {
+        var state = publicInventory.InvenManager != null ? 
+            publicInventory.InvenManager.State : null;
+        if (state != null) publicInventory.Bind(state.Materials, state.Potions);
     }
 
     [Button]
@@ -209,7 +218,7 @@ public class InventoryController : MonoBehaviour
         cts?.Dispose();
     }
 
-    #region 아이템 습득/전환/사용 메서드
+    #region 아이템 습득/전환/사용 메서드 , 개인 보류로 인해 이하 private태그를 가진 함수 일시 사용 중단
     public void GetMakePotion(ItemInstance item)
     {
         
