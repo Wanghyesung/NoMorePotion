@@ -143,6 +143,31 @@ namespace Enzeun.Runtime
         /// </summary>
         public UniTask<InventoryResult> TransferAsync(ContainerRef from, ContainerRef to, int materialId = 0, int count = 0, int instanceId = 0)
         {
+#if UNITY_EDITOR
+            // 바닥 주머니 줍기는 요청에 재료 번호/개수를 담지 않고 주머니 번호만 보냅니다. (실제 내용은 마스터가 주머니 데이터에서 읽음)
+            // 그래서 로그는 주머니 데이터에서 직접 읽어 보여 줍니다.
+            int logMaterialId = materialId;
+            int logCount = count;
+            if (from.Kind == ContainerKind.Ground && _state != null && _state.GroundDrops.TryGetValue(from.Id, out GroundDrop logDrop))
+            {
+                logMaterialId = logDrop.MaterialId;
+                logCount = count > 0 ? Math.Min(count, logDrop.Count) : logDrop.Count;
+            }
+
+            string objName = "재료나 포션이 아닌 아이템입니다";
+            if (PotionDataManager.Instance != null)
+            {
+                if (PotionDataManager.Instance.TryGetMaterialData(logMaterialId, out var materialData))
+                {
+                    objName = materialData.materialName;
+                }
+                else if (PotionDataManager.Instance.TryGetPotionData(logMaterialId, out var potionData))
+                {
+                    objName = potionData.potionName;
+                }
+            }
+            Debug.Log($"[InventoryNetworkSyncManager] : '{objName}'(번호 {logMaterialId}) 아이템을 '{from.Kind}' 에서 '{to.Kind}' 로 옮깁니다. 갯수 : {logCount}개");
+#endif
             return SendRequestAsync(new InventoryCommand
             {
                 Op = InventoryOp.Transfer,
@@ -160,6 +185,10 @@ namespace Enzeun.Runtime
         /// </summary>
         public UniTask<InventoryResult> PickupAsync(int dropId, ContainerRef to = default)
         {
+#if UNITY_EDITOR
+            Debug.Log($"[InventoryNetworkSyncManager] : 플레이어가 재료를 줍습니다");
+#endif
+
             if (to.Kind == ContainerKind.None)
             {
                 to = ContainerRef.PackRef;
