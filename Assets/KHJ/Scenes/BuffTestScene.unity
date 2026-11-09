@@ -340,62 +340,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Method
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: OnValue
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Blinking
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: OffValue
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: StateOnExit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: ForceStateOnExit
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: ShaderPropertyName
-      value: _BaseColor
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: UseMaterialPropertyBlocks
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OnDuration
-      value: 0.07
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OffDuration
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].PhaseDuration
-      value: 0.14
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OnLerpDuration
-      value: 0.02
-      objectReference: {fileID: 0}
-    - target: {fileID: 6909063601172031212, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OffLerpDuration
-      value: 0.02
-      objectReference: {fileID: 0}
     - target: {fileID: 6952702537033370042, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
       propertyPath: sceneViewId
       value: 2
@@ -403,66 +347,6 @@ PrefabInstance:
     - target: {fileID: 7406115627949075491, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
       propertyPath: m_Name
       value: 40001
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Method
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: OnValue
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Blinking
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: OffValue
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: StateOnExit
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: TargetRenderer
-      value: 
-      objectReference: {fileID: 1603946675}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: ForceStateOnExit
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: ShaderPropertyName
-      value: _BaseColor
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: UseMaterialPropertyBlocks
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OnDuration
-      value: 0.07
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OffDuration
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].PhaseDuration
-      value: 0.14
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OnLerpDuration
-      value: 0.02
-      objectReference: {fileID: 0}
-    - target: {fileID: 8846798757971586934, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-      propertyPath: Phases.Array.data[0].OffLerpDuration
-      value: 0.02
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1752,11 +1636,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!137 &1603946675 stripped
-SkinnedMeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 4169448852789875851, guid: d75702421e9395b4a951fe79761ecbc1, type: 3}
-  m_PrefabInstance: {fileID: 411023906}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1635292452
 GameObject:
   m_ObjectHideFlags: 0
