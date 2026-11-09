@@ -502,8 +502,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6169036591986326796}
-  - component: {fileID: 8853902088398568170}
   - component: {fileID: 2606148233114676438}
+  - component: {fileID: 9055086158340847466}
   m_Layer: 7
   m_Name: ThrowRenderer
   m_TagString: Untagged
@@ -526,7 +526,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6467196738803763103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!120 &8853902088398568170
+--- !u!114 &2606148233114676438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 915119478017057560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f6114e505df4c41af908190da34faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThrowAim
+  aimCamera: {fileID: 0}
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  maxAimDistance: 100
+  minArcHeight: 0.01
+  maxArcHeight: 0.5
+  maxArcDistance: 10
+  pointCount: 40
+  fadePointCount: 20
+  positions: []
+--- !u!120 &9055086158340847466
 LineRenderer:
   serializedVersion: 3
   m_ObjectHideFlags: 0
@@ -589,8 +612,8 @@ LineRenderer:
         outSlope: 0
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -634,29 +657,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &2606148233114676438
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 915119478017057560}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74f6114e505df4c41af908190da34faf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ThrowAim
-  aimCamera: {fileID: 0}
-  targetLayers:
-    serializedVersion: 2
-    m_Bits: 64
-  maxAimDistance: 100
-  minArcHeight: 0.01
-  maxArcHeight: 0.5
-  maxArcDistance: 10
-  pointCount: 40
-  fadePointCount: 20
-  positions: []
 --- !u!1 &971394622461224259
 GameObject:
   m_ObjectHideFlags: 0

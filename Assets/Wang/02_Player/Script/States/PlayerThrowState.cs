@@ -87,12 +87,14 @@ public sealed class PlayerThrowState : PlayerState
 
     public override void UpdateState()
     {
-        if (isAiming == false || throwAim.HasTarget == false)
+        if (isAiming == true && throwAim.HasTarget == false)
             return;
 
         Transform playerView = owner.PlayerView;
 
-        Vector3 direction = throwAim.TargetPosition - playerView.position;
+        // 조준 대기 중에는 실시간 목표를, 던지는 동안에는 확정한 목표를 계속 바라본다.
+        Vector3 targetPosition = isAiming == true ? throwAim.TargetPosition : throwData.Target;
+        Vector3 direction = targetPosition - playerView.position;
         direction.y = 0f; // 몸이 위아래로 기울지 않도록 수평 회전만
 
         if (direction.sqrMagnitude < 0.0001f)
@@ -113,7 +115,6 @@ public sealed class PlayerThrowState : PlayerState
 
                 throwData = throwAim.ThrowData;
                 isAiming = false;
-                owner.LockRotate(this, false);
                 isThrowing = true;
                 owner.Animator.SetFloat(AnimationSpeedHash, data.AnimationSpeed);
                 throwAim.Hide();
@@ -179,8 +180,7 @@ public sealed class PlayerThrowState : PlayerState
     public override void Enter()
     {
         base.Enter();
-        if (isAiming == true)
-            owner.LockRotate(this, true);
+        owner.LockRotate(this, true);
         throwingSide = hand.FocusedSide;
         throwingPotion = hand.GetPotion(throwingSide);
         hasThrown = false;
