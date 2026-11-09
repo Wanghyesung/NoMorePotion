@@ -57,7 +57,8 @@ public sealed class PlayerRollState : PlayerState
     {
         base.Enter();
         owner.LockRotate(this, true);
-        direction = owner.transform.forward;
+
+        direction = owner.PlayerView.forward;
 
         owner.Animator.SetTrigger(rollHash);
 

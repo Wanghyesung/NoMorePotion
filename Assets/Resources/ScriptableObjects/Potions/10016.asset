@@ -17,10 +17,13 @@ MonoBehaviour:
   _potionName: "\uD638\uB85C\uB85D \uD3EC\uC158 (\uC18C)"
   _potionDesc: "\uC218\uBD84\uC744 \uCC44\uC6CC\uC8FC\uB294 \uD3EC\uC158."
   _potionEffect: "\uC218\uBD84 + 15%\n\uD3EC\uB9CC\uAC10 - 5%\n\uCCB4\uC628 - 5%"
+  _potionSize: 0
   _potionType: 1
   _potionExplosionRange: 1
   _potionCombinationType: 1
   _maxHoldCount: 1
+  _potionColor: {r: 0.3, g: 0.7, b: 1, a: 1}
+  _explosionPrefab: {fileID: 0}
   _recipeMaterials:
   - {fileID: 11400000, guid: 61b0a944398197042b924926a8a69f4d, type: 2}
   - {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}

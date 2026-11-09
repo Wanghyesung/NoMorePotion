@@ -17,7 +17,7 @@ public class TestPotion : MonoBehaviour
     public bool HasExploded { get; private set; }
     private bool canExplodeOnContact;
     [SerializeField] private LayerMask mask;
-    [SerializeField] private AttackObject attackObjectPrefab;
+    [SerializeField] private PotionDetector attackObjectPrefab;
     [SerializeField] private GameObject impactPrefab;
     [SerializeField, Min(0f)] private float impactLifetime = 5f;
     private void Awake()
@@ -73,8 +73,8 @@ public class TestPotion : MonoBehaviour
         //지금은 직렬화 했지만 SO에 넣으면 좋겠습니다.
         if (attackObjectPrefab != null)
         {
-            AttackObject attackObject = Instantiate(attackObjectPrefab, position, Quaternion.identity);
-            attackObject.Initialize(Instance ?? new PotionInstance(data));
+            PotionDetector detector = Instantiate(attackObjectPrefab, position, Quaternion.identity);
+            detector.Initialize(Instance ?? new PotionInstance(data));
         }
       
         Destroy(gameObject);

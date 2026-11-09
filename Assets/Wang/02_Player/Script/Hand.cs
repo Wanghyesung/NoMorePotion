@@ -24,11 +24,12 @@ public sealed class Hand : MonoBehaviour
     [SerializeField] private UnityEvent<TestPotion> OnDrink = new UnityEvent<TestPotion>();
 
     public Side FocusedSide => focusedSide;
+    public void Focus(Side side) => focusedSide = side;
+    public event Action OnPotionHeld;
     public TestPotion FocusedPotion => GetPotion(focusedSide);
     public TestPotion OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);
     public Side TakeSide => FocusedPotion == null
-        ? focusedSide
-        : (focusedSide == Side.Left ? Side.Right : Side.Left);
+        ? focusedSide : (focusedSide == Side.Left ? Side.Right : Side.Left);
 
     private void OnEnable()
     {
@@ -41,7 +42,7 @@ public sealed class Hand : MonoBehaviour
             Instance.SwitchHandAction.performed -= SwitchFocus;
     }
 
-    private void SwitchFocus(InputAction.CallbackContext context) => 
+    private void SwitchFocus(InputAction.CallbackContext context) =>
         focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
 
     public bool Hold(Side side, TestPotion potion)
@@ -54,6 +55,7 @@ public sealed class Hand : MonoBehaviour
         potion.transform.localPosition = Vector3.zero;
         potion.transform.localRotation = Quaternion.identity;
         SetPotion(side, potion);
+        OnPotionHeld?.Invoke();
         return true;
     }
 

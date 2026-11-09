@@ -1119,7 +1119,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4608c2021523c545933d53d866dc1e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  hp: 100
+  drinkHoldSeconds: 0.3
+  playerHPSlider: {fileID: 0}
 --- !u!114 &1077255847363529070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1166,8 +1167,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8611143303241932840}
-  - component: {fileID: 3436488863129739665}
   - component: {fileID: 1870841904211253946}
+  - component: {fileID: 5326924144459975194}
   m_Layer: 0
   m_Name: ThrowRenderer
   m_TagString: Untagged
@@ -1190,7 +1191,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4944021340756901690}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!120 &3436488863129739665
+--- !u!114 &1870841904211253946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5611542940910520703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74f6114e505df4c41af908190da34faf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThrowAim
+  aimCamera: {fileID: 0}
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  maxAimDistance: 100
+  minArcHeight: 0.2
+  maxArcHeight: 0.5
+  maxArcDistance: 10
+  pointCount: 40
+  fadePointCount: 20
+  positions: []
+--- !u!120 &5326924144459975194
 LineRenderer:
   serializedVersion: 3
   m_ObjectHideFlags: 0
@@ -1253,8 +1277,8 @@ LineRenderer:
         outSlope: 0
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -1298,29 +1322,6 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
---- !u!114 &1870841904211253946
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5611542940910520703}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 74f6114e505df4c41af908190da34faf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ThrowAim
-  aimCamera: {fileID: 0}
-  targetLayers:
-    serializedVersion: 2
-    m_Bits: 64
-  maxAimDistance: 100
-  minArcHeight: 0.2
-  maxArcHeight: 0.5
-  maxArcDistance: 10
-  pointCount: 40
-  fadePointCount: 20
-  positions: []
 --- !u!1 &5816512022164985928
 GameObject:
   m_ObjectHideFlags: 0

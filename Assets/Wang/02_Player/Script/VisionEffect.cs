@@ -40,6 +40,7 @@ public sealed class VisionEffect : MonoBehaviour
             Stop();
             return;
         }
+        // 다른 버프 이벤트로 같은 값이 전달돼도 비네트 커브를 처음부터 재생하지 않는다.
         if (applied && Mathf.Approximately(currentIntensity, intensity))
             return;
 
@@ -59,6 +60,7 @@ public sealed class VisionEffect : MonoBehaviour
         if (feedbacks != null)
         {
             feedbacks.StopFeedbacks();
+            // 유지형 피드백은 재생만 멈춰도 마지막 값이 남으므로 초기값 복원을 별도로 호출한다.
             feedbacks.RestoreInitialValues();
         }
         if (vignetteFeedback != null)
