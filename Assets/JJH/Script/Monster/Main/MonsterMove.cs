@@ -206,7 +206,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     public async UniTask StartAI(float speed, MonsterCombat combat)
     {
-
+        if (!agent.enabled) agent.enabled = true;
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();

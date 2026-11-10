@@ -1,10 +1,13 @@
 using Cysharp.Threading.Tasks;
+using DamageNumbersPro;
+using DG.Tweening;
 using Enzeun.Runtime;
 using Enzeun.SO;
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 
@@ -33,7 +36,20 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
     [SF] private List<SkillHitbox> skillHitboxes = new();
+
+    [Header("사망 연출용")]
+    [SF] private float sinkDuration = 2f;
+    [SF] private float sinkMargin = 0.3f;
+
+    [Header("데미지 숫자")]
+    [SF] private DamageNumber damageNumberPrefab;
+    [SF] private DamageNumber healNumberPrefab;
+
+    private Renderer[] bodyRenderers;
     protected NormalMonster data;
+
+    private CancellationTokenSource deadCts;
+    private bool isSinking;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
@@ -66,6 +82,8 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
             statusEffect = GetComponent<BuffContainer>();
         if (hud == null)
             hud = GetComponentInChildren<MonsterHPHud>();
+
+        CacheRenderers();
     }
 
     private void Start()
@@ -229,11 +247,13 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         anim.IsNormalAttack(false);
     }
 
-    private void MonsterDead()
+    /// <summary>
+    /// 사망 클립 끝 애니메이션 이벤트
+    /// </summary>
+    public void DeathAnimationEnd()
     {
-        anim.IsDead();
-        mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
-        mover.StopAI();
+        if (isSinking || data == null || data.HP > 0) return;   // 중복 실행, 오작동 방지
+        StartDeathSink();
     }
 
     /// <summary>
@@ -269,6 +289,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
         HPChange(CalcFinalDamage(attackInfo.Damage, attacker?.DamageType));
+        
         TryProvoke();
     }
 
@@ -295,7 +316,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         int before = data.HP;
         data.HP = Mathf.Max(0, data.HP - damage);
         data.OnHPChanged?.Invoke(before, data.HP);
-
+        ShowNumber(damage);
         if (data.HP <= 0) data.OnDead?.Invoke();
     }
 
@@ -320,5 +341,87 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         return Mathf.Max(0, Mathf.RoundToInt(damage * rate / 100f));
     }
 
+    #endregion
+
+    #region 사망 정보용
+    
+
+    private void CacheRenderers()
+    {
+        // 몸체 메시만 (파티클 이펙트 등은 제외)
+        bodyRenderers = GetComponentsInChildren<Renderer>()
+            .Where(r => r is SkinnedMeshRenderer || r is MeshRenderer)
+            .ToArray();
+    }
+
+    private float GetBodyHeight()
+    {
+        if (bodyRenderers.Length == 0) return 1f;
+
+        Bounds b = bodyRenderers[0].bounds;
+        for (int i = 1; i < bodyRenderers.Length; i++)
+            b.Encapsulate(bodyRenderers[i].bounds);
+
+        return b.max.y - transform.position.y;
+    }
+
+    private void MonsterDead()
+    {
+        anim.IsDead();
+        mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
+        mover.StopAI();
+    }
+
+    private void StartDeathSink()
+    {
+        CancelDeathSink();
+        isSinking = true;
+        deadCts = new();
+        MonsterDeadAnimation(deadCts.Token).Forget();
+    }
+
+    private async UniTaskVoid MonsterDeadAnimation(CancellationToken token)
+    {
+        mover.agent.enabled = false;   // 켜두면 NavMesh 높이로 다시 끌어올림
+        foreach (Collider c in GetComponentsInChildren<Collider>())
+            c.enabled = false;
+
+        float depth = GetBodyHeight() + sinkMargin;
+
+        bool canceled = await transform.DOMoveY(-depth, sinkDuration)
+            .SetRelative()
+            .SetEase(Ease.InQuad)
+            .ToUniTask(TweenCancelBehaviour.Kill, token)
+            .SuppressCancellationThrow();
+        if (canceled) return;
+
+        // 풀링시 변경
+        gameObject.SetActive(false);
+    }
+
+    private void CancelDeathSink()
+    {
+        isSinking = false;
+        deadCts?.Cancel();
+        deadCts?.Dispose();
+        deadCts = null;
+    }
+    #endregion
+
+    #region 기타
+    /// <summary>
+    /// 피격 시 대미지 효과 출력 함수
+    /// </summary>
+    /// <param name="value"></param>
+    private void ShowNumber(int value)
+    {
+        if (value == 0) return;
+
+        // 머리 위: 사망 연출에서 만든 몸 높이 계산을 재사용
+        Vector3 pos = transform.position + Vector3.up * GetBodyHeight();
+
+        if (value > 0) damageNumberPrefab.Spawn(pos, value, transform);
+        else healNumberPrefab.Spawn(pos, -value, transform);
+    }
     #endregion
 }
