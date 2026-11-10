@@ -1,11 +1,14 @@
-using System;
-using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using Enzeun.Runtime;
 using Enzeun.SO;
 using Sirenix.OdinInspector;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using TMPro;
 using UnityEngine;
-
+using UnityEngine.UI;
 using SF = UnityEngine.SerializeField;
 
 public class PublicInventory : ItemInventory
@@ -19,7 +22,14 @@ public class PublicInventory : ItemInventory
     [SF] private RectTransform potionContent;
     [SF] private int minPotionSlots = 0;
     // ex. "37 / 100"
-    [SF] private TextMeshProUGUI potionCountText; 
+    [SF] private TextMeshProUGUI potionCountText;
+
+    [Header("버튼 파트")]
+    [SF] private Button potionTabBtn;
+    [SF] private Button materialTabBtn;
+    [SF] private Image buttonBackgroundAnimationImage;
+    [SF] private AnimationCurve btnMoveEase;
+    [SF] private AnimationCurve btnSizeEase;
 
     /// <summary>
     /// 포션 칸을 눌렀을 때, 그 포션의 인스턴스 ID 반환
@@ -33,6 +43,11 @@ public class PublicInventory : ItemInventory
     private readonly List<InventoryIcon> potionIcons = new();
     private readonly List<PotionInstance> sorted = new();
     private bool potionsUpdate;
+    private bool btnType = true;
+    private readonly Color imageTransf = new(1, 1, 1, 0);
+    private readonly Color imageNormal = new(1, 1, 1, 1);
+
+    private CancellationTokenSource btnAnimeToken;
 
     /// <summary>
     /// 정렬 기준 반환 함수
@@ -46,21 +61,30 @@ public class PublicInventory : ItemInventory
 
     private void OnEnable() => potionsUpdate = true;
 
-    private void Start()
+    private void Start() => BindWhenReady().Forget();
+
+    private async UniTaskVoid BindWhenReady()
     {
         if (materials != null) return;
 
-        // 네트워크 매니저가 있으면 그 사본을, 없으면 테스트용 로컬 인벤토리를 사용
-        TeamInventoryState state = InvenManager != null ? InvenManager.State : null;
+        if (InvenManager == null || InvenManager.State == null)
+            Debug.Log("[PublicInven] 매니저 대기");
 
-        if (state != null) Bind(state.Materials, state.Potions);
-        else Bind(new MaterialInventory(), new PotionInventory());
+        bool canceled = await UniTask.WaitUntil(
+                () => InvenManager != null && InvenManager.State != null,
+                cancellationToken: this.GetCancellationTokenOnDestroy())
+            .SuppressCancellationThrow();
+
+        if (canceled || materials != null) return;
+
+        TeamInventoryState state = InvenManager.State;
+        Bind(state.Materials, state.Potions);
+        Debug.Log("[PublicInven] 매니저 연결 완료");
     }
 
     public void Bind(MaterialInventory materialInventory, PotionInventory potionInventory)
     {
         Unbind();
-
         materials = materialInventory;
         potions = potionInventory;
 
@@ -77,7 +101,35 @@ public class PublicInventory : ItemInventory
         if (potions != null) potions.OnChanged -= OnPotionChanged;
     }
 
-    private void OnDestroy() => Unbind();
+    private void OnDestroy() 
+    { 
+        Unbind();
+        btnAnimeToken?.Cancel();
+        btnAnimeToken?.Dispose();
+    }
+
+    public void SlotChange()
+    {
+        btnAnimeToken?.Cancel();
+        btnAnimeToken = new();
+
+        if (btnType)
+        {
+            materialContent.gameObject.SetActive(false);
+            potionContent.gameObject.SetActive(true);
+        }
+            
+
+        else
+        {
+            potionContent.gameObject.SetActive(false);
+            materialContent.gameObject.SetActive(true);
+        }
+
+        ButtonAnimation(btnType, btnAnimeToken.Token).Forget();
+
+        btnType = !btnType;
+    }
 
     #region 재료
 
@@ -113,9 +165,12 @@ public class PublicInventory : ItemInventory
 
     #endregion
 
-    #region
+    #region 포션 갱신 및 전환
 
-    private void OnPotionChanged() => potionsUpdate = true;
+    private void OnPotionChanged() 
+    {
+        potionsUpdate = true;
+    }
 
     private void LateUpdate()
     {
@@ -168,6 +223,73 @@ public class PublicInventory : ItemInventory
             OnPotionClicked?.Invoke(view.BoundInstanceId);
     }
 
+    #endregion
+
+
+    #region 애니메이팅 유니태스크
+    private async UniTask ButtonAnimation(bool type, CancellationToken token)
+    {
+        RectTransform rect = buttonBackgroundAnimationImage.rectTransform;
+        RectTransform target = (type ? potionTabBtn : materialTabBtn).image.rectTransform;
+
+        potionTabBtn.image.color = imageTransf;
+        materialTabBtn.image.color = imageTransf;
+        rect.gameObject.SetActive(true);
+        GetEdges(rect, out float left, out float right);
+        GetEdges(target, out float toL, out float toR);
+
+        bool moveRight = toL > left;
+        const float lead = 0.05f;   // 앞쪽 모서리
+        const float trail = 0.2f;  // 뒤쪽 모서리
+        AnimationCurve frontEase = btnMoveEase;  // 앞쪽 모서리
+        AnimationCurve backEase = btnSizeEase;   // 뒤쪽 모서리
+
+        Sequence seq = DOTween.Sequence()
+            .Join(DOTween.To(() => left, x => left = x, toL, moveRight ? trail : lead)
+            .SetEase(moveRight ? backEase : frontEase))
+
+            .Join(DOTween.To(() => right, x => right = x, toR, moveRight ? lead : trail)
+            .SetEase(moveRight ? frontEase : backEase))
+
+            .OnUpdate(() => ApplyEdges(rect, left, right))
+            .OnComplete(() => ApplyEdges(rect, toL, toR))
+            .SetUpdate(true)
+            .SetLink(rect.gameObject);
+
+        bool canceled = 
+            await seq.ToUniTask(cancellationToken: token).SuppressCancellationThrow();
+        if (canceled) return;
+
+        rect.gameObject.SetActive(false);
+
+        (type ? potionTabBtn : materialTabBtn).image.color = imageNormal;
+    }
+
+    /// <summary>
+    /// 피벗과 상관없이 좌우 모서리의 x 좌표를 구하는 함수
+    /// </summary>
+    /// <param name="rect">변환할 Rect</param>
+    /// <param name="left">왼쪽값</param>
+    /// <param name="right">오른쪽값</param>
+    private static void GetEdges(RectTransform rect, out float left, out float right)
+    {
+        float width = rect.rect.width;
+        left = rect.anchoredPosition.x - rect.pivot.x * width;
+        right = left + width;
+    }
+
+    /// <summary>
+    /// 모서리 두 개로 크기와 위치를 다시 계산하는 함수
+    /// </summary>
+    /// <param name="rect">계산할 rect</param>
+    /// <param name="left">왼쪽값</param>
+    /// <param name="right">오른쪽값</param>
+    private static void ApplyEdges(RectTransform rect, float left, float right)
+    {
+        float width = right - left;
+        rect.sizeDelta = new Vector2(width, rect.sizeDelta.y);
+        rect.anchoredPosition = new Vector2(left + rect.pivot.x * width, rect.anchoredPosition.y);
+    }
     #endregion
 
 }

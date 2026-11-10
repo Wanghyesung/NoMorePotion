@@ -321,6 +321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.InventoryNetworkSyncManager
   _requestTimeoutSeconds: 5
+  _leaveFallbackSpot: {fileID: 0}
 --- !u!114 &892785363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -432,6 +433,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryTestGiver
   startOffline: 1
+  target: 0
   testMaterials:
   - {fileID: 11400000, guid: 46648b85f610f414698e5eb9e7f14db7, type: 2}
   - {fileID: 11400000, guid: eb0773513e5f55a4c8f54041bceea528, type: 2}
@@ -441,10 +443,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d70369097a5ecac4e82954b4671f39e7, type: 2}
   - {fileID: 11400000, guid: dad80a017b385534784724186a5f0c73, type: 2}
   - {fileID: 11400000, guid: 19630d0d5d3f376469ed40636ebfafae, type: 2}
-  - {fileID: 11400000, guid: 19630d0d5d3f376469ed40636ebfafae, type: 2}
   - {fileID: 11400000, guid: dd9c62360bf76e9428a4e7f9aba7762e, type: 2}
   - {fileID: 11400000, guid: 5e0f52ecf59ca0949a43702546cf7b4b, type: 2}
-  - {fileID: 11400000, guid: dd9c62360bf76e9428a4e7f9aba7762e, type: 2}
 --- !u!4 &1482743303
 Transform:
   m_ObjectHideFlags: 0
@@ -587,17 +587,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &1886085467 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8808581820877125490, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-  m_PrefabInstance: {fileID: 8531340244642444235}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abcff4ce9b47b0c4a84d23eb4505517c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CombinationController
 --- !u!1001 &8531340244642444235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -686,58 +675,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1605116370592819292, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1605116370592819292, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 950d81749f13d4c47b2f4d84abc57e87, type: 3}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 1886085467}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: PotionCraft
-      objectReference: {fileID: 0}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: CombinationController, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 5143514791067216408, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
-    - target: {fileID: 5311844365362685490, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5311844365362685490, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 950d81749f13d4c47b2f4d84abc57e87, type: 3}
-    - target: {fileID: 8300572069239411357, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8300572069239411357, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 950d81749f13d4c47b2f4d84abc57e87, type: 3}
     - target: {fileID: 8367844271797886003, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
       propertyPath: m_Name
       value: InventoryCanvas
