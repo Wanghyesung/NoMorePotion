@@ -277,8 +277,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1105150149519416180}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.721489, y: 0, z: -27.90595}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -431,7 +431,7 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1349015395087363632}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: dbc5a7e8331c6d644bfc6396a75cffed, type: 3}
   m_Controller: {fileID: 22100000, guid: 5085fe9090939ac46b57d9caeda2686a, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
@@ -1454,7 +1454,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3746201742778344776
 Transform:
   m_ObjectHideFlags: 0
@@ -1463,8 +1463,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8964467687236686386}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.721489, y: 0.52, z: -26.78595}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.52, z: 1.12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1622,6 +1622,22 @@ PrefabInstance:
     - target: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264808156932192829, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: TargetRenderer
+      value: 
+      objectReference: {fileID: 2438138339793671168}
+    - target: {fileID: 5264808156932192829, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: ExtraRenderers.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5264808156932192829, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: ExtraRenderers.Array.data[0].TargetRenderer
+      value: 
+      objectReference: {fileID: 2438138339793671168}
+    - target: {fileID: 5264808156932192829, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: ExtraRenderers.Array.data[0].TargetMaterialIndex
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_Name

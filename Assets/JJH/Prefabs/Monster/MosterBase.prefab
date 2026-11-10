@@ -308,6 +308,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6521203630548555753, guid: e5c1fa9a81fdec245bebba8ea95a7479, type: 3}
+      propertyPath: managedReferences[4119466753204682843].SquashAndStretchTarget
+      value: 
+      objectReference: {fileID: 112949857088394901}
+    - target: {fileID: 7741942854046810430, guid: e5c1fa9a81fdec245bebba8ea95a7479, type: 3}
+      propertyPath: _visualRoot
+      value: 
+      objectReference: {fileID: 112949857088394901}
     - target: {fileID: 8040353174550021309, guid: e5c1fa9a81fdec245bebba8ea95a7479, type: 3}
       propertyPath: m_Name
       value: CharacterHitFeedback
