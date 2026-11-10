@@ -781,6 +781,7 @@ GameObject:
   - component: {fileID: 5168092624184452}
   - component: {fileID: 204095551428676914}
   - component: {fileID: 1943742987990671177}
+  - component: {fileID: 4474365432055879554}
   m_Layer: 7
   m_Name: PlayerView
   m_TagString: Untagged
@@ -882,6 +883,7 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 1943742987990671177}
+  - {fileID: 4474365432055879554}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -947,6 +949,22 @@ MonoBehaviour:
     LayerIndex: 0
   - SynchronizeType: 1
     LayerIndex: 1
+--- !u!114 &4474365432055879554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 490854953797907493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonTransformView
+  m_SynchronizePosition: 0
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
 --- !u!1 &689109930490196916
 GameObject:
   m_ObjectHideFlags: 0
@@ -1313,7 +1331,7 @@ GameObject:
   - component: {fileID: 1442535314869118312}
   - component: {fileID: 1725498695408939405}
   - component: {fileID: 6006001529373701175}
-  - component: {fileID: 6354202419672549502}
+  - component: {fileID: 5742529768754016091}
   m_Layer: 7
   m_Name: MultiPlayer
   m_TagString: Player
@@ -1335,9 +1353,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 967695527873039025}
-  - {fileID: 7373356303799932220}
   - {fileID: 6311876522247762506}
   - {fileID: 4702835355650160170}
+  - {fileID: 6376703189613479820}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &973172849948301201
@@ -1433,6 +1451,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player
   drinkHoldSeconds: 0.2
   cameraPosition: {fileID: 1291695502559940971}
+  lookPivot: {fileID: 6376703189613479820}
+  pitchSensitivity: 0.15
 --- !u!114 &5540918378090457708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1527,11 +1547,11 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
-  - {fileID: 6354202419672549502}
+  - {fileID: 5742529768754016091}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &6354202419672549502
+--- !u!114 &5742529768754016091
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1546,7 +1566,39 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
-  m_UseLocal: 1
+  m_UseLocal: 0
+--- !u!1 &1765338853279361138
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6376703189613479820}
+  m_Layer: 0
+  m_Name: LookPivot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6376703189613479820
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1765338853279361138}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7373356303799932220}
+  m_Father: {fileID: 6014029783896670404}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1969798960855426136
 GameObject:
   m_ObjectHideFlags: 0
@@ -4074,7 +4126,7 @@ Transform:
   - {fileID: 356996397719401410}
   - {fileID: 1291695502559940971}
   - {fileID: 1343543086681483047}
-  m_Father: {fileID: 6014029783896670404}
+  m_Father: {fileID: 6376703189613479820}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8651721412754264276
 GameObject:

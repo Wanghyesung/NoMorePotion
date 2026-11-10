@@ -41,6 +41,17 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     [SerializeField] private Transform cameraPosition;
     public Transform CameraPosition => cameraPosition;
 
+    [SerializeField] private Transform lookPivot;
+    [SerializeField, Min(0f)] private float pitchSensitivity = 0.15f;
+    private float lookPitch;
+    public Transform LookPivot => lookPivot;
+
+    public void SetLookPitch(float pitch)
+    {
+        lookPitch = Mathf.Clamp(pitch, -15f, 30f);
+        lookPivot.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
+    }
+
 
     public void Heal(int amount)
     {
@@ -85,6 +96,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private void Awake()
     {
         photonView = GetComponent<PhotonView>();
+        
+        SetLookPitch(Mathf.DeltaAngle(0f, lookPivot.localEulerAngles.x));
         Dictionary<DamageType, int> immune = new();
         // 현재 플레이어의 기본 최대 HP / 시작 HP. 버프 컨테이너는 HP 자체를 보관하지 않는다.
         character = new PlayerCharacter("Player", 10000, 10000, immune);
@@ -153,7 +166,11 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
             return;
         UpdatePotionInput();
         if (Character.HP > 0)
+        {
+            if (Instance.HasGameplayInput == true && fsm.IsFrozen == false && fsm.IsRotationLocked == false)
+                SetLookPitch(lookPitch - Instance.InputInfo.Delta.y * pitchSensitivity);
             fsm.UpdateState();
+        }
     }
 
     private void FixedUpdate()
