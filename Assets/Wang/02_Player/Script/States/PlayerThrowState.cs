@@ -141,13 +141,11 @@ public sealed class PlayerThrowState : PlayerState
         if (currentType != FSM.StateType.Idle && currentType != FSM.StateType.Walk)
             return false;
 
-        if (hand.FocusedPotion == null)
+        if (hand.FocusedPotion == null && hand.OtherPotion == null)
             return false;
 
         if (isAiming == false)
-        {
             return throwAim.TryCreateThrowData(hand.FocusedPotion.transform.position, out throwData);
-        }
 
         return true;
     }
@@ -178,6 +176,9 @@ public sealed class PlayerThrowState : PlayerState
     private void FinishThrow(AnimationEvent animationEvent)
     {
         owner.ClearActionState();
+
+        if(hand.OtherPotion != null)
+            hand.SwitchFocus();
     }
 
     public override void Exit()

@@ -1,13 +1,10 @@
 using Enzeun.Runtime;
 using Enzeun.SO;
 using UnityEngine;
-using Cysharp.Threading;
 using System;
 using Cysharp.Threading.Tasks;
-using System.Threading.Tasks;
 
 // 범위 진입과 반복 공격 시점만 관리한다. 실제 대상 탐색과 효과는 PotionExplosion에 맡긴다.
-[RequireComponent(typeof(SphereCollider))]
 public sealed class PotionDetector : MonoBehaviour
 {
     [SerializeField] private bool attackOnce = true;
@@ -19,6 +16,13 @@ public sealed class PotionDetector : MonoBehaviour
     // 이펙트 안의 ParticleSystem은 모두 Scaling Mode = Hierarchy여야 스케일이 적용된다.
     [SerializeField] private Transform effectRoot;
     [SerializeField, Min(0.01f)] private float effectBaseRadius = 1f; // effect scale 1일 때 이펙트 반지름(m)
+
+    [Header("Effect Color")]
+    // 포션 색을 넣지 않을 파티클 (Distortion, 검은 파편, 회색 명암용 등)
+    [SerializeField] private ParticleSystem[] colorExcludes;
+
+    private ParticleSystem[] colorSystems;
+    private Color[] baseColors;
     #endregion
 
     private PotionInstance instance;
@@ -26,7 +30,10 @@ public sealed class PotionDetector : MonoBehaviour
     private int AttackCount = 0;
     private int MaxAttackCount = 10;
 
-
+    private void Awake()
+    {
+        CacheEffectColors();
+    }
 
     public void Initialize(PotionInstance potionInstance)
     {
@@ -51,6 +58,9 @@ public sealed class PotionDetector : MonoBehaviour
         // 이펙트 스케일 = 목표 반지름 / 기준 반지름  (예: 기준 2m, 대 8m → 4배)
         if (effectRoot != null)
             effectRoot.localScale = Vector3.one * (radius / effectBaseRadius);
+
+        // 이펙트 색 = 원래 색 × 포션 색 (PotionData의 포션 액체 색상)
+        ApplyEffectColor(instance.Data.potionColor);
 
         #endregion
 
@@ -91,13 +101,48 @@ public sealed class PotionDetector : MonoBehaviour
         TryAttack();
     }
 
+    #region 진희진
 
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
+    // 이펙트 파티클과 원래 Start Color를 한 번만 저장한다.
+    // 풀 재사용 때 현재 색에 다시 곱하면 점점 어두워지므로, 항상 원래 색 × 포션 색으로 계산하기 위함.
+    private void CacheEffectColors()
     {
-        var c = GetComponent<SphereCollider>();
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, c.radius * transform.lossyScale.x);
+        if (effectRoot == null)
+            return;
+
+        var list = new System.Collections.Generic.List<ParticleSystem>();
+        foreach (ParticleSystem ps in effectRoot.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            if (colorExcludes == null || Array.IndexOf(colorExcludes, ps) < 0)
+                list.Add(ps);
+        }
+
+        colorSystems = list.ToArray();
+        baseColors = new Color[colorSystems.Length];
+        for (int i = 0; i < colorSystems.Length; i++)
+            baseColors[i] = colorSystems[i].main.startColor.color;
     }
-#endif
+
+    // 흰색 베이스의 원래 색에 포션 색을 곱한다. 명암은 원래 색이, 색조는 포션 색이 정한다. 투명도는 원래 값 유지.
+    private void ApplyEffectColor(Color potionColor)
+    {
+        if (colorSystems == null)
+            return;
+
+        for (int i = 0; i < colorSystems.Length; i++)
+        {
+            Color c = baseColors[i] * potionColor;
+            c.a = baseColors[i].a;
+            ParticleSystem.MainModule main = colorSystems[i].main;
+            main.startColor = c;
+        }
+
+        // 풀에서 꺼낼 때 이전 색으로 이미 재생된 파티클을 지우고 새 색으로 다시 재생한다.
+        if (effectRoot.TryGetComponent(out ParticleSystem rootParticle))
+        {
+            rootParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            rootParticle.Play(true);
+        }
+    }
+    #endregion
 }

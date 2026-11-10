@@ -17,11 +17,13 @@ public class MonsterChaseState : IMonsterState
 
     public void OnEnd()
     {
-        if (mover.nowTarget == null) return;
+        if (mover.nowTarget == null || mover.IsProvoked) return;
+
         float distance = Vector3.Distance(mover.transform.position, 
             mover.nowTarget.transform.position);
+
         if (distance > mover.chaseCollider.radius)
-            mover.nowTarget = null;
+            mover.SetTarget(null);
     }
 
     public void OnStart()
