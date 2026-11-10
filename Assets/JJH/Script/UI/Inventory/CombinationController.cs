@@ -4,6 +4,7 @@ using Enzeun.Runtime;
 using Enzeun.SO;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -44,9 +45,9 @@ public class CombinationController : ItemInventory
     [SF] private CombineSlot resultSlot;
     [SF] private TextMeshProUGUI WarningText;
     [SF] private Sprite defaultImage;
+
     private bool leftFull;
     private bool rightFull;
-
     private readonly ContainerRef publicInvenCRef = new()
     {
         Id = -1,
@@ -81,6 +82,8 @@ public class CombinationController : ItemInventory
             combineAction = null;
         }
     }
+
+    #region 포션 제작 및 바인딩 관련
 
     public void BoundSlot(int id, int instanceId, InventoryIcon slot)
     {
@@ -224,7 +227,7 @@ public class CombinationController : ItemInventory
 
         Clear();
     }
-
+    #endregion
     private void OnDestroy()
     {
         warningTextToken?.Cancel();
