@@ -1121,6 +1121,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player
   drinkHoldSeconds: 0.3
   cameraPosition: {fileID: 5871699718036848010}
+  lookPivot: {fileID: 0}
+  pitchSensitivity: 0.15
 --- !u!114 &1077255847363529070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1136,7 +1138,7 @@ MonoBehaviour:
   focusedSide: 0
   leftSocket: {fileID: 9102542354336093553}
   rightSocket: {fileID: 3968786949799244013}
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 5302154943857375193, guid: 981c452550237ac48b7dd4e5c4a95e3b, type: 3}
   OnDrink:
     m_PersistentCalls:
       m_Calls: []
@@ -1207,6 +1209,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   maxAimDistance: 100
+  fallbackDistance: 10
   minArcHeight: 0.2
   maxArcHeight: 0.5
   maxArcDistance: 10

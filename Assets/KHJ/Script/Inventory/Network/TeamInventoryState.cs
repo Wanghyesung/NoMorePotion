@@ -201,6 +201,9 @@ namespace Enzeun.Runtime
                 case InventoryOp.Grant:
                     return ValidateGrant(request, requesterActor, ref apply, out reason);
 
+                case InventoryOp.TakeOut:
+                    return ValidateTakeOut(request, requesterActor, ref apply, out reason);
+
                 default:
                     // SpawnGround, Leave 는 클라이언트가 요청할 수 없는 마스터 전용 변경입니다.
                     reason = InventoryDenyReason.Invalid;
@@ -693,6 +696,163 @@ namespace Enzeun.Runtime
             }
         }
 
+        // ---------- 포션 꺼내기 (손에 들기) ----------
+
+        /// <summary>
+        /// 한 번에 꺼낼 수 있는 최대 포션 수입니다. (양손)
+        /// </summary>
+        public const int MaxTakeOutCount = 2;
+
+        private System.Random _random = new System.Random();
+
+        /// <summary>
+        /// 무작위 꺼내기에 쓸 난수 생성기를 바꿉니다. 같은 결과가 필요한 시험에서 시드를 고정할 때 사용합니다.
+        /// </summary>
+        public void SetRandom(System.Random random)
+        {
+            _random = random ?? new System.Random();
+        }
+
+        /// <summary>
+        /// 포션 꺼내기를 검증합니다. 꺼낸 포션은 인벤토리에서 사라지고, 요청한 쪽이 결과(Outcome.Potions)로 받아 손에 듭니다.
+        /// - 칸 지정(From.Slot 이 0 이상): 내 개인 인벤토리의 그 칸(퀵슬롯)에 든 포션 한 개를 꺼냅니다. 비었거나 재료이면 거부합니다.
+        /// - 무작위(From.Slot 이 -1): 공용 인벤에서 Count 개(1~2)를 무작위로 꺼내고, 공용 인벤에 포션이 모자라면 모자란 만큼 내 개인 인벤토리에서 무작위로 꺼냅니다.
+        ///   하나도 못 꺼내면 NotFound 로 거부합니다. (손이 비어 있는 만큼만 Count 로 요청하면 됩니다)
+        /// 무작위는 마스터가 정하고 결과가 변경 목록에 담겨 전원에게 가므로 모든 사본이 같은 결과가 됩니다.
+        /// </summary>
+        private bool ValidateTakeOut(InventoryCommand request, int actor, ref InventoryCommand apply, out InventoryDenyReason reason)
+        {
+            reason = InventoryDenyReason.None;
+            var ctx = new Context(this);
+            PersonalInventory personal = ctx.Slots(ContainerRef.Personal(actor));
+
+            // 칸 지정 (퀵슬롯)
+            if (request.From.Slot >= 0)
+            {
+                int slot = request.From.Slot;
+
+                if (slot >= personal.Capacity)
+                {
+                    reason = InventoryDenyReason.Invalid;
+                    return false;
+                }
+
+                if (personal.Slots[slot].IsEmpty)
+                {
+                    reason = InventoryDenyReason.SlotEmpty;
+                    return false;
+                }
+
+                if (personal.Slots[slot].Kind != InventorySlotKind.Potion)
+                {
+                    reason = InventoryDenyReason.Invalid;   // 재료는 손에 들 수 없습니다.
+                    return false;
+                }
+
+                personal.TakeSlot(slot);
+                apply.Count = 1;
+                apply.Changes = ctx.Flush();
+                return true;
+            }
+
+            // 무작위
+            if (request.Count < 1 || request.Count > MaxTakeOutCount)
+            {
+                reason = InventoryDenyReason.Invalid;
+                return false;
+            }
+
+            var packCandidates = new List<int>();
+            IReadOnlyList<PotionInstance> packPotions = Pack.Potions.Items;
+            for (int i = 0; i < packPotions.Count; i++)
+            {
+                packCandidates.Add(packPotions[i].InstanceId);
+            }
+
+            var personalCandidates = new List<int>();
+            for (int i = 0; i < personal.Capacity; i++)
+            {
+                if (personal.Slots[i].Kind == InventorySlotKind.Potion)
+                {
+                    personalCandidates.Add(i);
+                }
+            }
+
+            int taken = 0;
+            while (taken < request.Count)
+            {
+                if (packCandidates.Count > 0)
+                {
+                    int pick = _random.Next(packCandidates.Count);
+                    ctx.RemovePotion(ContainerKind.Pack, packCandidates[pick]);
+                    packCandidates.RemoveAt(pick);
+                }
+                else if (personalCandidates.Count > 0)
+                {
+                    int pick = _random.Next(personalCandidates.Count);
+                    personal.TakeSlot(personalCandidates[pick]);
+                    personalCandidates.RemoveAt(pick);
+                }
+                else
+                {
+                    break;
+                }
+
+                taken++;
+            }
+
+            if (taken == 0)
+            {
+                reason = InventoryDenyReason.NotFound;   // 꺼낼 포션이 없음
+                return false;
+            }
+
+            apply.Count = taken;
+            apply.Changes = ctx.Flush();
+            return true;
+        }
+
+        /// <summary>
+        /// 꺼내기 변경으로 인벤토리에서 빠질 포션들을 적용하기 전에 모아 둡니다. (적용하고 나면 포션 객체를 찾을 수 없으므로)
+        /// </summary>
+        private List<PotionInstance> CollectTakenPotions(List<InventoryChange> changes)
+        {
+            var taken = new List<PotionInstance>();
+
+            if (changes == null)
+            {
+                return taken;
+            }
+
+            for (int i = 0; i < changes.Count; i++)
+            {
+                InventoryChange change = changes[i];
+
+                if (change.Type == InventoryChangeType.RemovePotion && change.Target.IsStore)
+                {
+                    PotionInventory potions = GetStore(change.Target.Kind).Potions;
+                    int index = potions.IndexOf(change.InstanceId);
+
+                    if (index >= 0)
+                    {
+                        taken.Add(potions.Items[index]);
+                    }
+                }
+                else if (change.Type == InventoryChangeType.SetSlot && change.Slot.IsEmpty)
+                {
+                    PersonalInventory inventory = FindSlotInventory(change.Target);
+
+                    if (inventory != null && change.Target.Slot >= 0 && change.Target.Slot < inventory.Capacity
+                        && inventory.Slots[change.Target.Slot].Kind == InventorySlotKind.Potion)
+                    {
+                        taken.Add(inventory.Slots[change.Target.Slot].Potion);
+                    }
+                }
+            }
+
+            return taken;
+        }
+
         // ---------- 사망, 개발용 생성 ----------
 
         /// <summary>
@@ -1085,6 +1245,9 @@ namespace Enzeun.Runtime
             List<InventoryChange> changes = apply.Changes;
             bool consistent = true;
 
+            // 꺼내기는 빠질 포션을 적용하기 전에 모아 둡니다.
+            List<PotionInstance> takenPotions = apply.Op == InventoryOp.TakeOut ? CollectTakenPotions(changes) : null;
+
             if (changes != null)
             {
                 for (int i = 0; i < changes.Count; i++)
@@ -1110,6 +1273,7 @@ namespace Enzeun.Runtime
             outcome.CorpseId = apply.CorpseId;
             outcome.Changes = changes ?? new List<InventoryChange>();
             outcome.Potion = FindCreatedPotion(changes, apply.InstanceId);
+            outcome.Potions = takenPotions;
             return InventoryApplyStatus.Applied;
         }
 

@@ -1,7 +1,5 @@
 ﻿using Enzeun.Runtime;
 using Enzeun.SO;
-using ExitGames.Client.Photon.StructWrapping;
-using Unity.VisualScripting;
 using UnityEngine;
 
 /*///////////////////////////////////////////
@@ -102,6 +100,12 @@ public class PotionMover : MonoBehaviour
         if (Data.explosionPrefab != null)
         {
             var explosion = PoolManager.Instance.Get(Data.explosionPrefab, position, Quaternion.identity);
+            if (explosion == null)
+            {
+                Debug.LogError("[Potionover] : 폭발 프리팹이 없습니다");
+                Destroy(gameObject);
+                return;
+            }
             explosion.GetComponent<PotionDetector>()?.Initialize(PotionInstance);
 
         }

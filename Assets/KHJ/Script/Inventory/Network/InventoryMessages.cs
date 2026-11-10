@@ -65,6 +65,12 @@ namespace Enzeun.Runtime
                     case InventoryOp.Die:
                         WriteVector(writer, command.Position);
                         break;
+
+                    case InventoryOp.TakeOut:
+                        // 꺼낼 개수와 개인 인벤토리 칸 번호입니다. 칸 번호 255 는 "칸을 지정하지 않음"(무작위)입니다.
+                        writer.Write(checked((byte)command.Count));
+                        writer.Write(command.From.Slot < 0 ? (byte)255 : checked((byte)command.From.Slot));
+                        break;
                 }
 
                 writer.Flush();
@@ -137,6 +143,14 @@ namespace Enzeun.Runtime
                         case InventoryOp.Die:
                             c.Position = ReadVector(reader);
                             break;
+
+                        case InventoryOp.TakeOut:
+                        {
+                            c.Count = reader.ReadByte();
+                            int slot = reader.ReadByte();
+                            c.From = new ContainerRef { Kind = ContainerKind.None, Slot = slot == 255 ? -1 : slot };
+                            break;
+                        }
 
                         default:
                             return false;   // 알 수 없는 종류 또는 마스터 전용 종류

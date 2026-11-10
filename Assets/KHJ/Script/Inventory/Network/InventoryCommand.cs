@@ -7,7 +7,8 @@ namespace Enzeun.Runtime
     /// <summary>
     /// 인벤토리 요청의 종류입니다.
     /// Grant : 개발용으로 아이템을 만들어 넣음 / Transfer : 장소 사이(또는 칸 사이) 이동 / Craft : 조합 /
-    /// Die : 죽어서 개인 인벤토리를 시체 상자로 / SpawnGround, Leave : 마스터만 만드는 변경 (클라이언트가 요청하지 않음)
+    /// Die : 죽어서 개인 인벤토리를 시체 상자로 / TakeOut : 포션을 꺼내 손에 듦(인벤토리에서는 사라지고 결과로 포션을 받음) /
+    /// SpawnGround, Leave : 마스터만 만드는 변경 (클라이언트가 요청하지 않음)
     /// </summary>
     public enum InventoryOp : byte
     {
@@ -18,6 +19,7 @@ namespace Enzeun.Runtime
         Die = 4,
         SpawnGround = 5,
         Leave = 6,
+        TakeOut = 7,
     }
 
     /// <summary>
@@ -243,6 +245,7 @@ namespace Enzeun.Runtime
     {
         public int Value;               // 실제로 옮기거나 만든 개수
         public PotionInstance Potion;   // Craft, Grant : 새로 만들어진 포션 (ID 가 부여됨)
+        public IReadOnlyList<PotionInstance> Potions;   // TakeOut : 인벤토리에서 꺼낸 포션들 (꺼낸 순서, 못 꺼냈으면 비어 있음)
         public int CorpseId;            // Die : 부여된 시체 상자 ID
         public IReadOnlyList<InventoryChange> Changes;   // 이번 요청으로 바뀐 내용 전체
     }

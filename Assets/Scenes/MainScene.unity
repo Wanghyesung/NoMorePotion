@@ -1266,7 +1266,7 @@ Transform:
   m_GameObject: {fileID: 506735747}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.9933, y: 1.38223, z: 0.0135}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1499,7 +1499,7 @@ Transform:
   m_GameObject: {fileID: 807118966}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.9933, y: 1.38223, z: 0.0135}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1575,7 +1575,7 @@ Transform:
   m_GameObject: {fileID: 878077783}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.9933, y: 1.38223, z: 0.0135}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1648,7 +1648,7 @@ PrefabInstance:
     - target: {fileID: 5686129151146991019, guid: 4909475dfb2e17f4b9ccff43e336a8c2, type: 3}
       propertyPath: itemPrefab
       value: 
-      objectReference: {fileID: 1417736869826601, guid: c00cd8b592d13a4488623f1e2cb6adf2, type: 3}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2900,6 +2900,60 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 700183d8a8ec0c64696119879d6cdac7, type: 3}
+--- !u!1 &1540580868
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1540580870}
+  - component: {fileID: 1540580869}
+  m_Layer: 0
+  m_Name: InventoryDebugGrant
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1540580869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540580868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39f589106927112439e808c907aa730a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.InventoryDebugGrant
+  _grantOnStart: 1
+  _packPotions:
+  - PotionId: 10001
+    Count: 5
+  _personalPotions:
+  - PotionId: 10001
+    Count: 3
+  _packMaterials:
+  - MaterialId: 20001
+    Count: 10
+--- !u!4 &1540580870
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1540580868}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1662423154
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3420,6 +3474,7 @@ SceneRoots:
   - {fileID: 226109294}
   - {fileID: 1065597135}
   - {fileID: 878077785}
+  - {fileID: 1540580870}
   - {fileID: 714691348}
   - {fileID: 2034320617}
   - {fileID: 1537661586}

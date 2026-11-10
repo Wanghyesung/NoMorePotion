@@ -90,13 +90,9 @@ public sealed class PlayerTakeState : PlayerState
             return;
 
         hasTaken = true;
-        if (takeBoth == true)
-        {
-            hand.TakeOutPotion(Hand.Side.Left);
-            hand.TakeOutPotion(Hand.Side.Right);
-        }
-        else
-            hand.TakeOutPotion();
+
+        // 빈 손의 수만큼 한 번에 요청합니다. (양손이 비었으면 2개, 한 손만 비었으면 1개)
+        hand.TakeOutPotion();
     }
 
     private void FinishTake(AnimationEvent animationEvent) => owner.ClearActionState();

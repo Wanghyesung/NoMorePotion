@@ -245,6 +245,48 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 포션을 무작위로 꺼내 손에 들 준비를 합니다. (F 키 꺼내기)
+        /// 공용 인벤에서 count 개(1~2)를 무작위로 꺼내고, 공용 인벤에 포션이 모자라면 모자란 만큼 내 개인 인벤토리에서 꺼냅니다.
+        /// 꺼낸 포션은 인벤토리에서 사라지고 Outcome.Potions 로 돌아오니, 받은 포션으로 손에 들 오브젝트를 만드세요.
+        /// 포션이 하나도 없으면 NotFound 로 실패하니 그냥 건너뛰면 됩니다. count 는 비어 있는 손의 수로 부르세요.
+        /// 일부만 꺼낼 수 있으면 꺼낸 만큼만 성공합니다. (Outcome.Potions.Count 확인)
+        /// </summary>
+        public UniTask<InventoryResult> TakeOutRandomAsync(int count)
+        {
+            if (count < 1 || count > TeamInventoryState.MaxTakeOutCount)
+            {
+                return UniTask.FromResult(InventoryResult.Fail(InventoryDenyReason.Invalid));
+            }
+
+            return SendRequestAsync(new InventoryCommand
+            {
+                Op = InventoryOp.TakeOut,
+                Count = count,
+                From = new ContainerRef { Kind = ContainerKind.None, Slot = -1 },
+            });
+        }
+
+        /// <summary>
+        /// 개인 인벤토리의 퀵슬롯(칸 번호 0~9, 키보드 1~0)에 든 포션을 정확히 그 칸에서 꺼냅니다.
+        /// 칸이 비었으면 SlotEmpty, 재료이면 Invalid 로 실패합니다. 성공하면 Outcome.Potions 에 한 개가 들어 있습니다.
+        /// </summary>
+        public UniTask<InventoryResult> TakeOutQuickSlotAsync(int slot)
+        {
+            // 음수는 "무작위"로 해석되고 254 를 넘으면 메시지에 담을 수 없으므로 미리 거부합니다.
+            if (slot < 0 || slot > 254)
+            {
+                return UniTask.FromResult(InventoryResult.Fail(InventoryDenyReason.Invalid));
+            }
+
+            return SendRequestAsync(new InventoryCommand
+            {
+                Op = InventoryOp.TakeOut,
+                Count = 1,
+                From = new ContainerRef { Kind = ContainerKind.None, Slot = slot },
+            });
+        }
+
+        /// <summary>
         /// 죽었을 때 호출합니다. 마스터가 내 개인 인벤토리의 내용을 시체 상자로 옮깁니다. 남길 것이 없으면 Invalid 로 거부됩니다.
         /// 공용 인벤과 공용 창고는 그대로 남습니다. Outcome.CorpseId 가 만들어진 상자의 ID 입니다.
         /// </summary>

@@ -44,14 +44,17 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 뱃속에서 꺼낸 제작 인스턴스를 지정할 때 사용합니다. 함정 포션이면 키워드 효과가 폭발에 더해집니다.
         /// </summary>
-        // public void Initialize(PotionInstance instance)
-        // {
-        //     Instance = instance;
-        //     _data = instance != null ? instance.Data : null;
-        //     HasExploded = false;
+        public void Initialize(PotionInstance instance)
+        {
+            Instance = instance;
+            _data = instance != null ? instance.Data : null;
+            HasExploded = false;
 
-        //     potionMover.InitializeTestPotion();
-        // }
+            if (potionMover != null)
+            {
+                potionMover.InitializePotionMover();
+            }
+        }
 
         // private void OnCollisionEnter(Collision collision)
         // {

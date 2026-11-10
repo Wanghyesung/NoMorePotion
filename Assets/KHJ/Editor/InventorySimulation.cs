@@ -147,6 +147,7 @@ namespace Enzeun.Editor
                 TestPackAndPersonal();
                 TestCraft();
                 TestStorageAndAccess();
+                TestTakeOut();
                 TestDeathAndLeave();
                 TestVersionAndSnapshot();
                 CheckPotionIdsUnique("마지막 상태");
@@ -354,6 +355,106 @@ namespace Enzeun.Editor
             ExpectSynced("창고 시험 후");
 
             _master.SetStorageAccessGate(null);
+        }
+
+        private static void TestTakeOut()
+        {
+            _master.SetRandom(new System.Random(1234));
+
+            // 공용 인벤에 포션을 넉넉히 만들고, 양손용으로 2개를 무작위로 꺼낸다.
+            for (int i = 0; i < 3; i++)
+            {
+                Send(ActorA, GrantPotion(ContainerRef.PackRef, PotionBase));
+            }
+
+            int packBefore = _master.Pack.Potions.Count;
+            Res two = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 2, From = new ContainerRef { Slot = -1 } });
+            Expect("무작위 꺼내기 2개", two.Ok && two.Outcome.Potions != null && two.Outcome.Potions.Count == 2);
+            Expect("공용 인벤에서 2개 줄어듦", _master.Pack.Potions.Count == packBefore - 2 && _clientB.Pack.Potions.Count == packBefore - 2);
+
+            if (two.Ok && two.Outcome.Potions != null && two.Outcome.Potions.Count == 2)
+            {
+                int first = two.Outcome.Potions[0].InstanceId;
+                int second = two.Outcome.Potions[1].InstanceId;
+                Expect("꺼낸 포션은 서로 다르고 인벤토리에서 빠짐",
+                    first > 0 && second > 0 && first != second && !_master.Pack.Potions.Contains(first) && !_clientA.Pack.Potions.Contains(second));
+            }
+
+            ExpectSynced("무작위 꺼내기 후");
+
+            Res zero = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 0, From = new ContainerRef { Slot = -1 } });
+            Res three = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 3, From = new ContainerRef { Slot = -1 } });
+            Expect("개수 0 또는 3 은 거부(Invalid)", !zero.Ok && zero.Reason == InventoryDenyReason.Invalid && !three.Ok && three.Reason == InventoryDenyReason.Invalid);
+
+            // 퀵슬롯: 개인 인벤의 정확한 칸에서 꺼낸다.
+            Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
+            PersonalInventory mine = _master.GetPersonal(ActorA);
+            int potionSlot = -1;
+            int materialSlot = -1;
+            for (int i = 0; i < mine.Capacity; i++)
+            {
+                if (potionSlot < 0 && mine.Slots[i].Kind == InventorySlotKind.Potion)
+                {
+                    potionSlot = i;
+                }
+
+                if (materialSlot < 0 && mine.Slots[i].Kind == InventorySlotKind.Material)
+                {
+                    materialSlot = i;
+                }
+            }
+
+            Expect("퀵슬롯 시험 준비(포션 칸 있음)", potionSlot >= 0);
+
+            if (potionSlot >= 0)
+            {
+                int expectedId = mine.Slots[potionSlot].Potion.InstanceId;
+                Res quick = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 1, From = new ContainerRef { Slot = potionSlot } });
+                Expect("퀵슬롯 꺼내기", quick.Ok && quick.Outcome.Potions != null && quick.Outcome.Potions.Count == 1 && quick.Outcome.Potions[0].InstanceId == expectedId);
+                Expect("그 칸이 비워짐", _master.GetPersonal(ActorA).Slots[potionSlot].IsEmpty && _clientB.GetPersonal(ActorA).Slots[potionSlot].IsEmpty);
+
+                Res empty = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 1, From = new ContainerRef { Slot = potionSlot } });
+                Expect("빈 퀵슬롯은 거부(SlotEmpty)", !empty.Ok && empty.Reason == InventoryDenyReason.SlotEmpty);
+            }
+
+            if (materialSlot >= 0)
+            {
+                Res material = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 1, From = new ContainerRef { Slot = materialSlot } });
+                Expect("재료 칸은 거부(Invalid)", !material.Ok && material.Reason == InventoryDenyReason.Invalid);
+            }
+
+            Res outOfRange = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 1, From = new ContainerRef { Slot = 10 } });
+            Expect("범위 밖 칸은 거부(Invalid)", !outOfRange.Ok && outOfRange.Reason == InventoryDenyReason.Invalid);
+            ExpectSynced("퀵슬롯 꺼내기 후");
+
+            // 공용 인벤의 포션을 모두 꺼낸 뒤에는 개인 인벤에서 꺼낸다.
+            int guard = 0;
+            while (_master.Pack.Potions.Count > 0 && guard++ < 200)
+            {
+                Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 2, From = new ContainerRef { Slot = -1 } });
+            }
+
+            Expect("공용 인벤 포션이 모두 빠짐", _master.Pack.Potions.Count == 0);
+
+            Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
+            Res fallback = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 2, From = new ContainerRef { Slot = -1 } });
+            Expect("공용 인벤이 비면 개인 인벤에서 꺼냄", fallback.Ok && fallback.Outcome.Potions != null && fallback.Outcome.Potions.Count >= 1);
+
+            // 개인 인벤의 포션까지 모두 꺼내면 더 꺼낼 것이 없다.
+            guard = 0;
+            Res last = default;
+            do
+            {
+                last = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 2, From = new ContainerRef { Slot = -1 } });
+            }
+            while (last.Ok && guard++ < 50);
+
+            Expect("포션이 없으면 NotFound", !last.Ok && last.Reason == InventoryDenyReason.NotFound);
+            ExpectSynced("개인 인벤 꺼내기 후");
+
+            // 뒤 시험이 쓰도록 개인 인벤에 포션을 하나 되돌려 둔다.
+            Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
+            _master.SetRandom(null);
         }
 
         private static void TestDeathAndLeave()
