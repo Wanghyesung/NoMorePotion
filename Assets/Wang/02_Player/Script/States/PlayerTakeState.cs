@@ -11,6 +11,7 @@ public sealed class PlayerTakeState : PlayerState
     #region AnimationParameters
     private static readonly int takeLeftHash = Animator.StringToHash("TakeLeft");
     private static readonly int takeRightHash = Animator.StringToHash("TakeRight");
+    private static readonly int takeBothHash = Animator.StringToHash("TakeBoth");
     private static readonly int animationSpeedHash = Animator.StringToHash("UpperBodyAnimationSpeed");
     protected override int AnimationSpeedHash => animationSpeedHash;
     #endregion
@@ -19,6 +20,9 @@ public sealed class PlayerTakeState : PlayerState
     private readonly Hand hand;
     private readonly AnimationClip rightClip;
     private AnimationEvent[] rightClipEvents;
+    private readonly AnimationClip bothClip;
+    private AnimationEvent[] bothClipEvents;
+    private bool takeBoth;
     private bool hasTaken;
     #endregion
 
@@ -26,16 +30,21 @@ public sealed class PlayerTakeState : PlayerState
     {
         hand = owner.GetComponent<Hand>();
         rightClip = data.RightClip;
+        bothClip = data.BothClip;
     }
 
     public override void Init()
     {
         base.Init();
         rightClipEvents = rightClip.events;
+        bothClipEvents = bothClip.events;
         animEvent.RegisterFrame(clip, clipEvents[0], TakePotion);
         animEvent.RegisterFrame(clip, clipEvents[1], FinishTake);
         animEvent.RegisterFrame(rightClip, rightClipEvents[0], TakePotion);
         animEvent.RegisterFrame(rightClip, rightClipEvents[1], FinishTake);
+        animEvent.RegisterFrame(bothClip, bothClipEvents[0], TakePotion);
+        animEvent.RegisterFrame(bothClip, bothClipEvents[1], FinishTake);
+
         InputManager.Instance.TakeOutPotionAction.performed += RequestTake;
     }
 
@@ -46,6 +55,8 @@ public sealed class PlayerTakeState : PlayerState
         animEvent.UnregisterFrame(clip, clipEvents[1], FinishTake);
         animEvent.UnregisterFrame(rightClip, rightClipEvents[0], TakePotion);
         animEvent.UnregisterFrame(rightClip, rightClipEvents[1], FinishTake);
+        animEvent.UnregisterFrame(bothClip, bothClipEvents[0], TakePotion);
+        animEvent.UnregisterFrame(bothClip, bothClipEvents[1], FinishTake);
         if (InputManager.Instance != null)
             InputManager.Instance.TakeOutPotionAction.performed -= RequestTake;
     }
@@ -68,7 +79,9 @@ public sealed class PlayerTakeState : PlayerState
     {
         base.Enter();
         hasTaken = false;
-        owner.Animator.SetTrigger(hand.TakeSide == Hand.Side.Left ? takeLeftHash : takeRightHash);
+        takeBoth = hand.IsBothHandsEmpty;
+        owner.Animator.SetTrigger(takeBoth == true ? takeBothHash
+            : hand.TakeSide == Hand.Side.Left ? takeLeftHash : takeRightHash);
     }
 
     private void TakePotion(AnimationEvent animationEvent)
@@ -77,7 +90,13 @@ public sealed class PlayerTakeState : PlayerState
             return;
 
         hasTaken = true;
-        hand.TakeOutPotion();
+        if (takeBoth == true)
+        {
+            hand.TakeOutPotion(Hand.Side.Left);
+            hand.TakeOutPotion(Hand.Side.Right);
+        }
+        else
+            hand.TakeOutPotion();
     }
 
     private void FinishTake(AnimationEvent animationEvent) => owner.ClearActionState();
@@ -87,5 +106,6 @@ public sealed class PlayerTakeState : PlayerState
         base.Exit();
         owner.Animator.ResetTrigger(takeLeftHash);
         owner.Animator.ResetTrigger(takeRightHash);
+        owner.Animator.ResetTrigger(takeBothHash);
     }
 }

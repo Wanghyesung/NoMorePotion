@@ -210,6 +210,14 @@ PrefabInstance:
       propertyPath: baseCameraPos
       value: 
       objectReference: {fileID: 5464015542803014104}
+    - target: {fileID: 5736813461094296647, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
+      propertyPath: FollowOffset.y
+      value: 2.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 5736813461094296647, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
+      propertyPath: FollowOffset.z
+      value: -2.17
+      objectReference: {fileID: 0}
     - target: {fileID: 7285515075027468607, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
       propertyPath: m_LocalPosition.x
       value: -9.07745
@@ -1280,7 +1288,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 508123158}
-  - component: {fileID: 508123157}
   m_Layer: 0
   m_Name: TestWangConnect
   m_TagString: Untagged
@@ -1288,23 +1295,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &508123157
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 508123156}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1d5198f749001940a1386267c09b03e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TestWangConnection
-  roomName: TestWang
-  maxPlayers: 4
-  playerPrefab: {fileID: 1679380589598682981, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
-  playerBinder: {fileID: 154709983}
-  spawnPoint: {fileID: 1215619764}
 --- !u!4 &508123158
 Transform:
   m_ObjectHideFlags: 0
@@ -1600,6 +1590,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a0ebdd852fe54943958d1c3013950a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameEndManager
+  playerPrefab: {fileID: 1679380589598682981, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
+  playerBinder: {fileID: 154709983}
+  spawnPoint: {fileID: 1215619764}
 --- !u!114 &1073988826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2739,6 +2732,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 204095551428676914, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
+      propertyPath: sceneViewId
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 1594938396219596386, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
       propertyPath: m_Name
       value: MultiPlayer

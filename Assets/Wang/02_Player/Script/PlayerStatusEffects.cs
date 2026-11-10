@@ -15,6 +15,7 @@ public sealed class PlayerStatusEffects : MonoBehaviour
     private Player player;
     private Hand hand;
     private bool thirsty;
+    private bool started;
     private BuffContainer playerBuffContainer;
 #if UNITY_EDITOR
     private StatusEffectData testWhat;
@@ -40,6 +41,10 @@ public sealed class PlayerStatusEffects : MonoBehaviour
 
     private void Start()
     {
+        started = true;
+        if (player.IsLocalPlayer == false)
+            return;
+        hand.OnPotionHeld += OnPotionHeld;
         if (SurviveStatusManager.Instance == null)
             return;
 
@@ -49,6 +54,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
 
     private void OnEnable()
     {
+        if (started == false || player.IsLocalPlayer == false)
+            return;
         hand.OnPotionHeld += OnPotionHeld;
         // 첫 활성화는 Start에서 컨테이너를 받은 뒤 연결하고, 이후 재활성화는 여기서 연결한다.
         SubscribeBuffEvents();
@@ -57,6 +64,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
 #if UNITY_EDITOR
     private void Update()
     {
+        if (player.IsLocalPlayer == false)
+            return;
         bool holdVision = Keyboard.current != null && Application.isFocused == true
             && InputManager.Instance != null && InputManager.Instance.HasGameplayInput == true
             && (Keyboard.current.digit6Key.isPressed == true || Keyboard.current.numpad6Key.isPressed == true);
@@ -104,6 +113,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
 
     private void OnDisable()
     {
+        if (started == false || player.IsLocalPlayer == false)
+            return;
         hand.OnPotionHeld -= OnPotionHeld;
         thirsty = false;
 #if UNITY_EDITOR
