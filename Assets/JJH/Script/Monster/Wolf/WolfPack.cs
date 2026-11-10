@@ -82,7 +82,7 @@ public class WolfPack : MonoBehaviour
 
     private void Update()
     {
-        // 포톤 사용하면 if (!PhotonNetwork.IsMasterClient) return;
+        // 포톤 사용하면 if (!NetAuthority.IsAuthority) return;
         RefreshAlive();
 
         // 알파 사망 시 로직 해제, 노말은 기본 MonsterMove 로직으로 동작
@@ -163,13 +163,13 @@ public class WolfPack : MonoBehaviour
     /// </summary>
     /// <param name="attacker"></param>
     /// <param name="duration"></param>
-    public void Provoke(GameObject attacker, float duration)
+    public void Provoke(GameObject target, float duration)
     {
-        if (attacker == null || !reachability.CanAcquire(attacker)) return;
+        if (target == null || !reachability.CanAcquire(target)) return;
 
         // 이미 다른 대상과 싸우는 중이면 무리의 집중을 유지
-        if (Target == null) Target = attacker;
-        if (Target == attacker) provokedUntil = Time.time + duration;
+        if (Target == null) Target = target;
+        if (Target == target) provokedUntil = Time.time + duration;
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public class WolfPack : MonoBehaviour
     }
     #endregion
 
-    #region 내부
+    #region 내부 호출
 
     /// <summary>
     /// 생존한 늑대 갱신

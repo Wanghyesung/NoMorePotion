@@ -196,12 +196,14 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         return statusEffect;
     }
 
-    private void TryProvoke(AttackInfo info)
+    private void TryProvoke()
     {
+        if (!NetAuthority.IsAuthority) return;      // 판단은 마스터에서만
         if (data == null || data.HP <= 0) return;   // 이번 공격으로 죽었으면 무시
-        if (info.Source == null || !info.Source.CompareTag(PLAYER_TAG)) return;
 
-        mover.Provoke(info.Source);
+        GameObject nearest = mover.FindNearestPlayer();
+        if (nearest != null)
+            mover.Provoke(nearest);
     }
     #endregion
 
@@ -261,19 +263,19 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     public void TakeDamage(AttackInfo attackInfo)
     {
         HPChange(CalcFinalDamage(attackInfo.Damage, null));
-        TryProvoke(attackInfo);
+        TryProvoke();
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
         HPChange(CalcFinalDamage(attackInfo.Damage, attacker?.DamageType));
-        TryProvoke(attackInfo);
+        TryProvoke();
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
         HPChange(attackInfo.Damage);
-        TryProvoke(attackInfo);
+        TryProvoke();
     }
 
     public void Heal(int amount)
