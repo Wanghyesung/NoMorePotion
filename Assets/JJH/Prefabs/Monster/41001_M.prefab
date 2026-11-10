@@ -1224,7 +1224,7 @@ MonoBehaviour:
   mover: {fileID: 3177527198250361639}
   headRig: {fileID: 3301267619470002012}
   lookTarget: {fileID: 3746563598707542460}
-  targetHeight: 0
+  targetHeight: 0.6
   weightSpeed: 4
   followSpeed: 10
   releaseDuringAnimation: 1
@@ -2512,7 +2512,7 @@ GameObject:
   - component: {fileID: 3177527198250361639}
   - component: {fileID: 8791191975954953588}
   m_Layer: 0
-  m_Name: 41001_V
+  m_Name: 41001_M
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2676,6 +2676,10 @@ MonoBehaviour:
   biteHitbox: {fileID: 23729173819972596}
   prefabId: 41001
   skillHitboxes: []
+  sinkDuration: 2
+  sinkMargin: 0.3
+  damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
+  healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
   poundHitbox: {fileID: 458971461546945755}
   crouchClipTime: 0.17
   windupDuration: 0.2
@@ -2717,6 +2721,8 @@ MonoBehaviour:
     reacquireCooldown: 3
     sampleRadius: 2
   nowTarget: {fileID: 0}
+  provokeDuration: 5
+  provokeSearchRange: 50
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
