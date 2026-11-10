@@ -121,6 +121,7 @@ public class TestPotion : MonoBehaviour
                 PoolManager.Instance.Get(impactPrefab, hitPoint, Quaternion.identity);
 
             var particle = particleObj.GetComponent<ParticleSystem>();
+
             particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             Color color = data != null ? data.potionColor : Color.white;
             var main = particle.main;
