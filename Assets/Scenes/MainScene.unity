@@ -187,6 +187,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1243406768}
   m_SourcePrefab: {fileID: 100100000, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
+--- !u!114 &147583329 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 203415030240419032, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
+  m_PrefabInstance: {fileID: 147583328}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243406763}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce2f0018ccbf794190799ee728f8bc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraManager
 --- !u!224 &195424636 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2636631114372374743, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
@@ -1582,6 +1593,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 857751218363386416, guid: 4909475dfb2e17f4b9ccff43e336a8c2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2303233389847415256, guid: 4909475dfb2e17f4b9ccff43e336a8c2, type: 3}
       propertyPath: playerHPSlider
       value: 
@@ -1740,6 +1755,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a0ebdd852fe54943958d1c3013950a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameEndManager
+  playerPrefab: {fileID: 1679380589598682981, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
+  playerBinder: {fileID: 1356043885}
+  spawnPoint: {fileID: 1922327024}
 --- !u!114 &1073988826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,6 +2143,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee279700b74331148a0b112675f527ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISlider
+--- !u!114 &1189345533 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4522190527780406370, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
+  m_PrefabInstance: {fileID: 1189345531}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdd0648932a22324b849db6552bad47d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInfoUI
 --- !u!1 &1193439346
 GameObject:
   m_ObjectHideFlags: 0
@@ -2639,6 +2668,53 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
+--- !u!1 &1356043884
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1356043886}
+  - component: {fileID: 1356043885}
+  m_Layer: 0
+  m_Name: PlayerBinder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1356043885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356043884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 824d079222fcfa149873f136a9068b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerUIBinding
+  playerInfoUI: {fileID: 1189345533}
+  cameraManager: {fileID: 147583329}
+  aimCamera: {fileID: 1861928731}
+--- !u!4 &1356043886
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1356043884}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1390244922
 GameObject:
   m_ObjectHideFlags: 0
@@ -3335,6 +3411,7 @@ SceneRoots:
   - {fileID: 1919893872}
   - {fileID: 1662423154}
   - {fileID: 1073988827}
+  - {fileID: 1356043886}
   - {fileID: 1999150016}
   - {fileID: 579132898}
   - {fileID: 481280746}
