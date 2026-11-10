@@ -362,6 +362,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public void RequestJoinByCode(string roomCode)
     {
+        // 상태 검사를 먼저: 로비가 아닐 때 형식 오류 팝업이 뜨지 않게
+        if (!RequireLobbyReady()) return;
+
         // 형식이 틀리면 RoomMatchService가 에러를 알림
         if (!match.TryNormalizeCode(roomCode, out string code))
             return;
@@ -460,7 +463,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         if(!room.CheckCanStart())
         {
-            Debug.Log("[NetworkFlowManager] 시작 무시됨: 시작할 수 있지않음");
+            Debug.Log("[NetworkFlowManager] 시작 무시됨: 시작 조건 미충족");
             return;
         }
 
