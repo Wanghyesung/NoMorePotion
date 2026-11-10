@@ -14,14 +14,16 @@ public class CombinationController : ItemInventory
     public class CombineSlot
     {
         public Image image;
+        public InventoryIcon boundSlot;
         public int id;
         public int instanceId;
 
-        public void Init(Sprite image, int id, int instanceId)
+        public void Init(Sprite image, int id, int instanceId, InventoryIcon slot)
         {
             this.image.sprite = image;
             this.id = id;
             this.instanceId = instanceId;
+            boundSlot = slot;
         }
 
         public void Clear()
@@ -29,6 +31,8 @@ public class CombinationController : ItemInventory
             image.sprite = null;
             id = 0;
             instanceId = 0;
+            boundSlot.SetAlpha(true);
+            boundSlot = null;
         }
     }
 
@@ -72,20 +76,20 @@ public class CombinationController : ItemInventory
         }
     }
 
-    public void BoundSlot(int id, int instanceId)
+    public void BoundSlot(int id, int instanceId, InventoryIcon slot)
     {
         if(PotionDataManager.Instance.TryGetMaterialData(id, out var data))
         {
             if (!leftFull)
             {
-                leftSlot.Init(data.materialIcon,id,instanceId);
+                leftSlot.Init(data.materialIcon,id,instanceId, slot);
                 leftFull = true;
             }    
             else if(!rightFull) 
             {
                 if (!PotionDataManager.Instance.TryGetMaterialData(id, out var _))
                     return;
-                rightSlot.Init(data.materialIcon, id, instanceId);
+                rightSlot.Init(data.materialIcon, id, instanceId, slot);
                 rightFull = true;
             }
         } 
@@ -93,7 +97,7 @@ public class CombinationController : ItemInventory
         {
             if (!leftFull)
             {
-                leftSlot.Init(potion.potionIcon, id, instanceId);
+                leftSlot.Init(potion.potionIcon, id, instanceId, slot);
                 leftFull = true;
             }
             else if (!rightFull)
@@ -101,7 +105,7 @@ public class CombinationController : ItemInventory
                 if (!PotionDataManager.Instance.TryGetPotionData(id, out var _))
                     return;
 
-                rightSlot.Init(potion.potionIcon, id, instanceId);
+                rightSlot.Init(potion.potionIcon, id, instanceId, slot);
                 rightFull = true;
             }
         }
@@ -142,7 +146,7 @@ public class CombinationController : ItemInventory
         PotionCombination(leftSlot.id, rightSlot.id).Forget();
     }
 
-    public async UniTask PotionCombination(int leftId, int rightId,bool type = false)
+    public async UniTask PotionCombination(int leftId, int rightId)
     {
         InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync(
             new Ingredient()
