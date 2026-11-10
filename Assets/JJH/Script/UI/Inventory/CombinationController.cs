@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
 using Enzeun.SO;
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -31,7 +32,8 @@ public class CombinationController : ItemInventory
             image.sprite = null;
             id = 0;
             instanceId = 0;
-            boundSlot.SetAlpha(true);
+            if(boundSlot != null)
+                boundSlot.SetAlpha(true);
             boundSlot = null;
         }
     }
@@ -39,14 +41,14 @@ public class CombinationController : ItemInventory
     [SF] private CombineSlot leftSlot;
     [SF] private CombineSlot rightSlot;
     [SF] private CombineSlot resultSlot;
-
+    [SF] private TextMeshProUGUI WarningTest;
     private bool leftFull;
     private bool rightFull;
 
     private readonly ContainerRef publicInvenCRef = new()
     {
         Id = -1,
-        Kind = ContainerKind.Personal,
+        Kind = ContainerKind.Pack,
         Slot = -1
     };
 
@@ -78,50 +80,54 @@ public class CombinationController : ItemInventory
 
     public void BoundSlot(int id, int instanceId, InventoryIcon slot)
     {
-        if(PotionDataManager.Instance.TryGetMaterialData(id, out var data))
-        {
-            if (!leftFull)
-            {
-                leftSlot.Init(data.materialIcon,id,instanceId, slot);
-                leftFull = true;
-            }    
-            else if(!rightFull) 
-            {
-                if (!PotionDataManager.Instance.TryGetMaterialData(id, out var _))
-                    return;
-                rightSlot.Init(data.materialIcon, id, instanceId, slot);
-                rightFull = true;
-            }
-        } 
-        else if(PotionDataManager.Instance.TryGetPotionData(id, out var potion))
-        {
-            if (!leftFull)
-            {
-                leftSlot.Init(potion.potionIcon, id, instanceId, slot);
-                leftFull = true;
-            }
-            else if (!rightFull)
-            {
-                if (!PotionDataManager.Instance.TryGetPotionData(id, out var _))
-                    return;
+        var dm = PotionDataManager.Instance;
 
-                rightSlot.Init(potion.potionIcon, id, instanceId, slot);
-                rightFull = true;
-            }
+        bool isMaterial = dm.TryGetMaterialData(id, out var material);
+        PotionData potionData = null;
+        if (!isMaterial && !dm.TryGetPotionData(id, out potionData)) return;
+
+        Sprite icon = isMaterial ? material.materialIcon : potionData.potionIcon;
+
+        if (!leftFull)
+        {
+            leftSlot.Init(icon, id, instanceId, slot);
+            leftFull = true;
+            return;
+        }
+        if (rightFull) return;
+
+        // 왼쪽과 종류가 다르면 거부 (재료 + 포션 섞기 금지)
+        if (dm.TryGetMaterialData(leftSlot.id, out _) != isMaterial)
+        {
+            Debug.Log("재료와 포션은 섞을 수 없습니다.");
+            return;
         }
 
-        if(leftFull && rightFull)
-        {
-            PotionData potion = PotionDataManager.Instance.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id);
+        // 같은 포션 한 개를 양쪽에 올리는 것 방지
+        if (!isMaterial && instanceId == leftSlot.instanceId) return;
 
-            if(potion != null)
-            {
-                resultSlot.image.sprite = potion.potionIcon; 
-                resultSlot.id = id;
-            }else
-            {
-                Debug.Log("이 재료는 조합할 수 없습니다.");
-            }
+        // 같은 재료를 양쪽에 쓰려면 2개 이상 있어야 함
+        if (isMaterial && id == leftSlot.id && slot.Item.ItemCount < 2)
+        {
+            Debug.Log("재료가 부족합니다.");
+            return;
+        }
+
+        rightSlot.Init(icon, id, instanceId, slot);
+        rightFull = true;
+
+        PotionData result = isMaterial
+            ? dm.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id)
+            : dm.GetUpgradedPotion(leftSlot.id, rightSlot.id);
+
+        if (result != null)
+        {
+            resultSlot.image.sprite = result.potionIcon;
+            resultSlot.id = result.potionID;
+        }
+        else
+        {
+            Debug.Log("이 조합으로는 만들 수 없습니다.");
         }
     }
 
@@ -148,20 +154,20 @@ public class CombinationController : ItemInventory
 
     public async UniTask PotionCombination(int leftId, int rightId)
     {
-        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync(
-            new Ingredient()
+        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync( 
+            new()
             {
                 InstanceId = leftSlot.instanceId,
                 MaterialId = leftId,
                 Source = publicInvenCRef
             },
-            new Ingredient()
+            new()
             {
                 InstanceId = rightSlot.instanceId,
                 MaterialId = rightId,
                 Source = publicInvenCRef
             }
-            );
+        );
 
         if (result.Success)
             Debug.Log($"[Craft] 포션 제작 성공 - {result.Outcome.Potion.Data.potionName}");
@@ -169,7 +175,6 @@ public class CombinationController : ItemInventory
             Debug.Log($"[Craft] 포션 제작 실패 - {result.Reason}");
 
         Clear();
-
     }
 }
 

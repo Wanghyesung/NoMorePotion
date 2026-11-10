@@ -67,7 +67,7 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     {
         slotNum = num;
         if (itemSlotNum == null || num < 0) return;
-        
+
         itemSlotNum.gameObject.SetActive(true);
         itemSlotNum.text = num + 1 < 10 ? (num + 1).ToString() : "0";
     }
@@ -75,13 +75,13 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     public void Init(ItemInstance item)
     {
         // 이전 아이템의 자동 새로고침 구독
-        if (Item != null) 
+        if (Item != null)
             Item.OnChanged -= Reload;
 
         Item = item;
 
         // 자동 새로고침 구독해제
-        if (Item != null) 
+        if (Item != null)
             Item.OnChanged += Reload;
         SetAlpha(true);
         Reload();
@@ -97,13 +97,14 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     /// </summary>
     private void Reload()
     {
-        bool enabled = Item != null && Item.itemImage != null && Item.ItemCount > 0;
-
+        //Item.itemImage != null << 임시 비활성화 이미지 생기면 넣을것
+        bool enabled = Item != null && Item.ItemCount > 0;
+        Debug.Log(enabled);
         itemImage.enabled = enabled;
         itemCountText.enabled = enabled;
-        itemCountText.text = enabled && 
+        itemCountText.text = enabled &&
             Item.ItemCount > 1 ? Item.ItemCount.ToString() : string.Empty;
-        
+
 
         if (!enabled) return;
 
@@ -122,8 +123,8 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
         {
             inventory.potionCombined.Clear();
         }
-            
-        
+
+
     }
 
     private void OnDestroy()
@@ -131,3 +132,4 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
         if (Item != null) Item.OnChanged -= Reload;
     }
 }
+;

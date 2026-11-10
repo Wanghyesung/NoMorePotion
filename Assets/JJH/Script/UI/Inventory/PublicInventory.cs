@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
 using Enzeun.SO;
 using Sirenix.OdinInspector;
+using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-
 using SF = UnityEngine.SerializeField;
 
 public class PublicInventory : ItemInventory
@@ -19,7 +19,7 @@ public class PublicInventory : ItemInventory
     [SF] private RectTransform potionContent;
     [SF] private int minPotionSlots = 0;
     // ex. "37 / 100"
-    [SF] private TextMeshProUGUI potionCountText; 
+    [SF] private TextMeshProUGUI potionCountText;
 
     /// <summary>
     /// 포션 칸을 눌렀을 때, 그 포션의 인스턴스 ID 반환
@@ -46,21 +46,30 @@ public class PublicInventory : ItemInventory
 
     private void OnEnable() => potionsUpdate = true;
 
-    private void Start()
+    private void Start() => BindWhenReady().Forget();
+
+    private async UniTaskVoid BindWhenReady()
     {
         if (materials != null) return;
 
-        // 네트워크 매니저가 있으면 그 사본을, 없으면 테스트용 로컬 인벤토리를 사용
-        TeamInventoryState state = InvenManager != null ? InvenManager.State : null;
+        if (InvenManager == null || InvenManager.State == null)
+            Debug.Log("[PublicInven] 매니저 대기");
 
-        if (state != null) Bind(state.Materials, state.Potions);
-        else Bind(new MaterialInventory(), new PotionInventory());
+        bool canceled = await UniTask.WaitUntil(
+                () => InvenManager != null && InvenManager.State != null,
+                cancellationToken: this.GetCancellationTokenOnDestroy())
+            .SuppressCancellationThrow();
+
+        if (canceled || materials != null) return;
+
+        TeamInventoryState state = InvenManager.State;
+        Bind(state.Materials, state.Potions);
+        Debug.Log("[PublicInven] 매니저 연결 완료");
     }
 
     public void Bind(MaterialInventory materialInventory, PotionInventory potionInventory)
     {
         Unbind();
-
         materials = materialInventory;
         potions = potionInventory;
 
@@ -115,7 +124,10 @@ public class PublicInventory : ItemInventory
 
     #region
 
-    private void OnPotionChanged() => potionsUpdate = true;
+    private void OnPotionChanged() 
+    {
+        potionsUpdate = true;
+    }
 
     private void LateUpdate()
     {

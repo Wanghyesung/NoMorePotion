@@ -94,10 +94,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryIcon
   inventory: {fileID: 0}
+  alphaCanvas: {fileID: 6290992301692417191}
   itemImage: {fileID: 3895658698952874087}
   itemCountText: {fileID: 9218048612570847400}
   itemSlotNum: {fileID: 0}
   button: {fileID: 2069057649130503036}
+  isCombinedSlot: 0
   slotNum: 0
   emptyAlpha: 0.3
 --- !u!114 &2069057649130503036
