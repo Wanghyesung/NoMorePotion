@@ -1,5 +1,7 @@
 using System;
+using Enzeun.Runtime;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -131,5 +133,17 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     {
         if (Item != null) Item.OnChanged -= Reload;
     }
+
+
+    // ========================= 현준 수정 =============================
+
+    public void ChangeSlotState(InventorySlot inventorySlot)
+    {
+        itemImage.sprite = inventorySlot.Potion.Data.potionIcon;
+        itemCountText.enabled = false;
+        itemSlotNum.enabled = false;
+    }
+
+
 }
 ;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 
 namespace Enzeun.Runtime
@@ -67,6 +68,10 @@ namespace Enzeun.Runtime
             }
 
             _counts[materialId] = current + accepted;
+
+#if UNITY_EDITOR
+            Debug.Log($"[MaterialInventory] : 재료({materialId}) {count}개 추가 ({count}/{_limitProvider(materialId)})");
+#endif
             OnChanged?.Invoke(materialId);
             return accepted;
         }
@@ -95,7 +100,9 @@ namespace Enzeun.Runtime
             {
                 _counts[materialId] = current - count;
             }
-
+#if UNITY_EDITOR
+            Debug.Log($"[MaterialInventory] : 재료({materialId}) {count}개 꺼냄 ({count}/{_limitProvider(materialId)})");
+#endif
             OnChanged?.Invoke(materialId);
             return true;
         }

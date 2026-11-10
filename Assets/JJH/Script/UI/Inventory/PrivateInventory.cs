@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
+using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
+using Photon.Pun;
 using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
 using SF = UnityEngine.SerializeField;
 
 public class PrivateInventory : ItemInventory
@@ -19,6 +19,9 @@ public class PrivateInventory : ItemInventory
     {
         inven.OnPrivateListAdded -= GetItem;
         inven.OnPrivateListRemoved -= RemoveItem;
+
+        personalInventory.OnSlotChanged -= RefreshInventory;
+
     }
 
     /// <summary>
@@ -26,9 +29,9 @@ public class PrivateInventory : ItemInventory
     /// </summary>
     public void GetItem(ItemInstance data)
     {
-        InventoryIcon icon = privateInventories.Find(x=> x.Item.itemId == data.itemId);
+        InventoryIcon icon = privateInventories.Find(x => x.Item.itemId == data.itemId);
 
-        if(icon == null)
+        if (icon == null)
         {
             foreach (var item in privateInventories)
             {
@@ -51,7 +54,7 @@ public class PrivateInventory : ItemInventory
     /// <param name="moveType"></param>
     public void MoveItem(int slotNum, bool moveType = false)
     {
-        if(moveType)
+        if (moveType)
             inven.GetPublicItem(privateInventories[slotNum].Item);
 
         RemoveItem(slotNum);
@@ -64,5 +67,77 @@ public class PrivateInventory : ItemInventory
     public void RemoveItem(int slotNum)
     {
         privateInventories[slotNum].Clear();
+    }
+
+
+    // =========== 현준 수정 ======================================
+    private PersonalInventory personalInventory;
+
+    public async void Start()
+    {
+        await CheckPhotonConnect();
+
+        personalInventory = InventoryNetworkSyncManager.Instance.State.Personals[PhotonNetwork.LocalPlayer.ActorNumber];
+
+        BindEvent();
+
+        RefreshInventory();
+    }
+
+    public async UniTask<bool> CheckPhotonConnect()
+    {
+
+        int count = 0;
+        if (!PhotonNetwork.IsConnected)
+        {
+#if UNITY_EDITOR
+            Debug.LogError("[PrivateInventory] : 포톤 네트워크에 연결되지 않았습니다. 개인 인벤토리를 가져올 수 없습니다.");
+#endif
+            count++;
+            if (count >= 10)
+            {
+                return false;
+            }
+            await UniTask.WaitForSeconds(1);
+        }
+        return true;
+    }
+
+    public void RefreshInventory()
+    {
+        int index = 0;
+        foreach (var obj in personalInventory.Slots)
+        {
+            if (obj.Kind == InventorySlotKind.Empty)
+            {
+                privateInventories[index].SetAlpha(0);
+            }
+            else
+            {
+                privateInventories[index].ChangeSlotState(obj);
+            }
+
+            index++;
+        }
+    }
+
+    public void RefreshInventory(int index)
+    {
+        var obj = personalInventory.Slots[index];
+        {
+            if (obj.Kind == InventorySlotKind.Empty)
+            {
+                privateInventories[index].SetAlpha(0);
+            }
+            else
+            {
+                privateInventories[index].ChangeSlotState(obj);
+            }
+        }
+    }
+
+    public void BindEvent()
+    {
+        personalInventory.OnSlotChanged += RefreshInventory;
     }
 }
