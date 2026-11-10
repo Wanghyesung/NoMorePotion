@@ -70,9 +70,9 @@ public sealed class Hand : MonoBehaviour
         inputSubscribed = false;
     }
 
-    private void SwitchFocus(InputAction.CallbackContext context) =>
-        focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
+    private void SwitchFocus(InputAction.CallbackContext context) => SwitchFocus();
 
+    public void SwitchFocus() => focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
     public bool Hold(Side side, PotionMover potion)
     {
         if (GetPotion(side) != null)
