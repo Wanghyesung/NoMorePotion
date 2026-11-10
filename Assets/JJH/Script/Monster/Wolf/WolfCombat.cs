@@ -125,7 +125,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     /// 점프 공격 애니메이션 시작
     /// </summary>
-    private void PoundAttackAnimationStart()
+    public void PoundAttackAnimationStart()
     {
         mover.IsAnimation = true;
     }
@@ -133,7 +133,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     /// 도약 준비(웅크림) 시작
     /// </summary>
-    private void PoundWindup()
+    public void PoundWindup()
     {
         isWindup = true;
         float scale = crouchClipTime / Mathf.Max(0.01f, windupDuration);
@@ -144,7 +144,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     /// 점프 직후
     /// </summary>
-    private void PoundTakeoff()
+    public void PoundTakeoff()
     {
         isWindup = false;
 
@@ -161,7 +161,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     /// 점프 공격 판정 ON
     /// </summary>
-    private void PoundAttackOn()
+    public void PoundAttackOn()
     {
         poundHitbox.gameObject.SetActive(true);
     }
@@ -169,7 +169,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     /// 점프 공격 판정 OFF
     /// </summary>
-    private void PoundAttackOff()
+    public void PoundAttackOff()
     {
         poundHitbox.gameObject.SetActive(false);
     }
@@ -177,7 +177,7 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     /// 점프 공격 애니메이션 종료
     /// </summary>
-    private void PoundAttackAnimationEnd()
+    public void PoundAttackAnimationEnd()
     {
         poundHitbox.gameObject.SetActive(false);
         isWindup = false;

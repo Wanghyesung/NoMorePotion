@@ -8,7 +8,6 @@ using SF = UnityEngine.SerializeField;
 /// <summary>
 /// 리그 멀티 에임이 고정된 시점 object 이동 클래스
 /// </summary>
-[RequireComponent(typeof(MonsterMove))]
 public class WolfLookTarget : MonoBehaviour
 {
     #region 직렬화 필드
@@ -28,7 +27,7 @@ public class WolfLookTarget : MonoBehaviour
     private void Awake()
     {
         if (mover == null)
-            mover = GetComponent<MonsterMove>();
+            mover = GetComponentInParent<MonsterMove>();
     }
 
     private void Update()
