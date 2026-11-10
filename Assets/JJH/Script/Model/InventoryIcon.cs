@@ -39,16 +39,35 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     {
         inventory = inven;
     }
+
+    /// <summary>
+    /// 알파 직접 지정 함수
+    /// </summary>
+    /// <param name="alpha">지정할 알파 값</param>
     public void SetAlpha(float alpha)
     {
         alphaCanvas.alpha = alpha;
     }
+
+
+    /// <summary>
+    /// 알파 간편 조절 함수, 조절값 0.3f
+    /// </summary>
+    /// <param name="type">false : 0.3, true : 1</param>
+    public void SetAlpha(bool type = false)
+    {
+        if (type)
+            alphaCanvas.alpha = 1;
+        else
+            alphaCanvas.alpha = emptyAlpha;
+    }
+
     /// <summary>단축키 번호 표시 (0~8 → 1~9, 9 → 0)</summary>
     public void SetSlotNum(int num)
     {
         slotNum = num;
         if (itemSlotNum == null || num < 0) return;
-        
+
         itemSlotNum.gameObject.SetActive(true);
         itemSlotNum.text = num + 1 < 10 ? (num + 1).ToString() : "0";
     }
@@ -56,15 +75,15 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     public void Init(ItemInstance item)
     {
         // 이전 아이템의 자동 새로고침 구독
-        if (Item != null) 
+        if (Item != null)
             Item.OnChanged -= Reload;
 
         Item = item;
 
         // 자동 새로고침 구독해제
-        if (Item != null) 
+        if (Item != null)
             Item.OnChanged += Reload;
-
+        SetAlpha(true);
         Reload();
     }
 
@@ -78,13 +97,14 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     /// </summary>
     private void Reload()
     {
-        bool enabled = Item != null && Item.itemImage != null && Item.ItemCount > 0;
-
+        //Item.itemImage != null << 임시 비활성화 이미지 생기면 넣을것
+        bool enabled = Item != null && Item.ItemCount > 0;
+        Debug.Log(enabled);
         itemImage.enabled = enabled;
         itemCountText.enabled = enabled;
-        itemCountText.text = enabled && 
+        itemCountText.text = enabled &&
             Item.ItemCount > 1 ? Item.ItemCount.ToString() : string.Empty;
-        
+
 
         if (!enabled) return;
 
@@ -96,10 +116,15 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
         if (e.button == PointerEventData.InputButton.Right)
         {
             if (Item == null || Item.ItemCount <= 0) return;
-            inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId);
+            SetAlpha();
+            inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId, this);
         }
-        else if(isCombinedSlot)
+        else if (isCombinedSlot)
+        {
             inventory.potionCombined.Clear();
+        }
+
+
     }
 
     private void OnDestroy()
@@ -107,3 +132,4 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
         if (Item != null) Item.OnChanged -= Reload;
     }
 }
+;

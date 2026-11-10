@@ -9,19 +9,32 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 /// <summary>
-/// 테스트 씬 전용. Photon 오프라인 모드로 방을 만들고, 매니저의 정식 요청(*Async)으로 재료·포션을 넣습니다.
-/// 동기화/데이터 코드는 건드리지 않으며, 나중에 실제 네트워크에서도 같은 경로로 동작합니다.
+/// 테스트 씬 전용. Photon 오프라인 모드로 방을 만들고, 매니저의 개발용 요청(Grant*)과 이동 요청(Transfer)으로 재료·포션을 넣고 옮깁니다.
+/// Grant 요청은 TeamInventoryState.AllowGrant 가 켜져 있어야 통과합니다.
 /// </summary>
 public class InventoryTestGiver : MonoBehaviourPunCallbacks
 {
+    public enum Target
+    {
+        [LabelText("공용 인벤")] Pack,
+        [LabelText("내 개인 인벤")] Personal,
+    }
+
     [SerializeField, LabelText("시작 시 오프라인 모드로 방 만들기")]
     private bool startOffline = true;
+
+    [SerializeField, LabelText("넣을 곳")]
+    private Target target = Target.Pack;
 
     [SerializeField, LabelText("테스트 재료 목록")]
     private List<MaterialData> testMaterials = new();
 
     [SerializeField, LabelText("테스트 포션 목록")]
     private List<PotionData> testPotions = new();
+
+    // 이번 테스트에서 공용 인벤으로 받은 포션의 인스턴스 ID (옮기기 테스트용)
+    [ShowInInspector, ReadOnly, LabelText("공용 인벤으로 받은 포션 ID")]
+    private readonly List<int> grantedPotionIds = new();
 
     private static InventoryNetworkSyncManager Manager => InventoryNetworkSyncManager.Instance;
 
@@ -51,30 +64,9 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
         Debug.Log("[테스트] 오프라인 방 입장 완료. 이제 재료/포션을 넣을 수 있습니다.");
     }
 
-    private static bool Has(Object data, string what)
-    {
-        if (data != null) return true;
-        Debug.LogWarning($"[테스트] {what} 가 비어 있습니다. 버튼 옆 화살표를 펼쳐 에셋을 넣어 주세요.");
-        return false;
-    }
-
-    private static bool HasAny<T>(List<T> list, string what)
-    {
-        if (list != null && list.Count > 0) return true;
-        Debug.LogWarning($"[테스트] 인스펙터의 '{what}' 이 비어 있습니다.");
-        return false;
-    }
-
-    private bool Ready()
-    {
-        if (Manager == null) { Debug.LogWarning("[테스트] InventoryNetworkSyncManager 가 씬에 없습니다."); return false; }
-        if (!PhotonNetwork.InRoom) { Debug.LogWarning("[테스트] 아직 방에 들어가지 않았습니다."); return false; }
-        return true;
-    }
-
     // ==================== 재료 ====================
 
-/*    [Button("재료 받기"), BoxGroup("재료")]
+    [Button("재료 받기"), BoxGroup("재료")]
     private void GiveMaterial(MaterialData data, int count = 10) => GiveMaterialAsync(data, count).Forget();
 
     [Button("테스트 재료 전부 받기"), BoxGroup("재료")]
@@ -83,14 +75,10 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
     [Button("포션 레시피 재료 받기 (조합 테스트용)"), BoxGroup("재료")]
     private void GiveRecipeMaterials(PotionData potion, int sets = 1) => GiveRecipeAsync(potion, sets).Forget();
 
-    [Button("재료 빼기"), BoxGroup("재료")]
-    private void RemoveMaterial(MaterialData data, int count = 1) => RemoveMaterialAsync(data, count).Forget();*/
-/*
     private async UniTaskVoid GiveMaterialAsync(MaterialData data, int count)
     {
-        if (!Has(data, "재료 데이터") || !Ready()) return;
-        InventoryResult result = await Manager.AddMaterialAsync(data.materialID, count);
-        Debug.Log($"[테스트] 재료 넣기 {data.materialName} x{count} → {Describe(result)} | 보유 {Manager.State.Materials.GetCount(data.materialID)}");
+        if (!Has(data, "재료 데이터") || !Ready() || !Known(data)) return;
+        await GrantMaterial(data, count);
     }
 
     private async UniTaskVoid GiveAllMaterialsAsync(int count)
@@ -98,9 +86,8 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
         if (!HasAny(testMaterials, "테스트 재료 목록") || !Ready()) return;
         foreach (MaterialData data in testMaterials)
         {
-            if (data == null) continue;
-            InventoryResult result = await Manager.AddMaterialAsync(data.materialID, count);
-            Debug.Log($"[테스트] 재료 넣기 {data.materialName} x{count} → {Describe(result)} | 보유 {Manager.State.Materials.GetCount(data.materialID)}");
+            if (data == null || !Known(data)) continue;
+            await GrantMaterial(data, count);
         }
     }
 
@@ -115,65 +102,149 @@ public class InventoryTestGiver : MonoBehaviourPunCallbacks
 
         foreach (MaterialData data in potion.recipeMaterials)
         {
-            if (data == null) continue;
-            InventoryResult result = await Manager.AddMaterialAsync(data.materialID, sets);
-            Debug.Log($"[테스트] 레시피 재료 {data.materialName} x{sets} → {Describe(result)}");
+            if (data == null || !Known(data)) continue;
+            await GrantMaterial(data, sets);
         }
     }
 
-    private async UniTaskVoid RemoveMaterialAsync(MaterialData data, int count)
+    private async UniTask GrantMaterial(MaterialData data, int count)
     {
-        if (!Has(data, "재료 데이터") || !Ready()) return;
-        InventoryResult result = await Manager.RemoveMaterialAsync(data.materialID, count);
-        Debug.Log($"[테스트] 재료 빼기 {data.materialName} x{count} → {Describe(result)}");
+        InventoryResult result = await Manager.GrantMaterialAsync(TargetRef(), data.materialID, count);
+        Log($"재료 받기 {data.materialName} x{count} → {target}", result);
     }
 
     // ==================== 포션 ====================
 
     [Button("포션 받기"), BoxGroup("포션")]
-    private void GivePotion(PotionData data, int count = 1) => GivePotionAsync(data, count).Forget();
+    private void GivePotion(PotionData data, int count = 1, bool asTrap = false) => GivePotionAsync(data, count, asTrap).Forget();
 
     [Button("테스트 포션 무작위로 받기"), BoxGroup("포션")]
-    private void GiveRandomPotions(int count = 10) => GiveRandomAsync(count).Forget();
+    private void GiveRandomPotions(int count = 10, int trapPercent = 0) => GiveRandomAsync(count, trapPercent).Forget();
 
-    [Button("첫 번째 포션 꺼내기"), BoxGroup("포션")]
-    private void TakeFirstPotion() => TakeFirstAsync().Forget();
+    [Button("마지막으로 받은 포션을 공용 → 내 개인 인벤으로 옮기기"), BoxGroup("포션")]
+    private void MoveLastPotionToPersonal() => MoveLastAsync().Forget();
 
-    private async UniTaskVoid GivePotionAsync(PotionData data, int count)
+    private async UniTaskVoid GivePotionAsync(PotionData data, int count, bool asTrap)
     {
-        if (!Has(data, "포션 데이터") || !Ready()) return;
+        if (!Has(data, "포션 데이터") || !Ready() || !Known(data)) return;
         for (int i = 0; i < count; i++)
-        {
-            // 인스턴스 ID 는 0 으로 보내면 매니저(마스터)가 발급합니다
-            InventoryResult result = await Manager.AddPotionAsync(new PotionInstance(data, null, 0));
-            Debug.Log($"[테스트] 포션 넣기 {data.potionName} → {Describe(result)} | 보유 {Manager.State.Potions.Count}/{Manager.State.Potions.Capacity}");
-        }
+            await GrantPotion(data, asTrap);
     }
 
-    private async UniTaskVoid GiveRandomAsync(int count)
+    private async UniTaskVoid GiveRandomAsync(int count, int trapPercent)
     {
         if (!HasAny(testPotions, "테스트 포션 목록") || !Ready()) return;
         for (int i = 0; i < count; i++)
         {
             PotionData data = testPotions[Random.Range(0, testPotions.Count)];
-            if (data == null) continue;
-            InventoryResult result = await Manager.AddPotionAsync(new PotionInstance(data, null, 0));
-            Debug.Log($"[테스트] 포션 넣기 {data.potionName} → {Describe(result)} | 보유 {Manager.State.Potions.Count}/{Manager.State.Potions.Capacity}");
+            if (data == null || !Known(data)) continue;
+            await GrantPotion(data, Random.Range(0, 100) < trapPercent);
         }
     }
 
-    private async UniTaskVoid TakeFirstAsync()
+    private async UniTask GrantPotion(PotionData data, bool asTrap)
+    {
+        int keywordId = asTrap ? PickTrapKeywordId() : 0;
+        InventoryResult result = await Manager.GrantPotionAsync(TargetRef(), data.potionID, keywordId);
+
+        if (result.Success && target == Target.Pack && result.Outcome.Potion != null)
+            grantedPotionIds.Add(result.Outcome.Potion.InstanceId);
+
+        Log($"포션 받기 {data.potionName}{(keywordId != 0 ? " (함정)" : "")} → {target}", result);
+    }
+
+    private async UniTaskVoid MoveLastAsync()
     {
         if (!Ready()) return;
-        IReadOnlyList<PotionInstance> items = Manager.State.Potions.Items;
-        if (items.Count == 0) { Debug.Log("[테스트] 꺼낼 포션이 없습니다."); return; }
+        if (grantedPotionIds.Count == 0)
+        {
+            Debug.Log("[테스트] 공용 인벤으로 받은 포션이 없습니다. '넣을 곳'을 공용 인벤으로 두고 포션을 먼저 받아 주세요.");
+            return;
+        }
 
-        PotionInstance first = items[0];
-        InventoryResult result = await Manager.TakePotionAsync(first.InstanceId);
-        Debug.Log($"[테스트] 포션 꺼내기 {first.Data.potionName}({first.InstanceId}) → {Describe(result)}");
+        int instanceId = grantedPotionIds[grantedPotionIds.Count - 1];
+        InventoryResult result = await Manager.TransferAsync(
+            ContainerRef.PackRef,
+            ContainerRef.Personal(Manager.LocalActor, -1), // -1 = 빈 칸 자동 선택
+            instanceId: instanceId);
+
+        if (result.Success) grantedPotionIds.RemoveAt(grantedPotionIds.Count - 1);
+        Log($"포션 옮기기 ({instanceId}) 공용 → 개인", result);
     }
-*/
-    // ==================== 로그용 ====================
+
+    // ==================== 내부 ====================
+
+    private ContainerRef TargetRef()
+    {
+        return target == Target.Personal
+            ? ContainerRef.Personal(Manager.LocalActor, -1)
+            : ContainerRef.PackRef;
+    }
+
+    private static int PickTrapKeywordId()
+    {
+        IReadOnlyList<TrapPotionKeyword> pool = PotionDataManager.Instance.TrapKeywords;
+        if (pool == null || pool.Count == 0)
+        {
+            Debug.LogWarning("[테스트] 함정 키워드가 없어 정상 포션으로 받습니다.");
+            return 0;
+        }
+        return pool[Random.Range(0, pool.Count)].KeywordID;
+    }
+
+    private bool Ready()
+    {
+        if (Manager == null) { Debug.LogWarning("[테스트] InventoryNetworkSyncManager 가 씬에 없습니다."); return false; }
+        if (!PhotonNetwork.InRoom) { Debug.LogWarning("[테스트] 아직 방에 들어가지 않았습니다."); return false; }
+        if (PotionDataManager.Instance == null)
+        {
+            Debug.LogWarning("[테스트] PotionDataManager 가 씬에 없습니다. 마스터가 재료/포션 ID 를 확인할 수 없어 요청이 거부됩니다.");
+            return false;
+        }
+        return true;
+    }
+
+    // 마스터 검증과 같은 조건: 데이터 매니저에 등록된 ID 여야 함
+    private static bool Known(MaterialData data)
+    {
+        if (PotionDataManager.Instance.TryGetMaterialData(data.materialID, out MaterialData _)) return true;
+        Debug.LogWarning($"[테스트] 재료 '{data.materialName}'(ID {data.materialID}) 가 PotionDataManager 에 등록되어 있지 않습니다.");
+        return false;
+    }
+
+    private static bool Known(PotionData data)
+    {
+        if (PotionDataManager.Instance.TryGetPotionData(data.potionID, out PotionData _)) return true;
+        Debug.LogWarning($"[테스트] 포션 '{data.potionName}'(ID {data.potionID}) 가 PotionDataManager 에 등록되어 있지 않습니다.");
+        return false;
+    }
+
+    private static bool Has(Object data, string what)
+    {
+        if (data != null) return true;
+        Debug.LogWarning($"[테스트] {what} 가 비어 있습니다. 버튼 옆 화살표를 펼쳐 에셋을 넣어 주세요.");
+        return false;
+    }
+
+    private static bool HasAny<T>(List<T> list, string what)
+    {
+        if (list != null && list.Count > 0) return true;
+        Debug.LogWarning($"[테스트] 인스펙터의 '{what}' 이 비어 있습니다.");
+        return false;
+    }
+
+    private static void Log(string what, InventoryResult result)
+    {
+        if (result.Success)
+        {
+            Debug.Log($"[테스트] {what} → 성공 {Describe(result.Outcome)}");
+        }
+        else
+        {
+            Debug.LogWarning($"[테스트] {what} → 실패 {Describe(result)}\n" +
+                             "받기가 거부되면 TeamInventoryState.AllowGrant 가 켜져 있는지 확인하세요.");
+        }
+    }
 
     // InventoryResult 처럼 ToString 이 없는 구조체의 공개 필드/속성을 "이름=값" 으로 풀어 씁니다. (테스트 전용)
     private static string Describe(object value, int depth = 0)

@@ -26,7 +26,6 @@ public class InventoryController : MonoBehaviour
     [SF] private PublicInventory publicInventory;
     [SF] private GameObject publicInven;
     [SF] private ScrollRect publicInventScrollRect;
-    [SF] private RectTransform publicInventContentRect;
 
     [Header("개인 인벤토리")]
 
@@ -139,7 +138,9 @@ public class InventoryController : MonoBehaviour
             fade = true;
         }
 
-        await invenCanvasGroup.DOFade(fade ? 1 : 0, COMMON_FADE_TIME).WithCancellation(token);
+        await invenCanvasGroup.DOFade(fade ? 1 : 0, COMMON_FADE_TIME)
+            .SetUpdate(true)
+            .WithCancellation(token);
 
         if (!fade)
             invenRect.gameObject.SetActive(false);

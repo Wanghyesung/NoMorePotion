@@ -1,7 +1,11 @@
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using Enzeun.Runtime;
 using Enzeun.SO;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -13,32 +17,47 @@ public class CombinationController : ItemInventory
     public class CombineSlot
     {
         public Image image;
+        public InventoryIcon boundSlot;
         public int id;
         public int instanceId;
 
-        public void Init(Sprite image, int id, int instanceId)
+        public void Init(Sprite image, int id, int instanceId, InventoryIcon slot)
         {
             this.image.sprite = image;
             this.id = id;
             this.instanceId = instanceId;
+            boundSlot = slot;
         }
 
-        public void Clear()
+        public void Clear(Sprite defaultImage)
         {
-            image.sprite = null;
+            image.sprite = defaultImage;
             id = 0;
             instanceId = 0;
+            if(boundSlot != null)
+                boundSlot.SetAlpha(true);
+            boundSlot = null;
         }
     }
 
     [SF] private CombineSlot leftSlot;
     [SF] private CombineSlot rightSlot;
     [SF] private CombineSlot resultSlot;
+    [SF] private TextMeshProUGUI WarningText;
+    [SF] private Sprite defaultImage;
 
     private bool leftFull;
     private bool rightFull;
+    private readonly ContainerRef publicInvenCRef = new()
+    {
+        Id = -1,
+        Kind = ContainerKind.Pack,
+        Slot = -1
+    };
 
     InputAction combineAction;
+
+    private CancellationTokenSource warningTextToken;
 
     private void OnEnable()
     {
@@ -64,52 +83,78 @@ public class CombinationController : ItemInventory
         }
     }
 
-    public void BoundSlot(int id, int instanceId)
-    {
-        if(PotionDataManager.Instance.TryGetMaterialData(id, out var data))
-        {
-            if (!leftFull)
-            {
-                leftSlot.Init(data.materialIcon,id,instanceId);
-                leftFull = true;
-            }    
-            else if(!rightFull) 
-            {
-                if (!PotionDataManager.Instance.TryGetMaterialData(id, out var _))
-                    return;
-                rightSlot.Init(data.materialIcon, id, instanceId);
-                rightFull = true;
-            }
-        } 
-        else if(PotionDataManager.Instance.TryGetPotionData(id, out var potion))
-        {
-            if (!leftFull)
-            {
-                leftSlot.Init(potion.potionIcon, id, instanceId);
-                leftFull = true;
-            }
-            else if (!rightFull)
-            {
-                if (!PotionDataManager.Instance.TryGetPotionData(id, out var _))
-                    return;
+    #region 포션 제작 및 바인딩 관련
 
-                rightSlot.Init(potion.potionIcon, id, instanceId);
-                rightFull = true;
-            }
+    public void BoundSlot(int id, int instanceId, InventoryIcon slot)
+    {
+        var dm = PotionDataManager.Instance;
+
+        bool isMaterial = dm.TryGetMaterialData(id, out var material);
+        PotionData potionData = null;
+        if (!isMaterial && !dm.TryGetPotionData(id, out potionData)) return;
+
+        Sprite icon = isMaterial ? material.materialIcon : potionData.potionIcon;
+
+        if (!leftFull)
+        {
+            leftSlot.Init(icon, id, instanceId, slot);
+            leftFull = true;
+            return;
+        }
+        if (rightFull) return;
+
+        // 왼쪽과 종류가 다르면 거부 (재료 + 포션 섞기 금지)
+        if (dm.TryGetMaterialData(leftSlot.id, out _) != isMaterial)
+        {
+            warningTextToken?.Cancel();
+            warningTextToken = new();
+
+            PotionWarningTextPopup("재료와 포션은 섞을 수 없습니다.",
+                warningTextToken.Token).Forget();
+
+            Debug.Log("재료와 포션은 섞을 수 없습니다.");
+            return;
         }
 
-        if(leftFull && rightFull)
-        {
-            PotionData potion = PotionDataManager.Instance.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id);
+        // 같은 포션 한 개를 양쪽에 올리는 것 방지
+        if (!isMaterial && instanceId == leftSlot.instanceId) return;
 
-            if(potion != null)
-            {
-                resultSlot.image.sprite = potion.potionIcon; 
-                resultSlot.id = id;
-            }else
-            {
-                Debug.Log("이 재료는 조합할 수 없습니다.");
-            }
+        // 같은 재료를 양쪽에 쓰려면 2개 이상 있어야 함
+        if (isMaterial && id == leftSlot.id && slot.Item.ItemCount < 2)
+        {
+            warningTextToken?.Cancel();
+            warningTextToken = new();
+
+            PotionWarningTextPopup("재료가 부족합니다.",
+                warningTextToken.Token).Forget();
+
+            Debug.Log("재료가 부족합니다.");
+            return;
+        }
+
+        rightSlot.Init(icon, id, instanceId, slot);
+        rightFull = true;
+
+        PotionData result = isMaterial
+            ? dm.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id)
+            : dm.GetUpgradedPotion(leftSlot.id, rightSlot.id);
+
+        if (result != null)
+        {
+            resultSlot.image.sprite = result.potionIcon;
+            resultSlot.id = result.potionID;
+        }
+        else
+        {   
+            warningTextToken?.Cancel();
+            warningTextToken = new();
+
+            PotionWarningTextPopup("이 조합으로는 만들 수 없습니다.",
+                warningTextToken.Token).Forget();
+
+            Debug.Log("이 조합으로는 만들 수 없습니다.");
+            
+            Clear(); 
         }
     }
 
@@ -117,9 +162,9 @@ public class CombinationController : ItemInventory
     {
         leftFull = false;
         rightFull = false;
-        leftSlot.Clear();
-        rightSlot.Clear();
-        resultSlot.Clear();
+        leftSlot.Clear(defaultImage);
+        rightSlot.Clear(defaultImage);
+        resultSlot.Clear(defaultImage);
     }
 
     public void PotionCraftBtnCallback(CallbackContext ev)
@@ -134,32 +179,59 @@ public class CombinationController : ItemInventory
         PotionCombination(leftSlot.id, rightSlot.id).Forget();
     }
 
-    public async UniTask PotionCombination(int leftId, int rightId,bool type = false)
+    public async UniTask PotionWarningTextPopup(string text, CancellationToken token)
     {
-        PotionInstance potion;
+        // 시작할 때 초기화 (이전 팝업이 어디서 멈췄든 상관없게)
+        WarningText.rectTransform.DOKill();
+        WarningText.DOKill();
+        WarningText.alpha = 1;
+        WarningText.rectTransform.localScale = Vector3.one;
+        WarningText.rectTransform.anchoredPosition = Vector2.zero;
 
-        if (!type)
-            potion = PotionCrafter.CraftFromMaterials(leftId, rightId);
+        WarningText.gameObject.SetActive(true);
+        WarningText.SetText(text);
+
+        Sequence seq = DOTween.Sequence()
+            .Append(WarningText.rectTransform.DOPunchScale(new(-0.4f, -0.4f, -0.4f), 0.07f))
+            .Append(WarningText.rectTransform.DOAnchorPosY(50, 0.25f))
+            .Append(WarningText.DOFade(0, 1f))
+            .SetUpdate(true)
+            .SetLink(WarningText.gameObject);
+
+        bool canceled = await seq.ToUniTask(cancellationToken: token).SuppressCancellationThrow();
+
+        if (!canceled) WarningText.gameObject.SetActive(false);
+    }
+
+    public async UniTask PotionCombination(int leftId, int rightId)
+    {
+        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync( 
+            new()
+            {
+                InstanceId = leftSlot.instanceId,
+                MaterialId = leftId,
+                Source = publicInvenCRef
+            },
+            new()
+            {
+                InstanceId = rightSlot.instanceId,
+                MaterialId = rightId,
+                Source = publicInvenCRef
+            }
+        );
+
+        if (result.Success)
+            Debug.Log($"[Craft] 포션 제작 성공 - {result.Outcome.Potion.Data.potionName}");
         else
-            potion = PotionCrafter.CraftFromPotion(leftId, rightId);
+            Debug.Log($"[Craft] 포션 제작 실패 - {result.Reason}");
 
-        if(potion == null)
-        {
-            Debug.Log("[Craft] 포션 제작 불가, 레피시 없음");
-            return;
-        }
-
-        if (leftSlot.instanceId == 0 && leftSlot.instanceId == 0)
-        {
-            /*await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(leftSlot.id, 1);
-            await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(rightSlot.id, 1);*/
-        }
-        else
-        {
-            // 포션 Remove 부재, 생길 때 다시 작성
-        }
         Clear();
-
+    }
+    #endregion
+    private void OnDestroy()
+    {
+        warningTextToken?.Cancel();
+        warningTextToken?.Dispose();
     }
 }
 
