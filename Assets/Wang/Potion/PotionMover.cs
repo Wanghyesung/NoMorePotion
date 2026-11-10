@@ -170,10 +170,14 @@ public class PotionMover : MonoBehaviour
             main.startColor = color;
 
             particle.Play(true);
+            // 토큰은 파티클 것을 사용: 포션(this)은 바로 Destroy되므로 destroyCancellationToken을 쓰면 반납 예약도 같이 취소됨
             TimeManager.Instance.Schedule(1.0f, () =>
             {
+                if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
+                    return;
+
                 PoolManager.Instance.Release(particleObj);
-            });
+            }, PoolManager.GetReleaseToken(particleObj));
         }
 
         ExplodeAt(hitPoint);

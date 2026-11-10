@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -8,6 +9,10 @@ using UnityEngine.Pool;
 ///   꺼내기: PoolManager.Instance.Get(prefab, 위치, 회전)       // Instantiate 대신
 ///   반납:   PoolManager.Instance.Release(gameObject)            // Destroy 대신
 ///   미리:   PoolManager.Instance.Prewarm(prefab, 개수)
+///   반납 토큰: PoolManager.GetReleaseToken(gameObject)          // 반납·파괴 시 취소됨
+///     예약·UniTask에 넘기면 반납될 때 같이 취소 (풀 오브젝트는 destroyCancellationToken 대신 이걸)
+///     TimeManager.Instance.Schedule(5f, () => { ... }, PoolManager.GetReleaseToken(gameObject));
+///     UniTask.Delay(..., cancellationToken: PoolManager.GetReleaseToken(gameObject));
 /// - 프리팹에 아무것도 붙일 필요 없음
 /// - 재사용 시 Start/Awake는 다시 안 불림 → 초기화는 IPoolable.OnGetFromPool에서
 /// </summary>
@@ -102,6 +107,19 @@ public class PoolManager : MonoBehaviour
         target.SetActive(false);
         target.transform.SetParent(storage, false);
         pool.Release(pooled);
+    }
+
+    /// <summary>
+    /// 이번 사용분이 끝나면(반납·파괴) 취소되는 토큰. 풀 오브젝트의 예약·UniTask를 반납과 같이 끊을 때 사용
+    /// (destroyCancellationToken은 파괴될 때만 취소 → 반납돼도 안 끊김)
+    /// 풀 출신이 아니면 None (취소되지 않음), 보관 중이면 이미 취소된 토큰
+    /// </summary>
+    public static CancellationToken GetReleaseToken(GameObject target)
+    {
+        if (target != null && target.TryGetComponent(out PooledObject pooled))
+            return pooled.ReleaseToken;
+
+        return CancellationToken.None;
     }
 
     /// <summary>

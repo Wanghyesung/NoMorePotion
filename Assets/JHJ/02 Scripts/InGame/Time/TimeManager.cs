@@ -1,5 +1,6 @@
 using R3;
 using System;
+using System.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -23,6 +24,11 @@ using UnityEngine;
 ///   TimeManager.Instance.Schedule(5f, () => { ... }).AddTo(this);
 ///   게임 시간(TotalElapsed) 기준, 시계가 도는 동안 판정 권한(GameAuthority)이 있을 때만 실행
 ///   시계가 멈추면 남은 시간도 멈춤. 내 화면 연출용 대기는 UniTask.Delay 사용
+///   취소 토큰을 넘기면 토큰이 취소될 때 예약도 취소됨 (선택)
+///     TimeManager.Instance.Schedule(5f, () => { ... }, destroyCancellationToken);                 // 파괴 시 취소
+///     TimeManager.Instance.Schedule(5f, () => { ... }, PoolManager.GetReleaseToken(gameObject));  // 풀 오브젝트: 반납·파괴 시 취소
+///   [풀 오브젝트 주의] AddTo(this)·destroyCancellationToken은 파괴될 때만 취소됨
+///     → 반납돼도 예약이 살아 있으므로 풀 오브젝트는 GetReleaseToken 사용
 ///
 /// [시작·정지] StartClock() / StopClock(). 인게임에서는 GameSessionManager가 호출
 ///   TimeManager는 세션을 모름 → 세션 없는 씬에서도 직접 호출해 단독 테스트 가능
@@ -147,6 +153,16 @@ public class TimeManager : MonoBehaviour
     public IDisposable Schedule(float delay, Action callback)
     {
         return timer.Schedule(TotalElapsed, delay, callback);
+    }
+
+    /// <summary>
+    /// Schedule과 같고, cancellationToken이 취소되면 예약도 취소된다.
+    /// 일반 오브젝트: destroyCancellationToken (파괴 시 취소)
+    /// 풀 오브젝트:  PoolManager.GetReleaseToken(gameObject) (반납·파괴 시 취소)
+    /// </summary>
+    public IDisposable Schedule(float delay, Action callback, CancellationToken cancellationToken)
+    {
+        return timer.Schedule(TotalElapsed, delay, callback, cancellationToken);
     }
 
     private void Tick(float deltaTime)

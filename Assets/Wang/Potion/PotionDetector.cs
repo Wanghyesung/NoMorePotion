@@ -64,14 +64,21 @@ public sealed class PotionDetector : MonoBehaviour
 
         #endregion
 
-        if (attackOnce)
-            lifetime += MaxAttackCount;
+        // 풀 재사용 시 이전 사용분 값이 남아 있으므로 초기화
+        AttackCount = 0;
 
-        //이거 PoolManager가 먼저 사라지면 터짐
-        TimeManager.Instance.Schedule(lifetime, () =>
+        // lifetime(직렬화 필드)에 직접 더하면 재사용할 때마다 누적됨 → 지역 변수로 계산
+        // 반복 공격이면 공격이 다 끝날 때까지 살아 있어야 하므로 공격 시간(횟수 × 간격)만큼 더함
+        float releaseDelay = attackOnce ? lifetime : lifetime + MaxAttackCount * nextAttackDelay;
+
+        // 반납 토큰: 먼저 반납되거나 파괴되면 예약 취소 → 재사용 중인 오브젝트를 옛 예약이 반납하지 않음
+        TimeManager.Instance.Schedule(releaseDelay, () =>
         {
+            if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
+                return;
+
             PoolManager.Instance.Release(gameObject);
-        });
+        }, PoolManager.GetReleaseToken(gameObject));
 
         TryAttack();
     }
@@ -96,7 +103,12 @@ public sealed class PotionDetector : MonoBehaviour
 
     private async UniTaskVoid WaitNextAttackAsync()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(nextAttackDelay));
+        // 오브젝트가 꺼져도 UniTask는 멈추지 않음 → 반납 토큰으로 반납·파괴 시 반복 공격 중단
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(nextAttackDelay),
+                cancellationToken: PoolManager.GetReleaseToken(gameObject))
+            .SuppressCancellationThrow();
+        if (cancelled)
+            return;
 
         TryAttack();
     }
