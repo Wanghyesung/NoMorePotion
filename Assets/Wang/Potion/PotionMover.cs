@@ -1,5 +1,7 @@
 ﻿using Enzeun.Runtime;
 using Enzeun.SO;
+using Sirenix.OdinInspector;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /*///////////////////////////////////////////
@@ -23,9 +25,21 @@ public class PotionMover : MonoBehaviour
 
     [SerializeField] private LayerMask mask;
     [SerializeField] private GameObject impactPrefab;
-    [SerializeField] private Renderer potionRenderer;
 
     [SerializeField, Min(0f)] private float impactLifetime = 5f;
+
+    [SerializeField, BoxGroup("포션 연결"), LabelText("포션 메시 (소)")]
+    private GameObject potionMesh_S;
+    [SerializeField, BoxGroup("포션 연결"), LabelText("포션 메시 (중)")]
+    private GameObject potionMesh_M;
+    [SerializeField, BoxGroup("포션 연결"), LabelText("포션 메시 (대)")]
+    private GameObject potionMesh_L;
+    [SerializeField, BoxGroup("포션 연결"), LabelText("액체 (소)")]
+    private Renderer potionRenderer_S;
+    [SerializeField, BoxGroup("포션 연결"), LabelText("액체 (중)")]
+    private Renderer potionRenderer_M;
+    [SerializeField, BoxGroup("포션 연결"), LabelText("액체 (대)")]
+    private Renderer potionRenderer_L;
 
 
     public void InitializePotionMover()
@@ -45,7 +59,7 @@ public class PotionMover : MonoBehaviour
         }
 
 #if UNITY_EDITOR
-        if (potionRenderer == null || impactPrefab == null)
+        if (potionRenderer_S == null || impactPrefab == null)
         {
             Debug.LogWarning("포션 렌더러 , 파티클이 연결되지 않았습니다. 포션 색상 변경이 적용되지 않습니다.", this);
         }
@@ -59,7 +73,28 @@ public class PotionMover : MonoBehaviour
         HasExploded = false;
         canExplodeOnContact = false;
         movement.OnHitAction += HandleImpact;
-        potionRenderer.material.color = Data != null ? Data.potionColor : Color.white;
+        InitMeshAndColor();
+    }
+
+    public void InitMeshAndColor()
+    {
+        var p = Data.potionSize;
+        switch (p)
+        {
+            case PotionSize.Small:
+                potionRenderer_S.material.color = Data != null ? Data.potionColor : Color.white;
+                potionMesh_S.SetActive(true);
+                break;
+            case PotionSize.Medium:
+                potionRenderer_M.material.color = Data != null ? Data.potionColor : Color.white;
+                potionMesh_M.SetActive(true);
+                break;
+            case PotionSize.Large:
+                potionRenderer_L.material.color = Data != null ? Data.potionColor : Color.white;
+                potionMesh_L.SetActive(true);
+                break;
+        }
+
     }
 
     private void OnDisable()
