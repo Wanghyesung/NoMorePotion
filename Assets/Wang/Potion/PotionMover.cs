@@ -1,6 +1,7 @@
 ﻿using Enzeun.Runtime;
 using Enzeun.SO;
 using ExitGames.Client.Photon.StructWrapping;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /*///////////////////////////////////////////
@@ -9,55 +10,63 @@ using UnityEngine;
  *///////////////////////////////////////////
 
 [RequireComponent(typeof(ParabolicMovement))]
-public class TestPotion : MonoBehaviour
+public class PotionMover : MonoBehaviour
 {
+    [SerializeField]
     private ParabolicMovement movement;
-    [SerializeField] private PotionData data;
-    public PotionData Data => data;
-    public PotionInstance Instance { get; private set; }
+
+    [SerializeField]
+    private Potion potion;
+
+    public PotionData Data => potion.Data;
+    public PotionInstance PotionInstance => potion.Instance;
     public bool HasExploded { get; private set; }
     private bool canExplodeOnContact;
+
     [SerializeField] private LayerMask mask;
-    [SerializeField] private PotionDetector attackObjectPrefab;   //실제 범위 탐지 주체
     [SerializeField] private GameObject impactPrefab;
     [SerializeField] private Renderer potionRenderer;
 
     [SerializeField, Min(0f)] private float impactLifetime = 5f;
-    private void Awake()
+
+
+    public void InitializePotionMover()
     {
-        if(potionRenderer == null || impactPrefab == null)
+        if (potion == null)
         {
-#if UNITY_EDITOR
-            Debug.LogWarning("포션 렌더러 , 파티클이 연결되지 않았습니다. 포션 색상 변경이 적용되지 않습니다.", this);
-#endif
+            Debug.LogError("[TestPotion] : Potion 정보가 들어오지 않았습니다. Critical Error 입니다.");
+            Destroy(gameObject);
+            return;
         }
-        movement = GetComponent<ParabolicMovement>();
-        // 기존 프리팹의 Potion에 연결된 데이터를 유지한다.
-        if (data == null && TryGetComponent(out Enzeun.Runtime.Potion legacyPotion) == true)
-            data = legacyPotion.Data;
+
+        if (potion.Data == null)
+        {
+            Debug.LogError("[TestPotion] : Potion.Data 정보가 들어오지 않았습니다. Critical Error 입니다.");
+            Destroy(gameObject);
+            return;
+        }
+
+#if UNITY_EDITOR
+        if (potionRenderer == null || impactPrefab == null)
+        {
+            Debug.LogWarning("포션 렌더러 , 파티클이 연결되지 않았습니다. 포션 색상 변경이 적용되지 않습니다.", this);
+        }
+#endif
+
+        if (movement == null)
+        {
+            movement = GetComponent<ParabolicMovement>();
+        }
+
+        HasExploded = false;
+        canExplodeOnContact = false;
+        movement.OnHitAction += HandleImpact;
+        potionRenderer.material.color = Data != null ? Data.potionColor : Color.white;
     }
 
-    private void OnEnable()
-    {
-        movement.OnHitAction += HandleImpact;
-        potionRenderer.material.color = data != null ? data.potionColor : Color.white;
-    }
     private void OnDisable()
     {
         movement.OnHitAction -= HandleImpact;
-    }
-
-    public void Initialize(PotionData potionData)
-    {
-        Initialize(new PotionInstance(potionData));
-    }
-
-    public void Initialize(PotionInstance instance)
-    {
-        Instance = instance;
-        data = instance != null ? instance.Data : null;
-        HasExploded = false;
-        canExplodeOnContact = false;
     }
 
     // 손에 보관하는 동안에는 비행과 충돌 검사를 실행하지 않는다.
@@ -90,19 +99,13 @@ public class TestPotion : MonoBehaviour
         movement.enabled = false;
 
 
-        if (data.explosionPrefab != null)
+        if (Data.explosionPrefab != null)
         {
-            GameObject explosion = PoolManager.Instance.Get(data.explosionPrefab, position, Quaternion.identity);
-            explosion.GetComponent<PotionDetector>()?.Initialize(Instance ?? new PotionInstance(data));
+            var explosion = PoolManager.Instance.Get(Data.explosionPrefab, position, Quaternion.identity);
+            explosion.GetComponent<PotionDetector>()?.Initialize(PotionInstance);
 
         }
-        //Tem
-        else if (attackObjectPrefab != null)
-        {
-            PotionDetector detector = Instantiate(attackObjectPrefab, position, Quaternion.identity);
-            detector.Initialize(Instance ?? new PotionInstance(data));
-        }
-      
+
         Destroy(gameObject);
     }
 
@@ -123,7 +126,7 @@ public class TestPotion : MonoBehaviour
             var particle = particleObj.GetComponent<ParticleSystem>();
 
             particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            Color color = data != null ? data.potionColor : Color.white;
+            Color color = Data != null ? Data.potionColor : Color.white;
             var main = particle.main;
             main.startColor = color;
 

@@ -33,7 +33,7 @@ public sealed class PlayerThrowState : PlayerState
     private bool isAiming;
     public bool IsAiming => isAiming;
     private bool isThrowing;
-    private TestPotion throwingPotion;
+    private PotionMover throwingPotion;
     private Hand.Side throwingSide;
     private ThrowData throwData;
     private bool hasThrown;
@@ -62,7 +62,7 @@ public sealed class PlayerThrowState : PlayerState
 
         Instance.AimAction.performed += RequestAim;
         Instance.AimAction.canceled += CancelAim;
-        
+
     }
 
     public override void Dispose()
@@ -151,7 +151,7 @@ public sealed class PlayerThrowState : PlayerState
 
         return true;
     }
-        
+
     public override void Enter()
     {
         base.Enter();

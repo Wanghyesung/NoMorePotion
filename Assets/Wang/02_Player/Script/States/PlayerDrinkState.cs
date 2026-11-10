@@ -12,7 +12,7 @@ public sealed class PlayerDrinkState : PlayerState
     private readonly AnimationClip rightClip;
     private AnimationEvent[] rightClipEvents;
     private Hand.Side drinkingSide;
-    private TestPotion drinkingPotion;
+    private PotionMover drinkingPotion;
 
     public PlayerDrinkState(FSM owner, SODrinkState data) : base(owner, data)
     {
@@ -33,7 +33,7 @@ public sealed class PlayerDrinkState : PlayerState
 
     private void RegisterClipEvents(AnimationClip targetClip, AnimationEvent[] events)
     {
-       
+
         if (events.Length > 0)
             animEvent.RegisterFrame(targetClip, events[0], DrinkPotion);
         if (events.Length > 1)
@@ -84,7 +84,7 @@ public sealed class PlayerDrinkState : PlayerState
 
     private void DrinkPotion(AnimationEvent animationEvent)
     {
-        if ( drinkingPotion == null || hand.GetPotion(drinkingSide) != drinkingPotion)
+        if (drinkingPotion == null || hand.GetPotion(drinkingSide) != drinkingPotion)
             return;
 
         hand.Drink(drinkingSide);

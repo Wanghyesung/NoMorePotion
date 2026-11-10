@@ -18,17 +18,17 @@ public sealed class Hand : MonoBehaviour
     [SerializeField] private Transform leftSocket;
     [SerializeField] private Transform rightSocket;
 
-    private TestPotion leftPotion;
-    private TestPotion rightPotion;
-    [SerializeField] private TestPotion itemPrefab;
+    private PotionMover leftPotion;
+    private PotionMover rightPotion;
+    [SerializeField] private PotionMover itemPrefab;
     //[SerializeField] private Inventory inventory = new Inventory();
-    [SerializeField] private UnityEvent<TestPotion> OnDrink = new UnityEvent<TestPotion>();
+    [SerializeField] private UnityEvent<PotionMover> OnDrink = new UnityEvent<PotionMover>();
 
     public Side FocusedSide => focusedSide;
     public void Focus(Side side) => focusedSide = side;
     public event Action OnPotionHeld;
-    public TestPotion FocusedPotion => GetPotion(focusedSide);
-    public TestPotion OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);
+    public PotionMover FocusedPotion => GetPotion(focusedSide);
+    public PotionMover OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);
     public bool IsBothHandsEmpty => leftPotion == null && rightPotion == null;
     public Side TakeSide => FocusedPotion == null
         ? focusedSide : (focusedSide == Side.Left ? Side.Right : Side.Left);
@@ -69,7 +69,7 @@ public sealed class Hand : MonoBehaviour
     private void SwitchFocus(InputAction.CallbackContext context) =>
         focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
 
-    public bool Hold(Side side, TestPotion potion)
+    public bool Hold(Side side, PotionMover potion)
     {
         if (GetPotion(side) != null)
             return false;
@@ -94,7 +94,7 @@ public sealed class Hand : MonoBehaviour
 
     public void Throw(Side side, ThrowData throwData)
     {
-        TestPotion potion = GetPotion(side);
+        PotionMover potion = GetPotion(side);
         if (potion == null)
             return;
 
@@ -105,7 +105,7 @@ public sealed class Hand : MonoBehaviour
 
     public void Drink(Side side)
     {
-        TestPotion potion = GetPotion(side);
+        PotionMover potion = GetPotion(side);
         if (potion == null)
             return;
 
@@ -116,8 +116,8 @@ public sealed class Hand : MonoBehaviour
 
     public void Drink() => Drink(focusedSide);
 
-    public TestPotion GetPotion(Side side) => side == Side.Left ? leftPotion : rightPotion;
-    private void SetPotion(Side side, TestPotion potion)
+    public PotionMover GetPotion(Side side) => side == Side.Left ? leftPotion : rightPotion;
+    private void SetPotion(Side side, PotionMover potion)
     {
         if (side == Side.Left)
             leftPotion = potion;

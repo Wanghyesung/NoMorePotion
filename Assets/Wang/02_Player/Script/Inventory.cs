@@ -8,9 +8,9 @@ using UnityEngine;
 [System.Serializable]
 public sealed class Inventory
 {
-    [SerializeField] private TestPotion itemPrefab;
+    [SerializeField] private PotionMover itemPrefab;
 
-    public TestPotion GetItem()
+    public PotionMover GetItem()
     {
         return Object.Instantiate(itemPrefab);
     }
