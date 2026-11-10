@@ -21,7 +21,7 @@ public class MonsterChaseTrigger : MonoBehaviour
         if (mover.nowTarget != null || players.Count == 0) return;
 
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
-        mover.nowTarget = PickTarget();
+        mover.SetTarget(PickTarget());
     }
 
     private void OnTriggerEnter(Collider other)
@@ -39,11 +39,13 @@ public class MonsterChaseTrigger : MonoBehaviour
         // 죽었거나 비활성화된 플레이어 먼저 정리
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
 
+        // 도발 중엔 타겟 유지
+        if (mover.IsProvoked) return;  
         // 현재 타겟이 아직 범위 안에 살아있으면 유지
         if (mover.nowTarget != null && players.Contains(mover.nowTarget)) return;
 
         // 타겟이 나갔거나 죽었으면 재선정 없으면 해제
-        mover.nowTarget = PickTarget();
+        mover.SetTarget(PickTarget());
     }
 
     // 재추적 쿨다운 중인 플레이어는 제외하고 무작위 선택

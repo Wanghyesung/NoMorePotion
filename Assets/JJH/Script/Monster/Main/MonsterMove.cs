@@ -40,7 +40,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
     [Header("인스펙터")]
     public GameObject nowTarget;
-    
+
+    [Header("피격 어그로")]
+    [SF] private float provokeDuration = 5f;
+    private float provokedUntil;
+
     [HIn] public StateMachine state;
     [HIn] public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
@@ -50,6 +54,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
     public Dictionary<MonsterState, IMonsterState> stateGroup;
     private CancellationTokenSource aiCts;
+    public bool IsProvoked => Time.time < provokedUntil;
+    public float ProvokeDuration => provokeDuration;
+
     private void Awake()
     {
         if(agent == null)
@@ -81,12 +88,6 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private void Start()
     {
         RegisterStates();
-/*
-        // 이후 캐릭터 스폰 + 이동속도 받을 시 스폰으로 작동 위치 변경
-        if (runSpeed == 0)
-            StartAI(3.8f).Forget();
-        else 
-            StartAI(runSpeed).Forget();*/
     }
 
     private void Update()
@@ -101,6 +102,28 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         StopAI();
     }
 
+    /// <summary>
+    /// 몬스터의 타겟 변경 함수
+    /// </summary>
+    /// <param name="target">타겟 Object</param>
+    public void SetTarget(GameObject target)
+    {
+        if (nowTarget == target) return;
+        nowTarget = target;
+    }
+
+    
+    /// <summary>
+    /// 피격 시 공격자를 거리 제한 없이 일정 시간 추적
+    /// </summary>
+    /// <param name="attacker">공격자 Object</param>
+    public virtual void Provoke(GameObject attacker)
+    {
+        if (attacker == null || !CanAcquireTarget(attacker)) return;
+
+        SetTarget(attacker);
+        provokedUntil = Time.time + provokeDuration;   // 맞을 때마다 연장
+    }
 
     /// <summary>
     /// 자식 클래스가 전용 상태(FSM)를 추가할 때 override
@@ -158,6 +181,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     public async UniTask StartAI(float speed, MonsterCombat combat)
     {
+
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
@@ -166,10 +190,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         this.combat = combat;
         // 이전 풀 정보 초기화
         state = new();
-        nowTarget = null;
+        SetTarget(null);
         IsAnimation = false;
         patrolTimer = attackTimer = 0;
         patrolTimerActive = false;
+        provokedUntil = 0;
 
         SetMoveSpeed(speed);
         agent.speed = walkSpeed;
@@ -190,10 +215,13 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         //스폰 중엔 판단 정지
         if (state.GetStateType() == MonsterState.Spawn) return null;
 
-        // 도달 불가 상태가 유예 시간을 넘기면 추적 해제
+        // 도달 불가 상태가 유예 시간을 넘기면 추적 해제, 도발 추적 불가시 도발도 종료 
         if (nowTarget != null &&
             reachability.ShouldDrop(transform.position, nowTarget, FSM_TIMER / MIL_SEC_F))
-            nowTarget = null;
+        {
+            provokedUntil = 0;
+            SetTarget(null);
+        }
 
         if (nowTarget == null)
         {
@@ -225,7 +253,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
 
         // 공격 범위 밖이지만 감지 범위 안
-        else if (distance <= chaseCollider.radius)
+        else if (distance <= chaseCollider.radius || IsProvoked)
         {
             result = stateGroup[MonsterState.Chase];
             nowState = MonsterState.Chase;

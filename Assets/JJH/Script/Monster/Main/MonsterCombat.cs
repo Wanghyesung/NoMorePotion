@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 using static CommonStruct;
+using static JJH_Constants;
 using static JJH_Enums;
 
 using SF = UnityEngine.SerializeField;
@@ -194,6 +196,13 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         return statusEffect;
     }
 
+    private void TryProvoke(AttackInfo info)
+    {
+        if (data == null || data.HP <= 0) return;   // 이번 공격으로 죽었으면 무시
+        if (info.Source == null || !info.Source.CompareTag(PLAYER_TAG)) return;
+
+        mover.Provoke(info.Source);
+    }
     #endregion
 
     #region 전투 애니메이션 용
@@ -252,16 +261,19 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     public void TakeDamage(AttackInfo attackInfo)
     {
         HPChange(CalcFinalDamage(attackInfo.Damage, null));
+        TryProvoke(attackInfo);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
         HPChange(CalcFinalDamage(attackInfo.Damage, attacker?.DamageType));
+        TryProvoke(attackInfo);
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
         HPChange(attackInfo.Damage);
+        TryProvoke(attackInfo);
     }
 
     public void Heal(int amount)

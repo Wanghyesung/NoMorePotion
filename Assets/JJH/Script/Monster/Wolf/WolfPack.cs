@@ -15,6 +15,8 @@ public enum PackPhase
 
 public class WolfPack : MonoBehaviour
 {
+    #region 직렬화
+
     [Header("늑대 데이터")]
     [SF] private WolfMove alpha;
     [SF] public int alphaId;
@@ -41,6 +43,7 @@ public class WolfPack : MonoBehaviour
     [Header("타겟 관련 값")]
     [SF] private float loseDistance = 15f;      // 전원이 이 거리 밖이면 타겟 해제
     [SF] private ReachabilityTracker reachability = new();
+
     public PackPhase Phase { get; private set; } = PackPhase.Patrol;
     public GameObject Target { get; private set; }
     public WolfMove Alpha => alpha;
@@ -52,6 +55,9 @@ public class WolfPack : MonoBehaviour
     [SF] private float cooldownReduce = 0.25f; 
     [SF] private float minCooldownRate = 0.4f;
 
+    #endregion
+
+    #region 필드 변수
     private readonly List<WolfMove> members = new();
     private readonly List<WolfMove> alive = new();
     private float phaseTimer;
@@ -59,6 +65,9 @@ public class WolfPack : MonoBehaviour
     private int startNormalWolfCount;
     private WolfCombat alphaCombat;
     private bool engaged;
+    private float provokedUntil;
+    public bool IsProvoked => Time.time < provokedUntil;
+    #endregion
 
     private void Awake()
     {
@@ -118,7 +127,17 @@ public class WolfPack : MonoBehaviour
     }
     
 
+    /// <summary>
+    /// 타겟 체크
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
     public bool CanAcquire(GameObject target) => reachability.CanAcquire(target);
+
+    /// <summary>
+    /// 울프팩의 내부 페이즈 전환 함수
+    /// </summary>
+    /// <param name="next"></param>
     private void ChangePhase(PackPhase next)
     {
         Phase = next;
@@ -139,6 +158,20 @@ public class WolfPack : MonoBehaviour
     }
 
     #region 외부 호출
+    /// <summary>
+    /// 도발(공격당함) 시 호출하는 함수
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="duration"></param>
+    public void Provoke(GameObject attacker, float duration)
+    {
+        if (attacker == null || !reachability.CanAcquire(attacker)) return;
+
+        // 이미 다른 대상과 싸우는 중이면 무리의 집중을 유지
+        if (Target == null) Target = attacker;
+        if (Target == attacker) provokedUntil = Time.time + duration;
+    }
+
     /// <summary>
     /// WolfCombat Pound 애니메이션 이벤트 종료 호출 함수
     /// </summary>
@@ -173,6 +206,7 @@ public class WolfPack : MonoBehaviour
     #endregion
 
     #region 내부
+
     /// <summary>
     /// 생존한 늑대 갱신
     /// </summary>
@@ -193,8 +227,9 @@ public class WolfPack : MonoBehaviour
             reachability.ShouldDrop(alpha.transform.position, Target, Time.deltaTime)))
         {
             Target = null;
+            provokedUntil = 0;
             foreach (WolfMove m in alive)
-                m.nowTarget = null;
+                m.SetTarget(null);
         }
 
         // 쿨다운 중인 타겟은 제외
@@ -212,17 +247,18 @@ public class WolfPack : MonoBehaviour
         }
 
         foreach (WolfMove m in alive)
-            m.nowTarget = Target;
+            m.SetTarget(Target);
     }
 
     /// <summary>
-    /// 
+    /// 타겟 유효성 체크
     /// </summary>
     /// <param name="target"></param>
     /// <returns></returns>
     private bool IsTargetValid(GameObject target)
     {
         if (target == null || !target.activeInHierarchy) return false;
+        if (IsProvoked) return true;   // 도발 중엔 loseDistance 무시
 
         float sqr = loseDistance * loseDistance;
         foreach (WolfMove m in alive)
