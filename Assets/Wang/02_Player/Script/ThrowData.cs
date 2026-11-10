@@ -15,10 +15,13 @@ public readonly struct ThrowData
     public Vector3 Velocity { get; }
     public Vector3 Gravity { get; }
     public float FlightTime { get; }
+    public bool StopAtTarget { get; }
     #endregion
 
     // origin/target: 월드 위치, gravity: 중력 가속도, arcHeight: 두 위치 중 높은 곳 위의 정점 높이
-    public ThrowData(Vector3 origin, Vector3 target, Vector3 gravity, float arcHeight)
+    // stopAtTarget: 실제 표면이면 도착 시 정지, 가상 목표이면 통과 후 계속 낙하
+    public ThrowData(Vector3 origin, Vector3 target, Vector3 gravity,
+        float arcHeight, bool stopAtTarget = true)
     {
         
         float acceleration = gravity.magnitude;
@@ -26,6 +29,7 @@ public readonly struct ThrowData
         Target = target;
         ArcHeight = arcHeight;
         Gravity = gravity;
+        StopAtTarget = stopAtTarget;
 
         float targetHeight = Vector3.Dot(target - origin, -gravity / acceleration);
         float peakHeight = Mathf.Max(0f, targetHeight) + arcHeight;
@@ -44,5 +48,5 @@ public readonly struct ThrowData
     }
 
     // origin: 실제 손에서 분리되는 순간의 월드 출발 위치
-    public ThrowData WithOrigin(Vector3 origin) => new ThrowData(origin, Target, Gravity, ArcHeight);
+    public ThrowData WithOrigin(Vector3 origin) => new ThrowData(origin, Target, Gravity, ArcHeight, StopAtTarget);
 }

@@ -22,28 +22,37 @@ public sealed class CameraManager : CinemachineExtension
 
     private Quaternion rotationOffset = Quaternion.identity;
     private Vector3 rotationAngles;
+    private Vector3 initialFollowOffset;
+    private Quaternion initialRotationOffset;
 
     protected override void Awake()
     {
         base.Awake();
+        // 씬에서 맞춘 구도는 플레이어 프리팹의 스케일과 관계없이 유지한다.
+        initialFollowOffset = cameraFollow.FollowOffset;
+        // 시작 기울기만 보존하고 좌우 방향은 마우스로 회전하는 Player 루트를 따른다.
+        initialRotationOffset = Quaternion.Euler(targetCamera.transform.eulerAngles.x, 0f, 0f);
         cameraFollow.TrackerSettings.BindingMode = BindingMode.LockToTarget;
     }
 
     public void SetPlayer(Player player)
     {
-        if (player == null || player.CameraPosition == null)
+        if (player == null)
         {
-            Debug.LogWarning("카메라를 연결할 Player와 Camera Position이 필요합니다.", this);
+            Debug.LogWarning("카메라를 연결할 Player가 필요합니다.", this);
             return;
         }
 
+        // View는 이동키에 따라 따로 회전하므로 카메라 추적 기준으로 사용하지 않는다.
         baseTarget = player.transform;
         targetCamera.Follow = baseTarget;
-        cameraFollow.FollowOffset = GetOffset(player.CameraPosition);
-        rotationOffset = Quaternion.Inverse(baseTarget.rotation) * player.CameraPosition.rotation;
+        cameraFollow.FollowOffset = initialFollowOffset;
+        rotationOffset = initialRotationOffset;
         rotationAngles = rotationOffset.eulerAngles;
         rotationAngles.x = Mathf.Clamp(Mathf.DeltaAngle(0f, rotationAngles.x), -15f, 30f);
         rotationOffset = Quaternion.Euler(rotationAngles);
+        // 방 입장 대기 중 대상 없이 갱신된 Follow의 회전 이력을 새 플레이어 기준으로 초기화한다.
+        targetCamera.PreviousStateIsValid = false;
     }
 
     private void Update()
@@ -56,12 +65,6 @@ public sealed class CameraManager : CinemachineExtension
         rotationAngles.x = Mathf.Clamp(
             rotationAngles.x - input.InputInfo.Delta.y * pitchSensitivity, -15f, 30f);
         rotationOffset = Quaternion.Euler(rotationAngles);
-    }
-
-    private Vector3 GetOffset(Transform point)
-    {
-        // LockToTarget의 회전 기준으로 변환하며 Transform 스케일은 적용하지 않음
-        return Quaternion.Inverse(baseTarget.rotation) * (point.position - baseTarget.position);
     }
 
     protected override void PostPipelineStageCallback(

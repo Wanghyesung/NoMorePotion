@@ -51,10 +51,7 @@ public sealed class Hand : MonoBehaviour
         if (GetPotion(side) != null)
             return false;
 
-        potion.Hold(transform);
-        potion.transform.SetParent(side == Side.Left ? leftSocket : rightSocket, true);
-        potion.transform.localPosition = Vector3.zero;
-        potion.transform.localRotation = Quaternion.identity;
+        potion.Hold(side == Side.Left ? leftSocket : rightSocket);
         SetPotion(side, potion);
         OnPotionHeld?.Invoke();
         return true;

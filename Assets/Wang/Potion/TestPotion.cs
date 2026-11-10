@@ -1,4 +1,4 @@
-using Enzeun.Runtime;
+﻿using Enzeun.Runtime;
 using Enzeun.SO;
 using ExitGames.Client.Photon.StructWrapping;
 using UnityEngine;
@@ -39,8 +39,14 @@ public class TestPotion : MonoBehaviour
 
     private void OnEnable()
     {
+        movement.OnHitAction += HandleImpact;
         potionRenderer.material.color = data != null ? data.potionColor : Color.white;
     }
+    private void OnDisable()
+    {
+        movement.OnHitAction -= HandleImpact;
+    }
+
     public void Initialize(PotionData potionData)
     {
         Initialize(new PotionInstance(potionData));
@@ -54,17 +60,17 @@ public class TestPotion : MonoBehaviour
         canExplodeOnContact = false;
     }
 
-    // 손에 보관하는 동안에는 Trigger에 닿아도 폭발하지 않는다.
-    public void Hold(Transform owner)
+    // 손에 보관하는 동안에는 비행과 충돌 검사를 실행하지 않는다.
+    public void Hold(Transform socket)
     {
         canExplodeOnContact = false;
-        movement.enabled = false;
+        movement.AttachTo(socket);
     }
 
     public void Throw(ThrowData data)
     {
         movement.enabled = true;
-        movement.Launch(data);
+        movement.Launch(data, mask);
         canExplodeOnContact = true;
     }
 
@@ -100,50 +106,31 @@ public class TestPotion : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void OnTriggerEnter(Collider other)
+    // hitPoint: SphereCast로 얻은 월드 충돌 위치
+    private void HandleImpact(Vector3 hitPoint)
     {
         if (canExplodeOnContact == false || HasExploded == true)
             return;
-       
-        int otherLayer = (1 << other.gameObject.layer);
 
-        if((otherLayer & mask) != 0)
+        canExplodeOnContact = false;
+        movement.enabled = false;
+
+        if (impactPrefab != null)
         {
-            Vector3 delta = transform.position - movement.PrePos;
-            float distance = delta.magnitude;
-            Vector3 hitPoint;
-
-            if (distance > 0.0001f && other.Raycast(new Ray(movement.PrePos, delta / distance), out RaycastHit hit, distance))
-                hitPoint = hit.point;
-            else
-                hitPoint = other.ClosestPoint(transform.position);
-
-            canExplodeOnContact = false;
-            movement.enabled = false;
-
-
-
-            if (impactPrefab != null)
+            GameObject particleObj =
+                PoolManager.Instance.Get(impactPrefab, hitPoint, Quaternion.identity);
+            var particle = particleObj.GetComponent<ParticleSystem>();
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            Color color = data != null ? data.potionColor : Color.white;
+            var main = particle.main;
+            main.startColor = color;
+            particle.Play(true);
+            TimeManager.Instance.Schedule(1.0f, () =>
             {
-                GameObject particleObj =
-                    PoolManager.Instance.Get(impactPrefab, hitPoint, Quaternion.identity);
-
-                var particle = particleObj.GetComponent<ParticleSystem>();
-                particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-                Color color = data != null ? data.potionColor : Color.white;
-                var main = particle.main;
-                main.startColor = color;
-
-                particle.Play(true);
-                TimeManager.Instance.Schedule(1.0f, () =>
-                {
-                    PoolManager.Instance.Release(particleObj);
-                });
-            }
-
-            ExplodeAt(hitPoint);
+                PoolManager.Instance.Release(particleObj);
+            });
         }
-    }
 
+        ExplodeAt(hitPoint);
+    }
 }

@@ -210,6 +210,14 @@ PrefabInstance:
       propertyPath: baseCameraPos
       value: 
       objectReference: {fileID: 5464015542803014104}
+    - target: {fileID: 5736813461094296647, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
+      propertyPath: FollowOffset.y
+      value: 2.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 5736813461094296647, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
+      propertyPath: FollowOffset.z
+      value: -2.17
+      objectReference: {fileID: 0}
     - target: {fileID: 7285515075027468607, guid: 050572d39077ae64fbaf9045894fb364, type: 3}
       propertyPath: m_LocalPosition.x
       value: -9.07745
@@ -2739,6 +2747,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 204095551428676914, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
+      propertyPath: sceneViewId
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 1594938396219596386, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
       propertyPath: m_Name
       value: MultiPlayer

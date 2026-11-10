@@ -899,8 +899,51 @@ MonoBehaviour:
   m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
   ShowLayerWeightsInspector: 1
   ShowParameterInspector: 1
-  m_SynchronizeParameters: []
-  m_SynchronizeLayers: []
+  m_SynchronizeParameters:
+  - Type: 9
+    SynchronizeType: 0
+    Name: Roll
+  - Type: 9
+    SynchronizeType: 0
+    Name: Jump
+  - Type: 9
+    SynchronizeType: 0
+    Name: Pick
+  - Type: 4
+    SynchronizeType: 0
+    Name: Walk
+  - Type: 9
+    SynchronizeType: 0
+    Name: TakeLeft
+  - Type: 9
+    SynchronizeType: 0
+    Name: TakeRight
+  - Type: 9
+    SynchronizeType: 0
+    Name: ThrowLeft
+  - Type: 9
+    SynchronizeType: 0
+    Name: ThrowRight
+  - Type: 1
+    SynchronizeType: 0
+    Name: BaseAnimationSpeed
+  - Type: 1
+    SynchronizeType: 0
+    Name: UpperBodyAnimationSpeed
+  - Type: 9
+    SynchronizeType: 0
+    Name: Hit
+  - Type: 9
+    SynchronizeType: 0
+    Name: DrinkLeft
+  - Type: 9
+    SynchronizeType: 0
+    Name: DrinkRight
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
+  - SynchronizeType: 0
+    LayerIndex: 1
 --- !u!1 &689109930490196916
 GameObject:
   m_ObjectHideFlags: 0
@@ -3403,7 +3446,8 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 64
-  maxAimDistance: 100
+  maxAimDistance: 300
+  fallbackDistance: 10
   minArcHeight: 0.01
   maxArcHeight: 0.5
   maxArcDistance: 10

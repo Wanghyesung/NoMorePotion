@@ -15,6 +15,7 @@ public sealed class ThrowAim : MonoBehaviour
     [SerializeField] private Camera aimCamera;
     [SerializeField] private LayerMask targetLayers;
     [SerializeField, Min(0.01f)] private float maxAimDistance = 100f;
+    [SerializeField, Min(0.01f)] private float fallbackDistance = 10f;
     #endregion
 
     #region ArcSettings
@@ -114,19 +115,17 @@ public sealed class ThrowAim : MonoBehaviour
             return false;
 
         Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        if (Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
-                QueryTriggerInteraction.Ignore) == false)
-        {
-            return false;
-        }
+        bool hitSurface = Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
+            QueryTriggerInteraction.Ignore);
+        Vector3 target = hitSurface == true ? hit.point : ray.GetPoint(fallbackDistance);
 
         // 수평 거리 0~maxArcDistance를 높이 minArcHeight~maxArcHeight로 변환
-        float distance = Vector3.ProjectOnPlane(hit.point - throwOrigin, Physics.gravity).magnitude;
+        float distance = Vector3.ProjectOnPlane(target - throwOrigin, Physics.gravity).magnitude;
         float ratio = Mathf.InverseLerp(0f, maxArcDistance, distance);
         float arcHeight = Mathf.Lerp(minArcHeight, maxArcHeight, ratio);
 
         // ThrowData(월드 출발 위치, 월드 목표 위치, 중력 가속도, 정점 높이)
-        data = new ThrowData(throwOrigin, hit.point, Physics.gravity, arcHeight);
+        data = new ThrowData(throwOrigin, target, Physics.gravity, arcHeight, hitSurface);
         return true;
     }
 
