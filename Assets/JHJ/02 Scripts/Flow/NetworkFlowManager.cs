@@ -10,8 +10,9 @@ using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using PhotonPlayer = Photon.Realtime.Player;
 using UnityEngine.SceneManagement;
+using ExitGames.Client.Photon;
 
-public class NetworkFlowManager : MonoBehaviourPunCallbacks
+public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     public static NetworkFlowManager Instance { get; private set; }
 
@@ -24,6 +25,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private RoomMatchService match;         // 방 목록·생성·입장·퀵매치 (Awake에서 생성)
     private NicknameService nicknameService;    // 닉네임 검증·저장·Photon 반영 (Awake에서 생성)
     private RoomSession room;               // 방 안의 플레이어·레디 관리 (Awake에서 생성)
+    private RoomChatService chat;           // 방 안 채팅 관리
+    private PhotonPlayer pendingNewMaster;  // 방장 변경 안내를 퇴장 안내 뒤에 띄우려고 잠시 보관
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
     private bool isLeavingToLobby;          // 멀티 인게임에서 나가는 중 (방 나가기 → 로비 입장까지)
 
@@ -39,6 +42,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     // 실제 값은 RoomSession이 가짐. UI는 기존처럼 매니저를 통해 구독
     public ReadOnlyReactiveProperty<IReadOnlyList<PhotonPlayer>> Players => room.Players;
     public ReadOnlyReactiveProperty<bool> CanStart => room.CanStart;
+    public IReadOnlyList<ChatMessage> ChatHistory => chat.History;
+    public Observable<ChatMessage> ChatReceived => chat.Received;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
 
@@ -81,6 +86,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         // 저장된 닉네임 불러오기 + PhotonNetwork.NickName 반영 (error 생성 이후에 만들어야 함)
         nicknameService = new NicknameService(RaiseError);
 
+        chat = new RoomChatService();
     }
 
     private void OnDestroy()
@@ -95,6 +101,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         match?.Dispose();
         nicknameService?.Dispose();
         room?.Dispose();
+        chat?.Dispose();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
@@ -304,6 +311,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         match.ClearRoomList();
         room.Clear();
         room.ResetReady();
+        chat.Clear();       // 방 안에서 끊기면 OnLeftRoom이 오지 않을 수 있으므로 여기서도 비움
+        pendingNewMaster = null;
 
         if (CurrentState == FlowState.LeavingGame) return;
 
@@ -403,8 +412,13 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        // 순서: 목록 먼저 → 상태. RoomPanel이 켜질 때 목록이 이미 채워져 있도록
+        // 순서: 목록·채팅 먼저 → 상태. RoomPanel이 켜질 때 목록·채팅이 이미 채워져 있도록
         room.Refresh();
+
+        // 이전 방 채팅이 남지 않도록 비우고 입장 안내
+        chat.Clear();
+        chat.AddSystem("방에 입장했습니다");
+
         SetState(FlowState.Room);
     }
 
@@ -471,6 +485,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     }
 
+    public void RequestSendChat(string text)
+    {
+        if(!RequireInRoom()) return;
+        chat.Send(text);
+    }
+
     #endregion
 
     #region Photon Callbacks
@@ -478,22 +498,37 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     public override void OnPlayerEnteredRoom(PhotonPlayer newPlayer)
     {
         room.Refresh();
+        chat.AddSystem($"{newPlayer.NickName}님이 입장했습니다");
     }
 
     public override void OnPlayerLeftRoom(PhotonPlayer otherPlayer)
     {
         room.Refresh();
+        chat.AddSystem($"{otherPlayer.NickName}님이 나갔습니다");
+
+        // 방장이 나간 경우: 미뤄 둔 방장 변경 안내를 퇴장 안내 뒤에 표시
+        if (pendingNewMaster != null)
+        {
+            chat.AddSystem($"{pendingNewMaster.NickName}님이 방장이 되었습니다");
+            pendingNewMaster = null;
+        }
     }
 
+    // 방장이 나가면 PUN은 OnMasterClientSwitched → OnPlayerLeftRoom 순서로 부름 (LoadBalancingClient 퇴장 이벤트 처리)
+    // 그대로 쓰면 "B님이 방장이 되었습니다" → "A님이 나갔습니다"로 뒤바뀌어 보이므로 안내만 퇴장 뒤로 미룸
+    // (방장을 직접 넘기는 SetMasterClient는 쓰지 않으므로 방장 변경은 항상 퇴장과 함께 옴)
     public override void OnMasterClientSwitched(PhotonPlayer newMasterClient)
     {
         room.Refresh();
+        pendingNewMaster = newMasterClient;
     }
 
     public override void OnLeftRoom()
     {
         room.Clear();
         room.ResetReady();
+        chat.Clear();
+        pendingNewMaster = null;
     }
 
     public override void OnPlayerPropertiesUpdate(PhotonPlayer targetPlayer, Hashtable changedProps)
@@ -513,6 +548,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     }
 
     #endregion
+
+    public void OnEvent(EventData photonEvent)
+    {
+        if (photonEvent.Code != NetEventCodes.RoomChat) return;
+        chat.Receive(photonEvent.Sender, photonEvent.CustomData);
+    }
 
     #endregion
 
