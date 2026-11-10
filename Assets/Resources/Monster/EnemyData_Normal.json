@@ -36,7 +36,7 @@
     "SpawnArea": "Plain"
   },
   {
-    "Id": 40005,
+    "Id": 40004,
     "HP": 1300,
     "Speed": 4.4,
     "DamageType": "Normal",
@@ -44,6 +44,18 @@
     "AttackPower": 1,
     "Immune": {
     },
+    "SpawnArea": "Plain"
+  },
+  {
+    "Id": 40005,
+    "HP": 1200,
+    "Speed": 3.6,
+    "DamageType": "Normal",
+    "AtkPoint": 250,
+    "AttackPower": 1,
+    "Immune": {
+    },
+    // 이거 수정해야함
     "SpawnArea": "Plain"
   }
 ]

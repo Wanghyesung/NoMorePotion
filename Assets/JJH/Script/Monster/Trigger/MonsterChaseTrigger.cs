@@ -10,6 +10,12 @@ public class MonsterChaseTrigger : MonoBehaviour
     private readonly List<GameObject> players = new();
     private readonly List<GameObject> candidates = new();
 
+    private void Awake()
+    {
+        if (mover == null)
+            mover = GetComponentInParent<MonsterMove>();
+    }
+
     private void Update()
     {
         if (mover.nowTarget != null || players.Count == 0) return;

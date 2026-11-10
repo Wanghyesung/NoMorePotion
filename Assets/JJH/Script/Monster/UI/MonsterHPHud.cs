@@ -46,6 +46,11 @@ public class MonsterHPHud : MonoBehaviour
 
     public float Ratio => currentHealth / maxHealth;
 
+    private void Awake()
+    {
+        if (combat == null)
+            combat = GetComponentInParent<MonsterCombat>();
+    }
     private void Start()
     {
         cam = Camera.main;

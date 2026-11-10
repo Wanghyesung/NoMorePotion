@@ -12,8 +12,6 @@ using HIn = UnityEngine.HideInInspector;
 using SF = UnityEngine.SerializeField;
 
 [RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(MonsterCombat))]
-[RequireComponent(typeof(MonsterAnimationController))]
 [RequireComponent(typeof(Rigidbody))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
@@ -28,9 +26,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
     [Header("본체 관련")]
     public float nextMoveDist;
-    [SF] private float attackRange;
+    [SF] private float attackRange = 1f;
     public SphereCollider chaseCollider;
-    public float attackSpeed;
+    public float attackSpeed = 2;
     public float patrolDelay = 4;
     public float walkSpeed = 1.9f;
     public float runSpeed = 3.8f;

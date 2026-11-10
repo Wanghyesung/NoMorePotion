@@ -4,7 +4,6 @@ using static JJH_Constants;
 
 using SF = UnityEngine.SerializeField;
 
-[RequireComponent(typeof(Animator))]
 public class MonsterAnimationController : MonoBehaviour
 {
     private static readonly int MoveSpeedHash = Animator.StringToHash(ANIMATOR_MOVE_SPEED);
@@ -18,7 +17,7 @@ public class MonsterAnimationController : MonoBehaviour
     private void Awake()
     {
         if(animator == null)
-            animator = GetComponent<Animator>();
+            animator = GetComponentInChildren<Animator>();
     }
 
     public void AnimatorRebind()

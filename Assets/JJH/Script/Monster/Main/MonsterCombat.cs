@@ -60,8 +60,10 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         if(mover == null)
             mover = GetComponent<MonsterMove>();
 
-        if(statusEffect ==null)
+        if(statusEffect == null)
             statusEffect = GetComponent<BuffContainer>();
+        if (hud == null)
+            hud = GetComponentInChildren<MonsterHPHud>();
     }
 
     private void Start()
@@ -140,11 +142,11 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     }
 
     #region 스킬용
-    private void SkillAnimationStart() => mover.IsAnimation = true;
-    private void SkillHitOn(string skillName) => SetSkillHitbox(skillName, true);
-    private void SkillHitOff(string skillName) => SetSkillHitbox(skillName, false);
+    public void SkillAnimationStart() => mover.IsAnimation = true;
+    public void SkillHitOn(string skillName) => SetSkillHitbox(skillName, true);
+    public void SkillHitOff(string skillName) => SetSkillHitbox(skillName, false);
 
-    private void SkillAnimationEnd(string skillName)
+    public void SkillAnimationEnd(string skillName)
     {
         SetSkillHitbox(skillName, false);
         mover.IsAnimation = false;
@@ -195,22 +197,22 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
     #endregion
 
     #region 전투 애니메이션 용
-    private void NormalAttackAnimationStart()
+    public void NormalAttackAnimationStart()
     {
         mover.IsAnimation = true;
     }
 
-    private void NormalAttackOn()
+    public void NormalAttackOn()
     {
         biteHitbox.gameObject.SetActive(true);
     }
 
-    private void NormalAttackOff()
+    public void NormalAttackOff()
     {
         biteHitbox.gameObject.SetActive(false);
     }
 
-    private void NormalAttackAnimationEnd()
+    public void NormalAttackAnimationEnd()
     {
         mover.IsAnimation = false;
         anim.IsNormalAttack(false);
