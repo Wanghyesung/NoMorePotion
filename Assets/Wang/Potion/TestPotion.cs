@@ -119,11 +119,13 @@ public class TestPotion : MonoBehaviour
         {
             GameObject particleObj =
                 PoolManager.Instance.Get(impactPrefab, hitPoint, Quaternion.identity);
+
             var particle = particleObj.GetComponent<ParticleSystem>();
             particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             Color color = data != null ? data.potionColor : Color.white;
             var main = particle.main;
             main.startColor = color;
+
             particle.Play(true);
             TimeManager.Instance.Schedule(1.0f, () =>
             {

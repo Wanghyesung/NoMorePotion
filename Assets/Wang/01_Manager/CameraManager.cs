@@ -47,10 +47,12 @@ public sealed class CameraManager : CinemachineExtension
         baseTarget = player.transform;
         targetCamera.Follow = baseTarget;
         cameraFollow.FollowOffset = initialFollowOffset;
+
         rotationOffset = initialRotationOffset;
         rotationAngles = rotationOffset.eulerAngles;
         rotationAngles.x = Mathf.Clamp(Mathf.DeltaAngle(0f, rotationAngles.x), -15f, 30f);
         rotationOffset = Quaternion.Euler(rotationAngles);
+
         // 방 입장 대기 중 대상 없이 갱신된 Follow의 회전 이력을 새 플레이어 기준으로 초기화한다.
         targetCamera.PreviousStateIsValid = false;
     }

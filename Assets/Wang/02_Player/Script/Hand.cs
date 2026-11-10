@@ -29,18 +29,41 @@ public sealed class Hand : MonoBehaviour
     public event Action OnPotionHeld;
     public TestPotion FocusedPotion => GetPotion(focusedSide);
     public TestPotion OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);
+    public bool IsBothHandsEmpty => leftPotion == null && rightPotion == null;
     public Side TakeSide => FocusedPotion == null
         ? focusedSide : (focusedSide == Side.Left ? Side.Right : Side.Left);
 
+    private Player player;
+    private bool started;
+    private bool inputSubscribed;
+
+    private void Awake() => player = GetComponent<Player>();
+
+    private void Start()
+    {
+        started = true;
+        SubscribeInput();
+    }
+
     private void OnEnable()
     {
+        if (started == true)
+            SubscribeInput();
+    }
+
+    private void SubscribeInput()
+    {
+        if (player.IsLocalPlayer == false || inputSubscribed == true)
+            return;
         Instance.SwitchHandAction.performed += SwitchFocus;
+        inputSubscribed = true;
     }
 
     private void OnDisable()
     {
-        if(Instance != null)
+        if (inputSubscribed == true && Instance != null)
             Instance.SwitchHandAction.performed -= SwitchFocus;
+        inputSubscribed = false;
     }
 
     private void SwitchFocus(InputAction.CallbackContext context) =>
@@ -57,14 +80,16 @@ public sealed class Hand : MonoBehaviour
         return true;
     }
 
-    public bool TakeOutPotion()
+    public bool TakeOutPotion() => TakeOutPotion(TakeSide);
+
+    public bool TakeOutPotion(Side side)
     {
-        if (FocusedPotion != null && OtherPotion != null)
+        if (GetPotion(side) != null)
             return false;
 
 
         var obj = GameObject.Instantiate(itemPrefab, transform.position, Quaternion.identity);
-        return Hold(TakeSide, obj);
+        return Hold(side, obj);
     }
 
     public void Throw(Side side, ThrowData throwData)

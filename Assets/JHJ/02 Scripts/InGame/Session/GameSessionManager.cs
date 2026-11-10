@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Photon.Pun;
 using R3;
 using System.Threading;
 using UnityEngine;
@@ -25,6 +26,11 @@ using UnityEngine;
 public class GameSessionManager : MonoBehaviour
 {
     public static GameSessionManager Instance { get; private set; }
+
+    [SerializeField] private Player playerPrefab;
+    [SerializeField] private PlayerUIBinding playerBinder;
+    [SerializeField] private Transform spawnPoint;
+    private GameObject spawnedPlayer;
 
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
@@ -53,6 +59,13 @@ public class GameSessionManager : MonoBehaviour
         }
 
         Instance = this;
+
+        // Resources 밖의 프리팹도 이름으로 생성할 수 있도록 모든 클라이언트에서 등록한다.
+        if (playerPrefab != null && PhotonNetwork.PrefabPool is DefaultPool pool)
+        {
+            pool.ResourceCache[playerPrefab.name] = playerPrefab.gameObject;
+        }
+
     }
 
     private void OnDestroy()
@@ -82,7 +95,9 @@ public class GameSessionManager : MonoBehaviour
         await UniTask.NextFrame(token);
 
         // TODO: 불러오기면 저장값 복원
-        // TODO: 플레이어 스폰 (플레이어 담당 스폰 함수)
+        // 플레이어 프리팹을 지정한 씬에서만 네트워크 플레이어를 생성한다.
+        if (playerPrefab != null && SpawnLocalPlayer() == false)
+            return;
         // TODO(멀티): 전원 씬 로드 완료 대기
 
         if (TimeManager.Instance != null)
@@ -94,6 +109,26 @@ public class GameSessionManager : MonoBehaviour
     }
 
     public void ReportClear() => Finish(GameResult.Clear);
+
+    private bool SpawnLocalPlayer()
+    {
+        if (spawnedPlayer != null)
+            return true;
+
+        if (PhotonNetwork.InRoom == false || playerBinder == null)
+        {
+            Debug.LogError("[GameSessionManager] 방 입장 완료와 Player Binder 연결이 필요합니다.", this);
+            return false;
+        }
+
+        Transform point = spawnPoint != null ? spawnPoint : transform;
+        spawnedPlayer = PhotonNetwork.Instantiate(playerPrefab.name, point.position, point.rotation);
+        if (spawnedPlayer == null)
+            return false;
+
+        playerBinder.SetPlayer(spawnedPlayer.GetComponent<Player>());
+        return true;
+    }
 
     public void ReportDefeat() => Finish(GameResult.Defeat);
 

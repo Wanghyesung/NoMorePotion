@@ -27,7 +27,7 @@ public sealed class FSM : MonoBehaviour
         Dead = 8,
         Drink = 9,
     }
-    public bool HasGameplayInput => Instance.HasGameplayInput;
+    public bool HasGameplayInput => player != null && player.IsLocalPlayer == true && Instance.HasGameplayInput;
     public bool IsFrozen => freezeRemaining > 0f;
     private float freezeRemaining;
     private float animatorSpeedBeforeFreeze;
@@ -100,6 +100,9 @@ public sealed class FSM : MonoBehaviour
         Rigidbody = GetComponent<Rigidbody>();
 
         rotateY = transform.eulerAngles.y;
+
+        if (player.IsLocalPlayer == false)
+            return;
 
         foreach (SOState data in stateData)
         {
@@ -187,6 +190,8 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeState(StateType type)
     {
+        if (player == null || player.IsLocalPlayer == false)
+            return false;
         if (IsFrozen == true)
             return false;
 
@@ -206,6 +211,8 @@ public sealed class FSM : MonoBehaviour
     // attackInfo: 피격 진입 전에 전달할 공격 위치와 피해량
     public void TakeDamage(CommonStruct.AttackInfo attackInfo)
     {
+        if (player == null || player.IsLocalPlayer == false)
+            return;
         if (player.Character.HP <= 0)
         {
             Unfreeze();
@@ -243,6 +250,8 @@ public sealed class FSM : MonoBehaviour
 
     public bool ChangeActionState(StateType type)
     {
+        if (player == null || player.IsLocalPlayer == false)
+            return false;
         if (IsFrozen == true)
             return false;
 
@@ -285,6 +294,8 @@ public sealed class FSM : MonoBehaviour
 
     public void Stop()
     {
+        if (player == null || player.IsLocalPlayer == false)
+            return;
         Unfreeze();
         ClearActionState();
         if (CurrentState != null)
@@ -303,6 +314,8 @@ public sealed class FSM : MonoBehaviour
     // 현재 상태는 유지한다. 중복 호출은 남은 시간을 연장하며 원래 재생 속도를 덮어쓰지 않는다.
     public void Freeze(float duration)
     {
+        if (player == null || player.IsLocalPlayer == false)
+            return;
         if (duration <= 0f || player.Character.HP <= 0)
             return;
 

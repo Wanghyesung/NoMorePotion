@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Photon.Pun;
 using Enzeun.Runtime;
 using Enzeun.SO;
 using UnityEngine;
@@ -21,6 +22,10 @@ public class PlayerCharacter : Character
 public sealed class Player : MonoBehaviour, IDamageable, IHealable
 {
     private FSM fsm;
+    private PhotonView photonView;
+    private bool started;
+    private bool inputSubscribed;
+    public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
     private BuffContainer buffContainer;
 
     // 마시기로 판정할 실제 누름 시간(초). Inspector 값을 사용하며 게임 시간 배율의 영향을 받지 않는다.
@@ -39,7 +44,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     public void Heal(int amount)
     {
-        if (amount <= 0)
+        if (IsLocalPlayer == false || amount <= 0)
             return;
 
         // 일반 회복으로 사망 상태를 부활시키지 않는다.
@@ -51,6 +56,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     public void TakeDamage(CommonStruct.AttackInfo attackInfo)
     {
+        if (IsLocalPlayer == false)
+            return;
         if (character.HP <= 0)
             return;
 
@@ -77,6 +84,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void Awake()
     {
+        photonView = GetComponent<PhotonView>();
         Dictionary<DamageType, int> immune = new();
         // 현재 플레이어의 기본 최대 HP / 시작 HP. 버프 컨테이너는 HP 자체를 보관하지 않는다.
         character = new PlayerCharacter("Player", 10000, 10000, immune);
@@ -84,6 +92,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         fsm = GetComponent<FSM>();
         fsm.Init(this);
         hand = GetComponent<Hand>();
+        if (IsLocalPlayer == false)
+            fsm.Rigidbody.isKinematic = true;
 
     }
 
@@ -91,6 +101,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void Start()
     {
+        started = true;
+        if (IsLocalPlayer == false)
+            return;
         // 매니저의 Awake가 끝난 뒤 기존 로컬 플레이어 컨테이너를 연결한다.
         SurviveStatusManager statusManager = SurviveStatusManager.Instance;
         if (statusManager != null)
@@ -109,6 +122,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void SubscribePotionInput()
     {
+        if (IsLocalPlayer == false || inputSubscribed == true)
+            return;
+        inputSubscribed = true;
         InputManager.Instance.Skill0Action.started += OnPressed;
         InputManager.Instance.Skill0Action.canceled += OnReleased;
         fsm.OnHitAction += OnHit;
@@ -122,8 +138,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void OnEnable()
     {
-        if (InputManager.Instance.Skill0Action != null)
-            SubscribePotionInput();
+        if (IsLocalPlayer == false || started == false)
+            return;
+        SubscribePotionInput();
         if (fsm.isActiveAndEnabled == true)
             fsm.StartState();
 
@@ -132,6 +149,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void Update()
     {
+        if (IsLocalPlayer == false)
+            return;
         UpdatePotionInput();
         if (Character.HP > 0)
             fsm.UpdateState();
@@ -139,6 +158,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void FixedUpdate()
     {
+        if (IsLocalPlayer == false)
+            return;
         if (Character.HP > 0)
             fsm.FixedUpdateState();
     }
@@ -146,13 +167,15 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private void OnDisable()
     {
         CancelPending();
-        if (InputManager.Instance != null)
+        if (inputSubscribed == true && InputManager.Instance != null)
         {
             InputManager.Instance.Skill0Action.started -= OnPressed;
             InputManager.Instance.Skill0Action.canceled -= OnReleased;
             fsm.OnHitAction -= OnHit;
         }
-        fsm.Stop();
+        inputSubscribed = false;
+        if (IsLocalPlayer == true)
+            fsm.Stop();
     }
 
 

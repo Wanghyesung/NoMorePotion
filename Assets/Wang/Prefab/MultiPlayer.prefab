@@ -901,48 +901,51 @@ MonoBehaviour:
   ShowParameterInspector: 1
   m_SynchronizeParameters:
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: Roll
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: Jump
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: Pick
   - Type: 4
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: Walk
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: TakeLeft
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: TakeRight
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: ThrowLeft
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: ThrowRight
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: BaseAnimationSpeed
   - Type: 1
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: UpperBodyAnimationSpeed
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: Hit
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: DrinkLeft
   - Type: 9
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: DrinkRight
+  - Type: 9
+    SynchronizeType: 1
+    Name: TakeBoth
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
-  - SynchronizeType: 0
+  - SynchronizeType: 1
     LayerIndex: 1
 --- !u!1 &689109930490196916
 GameObject:
