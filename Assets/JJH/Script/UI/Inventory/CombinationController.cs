@@ -5,6 +5,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using static UnityEngine.InputManagerEntry;
 using static UnityEngine.InputSystem.InputAction;
 using SF = UnityEngine.SerializeField;
 public class CombinationController : ItemInventory
@@ -37,6 +38,13 @@ public class CombinationController : ItemInventory
 
     private bool leftFull;
     private bool rightFull;
+
+    private readonly ContainerRef publicInvenCRef = new()
+    {
+        Id = -1,
+        Kind = ContainerKind.Personal,
+        Slot = -1
+    };
 
     InputAction combineAction;
 
@@ -136,28 +144,26 @@ public class CombinationController : ItemInventory
 
     public async UniTask PotionCombination(int leftId, int rightId,bool type = false)
     {
-        PotionInstance potion;
+        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync(
+            new Ingredient()
+            {
+                InstanceId = leftSlot.instanceId,
+                MaterialId = leftId,
+                Source = publicInvenCRef
+            },
+            new Ingredient()
+            {
+                InstanceId = rightSlot.instanceId,
+                MaterialId = rightId,
+                Source = publicInvenCRef
+            }
+            );
 
-        if (!type)
-            potion = PotionCrafter.CraftFromMaterials(leftId, rightId);
+        if (result.Success)
+            Debug.Log($"[Craft] 포션 제작 성공 - {result.Outcome.Potion.Data.potionName}");
         else
-            potion = PotionCrafter.CraftFromPotion(leftId, rightId);
+            Debug.Log($"[Craft] 포션 제작 실패 - {result.Reason}");
 
-        if(potion == null)
-        {
-            Debug.Log("[Craft] 포션 제작 불가, 레피시 없음");
-            return;
-        }
-
-        if (leftSlot.instanceId == 0 && leftSlot.instanceId == 0)
-        {
-            /*await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(leftSlot.id, 1);
-            await InventoryNetworkSyncManager.Instance.RemoveMaterialAsync(rightSlot.id, 1);*/
-        }
-        else
-        {
-            // 포션 Remove 부재, 생길 때 다시 작성
-        }
         Clear();
 
     }
