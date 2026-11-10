@@ -64,11 +64,11 @@ public class WolfMove : MonsterMove
             || (state.GetStateType() == MonsterState.Pound && !agent.hasPath);
     }
 
-    public override void Provoke(GameObject attacker)
+    public override void Provoke(GameObject target)
     {
         if (Pack != null && Pack.IsActive)
-            Pack.Provoke(attacker, ProvokeDuration);
+            Pack.Provoke(target, ProvokeDuration);
         else
-            base.Provoke(attacker);
+            base.Provoke(target);
     }
 }

@@ -43,6 +43,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
     [Header("피격 어그로")]
     [SF] private float provokeDuration = 5f;
+    [SF] private float provokeSearchRange = 50f;
     private float provokedUntil;
 
     [HIn] public StateMachine state;
@@ -112,17 +113,41 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         nowTarget = target;
     }
 
-    
-    /// <summary>
-    /// 피격 시 공격자를 거리 제한 없이 일정 시간 추적
-    /// </summary>
-    /// <param name="attacker">공격자 Object</param>
-    public virtual void Provoke(GameObject attacker)
-    {
-        if (attacker == null || !CanAcquireTarget(attacker)) return;
 
-        SetTarget(attacker);
-        provokedUntil = Time.time + provokeDuration;   // 맞을 때마다 연장
+    /// <summary>
+    /// 피격 시 가장 가까운 대상을 거리 제한 없이 일정 시간 추적
+    /// </summary>
+    /// <param name="target">가장 가까운 플레이어</param>
+    public virtual void Provoke(GameObject target)
+    {
+        if (target == null || !CanAcquireTarget(target)) return;
+
+        SetTarget(target);
+        // 맞을 때마다 연장
+        provokedUntil = Time.time + provokeDuration;   
+    }
+
+    /// <summary>
+    /// 검색 범위 안에서 가장 가까운 추적 가능 플레이어
+    /// </summary>
+    public GameObject FindNearestPlayer()
+    {
+        GameObject best = null;
+        float bestSqr = provokeSearchRange * provokeSearchRange;
+
+        foreach (PlayerRegistryMember player in PlayerRegistry.Players)
+        {
+            GameObject playerObject = player.gameObject;
+            if (!playerObject.activeInHierarchy || !CanAcquireTarget(playerObject)) continue;
+
+            float sqr = (playerObject.transform.position - transform.position).sqrMagnitude;
+            if (sqr < bestSqr)
+            {
+                bestSqr = sqr;
+                best = playerObject;
+            }
+        }
+        return best;
     }
 
     /// <summary>

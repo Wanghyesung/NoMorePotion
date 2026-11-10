@@ -1332,6 +1332,7 @@ GameObject:
   - component: {fileID: 1725498695408939405}
   - component: {fileID: 6006001529373701175}
   - component: {fileID: 5742529768754016091}
+  - component: {fileID: 6037355458872660066}
   m_Layer: 7
   m_Name: MultiPlayer
   m_TagString: Player
@@ -1567,6 +1568,19 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 0
+--- !u!114 &6037355458872660066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1594938396219596386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df9ac93b6494464b96707e41f257bc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRegistryMember
+  view: {fileID: 0}
 --- !u!1 &1765338853279361138
 GameObject:
   m_ObjectHideFlags: 0

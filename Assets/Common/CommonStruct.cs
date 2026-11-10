@@ -7,6 +7,5 @@ public class CommonStruct
         public float AttackPower;
         public Vector3 Position;
         public int Damage;
-        public GameObject Source;
     }
 }
