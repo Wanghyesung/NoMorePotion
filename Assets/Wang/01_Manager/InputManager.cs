@@ -81,6 +81,8 @@ public sealed class InputManager : MonoBehaviour
         EnableActions();
         focused = true;
         CancelInput();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
@@ -100,6 +102,8 @@ public sealed class InputManager : MonoBehaviour
         focused = false;
         DisableActions();
         CancelInput();
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private void OnDestroy()
@@ -110,12 +114,17 @@ public sealed class InputManager : MonoBehaviour
         Instance = null;
     }
 
-    //private void OnApplicationFocus(bool focused)
-    //{
-    //    this.focused = focused;
-    //    if (focused == false)
-    //        CancelInput();
-    //}
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (Instance != this || isActiveAndEnabled == false)
+            return;
+
+        focused = hasFocus;
+        CancelInput();
+
+        Cursor.lockState = hasFocus == true ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = hasFocus == false;
+    }
 
     private void CancelInput()
     {

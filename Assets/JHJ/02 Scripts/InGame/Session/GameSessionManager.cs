@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using R3;
+using System.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -125,8 +126,27 @@ public class GameSessionManager : MonoBehaviour
 
         Debug.Log($"[GameSessionManager] 게임 종료 : {gameResult} ({record.Value.DayCount}일차, {record.Value.PlayTime:F1}초)");
 
-        // TODO(온라인) : 등록이 비동기가 되면 Pending → 완료 순으로 값 갱신
-        rankingSubmit.Value = RankingService.TrySubmit(record.Value);
+        SubmitRankingAsync(record.Value).Forget();
+    }
+
+    private async UniTaskVoid SubmitRankingAsync(GameRecord record)
+    {
+        // 1. 등록 대상이 아니면 이유만 알리고 끝 (즉시, 서버 안 감)
+        if (!RankingService.CanSubmit(record, out RankingSubmitResult reason))
+        {
+            rankingSubmit.Value = reason;
+            return;
+        }
+
+        // 2. 결과 창에 등록중 표시
+        rankingSubmit.Value = RankingSubmitResult.Pending;
+
+        // 3. 세션 파괴되면 취소되는 토큰
+        CancellationToken token = this.GetCancellationTokenOnDestroy();
+
+        // 4. 저장(재시도 포함)
+        rankingSubmit.Value = await RankingService.SubmitAsync(record, token);
+        
     }
 
 

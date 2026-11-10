@@ -63,7 +63,7 @@ public class GameResultPopupUI : MonoBehaviour
 
         titleText.text = isClear ? "클리어!" : "패배";
         titleText.color = isClear ? clearColor : defeatColor;
-        playTimeText.text = FormatPlayTime(record.PlayTime);
+        playTimeText.text = TimeFormat.ToPlayTime(record.PlayTime);
         dayText.SetText("{0}일차", record.DayCount);
 
         closeBtn.interactable = true;
@@ -87,24 +87,14 @@ public class GameResultPopupUI : MonoBehaviour
         manager.RequestLeaveGame();
     }
 
-    // 1시간 미만은 분:초, 이상은 시:분:초
-    private static string FormatPlayTime(float seconds)
-    {
-        int total = Mathf.FloorToInt(seconds);
-        int h = total / 3600;
-        int m = total % 3600 / 60;
-        int s = total % 60;
-
-        return h > 0 ? $"{h}:{m:00}:{s:00}" : $"{m:00}:{s:00}";
-    }
-
     private static string ToRankingMessage(RankingSubmitResult submit)
     {
         switch (submit)
         {
-            case RankingSubmitResult.Submitted:      return "랭킹에 등록되었습니다";
+            case RankingSubmitResult.Pending:       return "랭킹 등록 중...";
+            case RankingSubmitResult.Submitted:      return "랭킹에 등록되었습니다!";
             case RankingSubmitResult.Offline:        return "오프라인 모드에서는 랭킹에 등록되지 않습니다";
-            case RankingSubmitResult.NotImplemented: return "랭킹 등록은 준비 중입니다";
+            case RankingSubmitResult.Failed:        return "랭킹 등록에 실패했습니다.";
             case RankingSubmitResult.NotEligible:    return "클리어 시 랭킹에 등록됩니다";
             default:                                 return "";   // None : 등록 결과 대기
         }

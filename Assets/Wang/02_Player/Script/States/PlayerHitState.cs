@@ -61,7 +61,7 @@ public sealed class PlayerHitState : PlayerState
         base.Enter();
 
         owner.PlayerView.rotation = Quaternion.LookRotation(direction);
-        owner.LockRotate(this, true);
+        //owner.LockRotate(this, true);
        
 
         knockbackVelocity = -direction * (knockbackPower / owner.Rigidbody.mass);

@@ -4,6 +4,7 @@ using Photon.Realtime;
 using R3;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -24,6 +25,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     private NicknameService nicknameService;    // 닉네임 검증·저장·Photon 반영 (Awake에서 생성)
     private RoomSession room;               // 방 안의 플레이어·레디 관리 (Awake에서 생성)
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
+    private bool isLeavingToLobby;          // 멀티 인게임에서 나가는 중 (방 나가기 → 로비 입장까지)
 
 
     // 실제 값은 NicknameService가 가짐. UI는 기존처럼 매니저를 통해 구독
@@ -112,6 +114,39 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
         error.OnNext(message);
     }
 
+    // ── Request 함수 입구 검사 ──
+    // 조건이 맞지 않으면 무시 로그를 남기고 false. caller는 컴파일러가 호출한 함수 이름을 자동으로 넣음
+
+    /// <summary> 현재 상태가 expected일 때만 true </summary>
+    private bool Require(FlowState expected, [CallerMemberName] string caller = "")
+    {
+        if (CurrentState == expected)
+            return true;
+
+        Debug.Log($"[NetworkFlowManager] {caller} 무시됨: 현재 상태 = {CurrentState}");
+        return false;
+    }
+
+    /// <summary> 로비 상태이고 PUN도 로비에 들어가 있을 때만 true (방 생성·입장·퀵매치 요청 중이면 false) </summary>
+    private bool RequireLobbyReady([CallerMemberName] string caller = "")
+    {
+        if (CurrentState == FlowState.Lobby && PhotonNetwork.NetworkClientState == ClientState.JoinedLobby)
+            return true;
+
+        Debug.Log($"[NetworkFlowManager] {caller} 무시됨: 상태 = {CurrentState}, PUN = {PhotonNetwork.NetworkClientState}");
+        return false;
+    }
+
+    /// <summary> 방 상태이고 실제로 방 안에 있을 때만 true (방 나가는 중이면 false) </summary>
+    private bool RequireInRoom([CallerMemberName] string caller = "")
+    {
+        if (CurrentState == FlowState.Room && PhotonNetwork.InRoom)
+            return true;
+
+        Debug.Log($"[NetworkFlowManager] {caller} 무시됨: 상태 = {CurrentState}, 방 안 = {PhotonNetwork.InRoom}");
+        return false;
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == SceneNames.IN_GAME)
@@ -119,7 +154,10 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
         else if (scene.name == SceneNames.OUT_GAME && CurrentState == FlowState.LeavingGame)
         {
-            SetState(FlowState.Title);
+            // 멀티 나가기: 씬이 먼저 바뀌고 로비 입장은 아직 → 접속 중 화면으로 대기, OnJoinedLobby에서 Lobby
+            // (Title로 두면 로비 입장 전까지 타이틀 버튼이 눌려 접속이 꼬일 수 있음)
+            // 싱글 나가기·인게임 중 연결 끊김: 타이틀로
+            SetState(isLeavingToLobby ? FlowState.Connecting : FlowState.Title);
             RaisePendingReturnErrorAsync().Forget();
         }
     }
@@ -155,6 +193,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     // 다른 Request 함수와 같은 형태 (호출하는 쪽에서 .Forget() 불필요)
     public void RequestConnectOnline()
     {
+        // 첫 await 전에 상태를 Connecting으로 바꾸므로, 여기서 검사해도 중복 접속이 막힘
+        if (!Require(FlowState.Title)) return;
+
         ConnectOnlineAsync().Forget();
     }
 
@@ -162,10 +203,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     #region 내부
 
+    // 상태 검사는 RequestConnectOnline에서 함
     private async UniTaskVoid ConnectOnlineAsync()
     {
-        if (CurrentState != FlowState.Title) return;
-
         if (PhotonNetwork.OfflineMode)
         {
             PhotonNetwork.OfflineMode = false;
@@ -231,8 +271,8 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-
-        if(CurrentState == FlowState.LeavingGame)
+        // 멀티 나가기 중이면 방을 나와 마스터 서버로 돌아온 것 → 아래에서 로비 입장
+        if(CurrentState == FlowState.LeavingGame && !isLeavingToLobby)
         {
             Debug.Log("[NetworkFlowManager] 인게임 나가는 중이라 마스터 접속 처리 무시");
             return;
@@ -249,12 +289,18 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby()
     {
+        // 멀티 나가기 완료 (씬 로드보다 먼저 와도 됨 → OnSceneLoaded는 Lobby 상태라 건드리지 않음)
+        isLeavingToLobby = false;
+
         match.ClearRoomList();
         SetState(FlowState.Lobby);
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
+        // 멀티 나가기 도중 끊기면 로비로 못 감 → 씬 로드 후 타이틀로 가도록 해제
+        isLeavingToLobby = false;
+
         match.ClearRoomList();
         room.Clear();
         room.ResetReady();
@@ -295,28 +341,21 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     // 로비에서 타이틀로: 서버 연결을 끊으면 OnDisconnected에서 Title 상태로 바뀜
     public void RequestReturnToTitle()
     {
-        if (CurrentState != FlowState.Lobby)
-        {
-            Debug.Log($"[NetworkFlowManager] 타이틀로 돌아가기 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.Lobby)) return;
 
         PhotonNetwork.Disconnect();
     }
 
     public void RequestCreateRoom(string displayName, int maxPlayers, bool isPublic)
     {
-        // 로비 상태가 아니거나 펀 상태가 로비가 아니면
-        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
-            return;
+        if (!RequireLobbyReady()) return;
 
         match.CreateRoom(displayName, maxPlayers, isPublic);
     }
 
     public void RequestJoinRoom(string roomCode)
     {
-        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
-            return;
+        if (!RequireLobbyReady()) return;
 
         match.JoinRoom(roomCode);
     }
@@ -332,11 +371,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public void RequestQuickMatch()
     {
-        if (CurrentState != FlowState.Lobby || PhotonNetwork.NetworkClientState != ClientState.JoinedLobby)
-        {
-            Debug.Log($"[NetworkFlowManager] 퀵매치 무시됨 - 상태: {CurrentState}, PUN: {PhotonNetwork.NetworkClientState}");
-            return;
-        }
+        if (!RequireLobbyReady()) return;
 
         match.QuickMatch();
     }
@@ -356,6 +391,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        // 인게임에서 나갈 때 꺼 둔 씬 동기화를 다시 켬 (방장이 LoadLevel하면 전원 같은 씬으로)
+        PhotonNetwork.AutomaticallySyncScene = true;
+
        if (PhotonNetwork.OfflineMode)
         {
             StartGameInternal();
@@ -390,30 +428,23 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public void RequestLeaveRoom()
     {
-        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
-            return;
+        if (!RequireInRoom()) return;
 
         PhotonNetwork.LeaveRoom();
     }
 
     public void RequestToggleReady()
     {
-        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
-        {
-            Debug.Log($"[NetworkFlowManager] 준비 무시됨: 현재 위치 = {CurrentState}");
-            return;
-        }
+        if (!RequireInRoom()) return;
 
         room.ToggleReady();
     }
 
     public void RequestStartGame()
     {
-        if (CurrentState != FlowState.Room || !PhotonNetwork.InRoom)
-        {
-            Debug.Log($"[NetworkFlowManager] 시작 무시됨: 현재 위치 = {CurrentState}");
-            return;
-        }
+        if (!RequireInRoom()) return;
+
+        // 아래는 시작 조건별로 사유가 달라서 개별 검사
 
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -492,33 +523,21 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
 
     public void RequestEnterOffline()
     {
-        if (CurrentState != FlowState.Title)
-        {
-            Debug.Log($"[NetworkFlowManager] 싱글 진입 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.Title)) return;
 
         SetState(FlowState.OfflineSetup);
     }
 
     public void RequestLeaveOffline()
     {
-        if (CurrentState != FlowState.OfflineSetup)
-        {
-            Debug.Log($"[NetworkFlowManager] 오프라인 나가기 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.OfflineSetup)) return;
 
         SetState(FlowState.Title);
     }
 
     public void RequestStartOffline()
     {
-        if (CurrentState != FlowState.OfflineSetup)
-        {
-            Debug.Log($"[NetworkFlowManager] 오프라인 시작 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
+        if (!Require(FlowState.OfflineSetup)) return;
 
         if (PhotonNetwork.OfflineMode)
         {
@@ -539,21 +558,35 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     [ContextMenu("인게임 나가기")]
     public void RequestLeaveGame()
     {
-        if(CurrentState != FlowState.InGame)
-        {
-            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 현재 상태 = {CurrentState}");
-            return;
-        }
-
-        // TODO : 멀티 나가기 구현 추후
-        if (!PhotonNetwork.OfflineMode)
-        {
-            Debug.Log($"[NetworkFlowManager] 인게임 나가기 무시됨: 멀티 나가기 미구현");
-            return;
-        }
+        if (!Require(FlowState.InGame)) return;
 
         SetState(FlowState.LeavingGame);
-        PhotonNetwork.OfflineMode = false;
+
+        if (PhotonNetwork.OfflineMode)
+        {
+            // 싱글: 오프라인 방을 닫고 타이틀로 (OnSceneLoaded에서 Title)
+            PhotonNetwork.OfflineMode = false;
+        }
+        else
+        {
+            // 멀티: 나만 방을 나가고 로비로. 남은 사람은 방에 그대로 (방장이면 다른 사람에게 넘어감)
+            // 흐름: LeaveRoom → OnLeftRoom → 마스터 서버 재접속(OnConnectedToMaster) → JoinLobby → OnJoinedLobby(Lobby)
+            isLeavingToLobby = true;
+
+            // 씬 동기화 끄기: 켜 둔 채 방장이 아웃게임 씬을 불러오면 PUN이 그 씬을 방 속성에 기록하려 함
+            //  → 방을 나가는 중이라 "SetProperties not called ... Leaving" 에러, 성공하면 남은 사람까지 아웃게임으로 끌려감
+            // 다시 켜는 곳: OnJoinedRoom (다음 방에 들어갈 때)
+            PhotonNetwork.AutomaticallySyncScene = false;
+
+            // false = 요청을 보내지 못함(방 안이 아님 등) → 로비로 갈 수 없으니 연결을 끊고 타이틀로
+            // (끊김은 LeavingGame 중이라 OnDisconnected에서 에러 없이 넘어가고, 씬 로드 후 Title)
+            if (!PhotonNetwork.LeaveRoom())
+            {
+                Debug.LogWarning("[NetworkFlowManager] 방 나가기 요청 실패, 연결 종료 후 타이틀로");
+                isLeavingToLobby = false;
+                PhotonNetwork.Disconnect();
+            }
+        }
 
         // 혼자 떠나는 이동이라 동기화 없는 LoadScene 사용 (LoadLevel은 방 전원 이동용)
         SceneManager.LoadScene(SceneNames.OUT_GAME);
@@ -579,11 +612,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks
     #region 요청
     public bool RequestChangeNickname(string nick)
     {
-        if (CurrentState != FlowState.Lobby)
-        {
-            Debug.Log($"[NetworkFlowManager] 닉네임 수정 무시됨: 현재상태 = {CurrentState}");
-            return false;
-        }
+        if (!Require(FlowState.Lobby)) return false;
 
         // 검증 실패 시 NicknameService가 에러를 알리고 false 반환
         return nicknameService.TryChange(nick);

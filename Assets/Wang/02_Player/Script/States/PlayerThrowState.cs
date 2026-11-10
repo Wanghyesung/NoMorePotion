@@ -22,7 +22,6 @@ public sealed class PlayerThrowState : PlayerState
     #region Components
     private readonly Hand hand;
     private readonly ThrowAim throwAim;
-    private readonly Quaternion defaultViewRotation;
     #endregion
 
     #region AnimationData
@@ -45,7 +44,6 @@ public sealed class PlayerThrowState : PlayerState
     {
         hand = owner.GetComponent<Hand>();
         throwAim = owner.GetComponentInChildren<ThrowAim>(true);
-        defaultViewRotation = owner.PlayerView.localRotation;
         rightClip = data.RightClip;
     }
 
@@ -83,25 +81,6 @@ public sealed class PlayerThrowState : PlayerState
             Instance.AimAction.performed -= RequestAim;
             Instance.AimAction.canceled -= CancelAim;
         }
-    }
-
-    public override void UpdateState()
-    {
-        if (isAiming == true && throwAim.HasTarget == false)
-            return;
-
-        Transform playerView = owner.PlayerView;
-
-        // 조준 대기 중에는 실시간 목표를, 던지는 동안에는 확정한 목표를 계속 바라본다.
-        Vector3 targetPosition = isAiming == true ? throwAim.TargetPosition : throwData.Target;
-        Vector3 direction = targetPosition - playerView.position;
-        direction.y = 0f; // 몸이 위아래로 기울지 않도록 수평 회전만
-
-        if (direction.sqrMagnitude < 0.0001f)
-            return;
-
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        playerView.rotation = targetRotation;
     }
 
     public void RequestThrow()
@@ -167,11 +146,7 @@ public sealed class PlayerThrowState : PlayerState
 
         if (isAiming == false)
         {
-            if (Mouse.current == null)
-                return false;
-
-            return throwAim.TryCreateThrowData(hand.FocusedPotion.transform.position,
-                Mouse.current.position.ReadValue(), out throwData);
+            return throwAim.TryCreateThrowData(hand.FocusedPotion.transform.position, out throwData);
         }
 
         return true;
@@ -180,7 +155,8 @@ public sealed class PlayerThrowState : PlayerState
     public override void Enter()
     {
         base.Enter();
-        owner.LockRotate(this, true);
+        // 조준 중에도 FSM의 마우스 입력으로 Player 루트와 카메라가 함께 회전한다.
+        owner.PlayerView.localRotation = Quaternion.identity;
         throwingSide = hand.FocusedSide;
         throwingPotion = hand.GetPotion(throwingSide);
         hasThrown = false;
@@ -207,8 +183,6 @@ public sealed class PlayerThrowState : PlayerState
     public override void Exit()
     {
         base.Exit();
-        owner.LockRotate(this, false);
-        owner.PlayerView.localRotation = defaultViewRotation;
         owner.Animator.ResetTrigger(throwLeftHash);
         owner.Animator.ResetTrigger(throwRightHash);
 

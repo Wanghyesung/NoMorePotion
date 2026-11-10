@@ -54,6 +54,7 @@ MonoBehaviour:
     m_Bits: 448
   attackObjectPrefab: {fileID: 5642959263804139075, guid: 74465fb4649d01e4aa0382be8603cb09, type: 3}
   impactPrefab: {fileID: 1860508455090463011, guid: ff9f371b9095a474daf717c11261d546, type: 3}
+  potionRenderer: {fileID: 240625366082774938}
   impactLifetime: 5
 --- !u!114 &6869133536691508965
 MonoBehaviour:
@@ -187,6 +188,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4004c152ba85eb041a8635d4b457be23, type: 3}
+--- !u!23 &240625366082774938 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3192076612052961539, guid: 4004c152ba85eb041a8635d4b457be23, type: 3}
+  m_PrefabInstance: {fileID: 3394121729586507417}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2923098699025172850 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4004c152ba85eb041a8635d4b457be23, type: 3}

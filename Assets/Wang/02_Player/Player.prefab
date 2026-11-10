@@ -1120,7 +1120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   drinkHoldSeconds: 0.3
-  playerHPSlider: {fileID: 0}
+  cameraPosition: {fileID: 5871699718036848010}
 --- !u!114 &1077255847363529070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1136,8 +1136,7 @@ MonoBehaviour:
   focusedSide: 0
   leftSocket: {fileID: 9102542354336093553}
   rightSocket: {fileID: 3968786949799244013}
-  inventory:
-    itemPrefab: {fileID: 1417736869826601, guid: 29d15d7934495f145811c33ea03f630a, type: 3}
+  itemPrefab: {fileID: 0}
   OnDrink:
     m_PersistentCalls:
       m_Calls: []
