@@ -77,5 +77,16 @@ public sealed class PlayerMoveState : PlayerState
     {
         base.Exit();
         owner.Animator.SetBool(walkHash, false);
+
+        if (owner.NextState?.Type != FSM.StateType.Idle
+            || owner.CurrentActionState is PlayerHitState)
+            return;
+
+        Vector3 velocity = owner.Rigidbody.linearVelocity;
+        if (velocity.y > 0f)
+        {
+            velocity.y = 0f;
+            owner.Rigidbody.linearVelocity = velocity;
+        }
     }
 }
