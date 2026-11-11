@@ -56,6 +56,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [SF] private bool useAttackSlot = true;
     // 대기 거리
     [SF] private float waitBuffer = 2f;
+    // 사거리 대비 정지 위치(기본값 0.7(70%)) 비율%
+    [SF] private float slotStandRatio = 0.7f;
+    // 도착 판정 거리
+    [SF] private float slotTolerance = 1f;
 
     [Header("기본 타겟 (웨이브)")]
     [SF] private GameObject defaultTarget;
@@ -77,7 +81,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public bool IsProvoked => Time.time < provokedUntil;
     public float ProvokeDuration => provokeDuration;
     public bool IsTargetObjective => targetInfo != null && targetInfo.IsObjective;
-
+    private bool HasSlot => useAttackSlot && targetInfo != null && targetInfo.Holds(this);
     #endregion
 
 
@@ -202,10 +206,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     protected virtual bool ShouldFaceTarget()
     {
-        if (state == null) return false; 
-        
-        MonsterState nowState = state.GetStateType();
-        return nowState == MonsterState.Attack || nowState == MonsterState.Wait;
+        if (state == null) return false;
+
+        MonsterState s = state.GetStateType();
+        return s == MonsterState.Attack || (s == MonsterState.Wait && agent.isStopped);
     }
 
     /// <summary>
@@ -317,15 +321,24 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         float distance = DistanceToTarget();
         // 추적 가능한 상태인지 확인
         bool chaseable = distance <= chaseCollider.radius || IsProvoked || IsTargetObjective;
+        bool slotZone = useAttackSlot && targetInfo != null && distance <= AttackRange + waitBuffer;
 
         // 공격 범위 안
-        if (IsInAttackRange(distance))
+        if (slotZone)
         {
             // 슬롯이 있을 경우
             if (TryHoldSlot())
             {
-                result = stateGroup[MonsterState.Attack];
-                nowState = MonsterState.Attack;
+                if (IsInAttackRange(distance) && IsAtSlot())
+                {
+                    result = stateGroup[MonsterState.Attack];
+                    nowState = MonsterState.Attack;
+                }
+                else
+                {
+                    result = stateGroup[MonsterState.Chase];
+                    nowState = MonsterState.Chase;
+                }
             }
             // 없을 경우
             else
@@ -334,11 +347,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 nowState = MonsterState.Wait;
             }
         }
-        // 대기 거리 안이지만 자리가 없을 경우
-        else if (distance <= AttackRange + waitBuffer && HasNoFreeSlot())
+        else if (IsInAttackRange(distance))
         {
-            result = stateGroup[MonsterState.Wait];
-            nowState = MonsterState.Wait;
+            // 슬롯 미사용 몬스터 (보스, 늑대 등)
+            result = stateGroup[MonsterState.Attack];
+            nowState = MonsterState.Attack;
         }
         // 공격 범위 밖이지만 감지 범위 안
         else if (chaseable)
@@ -388,6 +401,36 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         runSpeed = speed;
         walkSpeed = speed / 2;
     }
+
+    #region 공격 대기 슬롯 관련
+
+    /// <summary>
+    /// 슬롯이 있으면 배정된 자리, 없으면 대상 위치를 반환하는 함수
+    /// </summary>
+    /// <returns>배정 위치(Vector3)</returns>
+    public Vector3 GetChaseDestination()
+    {
+        if (HasSlot) return targetInfo.GetSlotPoint(this, attackRange * slotStandRatio);
+        return nowTarget.transform.position;
+    }
+
+    
+    /// <summary>
+    /// 대상 둘레의 바깥 고리의 위치를 반환하는 함수 (지금 있는 방향은 유지)
+    /// </summary>
+    /// <returns>둘레 바깥 고리의 위치(Vector3)</returns>
+    public Vector3 GetWaitPoint()
+    {
+        Vector3 center = nowTarget.transform.position;
+        Vector3 dir = transform.position - center;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.01f) dir = -transform.forward;
+
+        float radius = (targetInfo != null ? targetInfo.BodyRadius : 0f) + attackRange + waitBuffer;
+        return center + dir.normalized * radius;
+    }
+
+
     public bool IsInAttackRange(float distance) =>
     distance <= attackRange || attackSelector.AnyReadyInRange(distance);
     
@@ -420,8 +463,20 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private bool TryHoldSlot() =>
     !useAttackSlot || targetInfo == null || targetInfo.TryAcquire(this);
 
-    private bool HasNoFreeSlot() =>
-        useAttackSlot && targetInfo != null && !targetInfo.CanAcquire(this);
+    /// <summary>
+    /// 배치된 슬롯
+    /// </summary>
+    /// <returns></returns>
+    private bool IsAtSlot()
+    {
+        if (!HasSlot) return true;
+
+        Vector3 flat = GetChaseDestination() - transform.position;
+        flat.y = 0f;
+        return flat.sqrMagnitude <= slotTolerance * slotTolerance;
+    }
+
+    #endregion
 
     public void StopAI()
     {
