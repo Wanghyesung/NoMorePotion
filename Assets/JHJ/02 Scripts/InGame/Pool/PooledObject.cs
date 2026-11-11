@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -10,8 +11,17 @@ public class PooledObject : MonoBehaviour
     public GameObject OriginalPrefab {  get; private set; }
     public bool IsInPool { get; private set; }
 
+    /// <summary>
+    /// 이번 사용분 토큰. 반납되거나 파괴되면 취소됨 (꺼낼 때마다 새로 만듦)
+    /// AddTo(this)는 파괴될 때만 취소 → 풀 오브젝트는 반납돼도 파괴되지 않아서 이 토큰을 써야 함
+    /// 보관 중(IsInPool)에는 이미 취소된 토큰을 돌려줌
+    /// </summary>
+    public CancellationToken ReleaseToken => useCts != null ? useCts.Token : CancelledToken;
+
+    private static readonly CancellationToken CancelledToken = new CancellationToken(true);
 
     private IPoolable[] poolables;
+    private CancellationTokenSource useCts;
 
     // ── 아래 함수들은 PoolManager 전용. 다른 곳에서 호출하지 말 것 ──
 
@@ -26,6 +36,7 @@ public class PooledObject : MonoBehaviour
     public void NotifyGet()
     {
         IsInPool = false;
+        useCts = new CancellationTokenSource(); // OnGetFromPool에서 ReleaseToken을 쓸 수 있게 알림보다 먼저
         foreach(IPoolable p in poolables)
         {
             try
@@ -43,6 +54,7 @@ public class PooledObject : MonoBehaviour
     public void NotifyRelease()
     {
         IsInPool = true;
+        CancelUse(); // 이번 사용분 예약·UniTask 먼저 정리 → 재사용된 뒤에 옛 예약이 실행되지 않음
         foreach(IPoolable p in poolables)
         {
             try
@@ -54,6 +66,30 @@ public class PooledObject : MonoBehaviour
                 // 한 컴포넌트가 실패해도 나머지는 계속 알림
                 Debug.LogException(e, this);
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // 풀 maxSize 초과, 씬 종료 등으로 사용 중에 파괴될 때도 정리
+        CancelUse();
+    }
+
+    private void CancelUse()
+    {
+        if (useCts == null) return;
+
+        // Dispose하지 않음: 이미 토큰을 받아 간 쪽이 취소 여부를 계속 확인할 수 있게 (타이머 없는 CTS라 GC로 충분)
+        CancellationTokenSource cts = useCts;
+        useCts = null;
+        try
+        {
+            cts.Cancel();
+        }
+        catch (Exception e)
+        {
+            // 취소 콜백 하나가 실패해도 반납은 계속
+            Debug.LogException(e, this);
         }
     }
 }

@@ -100,6 +100,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 6
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &256510430902418235
 GameObject:
   m_ObjectHideFlags: 0
@@ -1816,6 +1817,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 4
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &1913086180966880087
 GameObject:
   m_ObjectHideFlags: 0
@@ -2632,6 +2634,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 5
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &2757637097892071212
 GameObject:
   m_ObjectHideFlags: 0
@@ -3004,6 +3007,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 7
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &3122245638942696157
 GameObject:
   m_ObjectHideFlags: 0
@@ -3367,6 +3371,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 3
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &3360980277465807997
 GameObject:
   m_ObjectHideFlags: 0
@@ -4048,6 +4053,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 9
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &3682000365480993878
 GameObject:
   m_ObjectHideFlags: 0
@@ -4223,6 +4229,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 2
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &3745827034558090897
 GameObject:
   m_ObjectHideFlags: 0
@@ -4399,6 +4406,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 1
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &4006217855845217809
 GameObject:
   m_ObjectHideFlags: 0
@@ -6073,12 +6081,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5196127333224435474}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 81b93e7fd74cd81429beee0b35202695, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrivateInventory
-  inven: {fileID: 0}
+  inven: {fileID: 3983757447896502346}
   potionCombined: {fileID: 8808581820877125490}
   privateInventories:
   - {fileID: 2582148983042515007}
@@ -6191,6 +6199,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 8
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &5363708090496002902
 GameObject:
   m_ObjectHideFlags: 0
@@ -9488,6 +9497,7 @@ MonoBehaviour:
   isCombinedSlot: 0
   slotNum: 0
   emptyAlpha: 0.3
+  isPersonalSlot: 0
 --- !u!1 &8082407463994905095
 GameObject:
   m_ObjectHideFlags: 0
@@ -10365,7 +10375,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8367844271797886003}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0

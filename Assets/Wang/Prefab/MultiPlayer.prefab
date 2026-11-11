@@ -1342,6 +1342,7 @@ GameObject:
   - component: {fileID: 6006001529373701175}
   - component: {fileID: 5742529768754016091}
   - component: {fileID: 6037355458872660066}
+  - component: {fileID: 2729435159217721121}
   m_Layer: 7
   m_Name: MultiPlayer
   m_TagString: Player
@@ -1591,6 +1592,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRegistryMember
   view: {fileID: 0}
+--- !u!114 &2729435159217721121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1594938396219596386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69d4b42453027cc40b328005c910cdc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackTarget
+  bodyRadius: 0.12
+  isObjective: 0
+  meleeSlots: 4
+  slotTimeout: 1.5
 --- !u!1 &1765338853279361138
 GameObject:
   m_ObjectHideFlags: 0

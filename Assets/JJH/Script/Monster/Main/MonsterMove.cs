@@ -15,6 +15,9 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(Rigidbody))]
 public class MonsterMove : MonoBehaviourPunCallbacks
 {
+
+    #region 직렬화 데이터
+
     [Header("스크립트")]
     public MonsterAnimationController anim;
     public MonsterCombat combat;
@@ -46,17 +49,35 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [SF] private float provokeSearchRange = 50f;
     private float provokedUntil;
 
+    [Header("공격 슬롯")]
+    // 보스, 늑대는 프리팹에서 끄기
+    [SF] private bool useAttackSlot = true;
+    // 대기 거리
+    [SF] private float waitBuffer = 2f;
+
+    [Header("기본 타겟 (웨이브)")]
+    [SF] private GameObject defaultTarget;
+
+    #endregion
+
+    #region 필드 변수
+
     [HIn] public StateMachine state;
     [HIn] public float patrolTimer = 0;
     [HIn] public bool patrolTimerActive;
     [HIn] public float attackTimer = 0;
     [HIn]public float AttackRange => attackRange;
     [HIn] public bool IsAnimation;
-
-    public Dictionary<MonsterState, IMonsterState> stateGroup;
     private CancellationTokenSource aiCts;
+    private AttackTarget targetInfo;
+
+    public Dictionary<MonsterState, IMonsterState> stateGroup; 
     public bool IsProvoked => Time.time < provokedUntil;
     public float ProvokeDuration => provokeDuration;
+    public bool IsTargetObjective => targetInfo != null && targetInfo.IsObjective;
+
+    #endregion
+
 
     private void Awake()
     {
@@ -111,6 +132,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     {
         if (nowTarget == target) return;
         nowTarget = target;
+
+        if(target.TryGetComponent(out AttackTarget aTarget))
+        {
+            targetInfo = aTarget;
+        }
     }
 
 
@@ -171,7 +197,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     protected virtual bool ShouldFaceTarget()
     {
-        return state != null && state.GetStateType() == MonsterState.Attack;
+        if (state == null) return false; 
+        
+        MonsterState nowState = state.GetStateType();
+        return nowState == MonsterState.Attack || nowState == MonsterState.Wait;
     }
 
     /// <summary>
@@ -206,7 +235,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     public async UniTask StartAI(float speed, MonsterCombat combat)
     {
-
+        if (!agent.enabled) agent.enabled = true;
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
@@ -248,6 +277,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             SetTarget(null);
         }
 
+        // 기본 타겟이 있는 경우 기본 타겟으로 재설정
+        if (nowTarget == null && defaultTarget != null && defaultTarget.activeInHierarchy)
+            SetTarget(defaultTarget);
+
+        // 순찰
         if (nowTarget == null)
         {
             if (patrolTimerActive)
@@ -267,22 +301,39 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             return result;
         }
         
-        float distance = Vector3.Distance(transform.position, nowTarget.transform.position);
+        float distance = DistanceToTarget();
+        // 추적 가능한 상태인지 확인
+        bool chaseable = distance <= chaseCollider.radius || IsProvoked || IsTargetObjective;
 
         // 공격 범위 안
         if (IsInAttackRange(distance))
         {
-
-            result = stateGroup[MonsterState.Attack];
-            nowState = MonsterState.Attack;
+            // 슬롯이 있을 경우
+            if (TryHoldSlot())
+            {
+                result = stateGroup[MonsterState.Attack];
+                nowState = MonsterState.Attack;
+            }
+            // 없을 경우
+            else
+            {
+                result = stateGroup[MonsterState.Wait];
+                nowState = MonsterState.Wait;
+            }
         }
-
+        // 대기 거리 안이지만 자리가 없을 경우
+        else if (distance <= AttackRange + waitBuffer && HasNoFreeSlot())
+        {
+            result = stateGroup[MonsterState.Wait];
+            nowState = MonsterState.Wait;
+        }
         // 공격 범위 밖이지만 감지 범위 안
-        else if (distance <= chaseCollider.radius || IsProvoked)
+        else if (chaseable)
         {
             result = stateGroup[MonsterState.Chase];
             nowState = MonsterState.Chase;
         }
+        // 모든 조건 불충족 시
         else
         {
             result = stateGroup[MonsterState.Patrol];
@@ -326,9 +377,42 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     }
     public bool IsInAttackRange(float distance) =>
     distance <= attackRange || attackSelector.AnyReadyInRange(distance);
+    
+    /// <summary>
+    /// 기본 대상 지정 함수
+    /// <para>기본 대상이 있을 경우 목표를 잃으면 기본 대상을 추적함</para>
+    /// </summary>
+    /// <param name="target"></param>
+    public void SetDefaultTarget(GameObject target) => defaultTarget = target;
+
+    /// <summary>
+    /// 대상의 몸 반지름을 뺀 실제 거리 (큰 대상도 표면 기준으로 판정)
+    /// </summary>
+    public float DistanceToTarget()
+    {
+        if (nowTarget == null) return float.MaxValue;
+
+        float dist = Vector3.Distance(transform.position, nowTarget.transform.position);
+        return targetInfo != null ? Mathf.Max(0f, dist - targetInfo.BodyRadius) : dist;
+    }
+    /// <summary>
+    /// 슬롯 반납 함수
+    /// </summary>
+    public void ReleaseSlot()
+    {
+        if (targetInfo != null) targetInfo.Release(this);
+    }
+
+    // 슬롯 미사용 몬스터 or 슬롯 정보 없는 대상은 항상 통과
+    private bool TryHoldSlot() =>
+    !useAttackSlot || targetInfo == null || targetInfo.TryAcquire(this);
+
+    private bool HasNoFreeSlot() =>
+        useAttackSlot && targetInfo != null && !targetInfo.CanAcquire(this);
 
     public void StopAI()
     {
+        ReleaseSlot();
         if (aiCts == null) return;
         aiCts.Cancel();
         aiCts.Dispose();

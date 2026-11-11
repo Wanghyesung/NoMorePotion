@@ -34,8 +34,7 @@ public class MonsterAttackState : IMonsterState
         // 공용 공격 간격 (스킬/기본 공격 사이의 최소 텀)
         if (mover.attackTimer < mover.attackSpeed || mover.nowTarget == null) return;
 
-        float distance = Vector3.Distance(mover.transform.position,
-            mover.nowTarget.transform.position);
+        float distance = mover.DistanceToTarget();
 
         // 1순위: 쿨타임이 찬 스킬
         AttackPattern pattern = mover.AttackSelector.HasPatterns

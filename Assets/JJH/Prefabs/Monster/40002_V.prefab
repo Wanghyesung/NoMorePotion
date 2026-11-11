@@ -169,6 +169,7 @@ GameObject:
   - component: {fileID: 5273423110895543213}
   - component: {fileID: 5917736365394575591}
   - component: {fileID: 7385313133710482646}
+  - component: {fileID: 2197112938359592880}
   m_Layer: 8
   m_Name: 40002
   m_TagString: Untagged
@@ -268,6 +269,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d41a6fc554ebdcf43bbade9e8df22f48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimationBridge
+--- !u!114 &2197112938359592880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677138659615605690}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsWalk
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsRun
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsDead
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsHit
+  - Type: 1
+    SynchronizeType: 1
+    Name: MoveSpeed
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
 --- !u!1 &721706986774673339
 GameObject:
   m_ObjectHideFlags: 0
@@ -1995,6 +2032,14 @@ PrefabInstance:
       propertyPath: m_IsKinematic
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7600276803389832507, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: ObservedComponents.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7600276803389832507, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: 'ObservedComponents.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2197112938359592880}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

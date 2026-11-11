@@ -21,5 +21,6 @@ public class MonsterAnimationBridge : MonoBehaviour
     private void SkillHitOff(string skillName) => combat.SkillHitOff(skillName);
     private void SkillAnimationEnd(string skillName) => combat.SkillAnimationEnd(skillName);
 
-
+    // 사망
+    private void DeathAnimationEnd() => combat.DeathAnimationEnd();
 }

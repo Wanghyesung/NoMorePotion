@@ -23,6 +23,10 @@ public sealed class PotionDetector : MonoBehaviour
 
     private ParticleSystem[] colorSystems;
     private Color[] baseColors;
+
+    [Header("Gizmo / Preview")]
+    // 에디터에서 기즈모와 이펙트 미리보기에 쓸 크기 (런타임에는 실제 포션 크기로 덮어씀)
+    [SerializeField] private PotionExplosionRange previewRange = PotionExplosionRange.Small;
     #endregion
 
     private PotionInstance instance;
@@ -64,14 +68,21 @@ public sealed class PotionDetector : MonoBehaviour
 
         #endregion
 
-        if (attackOnce)
-            lifetime += MaxAttackCount;
+        // 풀 재사용 시 이전 사용분 값이 남아 있으므로 초기화
+        AttackCount = 0;
 
-        //이거 PoolManager가 먼저 사라지면 터짐
-        TimeManager.Instance.Schedule(lifetime, () =>
+        // lifetime(직렬화 필드)에 직접 더하면 재사용할 때마다 누적됨 → 지역 변수로 계산
+        // 반복 공격이면 공격이 다 끝날 때까지 살아 있어야 하므로 공격 시간(횟수 × 간격)만큼 더함
+        float releaseDelay = attackOnce ? lifetime : lifetime + MaxAttackCount * nextAttackDelay;
+
+        // 반납 토큰: 먼저 반납되거나 파괴되면 예약 취소 → 재사용 중인 오브젝트를 옛 예약이 반납하지 않음
+        TimeManager.Instance.Schedule(releaseDelay, () =>
         {
+            if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
+                return;
+
             PoolManager.Instance.Release(gameObject);
-        });
+        }, PoolManager.GetReleaseToken(gameObject));
 
         TryAttack();
     }
@@ -96,7 +107,12 @@ public sealed class PotionDetector : MonoBehaviour
 
     private async UniTaskVoid WaitNextAttackAsync()
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(nextAttackDelay));
+        // 오브젝트가 꺼져도 UniTask는 멈추지 않음 → 반납 토큰으로 반납·파괴 시 반복 공격 중단
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(nextAttackDelay),
+                cancellationToken: PoolManager.GetReleaseToken(gameObject))
+            .SuppressCancellationThrow();
+        if (cancelled)
+            return;
 
         TryAttack();
     }
@@ -137,12 +153,56 @@ public sealed class PotionDetector : MonoBehaviour
             main.startColor = c;
         }
 
-        // 풀에서 꺼낼 때 이전 색으로 이미 재생된 파티클을 지우고 새 색으로 다시 재생한다.
+        RestartEffect();
+    }
+
+    // 풀에서 꺼낼 때 이전 색으로 이미 재생된 파티클을 지우고 새 색으로 다시 재생한다.
+    // effectRoot에 ParticleSystem이 있으면 그걸로 자식까지 한 번에, 없으면(빈 부모) 자식 파티클을 각각 재시작한다.
+    private void RestartEffect()
+    {
+        if (effectRoot == null)
+            return;
+
         if (effectRoot.TryGetComponent(out ParticleSystem rootParticle))
         {
             rootParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             rootParticle.Play(true);
+            return;
+        }
+
+        foreach (ParticleSystem ps in effectRoot.GetComponentsInChildren<ParticleSystem>())
+        {
+            ps.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ps.Play(false);
         }
     }
+
+#if UNITY_EDITOR
+    // 폭발 판정 범위(PotionExplosionConfig 반지름)를 빨간 원으로 그린다. 콜라이더와 무관.
+    private void OnDrawGizmosSelected()
+    {
+        PotionExplosionConfig config = PotionExplosionConfig.Instance;
+        if (config == null)
+            return;
+
+        // 플레이 중이면 실제 포션 범위, 아니면 previewRange 범위
+        PotionExplosionRange range = (instance != null && instance.Data != null)
+            ? instance.Data.potionExplosionRange
+            : previewRange;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, config.GetRadius(range));
+    }
+
+    // Inspector에서 effectBaseRadius나 previewRange를 바꾸면 이펙트 크기를 바로 미리보기한다.
+    private void OnValidate()
+    {
+        PotionExplosionConfig config = PotionExplosionConfig.Instance;
+        if (effectRoot == null || config == null)
+            return;
+
+        effectRoot.localScale = Vector3.one * (config.GetRadius(previewRange) / effectBaseRadius);
+    }
+#endif
     #endregion
 }

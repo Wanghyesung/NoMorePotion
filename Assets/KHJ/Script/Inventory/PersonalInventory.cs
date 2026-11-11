@@ -128,6 +128,9 @@ namespace Enzeun.Runtime
                 {
                     _slots[i] = InventorySlot.OfPotion(potion);
                     OnSlotChanged?.Invoke(i);
+#if UNITY_EDITOR
+                    Debug.Log($"[PersonalInventory] : {potion.Data.potionName} 보관");
+#endif
                     return i;
                 }
             }
@@ -292,6 +295,9 @@ namespace Enzeun.Runtime
             InventorySlot taken = _slots[index];
             _slots[index] = default;
             OnSlotChanged?.Invoke(index);
+#if UNITY_EDITOR
+            Debug.Log($"[PersonalInventory] : 슬롯({index})번 제거");
+#endif
             return taken;
         }
 
@@ -394,6 +400,9 @@ namespace Enzeun.Runtime
             }
 
             OnSlotChanged?.Invoke(index);
+#if UNITY_EDITOR
+            Debug.Log($"[PersonalInventory] : 슬롯({index})번 {count}개 제거");
+#endif
             return true;
         }
 

@@ -35,7 +35,7 @@ public class CombinationController : ItemInventory
             id = 0;
             instanceId = 0;
             if(boundSlot != null)
-                boundSlot.SetAlpha(true);
+                boundSlot.RestoreAlpha();
             boundSlot = null;
         }
     }
@@ -203,22 +203,35 @@ public class CombinationController : ItemInventory
         if (!canceled) WarningText.gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// 조합창 칸에서 서버로 보낼 재료 지정을 만듭니다. 개인 인벤토리 칸에서 올렸으면 "내 개인 인벤토리의 그 칸"으로,
+    /// 공용 인벤에서 올렸으면 재료/포션 번호로 가리킵니다.
+    /// </summary>
+    private Ingredient MakeIngredient(CombineSlot slot, int dataId)
+    {
+        if (slot.boundSlot != null && slot.boundSlot.isPersonalSlot)
+        {
+            return new Ingredient
+            {
+                Source = ContainerRef.Personal(InvenManager.LocalActor, slot.boundSlot.slotNum)
+            };
+        }
+
+        return new Ingredient
+        {
+            InstanceId = slot.instanceId,
+            MaterialId = dataId,
+            Source = publicInvenCRef
+        };
+    }
+
     public async UniTask PotionCombination(int leftId, int rightId)
     {
-        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync( 
-            new()
-            {
-                InstanceId = leftSlot.instanceId,
-                MaterialId = leftId,
-                Source = publicInvenCRef
-            },
-            new()
-            {
-                InstanceId = rightSlot.instanceId,
-                MaterialId = rightId,
-                Source = publicInvenCRef
-            }
-        );
+        // 요청을 보내는 동안 조합창이 비워질 수 있으니 출처는 미리 만들어 둡니다.
+        Ingredient left = MakeIngredient(leftSlot, leftId);
+        Ingredient right = MakeIngredient(rightSlot, rightId);
+
+        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync(left, right);
 
         if (result.Success)
             Debug.Log($"[Craft] 포션 제작 성공 - {result.Outcome.Potion.Data.potionName}");

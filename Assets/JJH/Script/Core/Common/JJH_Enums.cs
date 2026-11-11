@@ -7,5 +7,5 @@ public static class JJH_Enums
         // 늑대 전용
         Follow, Encircle, Pound, 
         //
-        Attack, Death, None }
+        Wait, Attack, Death, None }
 }
