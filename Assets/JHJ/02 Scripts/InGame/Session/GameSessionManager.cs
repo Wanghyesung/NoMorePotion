@@ -15,8 +15,6 @@ using UnityEngine;
 ///   판정 권한(GameAuthority)이 있고 Playing 단계일 때만 반영. 먼저 온 보고만 유효
 ///   수정구슬 파괴 → 수정구슬이 파괴 이벤트를 Invoke → 세션이 구독해서 패배 처리 (SubscribeCrystal 참고)
 ///
-/// [사망] 내 플레이어의 사망 처리(시체 상자)는 PlayerDeathHandler. 세션은 스폰 직후 연결만 한다
-///
 /// [구독] 알림은 Phase 하나뿐. 끝났을 때 기록이 필요하면 Ended를 받은 뒤 Record를 읽는다
 ///   GameSessionManager.Instance.Phase
 ///       .Where(p => p == SessionPhase.Ended)
@@ -39,9 +37,6 @@ public class GameSessionManager : MonoBehaviour
     [Header("수정구슬")]
     // TODO(수정구슬): 수정구슬 클래스가 생기면 타입을 바꿔서 연결
     //   [SerializeField] private Crystal crystal;
-
-    // 내 플레이어 사망 처리 (시체 상자). 판이 진행 중일 때만 처리
-    private PlayerDeathHandler deathHandler;
 
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
@@ -78,8 +73,6 @@ public class GameSessionManager : MonoBehaviour
         {
             pool.ResourceCache[playerPrefab.name] = playerPrefab.gameObject;
         }
-
-        deathHandler = new PlayerDeathHandler(() => phase.CurrentValue == SessionPhase.Playing);
     }
 
     private void Start()
@@ -94,7 +87,6 @@ public class GameSessionManager : MonoBehaviour
             Instance = null;
 
         UnsubscribeCrystal();
-        deathHandler?.Dispose();
 
         phase?.Dispose();
         rankingSubmit?.Dispose();
@@ -146,9 +138,7 @@ public class GameSessionManager : MonoBehaviour
         if (spawnedPlayer == null)
             return false;
 
-        Player localPlayer = spawnedPlayer.GetComponent<Player>();
-        playerBinder.SetPlayer(localPlayer);
-        deathHandler.Bind(localPlayer);
+        playerBinder.SetPlayer(spawnedPlayer.GetComponent<Player>());
         return true;
     }
 
@@ -285,16 +275,6 @@ public class GameSessionManager : MonoBehaviour
 
     [ContextMenu("디버그 수정구슬 파괴")]
     private void DebugCrystalDestroyed() => OnCrystalDestroyed();
-
-    [ContextMenu("디버그 내 플레이어 사망")]
-    private void DebugLocalPlayerDied()
-    {
-        if (deathHandler == null)
-            return;
-
-        Vector3 position = spawnedPlayer != null ? spawnedPlayer.transform.position : transform.position;
-        deathHandler.DebugDie(position);
-    }
 
     #endregion
 }
