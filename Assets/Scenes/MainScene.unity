@@ -19396,6 +19396,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 1679380589598682981, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
   playerBinder: {fileID: 1356043885}
   spawnPoint: {fileID: 1922327024}
+  enableDebugKeys: 1
 --- !u!114 &1073988826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39876,8 +39877,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cfdedc10c86b0b45b0e2dd34a196fdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeManager
-  dayDuration: 10
-  nightDuration: 10
+  dayDuration: 60
+  nightDuration: 60
 --- !u!4 &1999150016
 Transform:
   m_ObjectHideFlags: 0

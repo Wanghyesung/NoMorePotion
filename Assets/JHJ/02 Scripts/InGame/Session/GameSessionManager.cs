@@ -3,6 +3,7 @@ using Photon.Pun;
 using R3;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 한 판의 진행 단계 관리 (준비 → 플레이 → 끝).
@@ -51,6 +52,10 @@ public class GameSessionManager : MonoBehaviour
     public bool IsEnded => Phase.CurrentValue == SessionPhase.Ended;
 
 
+    [Header("디버그")]
+    [SerializeField] private bool enableDebugKeys = true;   // 정식 빌드 전에 끄기
+
+
     #region 생명주기
 
     private void Awake()
@@ -88,6 +93,17 @@ public class GameSessionManager : MonoBehaviour
         rankingSubmit?.Dispose();
     }
 
+    private void Update()
+    {
+        if (!enableDebugKeys || Keyboard.current == null)
+            return;
+
+        if (Keyboard.current.f1Key.wasPressedThisFrame)
+            ReportClear();
+        else if (Keyboard.current.f2Key.wasPressedThisFrame)
+            ReportDefeat();  
+    }
+
     #endregion
 
 
@@ -109,6 +125,13 @@ public class GameSessionManager : MonoBehaviour
         if (playerPrefab != null && SpawnLocalPlayer() == false)
             return;
         // TODO(멀티): 전원 씬 로드 완료 대기
+
+        // InputManager는 씬을 넘어 유지되므로, 이전 판 결과창에서 꺼 둔 입력·커서를 되돌린다
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.SetInputEnabled(true);
+            InputManager.Instance.SetCursorLocked(true);
+        }
 
         if (TimeManager.Instance != null)
             TimeManager.Instance.StartClock();
