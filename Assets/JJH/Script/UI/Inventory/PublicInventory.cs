@@ -41,6 +41,7 @@ public class PublicInventory : ItemInventory
     private PotionInventory potions;
 
     private readonly Dictionary<int, ItemInstance> materialItems = new();
+    private readonly Dictionary<int, InventoryIcon> materialViews = new();
     private readonly List<InventoryIcon> potionIcons = new();
     private readonly List<PotionInstance> sorted = new();
     private bool potionsUpdate;
@@ -147,6 +148,7 @@ public class PublicInventory : ItemInventory
 
             int id = data.materialID;
             Sprite icon = data.materialIcon;
+            int count = materials.GetCount(id);
 
             var item = new ItemInstance(id, icon, InventorySlotKind.Material, materials.GetCount(id));
             materialItems[id] = item;
@@ -154,14 +156,22 @@ public class PublicInventory : ItemInventory
             InventoryIcon view = Instantiate(inven.iconPrefab, materialContent);
             view.SetParentInventory(this);
             view.Init(item);
+            view.gameObject.SetActive(count > 0);
+            materialViews[id] = view;
         }
     }
 
     // 바뀐 재료 수정
     private void OnMaterialChanged(int materialId)
     {
-        if (materialItems.TryGetValue(materialId, out ItemInstance item))
-            item.ItemCount = materials.GetCount(materialId);
+        if (!materialItems.TryGetValue(materialId, out ItemInstance item)) return;
+
+        int count = materials.GetCount(materialId);
+        item.ItemCount = count;
+
+        if (materialViews.TryGetValue(materialId, out InventoryIcon view)
+        && view.gameObject.activeSelf != (count > 0))
+            view.gameObject.SetActive(count > 0);
     }
 
     #endregion
