@@ -26,6 +26,7 @@ public sealed class FSM : MonoBehaviour
         Take = 7,
         Dead = 8,
         Drink = 9,
+        Shake = 10,
     }
     public bool HasGameplayInput => player != null && player.IsLocalPlayer == true && Instance.HasGameplayInput;
     public bool IsFrozen => freezeRemaining > 0f;
