@@ -168,7 +168,13 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         CancelPending();
 
         if (buffContainer != null)
+        {
             buffContainer.Clear();
+
+            // 포션 등이 건 효과만 지우고, 생존 상태 구간이 거는 효과(예: 정신력 초기값 50 의 멍청함)는 현재 구간에 맞게 다시 건다.
+            if (SurviveStatusManager.Instance != null)
+                SurviveStatusManager.Instance.ResyncStatusEffects();
+        }
 
         character.HP = character.MaxHP;
         ConfusePotionUse = false;
