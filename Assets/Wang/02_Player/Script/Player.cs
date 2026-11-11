@@ -96,8 +96,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (character.HP <= 0)
         {
             CancelPending();
-            //if (attackTarget != null)
-                //attackTarget.IsObjective = false;
+            if (attackTarget != null)
+                attackTarget.SetTargetable(false);
         }
 
         // HP 차감량만 보정한다. 피격 위치·넉백에 쓰는 원본 공격 정보는 유지한다.
@@ -180,8 +180,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
         SetLookPitch(0f);
         fsm.RefreshState();
-        //if (attackTarget != null)
-        //    attackTarget.SetTargetable(true);
+        if (attackTarget != null)
+            attackTarget.SetTargetable(true);
     }
 
     private void SubscribePotionInput()
