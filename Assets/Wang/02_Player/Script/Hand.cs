@@ -15,7 +15,7 @@ using Enzeun.Runtime;
 [DisallowMultipleComponent]
 public sealed class Hand : MonoBehaviour
 {
-    public enum Side { Left, Right }
+    public enum Side { Left = 0, Right = 1 }
 
     #region 손과 소켓
     [SerializeField] private Side focusedSide;
@@ -40,7 +40,19 @@ public sealed class Hand : MonoBehaviour
     #endregion
 
     public Side FocusedSide => focusedSide;
-    public void Focus(Side side) => focusedSide = side;
+    public void Focus(Side side)
+    {
+        if (focusedSide == side)
+            return;
+
+        focusedSide = side;
+        OnFocusChanged?.Invoke((int)focusedSide);
+    }
+
+    /// <summary>
+    /// 손 포커스가 실제로 변경된 뒤 알림. 왼손은 0, 오른손은 1을 전달합니다.
+    /// </summary>
+    public event Action<int> OnFocusChanged;
     public event Action OnPotionHeld;
 
     /// <summary>
@@ -91,7 +103,7 @@ public sealed class Hand : MonoBehaviour
 
     private void SwitchFocus(InputAction.CallbackContext context) => SwitchFocus();
 
-    public void SwitchFocus() => focusedSide = focusedSide == Side.Left ? Side.Right : Side.Left;
+    public void SwitchFocus() => Focus(focusedSide == Side.Left ? Side.Right : Side.Left);
     public bool Hold(Side side, PotionMover potion)
     {
         if (GetPotion(side) != null)
