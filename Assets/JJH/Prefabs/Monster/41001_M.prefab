@@ -1100,6 +1100,7 @@ GameObject:
   - component: {fileID: 6263471703257641074}
   - component: {fileID: 4104166015639343300}
   - component: {fileID: 2423885269811054825}
+  - component: {fileID: 4547543115401431219}
   m_Layer: 8
   m_Name: WolfBase
   m_TagString: Untagged
@@ -1240,6 +1241,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de4593c7fd012174faf30f2defc6a5f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WolfAnimationBridge
+--- !u!114 &4547543115401431219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4960801443304062139}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsWalk
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsRun
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsDead
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsHit
+  - Type: 4
+    SynchronizeType: 1
+    Name: Pound
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
 --- !u!1 &5105760613630836016
 GameObject:
   m_ObjectHideFlags: 0
@@ -2559,6 +2596,7 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 7446713184019589414}
   - {fileID: 8782769351517086343}
+  - {fileID: 4547543115401431219}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
