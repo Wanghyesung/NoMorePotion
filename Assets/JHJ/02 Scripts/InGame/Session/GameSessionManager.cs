@@ -34,10 +34,6 @@ public class GameSessionManager : MonoBehaviour
     [SerializeField] private Transform spawnPoint;
     private GameObject spawnedPlayer;
 
-    [Header("수정구슬")]
-    // TODO(수정구슬): 수정구슬 클래스가 생기면 타입을 바꿔서 연결
-    //   [SerializeField] private Crystal crystal;
-
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
     private ReactiveProperty<RankingSubmitResult> rankingSubmit = new ReactiveProperty<RankingSubmitResult>(RankingSubmitResult.None);
@@ -150,26 +146,13 @@ public class GameSessionManager : MonoBehaviour
     /// <summary>
     /// 수정구슬의 파괴 이벤트를 구독한다. (수정구슬이 Invoke → OnCrystalDestroyed)
     /// </summary>
-    private void SubscribeCrystal()
-    {
-        // TODO(수정구슬): 수정구슬 담당이 만든 이벤트 이름으로 연결
-        //   if (crystal != null) crystal.OnDestroyed += OnCrystalDestroyed;
-    }
-
-    private void UnsubscribeCrystal()
-    {
-        // TODO(수정구슬): SubscribeCrystal 과 짝으로 해제
-        //   if (crystal != null) crystal.OnDestroyed -= OnCrystalDestroyed;
-    }
+    private void SubscribeCrystal() => CrystalCore.OnBroken += OnCrystalDestroyed;
+    private void UnsubscribeCrystal() => CrystalCore.OnBroken -= OnCrystalDestroyed;
 
     /// <summary>
     /// 수정구슬이 파괴됐을 때 (패배). 수정구슬 이벤트의 구독 함수
     /// </summary>
-    private void OnCrystalDestroyed()
-    {
-        Debug.Log("[GameSessionManager] 수정구슬 파괴");
-        ReportDefeat();
-    }
+    private void OnCrystalDestroyed(CrystalCore crystal) { ReportDefeat(); }
 
     #endregion
 
@@ -272,9 +255,6 @@ public class GameSessionManager : MonoBehaviour
 
     [ContextMenu("디버그 패배")]
     private void DebugDefeat() => ReportDefeat();
-
-    [ContextMenu("디버그 수정구슬 파괴")]
-    private void DebugCrystalDestroyed() => OnCrystalDestroyed();
 
     #endregion
 }
