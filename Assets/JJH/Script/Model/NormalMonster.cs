@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using static CommonStruct;
+using static JJH_Enums;
 
 public class NormalMonster : Character, IAttacker
 {
@@ -11,7 +12,7 @@ public class NormalMonster : Character, IAttacker
     public int AttackPower;
     public int FinalAtkPoint;
     public int InstanceId;
-    public string SpawnArea;
+    public SpawnAreaType SpawnArea;
     public string Description;
     public DamageType DamageType { get; set; }
 
@@ -22,7 +23,7 @@ public class NormalMonster : Character, IAttacker
     public Action<int, int> OnHPChanged;
 
     public  NormalMonster(string name, int maxHp, int hp,int atkPoint, int attackPower, Dictionary<DamageType, int> immune,float speed,
-        int id, int instanceId, string spawnArea,string description, DamageType damageType
+        int id, int instanceId, SpawnAreaType spawnArea,string description, DamageType damageType
         ) : base(name, maxHp, hp, immune) 
     {
         Id = id;

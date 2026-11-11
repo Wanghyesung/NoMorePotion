@@ -2252,7 +2252,7 @@ MonoBehaviour:
     HP: 0
     Speed: 0
     DamageType: 0
-    SpawnArea: 
+    SpawnArea: 0
   BossMonsterDataList: []
   MonsterLocalizationDataList: []
 --- !u!4 &1199953796
@@ -2307,58 +2307,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 616523082926847388, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 1023136023902888350, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 1096096755848164882, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Alpha
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1176939671244105671, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 1969432770984178813, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 2169295697726548199, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 2622071112510271620, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 3271476995294105966, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 3904791047339677330, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 4673756386569261359, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 4908262828553964167, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 5408463920968251005, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: bodyRadius
-      value: 1.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 6153970839795389887, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
     - target: {fileID: 6235444728647760553, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
       propertyPath: m_LocalPosition.x
       value: 5.884896
@@ -2399,41 +2347,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6592017608909641603, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 7809838987469892844, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7809838987469892844, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7809838987469892844, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 8512663465674920902, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
       propertyPath: m_Name
       value: AttackObj
-      objectReference: {fileID: 0}
-    - target: {fileID: 8512663465674920902, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 8512663465674920902, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_TagString
-      value: Core
-      objectReference: {fileID: 0}
-    - target: {fileID: 8816823525806419110, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
-      objectReference: {fileID: 0}
-    - target: {fileID: 9053562818137374445, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
-      propertyPath: m_Layer
-      value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

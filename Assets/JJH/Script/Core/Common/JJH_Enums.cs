@@ -8,4 +8,8 @@ public static class JJH_Enums
         Follow, Encircle, Pound, 
         //
         Wait, Attack, Death, None }
+    public enum SpawnAreaType
+    {
+        Plain, Forest, Desert, Glacier, Volcano, Cave
+    }
 }

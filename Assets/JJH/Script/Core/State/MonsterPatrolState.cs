@@ -11,6 +11,10 @@ public class MonsterPatrolState : IMonsterState
     private MonsterMove mover;
     private const float StartGrace = 0.3f;
     private float startTime;
+    /// <summary>
+    /// 순찰 지점의 정지 여부
+    /// </summary>
+    public bool IsArrived => IsMoverStop();
     public MonsterPatrolState(MonsterMove mover)
     {
         this.mover = mover;
@@ -18,8 +22,6 @@ public class MonsterPatrolState : IMonsterState
 
     public void OnEnd()
     {
-        mover.patrolTimerActive = true;
-        mover.patrolTimer = 0;
         mover.anim.IsWalk(false);
     }
 
@@ -49,8 +51,6 @@ public class MonsterPatrolState : IMonsterState
 
     public void OnStay()
     {
-        if (IsMoverStop())
-            mover.state.ChangeState(mover.stateGroup[MonsterState.Idle]);
         
     }
 

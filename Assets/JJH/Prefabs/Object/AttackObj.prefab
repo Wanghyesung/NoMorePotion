@@ -11,12 +11,12 @@ GameObject:
   - component: {fileID: 7482746439532375025}
   - component: {fileID: 5316707817112197857}
   - component: {fileID: 724394041500535001}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &7482746439532375025
 Transform:
@@ -101,12 +101,12 @@ GameObject:
   - component: {fileID: 1628947463144462215}
   - component: {fileID: 7544470359519603423}
   - component: {fileID: 1913269953316938715}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1628947463144462215
 Transform:
@@ -191,12 +191,12 @@ GameObject:
   - component: {fileID: 8582275112231707076}
   - component: {fileID: 3205237991204773504}
   - component: {fileID: 3101455501668884732}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &8582275112231707076
 Transform:
@@ -281,12 +281,12 @@ GameObject:
   - component: {fileID: 7542455424876115274}
   - component: {fileID: 7240018067759528616}
   - component: {fileID: 4713968391064523524}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &7542455424876115274
 Transform:
@@ -371,12 +371,12 @@ GameObject:
   - component: {fileID: 1504785864528340347}
   - component: {fileID: 678675546445299567}
   - component: {fileID: 5471302229639076376}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1504785864528340347
 Transform:
@@ -462,12 +462,12 @@ GameObject:
   - component: {fileID: 5593040874736640668}
   - component: {fileID: 5408463920968251005}
   - component: {fileID: 6610252792236716557}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: AttackObj
-  m_TagString: Untagged
+  m_TagString: Core
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &6235444728647760553
 Transform:
@@ -478,7 +478,7 @@ Transform:
   m_GameObject: {fileID: 8512663465674920902}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.32, y: 0, z: 5.93}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -524,7 +524,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69d4b42453027cc40b328005c910cdc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AttackTarget
-  bodyRadius: 2.9
+  bodyRadius: 1.6
   isObjective: 1
   meleeSlots: 8
   slotTimeout: 1.5
@@ -554,12 +554,12 @@ GameObject:
   - component: {fileID: 2894827747605180899}
   - component: {fileID: 7328657112829518045}
   - component: {fileID: 8738020661472634332}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Leg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2894827747605180899
 Transform:
@@ -641,6 +641,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6235444728647760553}
     m_Modifications:
+    - target: {fileID: 117538694108674852, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 117538694108674852, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 1875359385613811080, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 1875359385613811080, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 2152863422831946512, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: faceCamera
       value: 1
@@ -691,7 +707,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2.8038497
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: m_LocalRotation.w
@@ -711,11 +727,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 2.1429596
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -729,9 +745,61 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4262294425220597421, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4262294425220597421, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 5328677551709069207, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
       propertyPath: m_Name
       value: HealthHud
+      objectReference: {fileID: 0}
+    - target: {fileID: 5328677551709069207, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5328677551709069207, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 5641618674072738841, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Alpha
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6496940342508461686, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6496940342508461686, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 7286375265048304271, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7286375265048304271, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 7789976680382561125, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7789976680382561125, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596679816316976281, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8596679816316976281, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

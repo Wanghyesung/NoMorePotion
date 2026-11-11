@@ -29,11 +29,6 @@ public class MonsterIdleState : IMonsterState
 
     public void OnStay()
     {
-        if (mover.patrolDelay < mover.patrolTimer)
-        {
-            mover.patrolTimer = 0;
-            mover.patrolTimerActive = false;
-            mover.state.ChangeState(mover.stateGroup[MonsterState.Patrol]);
-        }
+
     }
 }

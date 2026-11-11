@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static JJH_Enums;
 
 [Serializable]
 public class BossData
@@ -24,7 +25,9 @@ public class BossData
     /// <para>Dark = 5</para>
     /// </summary>
     public Dictionary<int, int> Immune;
-    public string SpawnArea;
+
+    [JsonConverter(typeof(StringEnumConverter))]
+    public SpawnAreaType SpawnArea;
     [JsonProperty("BossSkill")]
     public List<BossSkill> BossSkills;
 

@@ -3,6 +3,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static JJH_Enums;
 
 [Serializable]
 public class MonsterData
@@ -23,5 +24,6 @@ public class MonsterData
     /// <para>Dark = 5</para>
     /// </summary>
     public Dictionary<int, int> Immune;
-    public string SpawnArea;
+    [JsonConverter(typeof(StringEnumConverter))]
+    public SpawnAreaType SpawnArea;
 }

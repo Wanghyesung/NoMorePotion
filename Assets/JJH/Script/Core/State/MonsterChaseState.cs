@@ -34,9 +34,6 @@ public class MonsterChaseState : IMonsterState
 
         mover.anim.IsRun();
         mover.anim.IsWalk(false);
-
-        mover.patrolTimer = 0;
-        mover.patrolTimerActive = false;
     }
 
     public void OnStay()

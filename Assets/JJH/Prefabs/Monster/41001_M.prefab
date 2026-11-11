@@ -2722,7 +2722,7 @@ MonoBehaviour:
   crouchClipTime: 0.17
   windupDuration: 0.2
   windupTurnSpeed: 8
-  jumpHeight: 2.5
+  jumpHeight: 2
   jumpDuration: 0.45
   landingLeadTime: 0.33
   landOffset: 0.3
@@ -2758,11 +2758,12 @@ MonoBehaviour:
     graceTime: 2.5
     reacquireCooldown: 3
     sampleRadius: 2
-  nowTarget: {fileID: 0}
   provokeDuration: 5
   provokeSearchRange: 50
   useAttackSlot: 0
   waitBuffer: 2
+  slotStandRatio: 0.7
+  slotTolerance: 1
   defaultTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0

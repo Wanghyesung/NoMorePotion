@@ -160,7 +160,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
     }
 
     public void Init(string name,int maxHp, int hp, int atkPoint, int attackPower, Dictionary<DamageType, int> immune,float speed,
-        int id, int instanceId, string spawnArea, string description, DamageType damageType)
+        int id, int instanceId, SpawnAreaType spawnArea, string description, DamageType damageType)
     {
         SetData(new(name, maxHp, hp, atkPoint, attackPower, immune, speed, id, instanceId, 
             spawnArea, description, damageType));
