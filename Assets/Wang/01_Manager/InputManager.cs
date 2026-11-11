@@ -28,6 +28,7 @@ public sealed class InputManager : MonoBehaviour
     [SerializeField] private InputActionReference switchHandActionReference;
     [SerializeField] private InputActionReference interactActionReference;
     [SerializeField] private InputActionReference takeOutPotionActionReference;
+    [SerializeField] private InputActionReference shakeActionReference;
 
     public InputAction MoveAction { get; private set; }
     public InputAction DeltaAction { get; private set; }
@@ -38,6 +39,7 @@ public sealed class InputManager : MonoBehaviour
     public InputAction SwitchHandAction { get; private set; }
     public InputAction InteractAction { get; private set; }
     public InputAction TakeOutPotionAction { get; private set; }
+    public InputAction ShakeAction { get; private set; }
     #endregion
 
     private PlayerInputInfo inputInfo;
@@ -71,6 +73,7 @@ public sealed class InputManager : MonoBehaviour
         SwitchHandAction = switchHandActionReference.action;
         InteractAction = interactActionReference.action;
         TakeOutPotionAction = takeOutPotionActionReference.action;
+        ShakeAction = shakeActionReference.action;
     }
 
     private void OnEnable()
@@ -142,6 +145,7 @@ public sealed class InputManager : MonoBehaviour
         SwitchHandAction.Enable();
         InteractAction.Enable();
         TakeOutPotionAction.Enable();
+        ShakeAction.Enable();
     }
 
     private void DisableActions()
@@ -155,5 +159,6 @@ public sealed class InputManager : MonoBehaviour
         SwitchHandAction.Disable();
         InteractAction.Disable();
         TakeOutPotionAction.Disable();
+        ShakeAction.Disable();
     }
 }

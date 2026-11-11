@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,6 +28,7 @@ public sealed class FSM : MonoBehaviour
         Take = 7,
         Dead = 8,
         Drink = 9,
+        Shake = 10,
     }
     public bool HasGameplayInput => player != null && player.IsLocalPlayer == true && Instance.HasGameplayInput;
     public bool IsFrozen => freezeRemaining > 0f;
@@ -224,6 +227,8 @@ public sealed class FSM : MonoBehaviour
             ClearActionState();
             Vel = Vector3.zero;
             EnterState(dead);
+
+            InventoryNetworkSyncManager.Instance.DieAsync(Rigidbody.position).Forget();
             return;
         }
 

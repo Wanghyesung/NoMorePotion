@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a67e26eb71929184fa2e24e94f7562b7, type: 3}
+  m_Name: Shake
+  m_EditorClassIdentifier: Assembly-CSharp::SOShakeState
+  clip: {fileID: -623603649343465320, guid: 316cb456ce6964e46acb6ec01ca71e01, type: 3}
+  animationSpeed: 1
+  rightClip: {fileID: -623603649343465320, guid: 69851d5533450264e9d3c23981cb0ea9, type: 3}
+  bothClip: {fileID: -623603649343465320, guid: 01833771d2dcc7549a0cf430935f9f9d, type: 3}

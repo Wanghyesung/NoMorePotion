@@ -30,6 +30,18 @@ public sealed class Hand : MonoBehaviour
     public Side FocusedSide => focusedSide;
     public void Focus(Side side) => focusedSide = side;
     public event Action OnPotionHeld;
+
+    /// <summary>
+    /// 흔들기 시작 시 알림. 첫 번째 인자는 왼손, 두 번째 인자는 오른손의 포션입니다.
+    /// 포션이 없는 손은 null로 전달합니다.
+    /// </summary>
+    public event Action<PotionInstance, PotionInstance> OnShake;
+
+    /// <summary>
+    /// 흔들기 상태 종료 시 알림. 정상 완료와 다른 상태로 인한 중단을 포함합니다.
+    /// </summary>
+    public event Action OnShakeFinished;
+
     public PotionMover FocusedPotion => GetPotion(focusedSide);
     public PotionMover OtherPotion => GetPotion(focusedSide == Side.Left ? Side.Right : Side.Left);
     public bool IsBothHandsEmpty => leftPotion == null && rightPotion == null;
@@ -85,6 +97,20 @@ public sealed class Hand : MonoBehaviour
     }
 
     public int EmptyHandCount => (leftPotion == null ? 1 : 0) + (rightPotion == null ? 1 : 0);
+
+    public void Shake()
+    {
+        PotionInstance left = leftPotion != null ? leftPotion.PotionInstance : null;
+        PotionInstance right = rightPotion != null ? rightPotion.PotionInstance : null;
+        Debug.Log($"흔들기 전달: 왼손={(left != null ? $"{left.Data} (ID: {left.InstanceId})" : "null")}, 오른손={(right != null ? $"{right.Data} (ID: {right.InstanceId})" : "null")}", this);
+        OnShake?.Invoke(left, right);
+    }
+
+    public void FinishShake()
+    {
+        Debug.Log("흔들기 끝남", this);
+        OnShakeFinished?.Invoke();
+    }
 
     /// <summary>
     /// 인벤토리에서 포션을 무작위로 꺼내 빈 손에 듭니다. (공용 인벤 우선, 없으면 개인 인벤, 없으면 아무 일도 없음)
