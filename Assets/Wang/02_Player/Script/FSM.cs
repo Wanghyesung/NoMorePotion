@@ -59,6 +59,7 @@ public sealed class FSM : MonoBehaviour
 
     #region Velocity
     public Vector3 Vel { get; private set; }
+    private bool hasStateVelocity;
     #endregion
 
     #region PlayerState
@@ -91,7 +92,11 @@ public sealed class FSM : MonoBehaviour
     private readonly HashSet<Collider> groundContacts = new HashSet<Collider>();
     [SerializeField] private LayerMask groundLayers = ~0;
     public bool IsGrounded => groundContacts.Count > 0 && Rigidbody.linearVelocity.y <= 0.1f;
-    public void ClearGroundContact() => groundContacts.Clear();
+    public void ClearGroundContact()
+    {
+        groundContacts.Clear();
+        Rigidbody.useGravity = true;
+    }
     #endregion
 
 
@@ -173,23 +178,40 @@ public sealed class FSM : MonoBehaviour
 
     public void FixedUpdateState()
     {
-        if (IsFrozen == true)
+        if (IsFrozen == true || Rigidbody.isKinematic == true)
+        {
+            Rigidbody.useGravity = true;
             return;
-
-        if (Rigidbody.isKinematic)
-            return;
+        }
 
         // 기존 수직 속도는 유지하고, 이번 물리 프레임의 이동·넉백 속도를 새로 합산한다.
         Vel = Vector3.up * Rigidbody.linearVelocity.y;
+        hasStateVelocity = false;
 
         CurrentState?.FixedUpdateState();
         CurrentActionState?.FixedUpdateState();
 
+        HoldGroundWhenIdle();
         Rigidbody.linearVelocity = Vel;
     }
 
     // FixedUpdateState에서 이번 물리 프레임에 적용할 속도를 누적한다.
-    public void AddVel(Vector3 velocity) => Vel += velocity;
+    public void AddVel(Vector3 velocity)
+    {
+        Vel += velocity;
+        if (velocity.sqrMagnitude > 0f)
+            hasStateVelocity = true;
+    }
+
+    private void HoldGroundWhenIdle()
+    {
+        bool hold = groundContacts.Count > 0 && hasStateVelocity == false
+            && (HasGameplayInput == false || MoveInput.sqrMagnitude <= 0.001f);
+
+        Rigidbody.useGravity = hold == false;
+        if (hold == true)
+            Vel = new Vector3(Vel.x, 0f, Vel.z);
+    }
 
     // source: 현재 기본/액션 상태. StateType(0~15)에 해당하는 비트만 변경
     public void LockRotate(PlayerState source, bool locked)
@@ -322,6 +344,7 @@ public sealed class FSM : MonoBehaviour
     {
         if (player == null || player.IsLocalPlayer == false)
             return;
+        Rigidbody.useGravity = true;
         Unfreeze();
         ClearActionState();
         if (CurrentState != null)

@@ -29,6 +29,13 @@ public sealed class InputManager : MonoBehaviour
     [SerializeField] private InputActionReference interactActionReference;
     [SerializeField] private InputActionReference takeOutPotionActionReference;
     [SerializeField] private InputActionReference shakeActionReference;
+    [SerializeField] private InputActionReference number1ActionReference;
+    [SerializeField] private InputActionReference number2ActionReference;
+    [SerializeField] private InputActionReference number3ActionReference;
+    [SerializeField] private InputActionReference number4ActionReference;
+    [SerializeField] private InputActionReference number5ActionReference;
+    [SerializeField] private InputActionReference number6ActionReference;
+    [SerializeField] private InputActionReference escapeActionReference;
 
     public InputAction MoveAction { get; private set; }
     public InputAction DeltaAction { get; private set; }
@@ -40,13 +47,22 @@ public sealed class InputManager : MonoBehaviour
     public InputAction InteractAction { get; private set; }
     public InputAction TakeOutPotionAction { get; private set; }
     public InputAction ShakeAction { get; private set; }
+    public InputAction Number1Action { get; private set; }
+    public InputAction Number2Action { get; private set; }
+    public InputAction Number3Action { get; private set; }
+    public InputAction Number4Action { get; private set; }
+    public InputAction Number5Action { get; private set; }
+    public InputAction Number6Action { get; private set; }
+    public InputAction EscapeAction { get; private set; }
     #endregion
 
     private PlayerInputInfo inputInfo;
     private bool focused = true;
+    private bool cursorLocked = true;
+    private bool gameplayInputEnabled = true;
     public PlayerInputInfo InputInfo => inputInfo;
 
-    public bool HasGameplayInput => focused && Time.timeScale > 0f;
+    public bool HasGameplayInput => gameplayInputEnabled && focused && Time.timeScale > 0f;
 
     private void Awake()
     {
@@ -74,6 +90,13 @@ public sealed class InputManager : MonoBehaviour
         InteractAction = interactActionReference.action;
         TakeOutPotionAction = takeOutPotionActionReference.action;
         ShakeAction = shakeActionReference.action;
+        Number1Action = number1ActionReference.action;
+        Number2Action = number2ActionReference.action;
+        Number3Action = number3ActionReference.action;
+        Number4Action = number4ActionReference.action;
+        Number5Action = number5ActionReference.action;
+        Number6Action = number6ActionReference.action;
+        EscapeAction = escapeActionReference.action;
     }
 
     private void OnEnable()
@@ -81,11 +104,13 @@ public sealed class InputManager : MonoBehaviour
         if (Instance != this)
             return;
 
-        EnableActions();
+        EscapeAction.performed += ReleaseCursor;
+        EscapeAction.Enable();
+        if (gameplayInputEnabled == true)
+            EnableActions();
         focused = true;
         CancelInput();
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        SetCursorLocked(cursorLocked);
     }
 
     private void Update()
@@ -94,7 +119,7 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         inputInfo.MoveDir = MoveAction.ReadValue<Vector2>();
-        inputInfo.Delta = DeltaAction.ReadValue<Vector2>();
+        inputInfo.Delta = cursorLocked == true ? DeltaAction.ReadValue<Vector2>() : Vector2.zero;
     }
 
     private void OnDisable()
@@ -103,6 +128,8 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         focused = false;
+        EscapeAction.performed -= ReleaseCursor;
+        EscapeAction.Disable();
         DisableActions();
         CancelInput();
         Cursor.lockState = CursorLockMode.None;
@@ -125,8 +152,32 @@ public sealed class InputManager : MonoBehaviour
         focused = hasFocus;
         CancelInput();
 
-        Cursor.lockState = hasFocus == true ? CursorLockMode.Locked : CursorLockMode.None;
-        Cursor.visible = hasFocus == false;
+        SetCursorLocked(cursorLocked);
+    }
+
+    private void ReleaseCursor(InputAction.CallbackContext context) => SetCursorLocked(false);
+
+    /// <summary>플레이어 조작만 켜거나 끕니다. UI와 Escape 입력은 유지합니다.</summary>
+    public void SetInputEnabled(bool inputEnabled)
+    {
+        gameplayInputEnabled = inputEnabled;
+
+        if (inputEnabled == true && isActiveAndEnabled == true)
+            EnableActions();
+        else
+            DisableActions();
+
+        CancelInput();
+    }
+
+    /// <summary>커서 잠금과 표시를 변경합니다. false면 마우스 시점 입력도 멈춥니다.</summary>
+    public void SetCursorLocked(bool locked)
+    {
+        cursorLocked = locked;
+        inputInfo.Delta = Vector2.zero;
+        bool capture = focused == true && cursorLocked == true;
+        Cursor.lockState = capture == true ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = capture == false;
     }
 
     private void CancelInput()
@@ -146,6 +197,12 @@ public sealed class InputManager : MonoBehaviour
         InteractAction.Enable();
         TakeOutPotionAction.Enable();
         ShakeAction.Enable();
+        Number1Action.Enable();
+        Number2Action.Enable();
+        Number3Action.Enable();
+        Number4Action.Enable();
+        Number5Action.Enable();
+        Number6Action.Enable();
     }
 
     private void DisableActions()
@@ -160,5 +217,11 @@ public sealed class InputManager : MonoBehaviour
         InteractAction.Disable();
         TakeOutPotionAction.Disable();
         ShakeAction.Disable();
+        Number1Action.Disable();
+        Number2Action.Disable();
+        Number3Action.Disable();
+        Number4Action.Disable();
+        Number5Action.Disable();
+        Number6Action.Disable();
     }
 }
