@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 
 /// <summary>
@@ -19,6 +20,13 @@ public class TimerScheduler
     /// <param name="now">현재 시각 (Tick에 넘기는 시각과 같은 기준)</param>
     public TimerJob Schedule(float now, float delay, Action callback)
     {
+        return Schedule(now, delay, callback, CancellationToken.None);
+    }
+
+    /// <param name="now">현재 시각 (Tick에 넘기는 시각과 같은 기준)</param>
+    /// <param name="cancellationToken">취소되면 이 예약도 취소 (예약 시점에 이미 취소됐으면 실행 안 됨)</param>
+    public TimerJob Schedule(float now, float delay, Action callback, CancellationToken cancellationToken)
+    {
         if(callback == null)
             throw new ArgumentNullException(nameof(callback));
 
@@ -32,6 +40,7 @@ public class TimerScheduler
         nextSeq++;
 
         heap.Enqueue(job, priority);
+        job.LinkToken(cancellationToken);
 
         return job;
     }
@@ -50,6 +59,7 @@ public class TimerScheduler
         {
 
             heap.Dequeue();
+            job.ReleaseToken(); // 힙에서 빠졌으니 토큰 연결 해제
 
             if (job.IsCancelled) continue;
 
