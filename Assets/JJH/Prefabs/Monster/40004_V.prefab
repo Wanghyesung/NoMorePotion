@@ -52,6 +52,14 @@ PrefabInstance:
       propertyPath: attackRange
       value: 1.5
       objectReference: {fileID: 0}
+    - target: {fileID: 3177527198250361639, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      propertyPath: useAttackSlot
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4220276771707967172, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      propertyPath: hud
+      value: 
+      objectReference: {fileID: 5681486772893854854}
     - target: {fileID: 4220276771707967172, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       propertyPath: prefabId
       value: 40004
@@ -60,6 +68,14 @@ PrefabInstance:
       propertyPath: poundHitbox
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 9072288863858740342, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      propertyPath: ObservedComponents.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 9072288863858740342, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      propertyPath: 'ObservedComponents.Array.data[2]'
+      value: 
+      objectReference: {fileID: 1617257224810589838}
     - target: {fileID: 9198116484777040148, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       propertyPath: m_Name
       value: 40004_V
@@ -78,6 +94,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2687133219966239099, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
   m_PrefabInstance: {fileID: 2985245254216738365}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1617257224810589838 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4547543115401431219, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+  m_PrefabInstance: {fileID: 2985245254216738365}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
 --- !u!1001 &5996600071230015382
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -179,6 +206,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+--- !u!114 &5681486772893854854 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2152863422831946512, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}
+  m_PrefabInstance: {fileID: 5996600071230015382}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f07a5b401ff6354ea12e8da3ba3c040, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterHPUI
 --- !u!224 &9090301073998315889 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3251334310522439399, guid: 50a99ffa642baa241b5f9b3ab8556a12, type: 3}

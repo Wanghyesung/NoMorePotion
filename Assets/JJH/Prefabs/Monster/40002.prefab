@@ -502,6 +502,7 @@ GameObject:
   - component: {fileID: 7338017807293202393}
   - component: {fileID: 2340093900185133965}
   - component: {fileID: 8237792322349115299}
+  - component: {fileID: 3729720581526988370}
   m_Layer: 8
   m_Name: 40002
   m_TagString: Untagged
@@ -699,6 +700,8 @@ MonoBehaviour:
     reacquireCooldown: 3
     sampleRadius: 2
   nowTarget: {fileID: 0}
+  provokeDuration: 5
+  provokeSearchRange: 50
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
@@ -758,6 +761,10 @@ MonoBehaviour:
   biteHitbox: {fileID: 7005911960460783098}
   prefabId: 40002
   skillHitboxes: []
+  sinkDuration: 2
+  sinkMargin: 0.3
+  damageNumberPrefab: {fileID: 0}
+  healNumberPrefab: {fileID: 0}
 --- !u!54 &2340093900185133965
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -798,6 +805,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
   _assignOwnerOnAwake: 1
+--- !u!114 &3729720581526988370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2735309005876133405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d41a6fc554ebdcf43bbade9e8df22f48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimationBridge
 --- !u!1 &3006098857252001097
 GameObject:
   m_ObjectHideFlags: 0

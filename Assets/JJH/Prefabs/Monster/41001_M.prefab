@@ -1100,6 +1100,7 @@ GameObject:
   - component: {fileID: 6263471703257641074}
   - component: {fileID: 4104166015639343300}
   - component: {fileID: 2423885269811054825}
+  - component: {fileID: 4547543115401431219}
   m_Layer: 8
   m_Name: WolfBase
   m_TagString: Untagged
@@ -1224,7 +1225,7 @@ MonoBehaviour:
   mover: {fileID: 3177527198250361639}
   headRig: {fileID: 3301267619470002012}
   lookTarget: {fileID: 3746563598707542460}
-  targetHeight: 0
+  targetHeight: 0.6
   weightSpeed: 4
   followSpeed: 10
   releaseDuringAnimation: 1
@@ -1240,6 +1241,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de4593c7fd012174faf30f2defc6a5f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WolfAnimationBridge
+--- !u!114 &4547543115401431219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4960801443304062139}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsWalk
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsRun
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsDead
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsHit
+  - Type: 4
+    SynchronizeType: 1
+    Name: Pound
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
 --- !u!1 &5105760613630836016
 GameObject:
   m_ObjectHideFlags: 0
@@ -2512,7 +2549,7 @@ GameObject:
   - component: {fileID: 3177527198250361639}
   - component: {fileID: 8791191975954953588}
   m_Layer: 0
-  m_Name: 41001_V
+  m_Name: 41001_M
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2559,6 +2596,7 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 7446713184019589414}
   - {fileID: 8782769351517086343}
+  - {fileID: 4547543115401431219}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -2676,6 +2714,10 @@ MonoBehaviour:
   biteHitbox: {fileID: 23729173819972596}
   prefabId: 41001
   skillHitboxes: []
+  sinkDuration: 2
+  sinkMargin: 0.3
+  damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
+  healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
   poundHitbox: {fileID: 458971461546945755}
   crouchClipTime: 0.17
   windupDuration: 0.2
@@ -2717,6 +2759,11 @@ MonoBehaviour:
     reacquireCooldown: 3
     sampleRadius: 2
   nowTarget: {fileID: 0}
+  provokeDuration: 5
+  provokeSearchRange: 50
+  useAttackSlot: 0
+  waitBuffer: 2
+  defaultTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
