@@ -68,7 +68,7 @@ public sealed class PlayerStatusEffects : MonoBehaviour
             return;
         bool holdVision = Keyboard.current != null && Application.isFocused == true
             && InputManager.Instance != null && InputManager.Instance.HasGameplayInput == true
-            && (Keyboard.current.digit6Key.isPressed == true || Keyboard.current.numpad6Key.isPressed == true);
+            && Keyboard.current.f6Key.isPressed == true;
 
         if (testStrongVision != holdVision)
         {
