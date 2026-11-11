@@ -173,6 +173,7 @@ GameObject:
   - component: {fileID: 6451192815592386728}
   - component: {fileID: 329953767451682305}
   - component: {fileID: 1638424816106672827}
+  - component: {fileID: 8543880353971232413}
   m_Layer: 8
   m_Name: 40003
   m_TagString: Untagged
@@ -257,6 +258,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d41a6fc554ebdcf43bbade9e8df22f48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAnimationBridge
+--- !u!114 &8543880353971232413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2074932798764581254}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsWalk
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsRun
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsDead
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsHit
+  - Type: 1
+    SynchronizeType: 1
+    Name: MoveSpeed
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
 --- !u!1 &2498533719835399667
 GameObject:
   m_ObjectHideFlags: 0
@@ -1153,6 +1190,14 @@ PrefabInstance:
       propertyPath: biteHitbox
       value: 
       objectReference: {fileID: 6618914528483623204}
+    - target: {fileID: 7600276803389832507, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: ObservedComponents.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7600276803389832507, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: 'ObservedComponents.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8543880353971232413}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
