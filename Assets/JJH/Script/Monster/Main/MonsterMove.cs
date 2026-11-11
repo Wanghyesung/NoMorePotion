@@ -102,6 +102,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             [MonsterState.Idle] = new MonsterIdleState(this),
             [MonsterState.Patrol] = new MonsterPatrolState(this),
             [MonsterState.Chase] = new MonsterChaseState(this),
+            [MonsterState.Wait] = new MonsterWaitState(this),
             [MonsterState.Attack] = new MonsterAttackState(this),
             [MonsterState.Death] = new MonsterDeathState(this)
         };
@@ -130,13 +131,14 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <param name="target">타겟 Object</param>
     public void SetTarget(GameObject target)
     {
-        if (nowTarget == target) return;
-        nowTarget = target;
+        if (ReferenceEquals(nowTarget, target)) return;
 
-        if(target.TryGetComponent(out AttackTarget aTarget))
-        {
+        ReleaseSlot();          // 이전 대상의 슬롯 반납
+        nowTarget = target;
+        targetInfo = null;      // 이전 대상 정보 초기화
+
+        if (target != null && target.TryGetComponent(out AttackTarget aTarget))
             targetInfo = aTarget;
-        }
     }
 
 
