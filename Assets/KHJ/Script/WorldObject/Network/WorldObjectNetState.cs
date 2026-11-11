@@ -42,9 +42,10 @@ namespace Enzeun.Runtime
         public event Action<int, int, int> OnChanged;
 
         /// <summary>
-        /// 소진으로 재료가 떨어질 때 (오브젝트 번호, 드롭 목록)으로 발생합니다.
+        /// 소진으로 재료가 떨어질 때 (오브젝트 번호, 드롭 목록, 소진시킨 방식)으로 발생합니다.
+        /// 방식이 Interact 이면 상호작용으로 얻은 것이라 공용 인벤으로 바로 들어가고, PotionDamage 이면 바닥 주머니가 됩니다.
         /// </summary>
-        public event Action<int, WorldDrop[]> OnDropped;
+        public event Action<int, WorldDrop[], WorldObjectHitKind> OnDropped;
 
         // ==================== 등록 / 조회 ============================
 
@@ -194,7 +195,7 @@ namespace Enzeun.Runtime
 
             if (drops.Length > 0)
             {
-                OnDropped?.Invoke(apply.NetworkId, drops);
+                OnDropped?.Invoke(apply.NetworkId, drops, apply.Kind);
             }
 
             return WorldObjectApplyStatus.Applied;

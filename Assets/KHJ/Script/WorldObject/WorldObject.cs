@@ -94,6 +94,12 @@ namespace Enzeun.Runtime
                 return;
             }
 
+            // 상호작용 타입은 한 번 먹으면 재료가 공용 인벤으로 바로 들어가도록 횟수 1 로 통일하기로 했습니다. (드롭은 소진될 때 한 번 나옴)
+            if (_data.worldObjectDropType == WorldObjectDropType.Interacting && _data.maxCount != 1)
+            {
+                Debug.LogWarning($"[WorldObject]: {name} 은(는) 상호작용 타입인데 최대 횟수가 {_data.maxCount} 입니다. 상호작용 타입은 1 로 통일하세요. (드롭은 횟수가 0 이 될 때 한 번만 나옴)");
+            }
+
             int previous = remainingCount;
             remainingCount = _data.maxCount;
             isDepleted = remainingCount <= 0;

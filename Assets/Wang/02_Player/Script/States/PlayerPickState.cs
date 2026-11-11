@@ -77,6 +77,9 @@ public sealed class PlayerPickState : PlayerState
         hasPicked = true;
         Debug.Log($"Pick: {Target.name}", Target);
         Target.GetComponentInParent<GroundPouch>()?.RequestPickup();
+
+        // 상호작용 타입 월드 오브젝트(열매, 풀 등)는 먹으면 재료가 공용 인벤으로 바로 들어갑니다. (파괴 타입은 아무 일도 없음)
+        Target.GetComponentInParent<WorldObject>()?.Interact();
     }
 
     private void FinishPick(AnimationEvent animationEvent)

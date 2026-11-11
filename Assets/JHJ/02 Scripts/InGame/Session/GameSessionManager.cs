@@ -13,6 +13,7 @@ using UnityEngine;
 /// <remarks>
 /// [보고] GameSessionManager.Instance.ReportClear() / ReportDefeat()
 ///   판정 권한(GameAuthority)이 있고 Playing 단계일 때만 반영. 먼저 온 보고만 유효
+///   수정구슬 파괴 → 수정구슬이 파괴 이벤트를 Invoke → 세션이 구독해서 패배 처리 (SubscribeCrystal 참고)
 ///
 /// [구독] 알림은 Phase 하나뿐. 끝났을 때 기록이 필요하면 Ended를 받은 뒤 Record를 읽는다
 ///   GameSessionManager.Instance.Phase
@@ -27,10 +28,15 @@ public class GameSessionManager : MonoBehaviour
 {
     public static GameSessionManager Instance { get; private set; }
 
+    [Header("플레이어 스폰")]
     [SerializeField] private Player playerPrefab;
     [SerializeField] private PlayerUIBinding playerBinder;
     [SerializeField] private Transform spawnPoint;
     private GameObject spawnedPlayer;
+
+    [Header("수정구슬")]
+    // TODO(수정구슬): 수정구슬 클래스가 생기면 타입을 바꿔서 연결
+    //   [SerializeField] private Crystal crystal;
 
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
@@ -49,6 +55,8 @@ public class GameSessionManager : MonoBehaviour
     public bool IsEnded => Phase.CurrentValue == SessionPhase.Ended;
 
 
+    #region 생명주기
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -65,7 +73,12 @@ public class GameSessionManager : MonoBehaviour
         {
             pool.ResourceCache[playerPrefab.name] = playerPrefab.gameObject;
         }
+    }
 
+    private void Start()
+    {
+        SubscribeCrystal();
+        RunStartSequence().Forget();
     }
 
     private void OnDestroy()
@@ -73,15 +86,16 @@ public class GameSessionManager : MonoBehaviour
         if (Instance == this)
             Instance = null;
 
+        UnsubscribeCrystal();
+
         phase?.Dispose();
         rankingSubmit?.Dispose();
     }
 
-    private void Start()
-    {
-        RunStartSequence().Forget();
-    }
+    #endregion
 
+
+    #region 시작
 
     /// <summary>
     /// 한 판의 시작 순서. 순서가 곧 규칙이므로 다른 매니저의 시작 함수를 여기서 직접 호출한다.
@@ -108,8 +122,6 @@ public class GameSessionManager : MonoBehaviour
         ChangePhase(SessionPhase.Preparing, SessionPhase.Playing);
     }
 
-    public void ReportClear() => Finish(GameResult.Clear);
-
     private bool SpawnLocalPlayer()
     {
         if (spawnedPlayer != null)
@@ -130,8 +142,43 @@ public class GameSessionManager : MonoBehaviour
         return true;
     }
 
-    public void ReportDefeat() => Finish(GameResult.Defeat);
+    #endregion
 
+
+    #region 수정구슬
+
+    /// <summary>
+    /// 수정구슬의 파괴 이벤트를 구독한다. (수정구슬이 Invoke → OnCrystalDestroyed)
+    /// </summary>
+    private void SubscribeCrystal()
+    {
+        // TODO(수정구슬): 수정구슬 담당이 만든 이벤트 이름으로 연결
+        //   if (crystal != null) crystal.OnDestroyed += OnCrystalDestroyed;
+    }
+
+    private void UnsubscribeCrystal()
+    {
+        // TODO(수정구슬): SubscribeCrystal 과 짝으로 해제
+        //   if (crystal != null) crystal.OnDestroyed -= OnCrystalDestroyed;
+    }
+
+    /// <summary>
+    /// 수정구슬이 파괴됐을 때 (패배). 수정구슬 이벤트의 구독 함수
+    /// </summary>
+    private void OnCrystalDestroyed()
+    {
+        Debug.Log("[GameSessionManager] 수정구슬 파괴");
+        ReportDefeat();
+    }
+
+    #endregion
+
+
+    #region 끝 판정·기록
+
+    public void ReportClear() => Finish(GameResult.Clear);
+
+    public void ReportDefeat() => Finish(GameResult.Defeat);
 
     private void Finish(GameResult gameResult)
     {
@@ -164,6 +211,19 @@ public class GameSessionManager : MonoBehaviour
         SubmitRankingAsync(record.Value).Forget();
     }
 
+    // 판정 순간의 시간 값을 고정. 시계는 기록 직후 Finish에서 멈춤
+    private GameRecord CreateRecord(GameResult gameResult)
+    {
+        TimeManager timeManager = TimeManager.Instance;
+        if (timeManager == null)
+        {
+            Debug.LogWarning("[GameSessionManager] TimeManager 없음, 기록 시간이 0으로 남음");
+            return new GameRecord(gameResult, 0f, 0);
+        }
+
+        return new GameRecord(gameResult, timeManager.TotalElapsed, timeManager.DayCount.CurrentValue);
+    }
+
     private async UniTaskVoid SubmitRankingAsync(GameRecord record)
     {
         // 1. 등록 대상이 아니면 이유만 알리고 끝 (즉시, 서버 안 감)
@@ -181,8 +241,9 @@ public class GameSessionManager : MonoBehaviour
 
         // 4. 저장(재시도 포함)
         rankingSubmit.Value = await RankingService.SubmitAsync(record, token);
-        
     }
+
+    #endregion
 
 
     /// <summary>
@@ -191,7 +252,7 @@ public class GameSessionManager : MonoBehaviour
     /// </summary>
     private bool ChangePhase(SessionPhase from, SessionPhase to)
     {
-        if(phase.CurrentValue != from)
+        if (phase.CurrentValue != from)
         {
             Debug.LogWarning($"[GameSessionManager] 페이즈 변경 불가, 현재 페이즈 = {phase.CurrentValue}");
             return false;
@@ -204,23 +265,16 @@ public class GameSessionManager : MonoBehaviour
     }
 
 
-    // 판정 순간의 시간 값을 고정. 시계는 기록 직후 Finish에서 멈춤
-    private GameRecord CreateRecord(GameResult gameResult)
-    {
-        TimeManager timeManager = TimeManager.Instance;
-        if (timeManager == null)
-        {
-            Debug.LogWarning("[GameSessionManager] TimeManager 없음, 기록 시간이 0으로 남음");
-            return new GameRecord(gameResult, 0f, 0);
-        }
-
-        return new GameRecord(gameResult, timeManager.TotalElapsed, timeManager.DayCount.CurrentValue);
-    }
-
+    #region 디버그
 
     [ContextMenu("디버그 클리어")]
     private void DebugClear() => ReportClear();
 
     [ContextMenu("디버그 패배")]
     private void DebugDefeat() => ReportDefeat();
+
+    [ContextMenu("디버그 수정구슬 파괴")]
+    private void DebugCrystalDestroyed() => OnCrystalDestroyed();
+
+    #endregion
 }

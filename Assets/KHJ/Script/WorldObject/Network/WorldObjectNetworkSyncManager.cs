@@ -238,16 +238,17 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 사본에서 드롭이 확정되면 해당 씬 오브젝트와 함께 OnDropped 로 알립니다.
         /// </summary>
-        private void HandleDropped(int networkId, WorldDrop[] drops)
+        private void HandleDropped(int networkId, WorldDrop[] drops, WorldObjectHitKind kind)
         {
             if (_objects.TryGetValue(networkId, out WorldObject worldObject) && worldObject != null)
             {
                 OnDropped?.Invoke(worldObject, drops);
 
-                // 바닥 주머니는 마스터가 한 번만 만들어 모든 클라이언트에 알립니다. (주우면 인벤토리 상태에서 한 번에 옮겨지므로 같은 곳에서 관리)
+                // 인벤토리 변경은 마스터가 한 번만 만들어 모든 클라이언트에 알립니다. (주우면 인벤토리 상태에서 한 번에 옮겨지므로 같은 곳에서 관리)
                 if (PhotonNetwork.IsMasterClient)
                 {
-                    SpawnGroundPouches(worldObject.transform.position, drops);
+                    // 상호작용으로 얻은 재료는 공용 인벤으로 바로 들어가고(넘치는 만큼만 바닥 주머니), 파괴로 얻은 재료는 바닥 주머니가 됩니다.
+                    SpawnGroundPouches(worldObject.transform.position, drops, kind == WorldObjectHitKind.Interact);
                 }
             }
         }
@@ -256,7 +257,7 @@ namespace Enzeun.Runtime
         /// 소진된 월드 오브젝트의 드롭(재료 종류별 개수)을 바닥 주머니로 만듭니다. 한 종류당 주머니 한 개이고, 주머니는 오브젝트 주위에 흩어 놓습니다.
         /// 위치는 마스터가 정해서 모든 클라이언트에 같은 값으로 전달됩니다. 땅이 보이면 땅 위에 놓고, 아니면 오브젝트와 같은 높이에 놓습니다.
         /// </summary>
-        private void SpawnGroundPouches(Vector3 center, WorldDrop[] drops)
+        private void SpawnGroundPouches(Vector3 center, WorldDrop[] drops, bool directToPack = false)
         {
             if (drops == null || drops.Length == 0 || InventoryNetworkSyncManager.Instance == null)
             {
@@ -284,7 +285,15 @@ namespace Enzeun.Runtime
                 spawns.Add(new GroundSpawn { MaterialId = drops[i].MaterialId, Count = drops[i].Count, Position = position });
             }
 
-            InventoryNetworkSyncManager.Instance.SpawnGroundDrops(spawns);
+            if (directToPack)
+            {
+                // 공용 인벤에 넣고, 한도를 넘는 만큼만 계산해 둔 위치(오브젝트 주위)에 주머니로 남깁니다.
+                InventoryNetworkSyncManager.Instance.GrantWorldDrops(spawns);
+            }
+            else
+            {
+                InventoryNetworkSyncManager.Instance.SpawnGroundDrops(spawns);
+            }
         }
 
         // ==================== 네트워크 메시지 (RPC) ============================

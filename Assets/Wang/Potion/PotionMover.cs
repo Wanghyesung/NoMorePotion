@@ -26,7 +26,7 @@ public class PotionMover : MonoBehaviour
     [SerializeField] private LayerMask mask;
     [SerializeField] private GameObject impactPrefab;
 
-    [SerializeField, Min(0f)] private float impactLifetime = 5f;
+    //[SerializeField, Min(0f)] private float impactLifetime = 5f;
 
     [SerializeField, BoxGroup("포션 연결"), LabelText("포션 메시 (소)")]
     private GameObject potionMesh_S;
