@@ -19,6 +19,11 @@ public class CrystalCore : MonoBehaviour, IDamageable, IHealable
     //임시
     [SF] private string displayName = "수정 구슬";
 
+    [Header("조각 파괴 관련")]
+    [SF] private Renderer body;               // 원본 구슬 렌더러
+    [SF] private Collider bodyCollider;       // 조각과 겹치지 않게 파괴 시 끔
+    [SF] private GameObject fracturedRoot;    // 조각 모델 (평소 꺼둠)
+
     [Header("UI (선택)")]
     [SF] private MonsterHPHud hud;   // 화면 상단 오버레이 등 (hideIsFull, faceCamera 끄기)
 
@@ -109,7 +114,15 @@ public class CrystalCore : MonoBehaviour, IDamageable, IHealable
     private void Break()
     {
         attackTarget.SetTargetable(false);
+        SwapToFractured();
         OnBroken?.Invoke(this);
+    }
+
+    private void SwapToFractured()
+    {
+        if (body != null) body.enabled = false;
+        if (bodyCollider != null) bodyCollider.enabled = false;
+        if (fracturedRoot != null) fracturedRoot.SetActive(true);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
