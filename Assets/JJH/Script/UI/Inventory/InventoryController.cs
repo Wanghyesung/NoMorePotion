@@ -25,7 +25,7 @@ public class InventoryController : MonoBehaviour
     [Header("공용 인벤토리")]
     [SF] private PublicInventory publicInventory;
     [SF] private GameObject publicInven;
-    [SF] private ScrollRect publicInventScrollRect;
+    public ScrollRect publicInventScrollRect;
 
     [Header("개인 인벤토리")]
 
@@ -124,16 +124,16 @@ public class InventoryController : MonoBehaviour
 
         if (invenRect.gameObject.activeSelf)
         {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
             fade = false;
+            InputManager.Instance.SetCursorLocked(true);
+            InputManager.Instance.SetInputEnabled(true);
         }
         else
         {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
             invenRect.gameObject.SetActive(true);
             fade = true;
+            InputManager.Instance.SetCursorLocked(false);
+            InputManager.Instance.SetInputEnabled(false);
         }
 
         await invenCanvasGroup.DOFade(fade ? 1 : 0, COMMON_FADE_TIME)

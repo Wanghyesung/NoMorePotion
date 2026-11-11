@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.TerrainTools;
 using UnityEngine.UI;
 using SF = UnityEngine.SerializeField;
 
@@ -115,13 +116,13 @@ public class PublicInventory : ItemInventory
 
         if (btnType)
         {
+            inven.publicInventScrollRect.content = potionContent;
             materialContent.gameObject.SetActive(false);
             potionContent.gameObject.SetActive(true);
         }
-            
-
         else
         {
+            inven.publicInventScrollRect.content = materialContent;
             potionContent.gameObject.SetActive(false);
             materialContent.gameObject.SetActive(true);
         }
