@@ -79,7 +79,7 @@ public sealed class PlayerShakeState : PlayerState
 
     private void ExecuteShake(AnimationEvent animationEvent)
     {
-        //hand.Shake();
+        hand.Shake();
     }
     private void FinishShake(AnimationEvent animationEvent)
     {
@@ -93,5 +93,6 @@ public sealed class PlayerShakeState : PlayerState
         owner.Animator.ResetTrigger(shakeLeftHash);
         owner.Animator.ResetTrigger(shakeRightHash);
         owner.Animator.ResetTrigger(shakeBothHash);
+        hand.FinishShake();
     }
 }
