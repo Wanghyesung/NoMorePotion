@@ -20,7 +20,7 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterAnimationController))]
 [RequireComponent(typeof(MonsterMove))]
 [RequireComponent(typeof(BuffContainer))]
-public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
+public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
 {
     [Serializable]
     public class SkillHitbox
@@ -104,6 +104,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
         Dictionary<DamageType, int> immuneVal = monsterData.Immune
                     .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
                     .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
+
         // 인스턴트 아이디는 차후 스폰 시 구분용
         Init(textData.Name, hp, hp, monsterData.AtkPoint, 
             monsterData.AttackPower, immuneVal, monsterData.Speed, monsterData.Id, 0,
@@ -422,6 +423,24 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable
 
         if (value > 0) damageNumberPrefab.Spawn(pos, value, transform);
         else healNumberPrefab.Spawn(pos, -value, transform);
+    }
+
+    /// <summary>
+    /// 풀에서 꺼낼 때
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
+    public void OnGetFromPool()
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 풀에 반납할 때
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
+    public void OnReleaseToPool()
+    {
+        throw new NotImplementedException();
     }
     #endregion
 }

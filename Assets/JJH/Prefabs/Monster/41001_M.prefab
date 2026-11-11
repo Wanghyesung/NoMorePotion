@@ -2761,6 +2761,9 @@ MonoBehaviour:
   nowTarget: {fileID: 0}
   provokeDuration: 5
   provokeSearchRange: 50
+  useAttackSlot: 0
+  waitBuffer: 2
+  defaultTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0

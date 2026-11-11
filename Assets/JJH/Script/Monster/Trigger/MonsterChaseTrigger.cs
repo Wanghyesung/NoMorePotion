@@ -18,10 +18,14 @@ public class MonsterChaseTrigger : MonoBehaviour
 
     private void Update()
     {
-        if (mover.nowTarget != null || players.Count == 0) return;
+        // 타겟이 없거나 수정구슬을 노리는 경우
+        if (mover.nowTarget == null ||
+            mover.IsTargetObjective ||
+            players.Count == 0) return;
 
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
-        mover.SetTarget(PickTarget());
+        GameObject pick = PickTarget();
+        if (pick != null) mover.SetTarget(pick);
     }
 
     private void OnTriggerEnter(Collider other)
