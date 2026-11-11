@@ -1167,6 +1167,50 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f1e429094dab8184eb1851a74ec94a9a, type: 3}
+--- !u!114 &481280747 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6512177020031637344, guid: f1e429094dab8184eb1851a74ec94a9a, type: 3}
+  m_PrefabInstance: {fileID: 481280746}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58cbc93c8cb90484fb0a17f9f457e8b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.SatiationManager
+--- !u!114 &481280748 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5955404539463193133, guid: f1e429094dab8184eb1851a74ec94a9a, type: 3}
+  m_PrefabInstance: {fileID: 481280746}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e48105555b7cbd44da0fcb3601a9c609, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.HydrationManager
+--- !u!114 &481280749 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7368753473853699296, guid: f1e429094dab8184eb1851a74ec94a9a, type: 3}
+  m_PrefabInstance: {fileID: 481280746}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a7dad9d52f01f14194fda1d1324383e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.MentalStrengthManager
+--- !u!114 &481280750 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 859338245717457065, guid: f1e429094dab8184eb1851a74ec94a9a, type: 3}
+  m_PrefabInstance: {fileID: 481280746}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a587e3c9d20fe54a9c22dec23b3cbdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BodyTemperatureManager
 --- !u!1001 &485116962
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2143,6 +2187,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4522190527780406370, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
+      propertyPath: healthSlider
+      value: 
+      objectReference: {fileID: 1189345532}
+    - target: {fileID: 4522190527780406370, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
+      propertyPath: hydrationManager
+      value: 
+      objectReference: {fileID: 481280748}
+    - target: {fileID: 4522190527780406370, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
+      propertyPath: satiationManager
+      value: 
+      objectReference: {fileID: 481280747}
+    - target: {fileID: 4522190527780406370, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
+      propertyPath: mentalStrengthManager
+      value: 
+      objectReference: {fileID: 481280749}
+    - target: {fileID: 4522190527780406370, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
+      propertyPath: bodyTemperatureManager
+      value: 
+      objectReference: {fileID: 481280750}
     - target: {fileID: 6796125534975353837, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
