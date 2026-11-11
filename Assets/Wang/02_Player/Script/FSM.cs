@@ -72,6 +72,7 @@ public sealed class FSM : MonoBehaviour
     public PlayerState CurrentState { get; private set; }
     public PlayerState CurrentActionState { get; private set; }
     public PlayerState PreviousState { get; private set; }
+    public PlayerState NextState { get; private set; }
     public event Action<CommonStruct.AttackInfo> OnHitAction;
 
     #endregion
@@ -290,9 +291,11 @@ public sealed class FSM : MonoBehaviour
 
     private void EnterState(PlayerState nextState)
     {
+        NextState = nextState;
         PreviousState = CurrentState;
         PreviousState?.Exit();
         CurrentState = nextState;
+        NextState = null;
         CurrentState.Enter();
     }
 
