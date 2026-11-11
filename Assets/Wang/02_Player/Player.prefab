@@ -1101,6 +1101,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 29aa64053f7a3114cadb3f5c8dfe6a29, type: 2}
   - {fileID: 11400000, guid: 00e7c23716aeb2f4ea71548b6bf0dc8a, type: 2}
   - {fileID: 11400000, guid: f2dbe2cd57c070a46a7779cce2021938, type: 2}
+  - {fileID: 11400000, guid: eeb49dd796ce9da4b9506295c6ee42bb, type: 2}
   initialState: 0
   playerView: {fileID: 4944021340756901690}
   rotateSensitivity: 0.15
@@ -1157,7 +1158,7 @@ MonoBehaviour:
   radius: 2
   targetLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 1025
   triggerInteraction: 2
 --- !u!1 &5611542940910520703
 GameObject:

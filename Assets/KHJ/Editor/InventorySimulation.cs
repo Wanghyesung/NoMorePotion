@@ -148,6 +148,7 @@ namespace Enzeun.Editor
                 TestCraft();
                 TestStorageAndAccess();
                 TestTakeOut();
+                TestWorldGrant();
                 TestDeathAndLeave();
                 TestVersionAndSnapshot();
                 CheckPotionIdsUnique("마지막 상태");
@@ -455,6 +456,52 @@ namespace Enzeun.Editor
             // 뒤 시험이 쓰도록 개인 인벤에 포션을 하나 되돌려 둔다.
             Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
             _master.SetRandom(null);
+        }
+
+        private static void TestWorldGrant()
+        {
+            // 상호작용으로 얻은 월드 오브젝트의 재료는 공용 인벤에 바로 들어가고, 한도를 넘는 만큼만 바닥 주머니가 된다.
+            int smallBefore = _master.Pack.Materials.GetCount(MatSmall);
+            int smallRoom = _master.Pack.Materials.GetRoom(MatSmall);
+            int groundBefore = _master.GroundDrops.Count;
+
+            var spawn = new Vector3(3, 0, 4);
+            var fit = new List<GroundSpawn> { new GroundSpawn { MaterialId = MatSmall, Count = 1, Position = spawn } };
+
+            if (smallRoom >= 1)
+            {
+                Expect("월드 재료 지급 변경 생성", _master.TryCreateWorldGrant(fit, out InventoryCommand grant) && Broadcast(grant));
+                Expect("공용 인벤에 바로 들어감", _master.Pack.Materials.GetCount(MatSmall) == smallBefore + 1 && _clientB.Pack.Materials.GetCount(MatSmall) == smallBefore + 1);
+                Expect("한도 안이면 주머니가 생기지 않음", _master.GroundDrops.Count == groundBefore);
+            }
+
+            // 한도를 넘는 만큼은 지정한 위치에 주머니로 남는다. (한도 5 인 재료로 시험)
+            int limitedRoom = _master.Pack.Materials.GetRoom(MatLimited);
+            int limitedBefore = _master.Pack.Materials.GetCount(MatLimited);
+            var over = new List<GroundSpawn> { new GroundSpawn { MaterialId = MatLimited, Count = limitedRoom + 2, Position = spawn } };
+
+            Expect("넘치는 월드 재료 지급 변경 생성", _master.TryCreateWorldGrant(over, out InventoryCommand overGrant) && Broadcast(overGrant));
+            Expect("한도까지만 들어감", _master.Pack.Materials.GetRoom(MatLimited) == 0 && _clientA.Pack.Materials.GetCount(MatLimited) == limitedBefore + limitedRoom);
+
+            bool foundOverflow = false;
+            foreach (KeyValuePair<int, GroundDrop> entry in _master.GroundDrops)
+            {
+                if (entry.Value.MaterialId == MatLimited && entry.Value.Count == 2 && entry.Value.Position == spawn)
+                {
+                    foundOverflow = true;
+                }
+            }
+
+            Expect("넘친 2개는 그 위치의 주머니", foundOverflow && _clientB.GroundDrops.Count == _master.GroundDrops.Count);
+
+            // 알 수 없는 재료나 0 개는 변경이 없다.
+            var bad = new List<GroundSpawn>
+            {
+                new GroundSpawn { MaterialId = 99999, Count = 1, Position = spawn },
+                new GroundSpawn { MaterialId = MatSmall, Count = 0, Position = spawn },
+            };
+            Expect("알 수 없는 재료와 0 개는 거부", !_master.TryCreateWorldGrant(bad, out InventoryCommand _));
+            ExpectSynced("월드 재료 지급 후");
         }
 
         private static void TestDeathAndLeave()

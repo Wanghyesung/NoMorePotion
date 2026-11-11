@@ -944,6 +944,15 @@ MonoBehaviour:
   - Type: 9
     SynchronizeType: 1
     Name: TakeBoth
+  - Type: 9
+    SynchronizeType: 1
+    Name: ShakeLeft
+  - Type: 9
+    SynchronizeType: 1
+    Name: ShakeRight
+  - Type: 9
+    SynchronizeType: 1
+    Name: ShakeBoth
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
@@ -1433,6 +1442,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f2dbe2cd57c070a46a7779cce2021938, type: 2}
   - {fileID: 11400000, guid: 439ea62a2c50cf7458c9fc3ce2ea6529, type: 2}
   - {fileID: 11400000, guid: 114ae24426f81464f92dfac3719022d1, type: 2}
+  - {fileID: 11400000, guid: eeb49dd796ce9da4b9506295c6ee42bb, type: 2}
   initialState: 0
   playerView: {fileID: 967695527873039025}
   rotateSensitivity: 0.15
@@ -1489,7 +1499,7 @@ MonoBehaviour:
   radius: 2
   targetLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 1025
   triggerInteraction: 2
 --- !u!114 &4666196079994858082
 MonoBehaviour:
