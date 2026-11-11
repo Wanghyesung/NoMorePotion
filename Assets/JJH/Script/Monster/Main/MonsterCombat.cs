@@ -50,6 +50,9 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
 
     private CancellationTokenSource deadCts;
     private bool isSinking;
+    private bool fromPool;
+
+    public event Action<MonsterCombat> Died;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
@@ -88,11 +91,11 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
 
     private void Start()
     {
-        InitTestData(prefabId);
+        if (!fromPool) InitData(prefabId);
     }
 
     // 스포너 구현 + 테스트 필요 없을 시 삭제
-    protected virtual void InitTestData(int id, int hpOverride = -1)
+    protected virtual void InitData(int id, int hpOverride = -1)
     {
         MonsterData monsterData = EnemyDataLoader.Instance.LoadNormalData(id);
         MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(id);
@@ -123,7 +126,8 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
 
     protected virtual void OnDisable()
     {
-        if(data != null)
+        CancelDeathSink();
+        if (data != null)
             data.OnDead -= MonsterDead;
 
         if(statusEffect != null)
@@ -217,7 +221,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
 
     private void TryProvoke()
     {
-        if (!NetAuthority.IsAuthority) return;      // 판단은 마스터에서만
+        if (!GameAuthority.HasAuthority) return;      // 판단은 마스터에서만
         if (data == null || data.HP <= 0) return;   // 이번 공격으로 죽었으면 무시
 
         GameObject nearest = mover.FindNearestPlayer();
@@ -315,9 +319,9 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
         if (data == null || data.HP <= 0) return;
 
         int before = data.HP;
-        data.HP = Mathf.Max(0, data.HP - damage);
+        data.HP = Mathf.Clamp(data.HP - damage, 0,data.MaxHP);
         data.OnHPChanged?.Invoke(before, data.HP);
-        ShowNumber(damage);
+        ShowNumber(before - data.HP);
         if (data.HP <= 0) data.OnDead?.Invoke();
     }
 
@@ -371,6 +375,11 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
         anim.IsDead();
         mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
         mover.StopAI();
+        Died?.Invoke(this);
+
+        // 보스 데이터면 게임 전체에 알림
+        if (data is BossMonster boss)
+            BossEvents.Defeat(boss);
     }
 
     private void StartDeathSink()
@@ -396,8 +405,14 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
             .SuppressCancellationThrow();
         if (canceled) return;
 
-        // 풀링시 변경
-        gameObject.SetActive(false);
+        //늑대의 경우 WolfPack으로 한 무리를 지어 움직이기 때문에 따로 처리
+        if (mover is WolfMove wolf && wolf.Pack != null)
+        {
+            gameObject.SetActive(false);
+            wolf.Pack.OnMemberGone();
+        }            
+        else
+            PoolManager.Instance.Release(gameObject);
     }
 
     private void CancelDeathSink()
@@ -418,29 +433,42 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
     {
         if (value == 0) return;
 
-        // 머리 위: 사망 연출에서 만든 몸 높이 계산을 재사용
         Vector3 pos = transform.position + Vector3.up * GetBodyHeight();
 
-        if (value > 0) damageNumberPrefab.Spawn(pos, value, transform);
-        else healNumberPrefab.Spawn(pos, -value, transform);
+        if (value > 0 && damageNumberPrefab != null) damageNumberPrefab.Spawn(pos, value, transform);
+        else if (value < 0 && healNumberPrefab != null) healNumberPrefab.Spawn(pos, -value, transform);
     }
 
     /// <summary>
     /// 풀에서 꺼낼 때
     /// </summary>
-    /// <exception cref="NotImplementedException"></exception>
     public void OnGetFromPool()
     {
-        throw new NotImplementedException();
+        fromPool = true;
+        CancelDeathSink();
+
+        // 사망 연출에서 끈 것 복구 (꺼진 히트박스까지 찾도록 true)
+        mover.agent.enabled = true;
+        foreach (Collider c in GetComponentsInChildren<Collider>(true))
+            c.enabled = true;
+
+        // 히트박스는 꺼진 상태로 시작
+        if (biteHitbox != null) biteHitbox.gameObject.SetActive(false);
+        foreach (SkillHitbox h in skillHitboxes)
+            h.Hitbox.gameObject.SetActive(false);
+        mover.SetDefaultTarget(null);
+
+        InitData(prefabId);
     }
 
     /// <summary>
     /// 풀에 반납할 때
     /// </summary>
-    /// <exception cref="NotImplementedException"></exception>
     public void OnReleaseToPool()
     {
-        throw new NotImplementedException();
+        Died = null;
+        CancelDeathSink();
+        mover.StopAI();
     }
     #endregion
 }
