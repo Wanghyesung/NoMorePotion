@@ -25,13 +25,12 @@ MonoBehaviour:
   _potionExplosionRange: 1
   _potionCombinationType: 2
   _maxHoldCount: 1
-  _explosionPrefab: {fileID: 1745905483756109270, guid: 19f6d238496ec094aab050a5d8a4471e, type: 3}
+  _explosionPrefab: {fileID: 1745905483756109270, guid: a19054601f3f10d44ad90629d8eb7769, type: 3}
   _recipeMaterials:
   - {fileID: 11400000, guid: eb0773513e5f55a4c8f54041bceea528, type: 2}
   - {fileID: 11400000, guid: c699e4137f51ecd42a2ab78f4ff99f4a, type: 2}
   _effects:
   - rid: 4119466663539376495
-  - rid: 4119466663539376496
   - rid: 4119466663539376497
   - rid: 4119466663539376498
   - rid: 4119466663539376499
@@ -46,15 +45,6 @@ MonoBehaviour:
           _changeType: 1
           _damageType: 1
           _amount: 80
-          _intervalSeconds: 0
-        _durationSeconds: 0
-    - rid: 4119466663539376496
-      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
-      data:
-        _healthChange:
-          _changeType: 2
-          _damageType: 1
-          _amount: 90
           _intervalSeconds: 0
         _durationSeconds: 0
     - rid: 4119466663539376497
