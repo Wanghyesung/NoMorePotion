@@ -93,8 +93,12 @@ public sealed class PlayerDrinkState : PlayerState
     private void FinishDrink(AnimationEvent animationEvent)
     {
         // 마신 효과로 Hit/Dead 상태로 바뀌었다면 그 상태를 지우지 않는다.
-        if (owner.CurrentActionState == this)
-            owner.ClearActionState();
+        if (owner.CurrentActionState != this)
+            return;
+
+        owner.ClearActionState();
+        if (hand.FocusedPotion == null && hand.OtherPotion != null)
+            hand.SwitchFocus();
     }
 
     public override void Exit()
