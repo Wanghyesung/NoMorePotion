@@ -8,6 +8,7 @@ public sealed class PlayerRagdoll : MonoBehaviour
     [SerializeField, Min(0f)] private float deathImpulse = 3f;
     private Rigidbody rootBody;
     private Collider[] rootColliders;
+    private bool[] rootColliderEnabled;
     private Rigidbody[] boneBodies;
     private Collider[] boneColliders;
 
@@ -15,8 +16,33 @@ public sealed class PlayerRagdoll : MonoBehaviour
     {
         rootBody = GetComponent<Rigidbody>();
         rootColliders = GetComponents<Collider>();
+        rootColliderEnabled = new bool[rootColliders.Length];
+        for (int i = 0; i < rootColliders.Length; i++)
+            rootColliderEnabled[i] = rootColliders[i].enabled;
         boneBodies = ragdoller.GetComponentsInChildren<Rigidbody>();
         boneColliders = ragdoller.GetComponentsInChildren<Collider>();
+    }
+
+    public void Restore()
+    {
+        foreach (Rigidbody body in boneBodies)
+        {
+            if (body == rootBody)
+                continue;
+            if (body.isKinematic == false)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
+            body.isKinematic = true;
+            body.detectCollisions = false;
+        }
+        ragdoller.CurrentState = MMRagdoller.RagdollStates.Animated;
+        rootBody.isKinematic = false;
+        rootBody.linearVelocity = Vector3.zero;
+        rootBody.angularVelocity = Vector3.zero;
+        for (int i = 0; i < rootColliders.Length; i++)
+            rootColliders[i].enabled = rootColliderEnabled[i];
     }
 
     public void Play(Vector3 attackPosition)
