@@ -9,8 +9,6 @@ using SF = UnityEngine.SerializeField;
 
 public class MonsterHPHud : MonoBehaviour
 {
-    [SF] private MonsterCombat combat;
-
     [SF] private Canvas healthCanvas;
     [SF] private CanvasGroup canvasGroup;
 
@@ -46,11 +44,6 @@ public class MonsterHPHud : MonoBehaviour
 
     public float Ratio => currentHealth / maxHealth;
 
-    private void Awake()
-    {
-        if (combat == null)
-            combat = GetComponentInParent<MonsterCombat>();
-    }
     private void Start()
     {
         cam = Camera.main;

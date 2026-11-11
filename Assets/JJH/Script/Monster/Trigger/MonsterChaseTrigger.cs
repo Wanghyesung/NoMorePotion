@@ -30,7 +30,7 @@ public class MonsterChaseTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag(PLAYER_TAG)) return;
+        if (!(other.CompareTag(PLAYER_TAG) || other.CompareTag(CORE_TAG))) return;
 
         if (!players.Contains(other.gameObject))
             players.Add(other.gameObject);

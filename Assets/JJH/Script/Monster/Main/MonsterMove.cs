@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
 using Photon.Pun;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -42,6 +43,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [SF] private ReachabilityTracker reachability = new();
 
     [Header("인스펙터")]
+    [NonSerialized]
     public GameObject nowTarget;
 
     [Header("피격 어그로")]
@@ -191,7 +193,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// </summary>
     /// <param name="target"></param>
     /// <returns></returns>
-    public virtual bool CanAcquireTarget(GameObject target) => reachability.CanAcquire(target);
+    public virtual bool CanAcquireTarget(GameObject target) =>
+        AttackTarget.IsValid(target) && reachability.CanAcquire(target);
 
     /// <summary>
     /// 개체의 회전 조절 여부
@@ -241,6 +244,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
+        reachability.ResetState();
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
         this.combat = combat;
@@ -270,6 +274,13 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
         //스폰 중엔 판단 정지
         if (state.GetStateType() == MonsterState.Spawn) return null;
+
+        // 타겟이 죽었거나, 꺼졌거나, 파괴됐으면 타겟 종료
+        if (!ReferenceEquals(nowTarget, null) && !AttackTarget.IsValid(nowTarget))
+        {
+            provokedUntil = 0;
+            SetTarget(null);
+        }
 
         // 도달 불가 상태가 유예 시간을 넘기면 추적 해제, 도발 추적 불가시 도발도 종료 
         if (nowTarget != null &&

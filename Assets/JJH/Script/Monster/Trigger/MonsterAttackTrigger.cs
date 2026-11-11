@@ -29,7 +29,8 @@ public class MonsterAttackTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag(PLAYER_TAG)) return;
+        if (!(other.CompareTag(PLAYER_TAG) || other.CompareTag(CORE_TAG))) return;
+        if (!AttackTarget.IsValid(other.gameObject)) return;
         if (!other.TryGetComponent(out IDamageable target)) return;
         if (!hitTargets.Add(target)) return;
 

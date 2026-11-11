@@ -11,6 +11,7 @@ public static class JJH_Constants
 
     public const string ENEMY_TAG = "Enemy";
     public const string PLAYER_TAG = "Player";
+    public const string CORE_TAG = "Core";
 
     public const string ASSET_DATA_PATH = "Monster/";
     public const string MONSTER_DATA = "EnemyData";

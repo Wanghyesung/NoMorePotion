@@ -21,6 +21,9 @@ public class AttackTarget : MonoBehaviour
     private readonly Dictionary<MonsterMove, float> holders = new();
     private readonly List<MonsterMove> expired = new();
 
+    private bool isTargetable = true;
+    public bool IsTargetable => isTargetable && isActiveAndEnabled;
+
     public float BodyRadius => bodyRadius;
     public bool IsObjective => isObjective;
 
@@ -78,6 +81,30 @@ public class AttackTarget : MonoBehaviour
         foreach (MonsterMove mover in expired)
             holders.Remove(mover);
     }
+
+    /// <summary>
+    /// 플레이어 사망 시 false, 부활 시 true로 호출
+    /// </summary>
+    public void SetTargetable(bool value)
+    {
+        isTargetable = value;
+        if (!value) holders.Clear();   // 공격 중이던 몬스터들의 슬롯 즉시 회수
+    }
+
+    /// <summary>
+    /// 공격 대상으로 유효한지 (파괴, 비활성, 사망 모두 걸러냄)
+    /// </summary>
+    public static bool IsValid(GameObject target)
+    {
+        if (target == null || !target.activeInHierarchy) return false;
+        return !target.TryGetComponent(out AttackTarget t) || t.IsTargetable;
+    }
+
+    private void OnEnable()
+    { 
+        // 다시 켜지면(부활, 풀 재사용) 공격 가능
+        isTargetable = true; 
+    }   
 
     // 대상이 사라지면(플레이어 사망 등) 전부 비움
     private void OnDisable() 

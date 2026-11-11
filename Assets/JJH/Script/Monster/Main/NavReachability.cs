@@ -52,6 +52,16 @@ public class ReachabilityTracker
     /// <summary>경계 유예 여부</summary>
     public bool IsInGrace => unreachableTime > 0f;
 
+    /// <summary>
+    /// 부활 시 간헐적 플레이어 무시 방지 명시적 초기화
+    /// </summary>
+    public void ResetState()
+    {
+        trackedTarget = null;
+        checkTimer = 0f;
+        unreachableTime = 0f;
+        blockedUntil.Clear();
+    }
 
     /// <summary>
     /// 타겟이 추적 가능 대상에서 벗어난 경우 true 반환

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using static JJH_Enums;
@@ -13,7 +14,7 @@ public enum PackPhase
     Assault     // Pound 쿨타임 동안 물기 공격
 }
 
-public class WolfPack : MonoBehaviour
+public class WolfPack : MonoBehaviour, IPoolable
 {
     #region 직렬화
 
@@ -67,6 +68,8 @@ public class WolfPack : MonoBehaviour
     private bool engaged;
     private float provokedUntil;
     public bool IsProvoked => Time.time < provokedUntil;
+    private Vector3[] startLocalPos;
+    private Quaternion[] startLocalRot;
     #endregion
 
     private void Awake()
@@ -78,11 +81,20 @@ public class WolfPack : MonoBehaviour
             mover.JoinPack(this);
         alphaCombat = alpha.GetComponent<WolfCombat>();
         startNormalWolfCount = members.Count;
+
+        startLocalPos = new Vector3[members.Count];
+        startLocalRot = new Quaternion[members.Count];
+        for (int i = 0; i < members.Count; i++)
+        {
+            startLocalPos[i] = members[i].transform.localPosition;
+            startLocalRot[i] = members[i].transform.localRotation;
+        }
     }
 
     private void Update()
     {
-        // 포톤 사용하면 if (!NetAuthority.IsAuthority) return;
+
+        // 포톤 사용하면 if (!GameAuthority.HasAuthority) return;
         RefreshAlive();
 
         // 알파 사망 시 로직 해제, 노말은 기본 MonsterMove 로직으로 동작
@@ -125,14 +137,15 @@ public class WolfPack : MonoBehaviour
                 break;
         }
     }
-    
+
 
     /// <summary>
     /// 타겟 체크
     /// </summary>
     /// <param name="target"></param>
     /// <returns></returns>
-    public bool CanAcquire(GameObject target) => reachability.CanAcquire(target);
+    public bool CanAcquire(GameObject target) =>
+        AttackTarget.IsValid(target) && reachability.CanAcquire(target);
 
     /// <summary>
     /// 울프팩의 내부 페이즈 전환 함수
@@ -165,7 +178,7 @@ public class WolfPack : MonoBehaviour
     /// <param name="duration"></param>
     public void Provoke(GameObject target, float duration)
     {
-        if (target == null || !reachability.CanAcquire(target)) return;
+        if (!CanAcquire(target)) return;
 
         // 이미 다른 대상과 싸우는 중이면 무리의 집중을 유지
         if (Target == null) Target = target;
@@ -223,8 +236,8 @@ public class WolfPack : MonoBehaviour
     private void RefreshTarget()
     {
         // 거리 이탈 or 도달 불가 지속 → 해제
-        if (Target != null && (!IsTargetValid(Target) ||
-            reachability.ShouldDrop(alpha.transform.position, Target, Time.deltaTime)))
+        if (!ReferenceEquals(Target, null) && (!IsTargetValid(Target) ||
+        reachability.ShouldDrop(alpha.transform.position, Target, Time.deltaTime)))
         {
             Target = null;
             provokedUntil = 0;
@@ -238,7 +251,7 @@ public class WolfPack : MonoBehaviour
             foreach (WolfMove m in alive)
             {
                 GameObject t = m.nowTarget;
-                if (t != null && t.activeInHierarchy && reachability.CanAcquire(t))
+                if (CanAcquire(t))
                 {
                     Target = t;
                     break;
@@ -257,7 +270,7 @@ public class WolfPack : MonoBehaviour
     /// <returns></returns>
     private bool IsTargetValid(GameObject target)
     {
-        if (target == null || !target.activeInHierarchy) return false;
+        if (!AttackTarget.IsValid(target)) return false;
         if (IsProvoked) return true;   // 도발 중엔 loseDistance 무시
 
         float sqr = loseDistance * loseDistance;
@@ -332,5 +345,46 @@ public class WolfPack : MonoBehaviour
         Gizmos.DrawWireSphere(Target.transform.position, turnRadius);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(Target.transform.position, poundRange);
+    }
+
+    /// <summary>
+    /// 풀에서 꺼내질 때 늑대 위치/무리 상태 초기화
+    /// </summary>
+    public void OnGetFromPool()
+    {
+        for (int i = 0; i < members.Count; i++)
+        {
+            Transform member = members[i].transform;
+            member.localPosition = startLocalPos[i];
+            member.localRotation = startLocalRot[i];
+
+            if (!member.gameObject.activeSelf)
+                member.gameObject.SetActive(true);
+        }
+
+        Phase = PackPhase.Patrol;
+        phaseTimer = 0;
+        turnAngle = 0;
+        Target = null;
+        provokedUntil = 0;
+        engaged = false;            // 이벤트 없이 플래그만 (새 생애는 미참전 상태로 시작)
+        reachability.ResetState();
+        enabled = true;             // 알파 사망으로 꺼졌던 것 복구
+    }
+
+    public void OnReleaseToPool()
+    {
+        SetEngaged(false);
+    }
+
+    /// <summary>
+    /// 무리 소속 늑대가 사망 연출을 마치고 꺼졌을 때 호출. 전부 off되면 무리째 반납
+    /// </summary>
+    public void OnMemberGone()
+    {
+        foreach (WolfMove m in members)
+            if (m != null && m.gameObject.activeSelf) return;
+
+        PoolManager.Instance.Release(gameObject);
     }
 }
