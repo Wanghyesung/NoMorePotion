@@ -43,8 +43,6 @@ public class InventoryController : MonoBehaviour
 
     public event Action<ItemInstance> OnPublicListAdded;
     public event Action<int> OnPublicListRemoved;
-    public event Action<ItemInstance> OnPrivateListAdded;
-    public event Action<int> OnPrivateListRemoved;
 
     private void Awake()
     {
@@ -234,14 +232,5 @@ public class InventoryController : MonoBehaviour
         OnPublicListRemoved?.Invoke(id);
     }
 
-    public void GetPrivateItem(ItemInstance item)
-    {
-        OnPrivateListAdded?.Invoke(item);
-    }
-
-    public void RemovePrivateItem(int slot)
-    {
-        OnPrivateListRemoved?.Invoke(slot);
-    }
     #endregion
 }

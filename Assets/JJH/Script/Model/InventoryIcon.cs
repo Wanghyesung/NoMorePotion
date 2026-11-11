@@ -48,7 +48,24 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     /// <param name="alpha">지정할 알파 값</param>
     public void SetAlpha(float alpha)
     {
-        alphaCanvas.alpha = alpha;
+        AlphaCanvas.alpha = alpha;
+    }
+
+    // 프리팹에 CanvasGroup 이 연결돼 있지 않은 칸(개인 인벤 칸)도 동작하도록, 없으면 자기 오브젝트에서 찾고 그래도 없으면 만듭니다.
+    private CanvasGroup AlphaCanvas
+    {
+        get
+        {
+            if (alphaCanvas == null)
+            {
+                alphaCanvas = GetComponent<CanvasGroup>();
+
+                if (alphaCanvas == null)
+                    alphaCanvas = gameObject.AddComponent<CanvasGroup>();
+            }
+
+            return alphaCanvas;
+        }
     }
 
 
@@ -59,9 +76,9 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     public void SetAlpha(bool type = false)
     {
         if (type)
-            alphaCanvas.alpha = 1;
+            AlphaCanvas.alpha = 1;
         else
-            alphaCanvas.alpha = emptyAlpha;
+            AlphaCanvas.alpha = emptyAlpha;
     }
 
     /// <summary>단축키 번호 표시 (0~8 → 1~9, 9 → 0)</summary>
@@ -101,7 +118,6 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     {
         //Item.itemImage != null << 임시 비활성화 이미지 생기면 넣을것
         bool enabled = Item != null && Item.ItemCount > 0;
-        Debug.Log(enabled);
         itemImage.enabled = enabled;
         itemCountText.enabled = enabled;
         itemCountText.text = enabled &&
@@ -137,13 +153,50 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
 
     // ========================= 현준 수정 =============================
 
-    public void ChangeSlotState(InventorySlot inventorySlot)
+    /// <summary>
+    /// 개인 인벤토리의 칸인지 여부입니다. 조합 요청에서 출처를 "내 개인 인벤토리의 이 칸"으로 보낼 때 사용합니다. (칸 번호는 slotNum)
+    /// </summary>
+    public bool isPersonalSlot = false;
+
+    /// <summary>
+    /// 개인 인벤토리 칸(InventorySlot)의 내용을 그립니다. 재료, 포션, 빈 칸을 모두 처리합니다.
+    /// 개인 인벤토리는 칸이 10개로 고정이라 빈 칸도 알파를 바꾸지 않고 아이콘만 비웁니다. (칸과 퀵슬롯 번호가 그대로 보임)
+    /// </summary>
+    public void ShowSlot(InventorySlot slot)
     {
-        itemImage.sprite = inventorySlot.Potion.Data.potionIcon;
-        itemCountText.enabled = false;
-        itemSlotNum.enabled = false;
+        if (slot.IsEmpty)
+        {
+            Clear();
+            return;
+        }
+
+        if (slot.Kind == InventorySlotKind.Potion && slot.Potion != null && slot.Potion.Data != null)
+        {
+            Init(new ItemInstance(slot.Potion.Data.potionID, slot.Potion.Data.potionIcon,
+                InventorySlotKind.Potion, 1, slot.Potion.InstanceId));
+            return;
+        }
+
+        if (slot.Kind == InventorySlotKind.Material)
+        {
+            Sprite icon = null;
+            if (PotionDataManager.Instance != null && PotionDataManager.Instance.TryGetMaterialData(slot.MaterialId, out var material))
+                icon = material.materialIcon;
+
+            Init(new ItemInstance(slot.MaterialId, icon, InventorySlotKind.Material, slot.Count));
+            return;
+        }
+
+        Clear();
+    }
+
+    /// <summary>
+    /// 조합창에서 빠졌을 때 알파를 원래대로 돌립니다. 개인 칸은 항상 선명하게, 공용 칸은 아이템이 있으면 선명하게 비었으면 흐리게 합니다.
+    /// </summary>
+    public void RestoreAlpha()
+    {
+        SetAlpha(isPersonalSlot || (Item != null && Item.ItemCount > 0));
     }
 
 
 }
-;
