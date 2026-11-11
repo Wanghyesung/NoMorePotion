@@ -7,7 +7,7 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.AI;
 using static JJH_Constants;
-
+using static JJH_Enums;
 using SF = UnityEngine.SerializeField;
 
 public class WolfCombat : MonsterCombat
@@ -69,9 +69,10 @@ public class WolfCombat : MonsterCombat
             .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
             .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
 
-        Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint, bossData.AttackPower,
-            immuneVal, bossData.Speed, bossData.Id, 0,
-            bossData.SpawnArea, textData.Description, bossData.BossSkills, normalWolfHp, bossData.DamageType);
+        Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint, 
+            bossData.AttackPower, immuneVal, bossData.Speed, bossData.Id, 0,
+            bossData.SpawnArea, textData.Description, bossData.BossSkills, 
+            normalWolfHp, bossData.DamageType);
 
         // 선택기가 사용할 스킬 주입
         var patterns = new List<AttackPattern>();
@@ -113,11 +114,11 @@ public class WolfCombat : MonsterCombat
     }
 
     public void Init(string name,int maxHp, int hp,int atkPoint,int attackPower, Dictionary<DamageType, int> immune, float speed,
-        int id, int instanceId, string spawnArea, string description,
+        int id, int instanceId, SpawnAreaType spawnArea, string description,
         List<BossSkill> bossSkill,int normalWolfHP, DamageType damageType)
     {
         SetData(new WolfBoss(name, maxHp, hp, atkPoint,attackPower, immune, speed, id, instanceId,
-            spawnArea, description, bossSkill,normalWolfHP ,damageType));
+            spawnArea, description, bossSkill, normalWolfHP, damageType));
     }
 
 

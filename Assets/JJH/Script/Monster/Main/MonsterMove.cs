@@ -76,6 +76,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [HIn] public bool IsAnimation;
     private CancellationTokenSource aiCts;
     private AttackTarget targetInfo;
+    private MonsterPatrolState patrolState;
 
     public Dictionary<MonsterState, IMonsterState> stateGroup; 
     public bool IsProvoked => Time.time < provokedUntil;
@@ -112,6 +113,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             [MonsterState.Attack] = new MonsterAttackState(this),
             [MonsterState.Death] = new MonsterDeathState(this)
         };
+
+        patrolState = (MonsterPatrolState)stateGroup[MonsterState.Patrol];
     }
 
     private void Start()
@@ -298,24 +301,18 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         if (nowTarget == null && defaultTarget != null && defaultTarget.activeInHierarchy)
             SetTarget(defaultTarget);
 
-        // 순찰
         if (nowTarget == null)
         {
-            if (patrolTimerActive)
-            {
-                result = stateGroup[MonsterState.Idle];
-                nowState = MonsterState.Idle;
-            }
+            MonsterState current = state.GetStateType();
+
+            if (current == MonsterState.Patrol)
+                nowState = patrolState.IsArrived ? MonsterState.Idle : MonsterState.Patrol;   // 도착하면 쉬기
+            else if (current == MonsterState.Idle)
+                nowState = patrolTimer >= patrolDelay ? MonsterState.Patrol : MonsterState.Idle;   // 다 쉬었으면 순찰
             else
-            {
-                result = stateGroup[MonsterState.Patrol];
-                nowState = MonsterState.Patrol;
-            }
+                nowState = MonsterState.Patrol;   // 추적·공격 등에서 타겟을 잃으면 바로 순찰
 
-            if (state.GetStateType() == nowState)
-                result = null;
-
-            return result;
+            return current == nowState ? null : stateGroup[nowState];
         }
         
         float distance = DistanceToTarget();
