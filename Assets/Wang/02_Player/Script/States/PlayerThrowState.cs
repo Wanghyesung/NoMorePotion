@@ -141,7 +141,7 @@ public sealed class PlayerThrowState : PlayerState
         if (currentType != FSM.StateType.Idle && currentType != FSM.StateType.Walk)
             return false;
 
-        if (hand.FocusedPotion == null && hand.OtherPotion == null)
+        if (hand.FocusedPotion == null)
             return false;
 
         if (isAiming == false)
