@@ -333,6 +333,26 @@ namespace Enzeun.Runtime
             return true;
         }
 
+        /// <summary>
+        /// [마스터 전용] 상호작용으로 얻은 월드 오브젝트의 재료를 공용 인벤에 바로 넣습니다. 한도를 넘는 만큼은 각 spawn 의 위치에 바닥 주머니로 남깁니다.
+        /// 마스터가 아니거나 넣을 것이 없으면 false 입니다.
+        /// </summary>
+        public bool GrantWorldDrops(IReadOnlyList<GroundSpawn> grants)
+        {
+            if (!PhotonNetwork.IsMasterClient || !PhotonNetwork.InRoom)
+            {
+                return false;
+            }
+
+            if (!_state.TryCreateWorldGrant(grants, out InventoryCommand apply))
+            {
+                return false;
+            }
+
+            BroadcastApply(apply);
+            return true;
+        }
+
         private void BroadcastApply(InventoryCommand apply)
         {
             photonView.RPC(nameof(RpcApply), RpcTarget.All, InventoryMessages.PackApply(apply));

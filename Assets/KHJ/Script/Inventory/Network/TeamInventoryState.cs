@@ -254,6 +254,61 @@ namespace Enzeun.Runtime
             return apply.Changes.Count > 0;
         }
 
+        /// <summary>
+        /// [마스터 전용] 월드 오브젝트의 재료를 공용 인벤에 바로 넣는 변경을 만듭니다. (상호작용으로 얻은 재료)
+        /// 공용 인벤의 한도까지 넣고, 넘치는 만큼은 각 spawn 의 위치에 바닥 주머니로 만듭니다.
+        /// 알 수 없는 재료나 0 이하의 개수는 건너뛰고, 바뀔 것이 없으면 false 입니다. 클라이언트가 요청할 수 없는 변경입니다.
+        /// </summary>
+        public bool TryCreateWorldGrant(IReadOnlyList<GroundSpawn> grants, out InventoryCommand apply)
+        {
+            apply = new InventoryCommand { Op = InventoryOp.SpawnGround, Version = Version + 1, Changes = new List<InventoryChange>() };
+
+            if (grants == null)
+            {
+                return false;
+            }
+
+            // 같은 재료가 여러 건이어도 합쳐서 계산합니다. (한 변경 목록에 같은 재료의 SetMaterial 이 중복되지 않게)
+            var added = new Dictionary<int, int>();
+            var overflow = new List<GroundSpawn>();
+
+            for (int i = 0; i < grants.Count; i++)
+            {
+                GroundSpawn grant = grants[i];
+
+                if (grant.Count <= 0 || !_data.IsKnownMaterial(grant.MaterialId))
+                {
+                    continue;
+                }
+
+                added.TryGetValue(grant.MaterialId, out int already);
+                int room = Math.Max(0, Pack.Materials.GetRoom(grant.MaterialId) - already);
+                int accepted = Math.Min(grant.Count, room);
+
+                if (accepted > 0)
+                {
+                    added[grant.MaterialId] = already + accepted;
+                }
+
+                if (grant.Count - accepted > 0)
+                {
+                    overflow.Add(new GroundSpawn { MaterialId = grant.MaterialId, Count = grant.Count - accepted, Position = grant.Position });
+                }
+            }
+
+            foreach (KeyValuePair<int, int> entry in added)
+            {
+                apply.Changes.Add(InventoryChange.SetMaterial(ContainerRef.PackRef, entry.Key, Pack.Materials.GetCount(entry.Key) + entry.Value));
+            }
+
+            for (int i = 0; i < overflow.Count; i++)
+            {
+                apply.Changes.Add(InventoryChange.CreateGround(_nextDropId++, overflow[i].MaterialId, overflow[i].Count, overflow[i].Position));
+            }
+
+            return apply.Changes.Count > 0;
+        }
+
         // ---------- 이동 ----------
 
         private bool ValidateTransfer(InventoryCommand request, int actor, ref InventoryCommand apply, out InventoryDenyReason reason)
