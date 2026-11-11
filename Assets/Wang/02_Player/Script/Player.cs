@@ -22,31 +22,40 @@ public class PlayerCharacter : Character
 [DisallowMultipleComponent]
 public sealed class Player : MonoBehaviour, IDamageable, IHealable
 {
+    #region 컴포넌트 참조
     private FSM fsm;
     private PhotonView photonView;
+    private BuffContainer buffContainer;
+    private Hand hand;
+    private AttackTarget attackTarget;
+    private PlayerRagdoll ragdoll;
+    #endregion
+
+    #region 입력 상태
     private bool started;
     private bool inputSubscribed;
-    public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
-    private BuffContainer buffContainer;
-
     // 마시기로 판정할 실제 누름 시간(초). Inspector 값을 사용하며 게임 시간 배율의 영향을 받지 않는다.
     [SerializeField, Min(0.01f)] private float drinkHoldSeconds = 0.3f;
-    private Hand hand;
-    public Hand Hand => hand;
-
     private float pressedAt;
     private bool pending;
+    #endregion
 
-
+    #region 캐릭터 정보
     private PlayerCharacter character = null;
-    public Character Character => character;
-    public bool ConfusePotionUse { get; set; }
-    [SerializeField] private Transform cameraPosition;
-    public Transform CameraPosition => cameraPosition;
+    #endregion
 
+    #region 카메라와 시선
+    [SerializeField] private Transform cameraPosition;
     [SerializeField] private Transform lookPivot;
     [SerializeField, Min(0f)] private float pitchSensitivity = 0.15f;
     private float lookPitch;
+    #endregion
+
+    public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
+    public Hand Hand => hand;
+    public Character Character => character;
+    public bool ConfusePotionUse { get; set; }
+    public Transform CameraPosition => cameraPosition;
     public Transform LookPivot => lookPivot;
 
     public event Action<Vector3> OnDead;
@@ -84,6 +93,13 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         int damage = Mathf.Max(0, Mathf.RoundToInt(attackInfo.Damage / Mathf.Max(0.01f, defenseMultiplier)));
         character.HP = Mathf.Max(0, character.HP - damage);
 
+        if (character.HP <= 0)
+        {
+            CancelPending();
+            //if (attackTarget != null)
+                //attackTarget.IsObjective = false;
+        }
+
         // HP 차감량만 보정한다. 피격 위치·넉백에 쓰는 원본 공격 정보는 유지한다.
         fsm.TakeDamage(attackInfo);
 
@@ -100,6 +116,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private void Awake()
     {
         photonView = GetComponent<PhotonView>();
+        attackTarget = GetComponent<AttackTarget>();
+        ragdoll = GetComponent<PlayerRagdoll>();
         
         SetLookPitch(Mathf.DeltaAngle(0f, lookPivot.localEulerAngles.x));
         Dictionary<DamageType, int> immune = new();
@@ -134,7 +152,36 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
             Debug.LogWarning("SurviveStatusManager가 없어 Player의 BuffContainer를 연결하지 못했습니다.", this);
         }
 
+        RefreshPlayer();
         SubscribePotionInput();
+    }
+
+    /// <summary>
+    /// 생성·부활 시 HP, 상태 효과, 입력 대기, 래그돌과 FSM을 초기화하고 공격 대상으로 복귀합니다.
+    /// 부활 위치는 호출 전에 지정합니다. 인벤토리와 손의 포션은 변경하지 않습니다.
+    /// </summary>
+    public void RefreshPlayer()
+    {
+        if (IsLocalPlayer == false)
+            return;
+
+        CancelPending();
+
+        if (buffContainer != null)
+            buffContainer.Clear();
+
+        character.HP = character.MaxHP;
+        ConfusePotionUse = false;
+        fsm.ReverseMovement = false;
+        fsm.MoveSpeedMultiplier = 1f;
+
+        if (ragdoll != null)
+            ragdoll.Restore();
+
+        SetLookPitch(0f);
+        fsm.RefreshState();
+        //if (attackTarget != null)
+        //    attackTarget.SetTargetable(true);
     }
 
     private void SubscribePotionInput()

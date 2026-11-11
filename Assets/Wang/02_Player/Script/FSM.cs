@@ -118,7 +118,28 @@ public sealed class FSM : MonoBehaviour
             state.Init();
 
         
-        StartState();
+    }
+
+    public void RefreshState()
+    {
+        if (player == null || player.IsLocalPlayer == false)
+            return;
+
+        Animator.enabled = true;
+        Stop();
+        PreviousState = null;
+        ClearGroundContact();
+        Vel = Vector3.zero;
+        if (Rigidbody.isKinematic == false)
+        {
+            Rigidbody.linearVelocity = Vector3.zero;
+            Rigidbody.angularVelocity = Vector3.zero;
+        }
+        rotateY = transform.eulerAngles.y;
+        Animator.Rebind();
+        Animator.Update(0f);
+        Animator.SetLayerWeight(upperBodyLayer, 0f);
+        EnterState(states[initialState]);
     }
 
     public bool StartState()

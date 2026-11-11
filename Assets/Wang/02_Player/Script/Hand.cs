@@ -17,15 +17,27 @@ public sealed class Hand : MonoBehaviour
 {
     public enum Side { Left, Right }
 
+    #region 손과 소켓
     [SerializeField] private Side focusedSide;
     [SerializeField] private Transform leftSocket;
     [SerializeField] private Transform rightSocket;
 
     private PotionMover leftPotion;
     private PotionMover rightPotion;
+    #endregion
+
+    #region 포션 생성과 사용
     [SerializeField] private Potion itemPrefab;
     //[SerializeField] private Inventory inventory = new Inventory();
     [SerializeField] private UnityEvent<PotionMover> OnDrink = new UnityEvent<PotionMover>();
+    private bool isTakingOut;
+    #endregion
+
+    #region 플레이어와 입력 상태
+    private Player player;
+    private bool started;
+    private bool inputSubscribed;
+    #endregion
 
     public Side FocusedSide => focusedSide;
     public void Focus(Side side) => focusedSide = side;
@@ -47,11 +59,6 @@ public sealed class Hand : MonoBehaviour
     public bool IsBothHandsEmpty => leftPotion == null && rightPotion == null;
     public Side TakeSide => FocusedPotion == null
         ? focusedSide : (focusedSide == Side.Left ? Side.Right : Side.Left);
-
-    private Player player;
-    private bool started;
-    private bool inputSubscribed;
-    private bool isTakingOut;
 
     private void Awake() => player = GetComponent<Player>();
 
