@@ -7,10 +7,10 @@ public class NightWaveSpawner : MonoBehaviour
     [SerializeField] private WaveTable waveTable;
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private Transform spawnRoot;
-
+    [SerializeField] private GameObject defendTarget;   // 수정 구슬
     private CompositeDisposable pendingSpawns = new CompositeDisposable(); // 예약 중 묶음
     private TimeManager time;
-
+    private int aliveCount;
     private void Start()
     {
         time = TimeManager.Instance;
@@ -64,6 +64,8 @@ public class NightWaveSpawner : MonoBehaviour
                 continue;
             }
 
+            PoolManager.Instance.Prewarm(entry.Prefab, entry.Count);
+
             for (int i = 0; i < entry.Count; i++)
             {
                 float delay = order * wave.SpawnInterval;
@@ -76,15 +78,23 @@ public class NightWaveSpawner : MonoBehaviour
         Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {order}마리 예약");
     }
 
-    // TODO(전멸 알림): 생성한 몬스터 OnDead 구독 → 살아 있는 수 관리 (밤 채집금지 기획 확정 시)
+    // TODO(전멸 알림): aliveCount가 0이 될 경우 뭘 할지 정하기
     private void SpawnOne(GameObject prefab)
     {
         Transform point = PickSpawnPoint();
-        Instantiate(prefab, point.position, point.rotation, spawnRoot);
+        GameObject go = PoolManager.Instance.Get(prefab, point.position, point.rotation, spawnRoot);
+        if (go == null) return;
 
+        // 웨이브 몹은 기본적으로 수정 구슬을 노림
+        if (go.TryGetComponent(out MonsterMove mover))
+            mover.SetDefaultTarget(defendTarget);
+
+        if (go.TryGetComponent(out MonsterCombat combat))
+        {
+            combat.Died += OnMonsterDied;
+            aliveCount++;
+        }
         // TODO(멀티): Resources 이동 후 PhotonNetwork.InstantiateRoomObject(prefab.name, ...)
-
-        // TODO(풀): 풀 매니저에서 꺼내기
     }
 
     private Transform PickSpawnPoint()
@@ -95,5 +105,12 @@ public class NightWaveSpawner : MonoBehaviour
     private void CancelPendingSpawns()
     {
         pendingSpawns.Clear();
+    }
+
+    private void OnMonsterDied(MonsterCombat combat)
+    {
+        combat.Died -= OnMonsterDied;
+        aliveCount--;
+        // aliveCount == 0이면 전멸 알림
     }
 }

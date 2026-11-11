@@ -41,6 +41,6 @@ public class MonsterChaseState : IMonsterState
 
     public void OnStay()
     {
-        mover.agent.SetDestination(mover.nowTarget.transform.position);
+        mover.agent.SetDestination(mover.GetChaseDestination());
     }
 }

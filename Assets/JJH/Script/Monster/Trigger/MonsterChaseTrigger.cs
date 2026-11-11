@@ -18,10 +18,10 @@ public class MonsterChaseTrigger : MonoBehaviour
 
     private void Update()
     {
+
         // 타겟이 없거나 수정구슬을 노리는 경우
-        if (mover.nowTarget == null ||
-            mover.IsTargetObjective ||
-            players.Count == 0) return;
+        if (players.Count == 0) return;
+        if (mover.nowTarget != null && !mover.IsTargetObjective) return;
 
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
         GameObject pick = PickTarget();
@@ -30,7 +30,7 @@ public class MonsterChaseTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag(PLAYER_TAG)) return;
+        if (!(other.CompareTag(PLAYER_TAG) || other.CompareTag(CORE_TAG))) return;
 
         if (!players.Contains(other.gameObject))
             players.Add(other.gameObject);
@@ -58,8 +58,10 @@ public class MonsterChaseTrigger : MonoBehaviour
         candidates.Clear();
 
         foreach (GameObject p in players)
-            if (mover.CanAcquireTarget(p))
-                candidates.Add(p);
+        {
+            bool can = mover.CanAcquireTarget(p);
+            if (can) candidates.Add(p);
+        }
 
         return candidates.Count > 0
             ? candidates[Random.Range(0, candidates.Count)]

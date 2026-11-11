@@ -36,12 +36,12 @@ public class WolfCombat : MonsterCombat
     /// <summary>
     ///  테스트용
     /// </summary>
-    protected override void InitTestData(int id, int hpOverride = -1)
+    protected override void InitData(int id, int hpOverride = -1)
     {
         // 무리 없는 늑대는 일반 몬스터로 처리
         if (WolfMover == null || WolfMover.Pack == null)
         {
-            base.InitTestData(prefabId);
+            base.InitData(prefabId);
             return;
         }
 
@@ -57,7 +57,7 @@ public class WolfCombat : MonsterCombat
         // 노말 늑대는 일반 데이터 + 강화 체력
         if (!WolfMover.IsAlpha)
         {
-            base.InitTestData(prefabId, normalWolfHp);
+            base.InitData(prefabId, normalWolfHp);
             return;
         }
 
