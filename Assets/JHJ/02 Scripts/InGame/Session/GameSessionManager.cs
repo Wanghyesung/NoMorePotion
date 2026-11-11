@@ -1,6 +1,8 @@
 using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
 using Photon.Pun;
 using R3;
+using System;
 using System.Threading;
 using UnityEngine;
 
@@ -13,6 +15,10 @@ using UnityEngine;
 /// <remarks>
 /// [보고] GameSessionManager.Instance.ReportClear() / ReportDefeat()
 ///   판정 권한(GameAuthority)이 있고 Playing 단계일 때만 반영. 먼저 온 보고만 유효
+///   수정구슬 파괴 → 수정구슬이 파괴 이벤트를 Invoke → 세션이 구독해서 패배 처리 (SubscribeCrystal 참고)
+///
+/// [사망·부활] 로컬 플레이어의 사망 이벤트를 구독 (스폰 직후 SubscribeLocalPlayer 참고)
+///   사망 위치에 시체 상자(개인 인벤 → 상자) → respawnDelaySeconds 뒤 스폰 지점에서 부활
 ///
 /// [구독] 알림은 Phase 하나뿐. 끝났을 때 기록이 필요하면 Ended를 받은 뒤 Record를 읽는다
 ///   GameSessionManager.Instance.Phase
@@ -31,6 +37,17 @@ public class GameSessionManager : MonoBehaviour
     [SerializeField] private PlayerUIBinding playerBinder;
     [SerializeField] private Transform spawnPoint;
     private GameObject spawnedPlayer;
+    private Player localPlayer;
+
+    [Header("수정구슬")]
+    // TODO(수정구슬): 수정구슬 클래스가 생기면 타입을 바꿔서 연결
+    //   [SerializeField] private Crystal crystal;
+
+    [Header("사망·부활")]
+    // 사망 후 스폰 지점에서 부활하기까지의 실제 시간(초). 게임 시간 배율·판정 권한과 무관하게 각자 클라이언트에서 진행
+    [SerializeField, Min(0f)] private float respawnDelaySeconds = 5f;
+    // 내 플레이어가 사망 처리 중인지 (중복 보고 방지)
+    private bool isLocalPlayerDead;
 
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
@@ -73,12 +90,16 @@ public class GameSessionManager : MonoBehaviour
         if (Instance == this)
             Instance = null;
 
+        UnsubscribeCrystal();
+        UnsubscribeLocalPlayer();
+
         phase?.Dispose();
         rankingSubmit?.Dispose();
     }
 
     private void Start()
     {
+        SubscribeCrystal();
         RunStartSequence().Forget();
     }
 
@@ -126,11 +147,142 @@ public class GameSessionManager : MonoBehaviour
         if (spawnedPlayer == null)
             return false;
 
-        playerBinder.SetPlayer(spawnedPlayer.GetComponent<Player>());
+        localPlayer = spawnedPlayer.GetComponent<Player>();
+        playerBinder.SetPlayer(localPlayer);
+        SubscribeLocalPlayer();
         return true;
     }
 
     public void ReportDefeat() => Finish(GameResult.Defeat);
+
+    #region 수정구슬
+
+    /// <summary>
+    /// 수정구슬의 파괴 이벤트를 구독한다. (수정구슬이 Invoke → OnCrystalDestroyed)
+    /// </summary>
+    private void SubscribeCrystal()
+    {
+        // TODO(수정구슬): 수정구슬 담당이 만든 이벤트 이름으로 연결
+        //   if (crystal != null) crystal.OnDestroyed += OnCrystalDestroyed;
+    }
+
+    private void UnsubscribeCrystal()
+    {
+        // TODO(수정구슬): SubscribeCrystal 과 짝으로 해제
+        //   if (crystal != null) crystal.OnDestroyed -= OnCrystalDestroyed;
+    }
+
+    /// <summary>
+    /// 수정구슬이 파괴됐을 때 (패배). 수정구슬 이벤트의 구독 함수
+    /// </summary>
+    private void OnCrystalDestroyed()
+    {
+        Debug.Log("[GameSessionManager] 수정구슬 파괴");
+        ReportDefeat();
+    }
+
+    #endregion
+
+
+    #region 사망·부활
+
+    /// <summary>
+    /// 내 플레이어의 사망 이벤트를 구독한다. 스폰 직후 한 번. (부활 시 같은 오브젝트를 재사용하므로 다시 구독하지 않음)
+    /// 사망 이벤트는 IsLocalPlayer 인 클라이언트에서만 발생하므로 자기 플레이어만 구독하면 된다.
+    /// </summary>
+    private void SubscribeLocalPlayer()
+    {
+        // TODO(플레이어): 플레이어 담당이 만든 사망 이벤트 이름으로 연결 (사망 위치 전달)
+        //   if (localPlayer != null) localPlayer.OnDied += OnLocalPlayerDied;
+    }
+
+    private void UnsubscribeLocalPlayer()
+    {
+        // TODO(플레이어): SubscribeLocalPlayer 와 짝으로 해제
+        //   if (localPlayer != null) localPlayer.OnDied -= OnLocalPlayerDied;
+    }
+
+    /// <summary>
+    /// 내 플레이어가 죽었을 때 (플레이어 사망 이벤트의 구독 함수).
+    /// 사망 위치에 시체 상자를 남기고, respawnDelaySeconds 뒤 스폰 지점에서 부활시킨다.
+    /// </summary>
+    private void OnLocalPlayerDied(Vector3 deathPosition)
+    {
+        if (phase.CurrentValue != SessionPhase.Playing)
+        {
+            Debug.Log($"[GameSessionManager] 진행중 아님, 사망 보고 무시 : 현재 단계 = {phase.CurrentValue}");
+            return;
+        }
+
+        if (isLocalPlayerDead)
+            return;
+
+        isLocalPlayerDead = true;
+        Debug.Log($"[GameSessionManager] 내 플레이어 사망 : {deathPosition}");
+
+        DropCorpseBoxAsync(deathPosition).Forget();
+        RespawnAfterDelayAsync().Forget();
+    }
+
+    /// <summary>
+    /// 개인 인벤토리를 사망 위치의 시체 상자로 옮긴다. (마스터가 검증 후 전원에 적용)
+    /// 상자를 월드에 보이게 하는 건 TeamInventoryState.OnCorpseCreated / OnCorpseRemoved 를 구독하는 쪽의 몫.
+    /// </summary>
+    private async UniTaskVoid DropCorpseBoxAsync(Vector3 deathPosition)
+    {
+        InventoryNetworkSyncManager inventory = InventoryNetworkSyncManager.Instance;
+        if (inventory == null)
+        {
+            Debug.LogWarning("[GameSessionManager] InventoryNetworkSyncManager 없음, 시체 상자 생략");
+            return;
+        }
+
+        InventoryResult result = await inventory.DieAsync(deathPosition);
+
+        // 개인 인벤이 비어 있으면 Invalid 로 거부됨 (남길 것이 없음) → 상자 없이 진행
+        if (result.Success)
+            Debug.Log($"[GameSessionManager] 시체 상자 생성 : ID {result.Outcome.CorpseId}");
+        else
+            Debug.Log($"[GameSessionManager] 시체 상자 생성 안 됨 : {result.Reason}");
+    }
+
+    private async UniTaskVoid RespawnAfterDelayAsync()
+    {
+        CancellationToken token = this.GetCancellationTokenOnDestroy();
+
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(respawnDelaySeconds), cancellationToken: token)
+            .SuppressCancellationThrow();
+
+        // 대기 중 파괴(타이틀로 나감) 또는 판이 끝났으면 부활하지 않음
+        if (cancelled || phase.CurrentValue != SessionPhase.Playing)
+            return;
+
+        RespawnLocalPlayer();
+    }
+
+    /// <summary>
+    /// 내 플레이어를 스폰 지점으로 옮기고 되살린다.
+    /// </summary>
+    private void RespawnLocalPlayer()
+    {
+        isLocalPlayerDead = false;
+
+        if (spawnedPlayer == null)
+        {
+            Debug.LogWarning("[GameSessionManager] 부활시킬 플레이어 없음");
+            return;
+        }
+
+        Transform point = spawnPoint != null ? spawnPoint : transform;
+        spawnedPlayer.transform.SetPositionAndRotation(point.position, point.rotation);
+
+        // TODO(플레이어): 플레이어 쪽 부활 함수 연결 (HP 복구, 래그돌 해제, 상태 잠금 해제 → Idle)
+        //   if (localPlayer != null) localPlayer.Revive();
+
+        Debug.Log($"[GameSessionManager] 내 플레이어 부활 : {point.position}");
+    }
+
+    #endregion
 
 
     private void Finish(GameResult gameResult)
@@ -223,4 +375,14 @@ public class GameSessionManager : MonoBehaviour
 
     [ContextMenu("디버그 패배")]
     private void DebugDefeat() => ReportDefeat();
+
+    [ContextMenu("디버그 수정구슬 파괴")]
+    private void DebugCrystalDestroyed() => OnCrystalDestroyed();
+
+    [ContextMenu("디버그 내 플레이어 사망")]
+    private void DebugLocalPlayerDied()
+    {
+        Vector3 position = spawnedPlayer != null ? spawnedPlayer.transform.position : transform.position;
+        OnLocalPlayerDied(position);
+    }
 }
