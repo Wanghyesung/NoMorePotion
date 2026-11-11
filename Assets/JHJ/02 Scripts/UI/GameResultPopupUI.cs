@@ -68,6 +68,13 @@ public class GameResultPopupUI : MonoBehaviour
 
         closeBtn.interactable = true;
         popupRoot.SetActive(true);
+
+        // 결과창 버튼을 눌러야 하므로 플레이어 조작을 끄고 커서를 푼다
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.SetInputEnabled(false);
+            InputManager.Instance.SetCursorLocked(false);
+        }
     }
 
     private void Close()
