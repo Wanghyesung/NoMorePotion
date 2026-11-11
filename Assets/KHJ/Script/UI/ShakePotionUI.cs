@@ -33,6 +33,9 @@ public class ShakePotionUI : MonoBehaviour
     [SerializeField, LabelText("왼손 함정 키워드"), BoxGroup("왼손"), Required]
     private TMP_Text _leftTrapText;
 
+
+
+
     [SerializeField, LabelText("오른손 칸"), BoxGroup("오른손"), Required("오른손 포션 칸을 연결해 주세요.")]
     private CanvasGroup _rightGroup;
 
@@ -44,6 +47,27 @@ public class ShakePotionUI : MonoBehaviour
 
     [SerializeField, LabelText("오른손 함정 키워드"), BoxGroup("오른손"), Required]
     private TMP_Text _rightTrapText;
+
+
+    [SerializeField, LabelText("왼손 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 이미지의 RectTransform 을 연결해 주세요.")]
+    private RectTransform _leftHandImage;
+
+    [SerializeField, LabelText("오른손 이미지"), BoxGroup("현재 플레이어 손"), Required("오른손 이미지의 RectTransform 을 연결해 주세요.")]
+    private RectTransform _rightHandImage;
+
+    [SerializeField, LabelText("선택된 손 크기 (배)"), BoxGroup("현재 플레이어 손"), MinValue(0f)]
+    private float _selectedHandScale = 1.25f;
+
+    [SerializeField, LabelText("선택 안 된 손 크기 (배)"), BoxGroup("현재 플레이어 손"), MinValue(0f)]
+    private float _normalHandScale = 1f;
+
+    [SerializeField, LabelText("크기 바뀌는 시간 (초)"), BoxGroup("현재 플레이어 손"), MinValue(0f)]
+    private float _handScaleDuration = 0.15f;
+
+    [SerializeField, LabelText("크기 곡선"), BoxGroup("현재 플레이어 손")]
+    private Ease _handScaleEase = Ease.OutBack;
+
+
 
     [SerializeField, LabelText("나타나는 시간 (초)"), BoxGroup("페이드"), MinValue(0f)]
     private float _showDuration = 0.12f;
@@ -213,6 +237,16 @@ public class ShakePotionUI : MonoBehaviour
 
         leftSlot.HideImmediate();
         rightSlot.HideImmediate();
+
+        if (_leftHandImage != null)
+        {
+            _leftHandBaseScale = _leftHandImage.localScale;
+        }
+
+        if (_rightHandImage != null)
+        {
+            _rightHandBaseScale = _rightHandImage.localScale;
+        }
     }
 
     private void OnEnable()
@@ -228,6 +262,7 @@ public class ShakePotionUI : MonoBehaviour
         bindCts = null;
 
         UnBindEvent();
+        ResetHandIndicator();
 
         // 꺼질 때는 페이드를 기다리지 않고 바로 숨깁니다.
         leftSlot?.HideImmediate();
@@ -293,7 +328,11 @@ public class ShakePotionUI : MonoBehaviour
 
         playerHand.OnShake += ShowResult;
         playerHand.OnShakeFinished += HideShake;
+        playerHand.OnFocusChanged += ChangeHandSide;
         isBound = true;
+
+        // OnFocusChanged 는 손이 바뀔 때만 발생하므로, 처음 연결될 때 지금 쓰는 손을 직접 반영합니다.
+        ChangeHandSide((int)playerHand.FocusedSide);
     }
 
     private void UnBindEvent()
@@ -308,9 +347,11 @@ public class ShakePotionUI : MonoBehaviour
         {
             playerHand.OnShake -= ShowResult;
             playerHand.OnShakeFinished -= HideShake;
+            playerHand.OnFocusChanged -= ChangeHandSide;
         }
 
         isBound = false;
+        ResetHandIndicator();
     }
 
     /// <summary>
@@ -347,5 +388,68 @@ public class ShakePotionUI : MonoBehaviour
         }
 
         slot.Show(potion);
+    }
+
+    // 지금 선택된 손입니다. 0 = 왼손, 1 = 오른손, -1 = 아직 반영하지 않음
+    private int _currentHandSide = -1;
+    private Tween _leftHandTween;
+    private Tween _rightHandTween;
+
+    // 씬에 배치된 원래 크기입니다. 크기를 키울 때 이 값의 배수로 계산해서, 원래 크기가 1 이 아니어도 맞습니다.
+    private Vector3 _leftHandBaseScale = Vector3.one;
+    private Vector3 _rightHandBaseScale = Vector3.one;
+
+    /// <summary>
+    /// 지금 쓰는 손을 바꿉니다. 선택된 손의 이미지는 키우고, 선택 안 된 손은 기본 크기로 돌립니다. (두 이미지는 항상 보임)
+    /// DOScale 은 지금 크기에서 이어서 시작하므로 손을 빠르게 연타로 바꿔도 크기가 튀지 않습니다.
+    /// </summary>
+    private void ChangeHandSide(int side)
+    {
+        if (side == _currentHandSide)
+        {
+            return;
+        }
+
+        _currentHandSide = side;
+
+        ScaleHand(_leftHandImage, _leftHandBaseScale, ref _leftHandTween, side == 0 ? _selectedHandScale : _normalHandScale);
+        ScaleHand(_rightHandImage, _rightHandBaseScale, ref _rightHandTween, side == 0 ? _normalHandScale : _selectedHandScale);
+    }
+
+    // 이전 크기 변화는 끝내고, 지금 크기에서 목표 크기(원래 크기의 factor 배)까지 키우거나 줄입니다. (Time.timeScale 의 영향을 받지 않음)
+    private void ScaleHand(RectTransform target, Vector3 baseScale, ref Tween tween, float factor)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        tween?.Kill();
+
+        tween = target.DOScale(baseScale * factor, _handScaleDuration)
+            .SetEase(_handScaleEase)
+            .SetUpdate(true)
+            .SetLink(target.gameObject);
+    }
+
+    // 연결이 끊기거나 UI 가 꺼질 때 두 손을 기본 크기로 바로 되돌립니다. (다시 켜면 현재 손을 새로 반영)
+    private void ResetHandIndicator()
+    {
+        _leftHandTween?.Kill();
+        _rightHandTween?.Kill();
+        _leftHandTween = null;
+        _rightHandTween = null;
+
+        if (_leftHandImage != null)
+        {
+            _leftHandImage.localScale = _leftHandBaseScale * _normalHandScale;
+        }
+
+        if (_rightHandImage != null)
+        {
+            _rightHandImage.localScale = _rightHandBaseScale * _normalHandScale;
+        }
+
+        _currentHandSide = -1;
     }
 }
