@@ -148,6 +148,16 @@ namespace Enzeun.Runtime
             SyncAllEffects();
         }
 
+        /// <summary>
+        /// 생존 상태(체온, 정신력, 수분, 포만감)의 수치는 그대로 두고, 현재 구간에 맞는 상태 효과만 다시 맞춥니다.
+        /// 플레이어 생성이나 부활처럼 BuffContainer 를 비운 뒤에 부르면, 구간이 건 효과(예: 정신력 초기값 50 의 멍청함)가 되살아납니다.
+        /// 이미 걸린 효과는 다시 걸지 않고, 비어서 빠진 효과만 새로 겁니다.
+        /// </summary>
+        public void ResyncStatusEffects()
+        {
+            SyncAllEffects();
+        }
+
         // ==================== 구간 -> 상태 효과(버프/디버프) 연결 ============================
 
         private void HandleBodyTemperatureStateChanged(BodyTemperatureState prev, BodyTemperatureState next)
