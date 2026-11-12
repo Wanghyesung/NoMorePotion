@@ -6,39 +6,13 @@ using System;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
 using SF = UnityEngine.SerializeField;
 public class CombinationController : ItemInventory
 {
-    [Serializable]
-    public class CombineSlot
-    {
-        public Image image;
-        public InventoryIcon boundSlot;
-        public int id;
-        public int instanceId;
-
-        public void Init(Sprite image, int id, int instanceId, InventoryIcon slot)
-        {
-            this.image.sprite = image;
-            this.id = id;
-            this.instanceId = instanceId;
-            boundSlot = slot;
-        }
-
-        public void Clear(Sprite defaultImage)
-        {
-            image.sprite = defaultImage;
-            id = 0;
-            instanceId = 0;
-            if(boundSlot != null)
-                boundSlot.RestoreAlpha();
-            boundSlot = null;
-        }
-    }
-
     [Header("슬롯")]
     [SF] private CombineSlot leftSlot;
     [SF] private CombineSlot rightSlot;
@@ -105,8 +79,9 @@ public class CombinationController : ItemInventory
 
         if (!leftFull)
         {
-            leftSlot.Init(icon, id, instanceId, slot);
+            leftSlot.Init(icon, id, instanceId, slot, this);
             leftFull = true;
+            slot.SetAlpha();
             return;
         }
         if (rightFull) return;
@@ -140,9 +115,9 @@ public class CombinationController : ItemInventory
             return;
         }
 
-        rightSlot.Init(icon, id, instanceId, slot);
+        rightSlot.Init(icon, id, instanceId, slot, this);
         rightFull = true;
-
+        slot.SetAlpha();
         PotionData result = isMaterial
             ? dm.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id)
             : dm.GetUpgradedPotion(leftSlot.id, rightSlot.id);

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 using SF = UnityEngine.SerializeField;
 
-public class InventoryIcon : MonoBehaviour, IPointerClickHandler
+public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
 
     [SF] private ItemInventory inventory;
@@ -25,7 +25,7 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     [SF, Range(0f, 1f)] private float emptyAlpha = 0.3f;
 
     public ItemInstance Item { get; private set; }
-
+    private RectTransform rect;
     public int BoundInstanceId => Item != null ? Item.instanceId : 0;
 
     public event Action<InventoryIcon> OnClicked;
@@ -33,7 +33,7 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
     {
         if (button != null)
             button.onClick.AddListener(() => OnClicked?.Invoke(this));
-
+        rect = GetComponent<RectTransform>();
         SetSlotNum(slotNum);
     }
 
@@ -134,18 +134,22 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
         if (e.button == PointerEventData.InputButton.Right)
         {
             if (Item == null || Item.ItemCount <= 0) return;
-            SetAlpha();
+            
             inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId, this);
             inventory.potionCombined.RefreshSuccessPerText();
         }
-        else if (isCombinedSlot)
-        {
-            inventory.potionCombined.Clear();
-            inventory.potionCombined.RefreshSuccessPerText(false);
-        }
-
-
     }
+
+    public void OnPointerEnter(PointerEventData e)
+    {
+        if (Item != null) InventoryTooltip.Instance.Show(Item, rect);
+    }
+
+    public void OnPointerExit(PointerEventData e)
+    {
+        if (Item != null) InventoryTooltip.Instance.Hide();
+    }
+
 
     private void OnDestroy()
     {
