@@ -46,8 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cfdedc10c86b0b45b0e2dd34a196fdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeManager
-  dayDuration: 60
-  nightDuration: 60
+  dayDuration: 120
+  nightDuration: 120
   syncInterval: 2
 --- !u!114 &1678381782994216967
 MonoBehaviour:
