@@ -3,6 +3,7 @@ using R3;
 using System;
 using System.Threading;
 using UnityEngine;
+using PhotonPlayer = Photon.Realtime.Player;
 
 /// <summary>
 /// 인게임 내 낮/밤 순환 및 일차 관리
@@ -37,6 +38,9 @@ using UnityEngine;
 ///
 /// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
 ///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
+///   
+/// [TODO(멀티)] 방장 이전 시 예약(Schedule)은 새 방장에 없음 → 전 방장이 예약한 작업 유실
+///   클라이언트에서 등록한 예약은 실행·정리되지 않고 남음
 /// </remarks>
 public class TimeManager : MonoBehaviour
 {
@@ -97,7 +101,7 @@ public class TimeManager : MonoBehaviour
 
     private void Start()
     {
-        if (PhotonNetwork.InRoom && !GameAuthority.HasAuthority)
+        if (view != null && PhotonNetwork.InRoom && !GameAuthority.HasAuthority)
             view.RPC(nameof(RpcRequestState), RpcTarget.MasterClient);
     }
 
@@ -139,6 +143,7 @@ public class TimeManager : MonoBehaviour
         }
 
         state = new TimeState { DayCount = 1, Phase = TimePhase.Day, Elapsed = 0, TotalElapsed = 0 };
+        syncTimer = 0f;
         isRunning = true;
         SyncPublicValues();
 
@@ -244,12 +249,11 @@ public class TimeManager : MonoBehaviour
 
     //===================================================================
     #region 네트워크
-    private void SendState(RpcTarget target = RpcTarget.Others)
+    /// <summary> 방장 → 다른 모든 사람 </summary>
+    private void SendState()
     {
-        if (view == null || !PhotonNetwork.InRoom || !GameAuthority.HasAuthority || state == null)
-            return;
-
-        view.RPC(nameof(RpcApplyState), target, state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning);
+        if (!CanSendState()) return;
+        view.RPC(nameof(RpcApplyState), RpcTarget.Others, BuildStateArgs());
     }
 
     [PunRPC]
@@ -271,16 +275,31 @@ public class TimeManager : MonoBehaviour
         SyncPublicValues(); //같은 값이면 ReactiveProperty가 알림을 안 보내서 중복 실행 없음
     }
 
-    // 마스터보다 늦게 들어온 경우 첫 메세지 요청
+    // 마스터보다 늦게 들어온 경우 첫 메시지 요청
+    // 방장 state가 아직 없으면 응답하지 않음 → 주기 보정(syncInterval)이 안전망
     [PunRPC]
     private void RpcRequestState(PhotonMessageInfo info)
     {
-        if(!GameAuthority.HasAuthority || info.Sender == null || state == null)
-                return;
-
-        view.RPC(nameof(RpcApplyState), info.Sender, state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning);
+        SendState(info.Sender);
     }
 
+    /// <summary> 방장 → 특정 한 사람 (늦게 들어온 사람 응답용) </summary>
+    private void SendState(PhotonPlayer target)
+    {
+        if (target == null || !CanSendState()) return;
+        view.RPC(nameof(RpcApplyState), target, BuildStateArgs());
+    }
+
+    // RpcApplyState 인자 순서와 반드시 같아야 함
+    private object[] BuildStateArgs()
+    {
+        return new object[] { state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning };
+    }
+
+    private bool CanSendState()
+    {
+        return view != null && PhotonNetwork.InRoom && GameAuthority.HasAuthority && state != null;
+    }
     #endregion
     //===================================================================
 
