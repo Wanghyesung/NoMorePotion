@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using static UnityEngine.InputSystem.InputAction;
@@ -13,9 +14,10 @@ using SF = UnityEngine.SerializeField;
 public class CombinationController : ItemInventory
 {
     [Serializable]
-    public class CombineSlot
+    public class CombineSlot : IPointerEnterHandler, IPointerExitHandler
     {
         public Image image;
+        public RectTransform rect;
         public InventoryIcon boundSlot;
         public int id;
         public int instanceId;
@@ -36,6 +38,17 @@ public class CombinationController : ItemInventory
             if(boundSlot != null)
                 boundSlot.RestoreAlpha();
             boundSlot = null;
+        }
+
+        public void OnPointerEnter(PointerEventData e)
+        {
+            ItemInstance item = new(id, null, InventorySlotKind.Potion);
+            if (item != null) InventoryTooltip.Instance.Show(item, rect);
+        }
+
+        public void OnPointerExit(PointerEventData e)
+        {
+            InventoryTooltip.Instance.Hide();
         }
     }
 
