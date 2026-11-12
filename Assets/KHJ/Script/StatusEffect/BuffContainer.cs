@@ -18,17 +18,6 @@ namespace Enzeun.Runtime
     /// </summary>
     public class BuffContainer : MonoBehaviour
     {
-        private sealed class TimedHealthEffect
-        {
-            public HealthChangePotionEffect Effect;
-            public object Source;
-            public Vector3 Position;
-            public float Elapsed;
-            public float NextTick;
-        }
-
-        private readonly List<TimedHealthEffect> _timedHealthEffects = new List<TimedHealthEffect>();
-
         [ShowInInspector, ReadOnly, LabelText("버프 목록"), PropertyOrder(-3)]
         private List<ActiveStatusEffect> _buffs = new List<ActiveStatusEffect>();
         public IReadOnlyList<ActiveStatusEffect> buffs => _buffs;
@@ -122,7 +111,7 @@ namespace Enzeun.Runtime
         /// </summary>
         private void UpdateEnabledState()
         {
-            bool needsTick = _timedHealthEffects.Count > 0 || NeedsTick(_buffs) || NeedsTick(_debuffs);
+            bool needsTick = NeedsTick(_buffs) || NeedsTick(_debuffs);
 
             if (enabled != needsTick)
             {
@@ -157,9 +146,6 @@ namespace Enzeun.Runtime
         /// </summary>
         public void SetOwner(GameObject owner)
         {
-            // 재스폰 등으로 주인이 바뀌면 이전 대상의 지속 효과를 넘기지 않는다.
-            if (Owner != owner)
-                _timedHealthEffects.Clear();
             Unregister();
 
             Owner = owner;
@@ -235,65 +221,21 @@ namespace Enzeun.Runtime
         /// </summary>
         private void Tick(float deltaTime)
         {
-            TickPotionHealth(deltaTime);
             TickAndRemoveExpired(_buffs, deltaTime);
             TickAndRemoveExpired(_debuffs, deltaTime);
             UpdateEnabledState();
         }
 
-        // 첫 틱은 즉시 적용하고 이후 틱만 보관한다. 같은 포션의 같은 효과는 중첩 대신 시간을 갱신한다.
+        /// <summary>
+        /// 포션의 체력 증감 효과를 대상에게 한 번(한 틱) 적용합니다. 대상에게 지속 효과로 붙이지 않습니다.
+        /// 초당 대미지처럼 반복되는 효과는 범위 장판(PotionDetector)이 간격마다 이 함수를 다시 불러서, 범위 안에 있는 대상만 맞게 합니다.
+        /// </summary>
         public void ApplyPotionHealth(HealthChangePotionEffect effect, object source, Vector3 position)
         {
             if (effect == null || CanApplyHealthChange() == false)
                 return;
 
-            if (effect.durationSeconds > 0f && effect.healthChange.intervalSeconds > 0f)
-            {
-                TimedHealthEffect active = null;
-                for (int i = 0; i < _timedHealthEffects.Count; i++)
-                {
-                    if (_timedHealthEffects[i].Effect == effect && Equals(_timedHealthEffects[i].Source, source))
-                    {
-                        active = _timedHealthEffects[i];
-                        break;
-                    }
-                }
-                if (active == null)
-                {
-                    active = new TimedHealthEffect { Effect = effect, Source = source };
-                    _timedHealthEffects.Add(active);
-                }
-                active.Elapsed = 0f;
-                active.NextTick = effect.healthChange.intervalSeconds;
-                active.Position = position;
-                UpdateEnabledState();
-            }
             effect.healthChange.Apply(Damageable, position);
-        }
-
-        private void TickPotionHealth(float deltaTime)
-        {
-            for (int i = _timedHealthEffects.Count - 1; i >= 0; i--)
-            {
-                if (i >= _timedHealthEffects.Count)
-                    continue;
-
-                TimedHealthEffect active = _timedHealthEffects[i];
-                active.Elapsed += deltaTime;
-                // 5초 지속/1초 간격이면 0,1,2,3,4초에 적용한다. 긴 프레임에도 만료 전 틱을 누락하지 않는다.
-                while (active.NextTick <= active.Elapsed && active.NextTick < active.Effect.durationSeconds)
-                {
-                    active.NextTick += active.Effect.healthChange.intervalSeconds;
-                    if (CanApplyHealthChange() == true)
-                        active.Effect.healthChange.Apply(Damageable, active.Position);
-                    // 피해 콜백에서 Clear/SetOwner가 호출된 경우 더 적용하지 않는다.
-                    if (i >= _timedHealthEffects.Count || _timedHealthEffects[i] != active)
-                        break;
-                }
-                if (active.Elapsed >= active.Effect.durationSeconds && i < _timedHealthEffects.Count
-                    && _timedHealthEffects[i] == active)
-                    _timedHealthEffects.RemoveAt(i);
-            }
         }
 
         /// <summary>
@@ -443,7 +385,6 @@ namespace Enzeun.Runtime
         /// </summary>
         public void Clear()
         {
-            _timedHealthEffects.Clear();
             ClearList(_buffs);
             ClearList(_debuffs);
             UpdateEnabledState();

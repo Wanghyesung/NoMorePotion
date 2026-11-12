@@ -30,6 +30,9 @@ public class ShakePotionUI : MonoBehaviour
     [SerializeField, LabelText("왼손 포션 이름"), BoxGroup("왼손"), Required]
     private TMP_Text _leftNameText;
 
+    [SerializeField, LabelText("왼손 함정 백그라운드"), BoxGroup("왼손"), Required]
+    private Image _leftTrapImage;
+
     [SerializeField, LabelText("왼손 함정 키워드"), BoxGroup("왼손"), Required]
     private TMP_Text _leftTrapText;
 
@@ -45,15 +48,26 @@ public class ShakePotionUI : MonoBehaviour
     [SerializeField, LabelText("오른손 포션 이름"), BoxGroup("오른손"), Required]
     private TMP_Text _rightNameText;
 
+    [SerializeField, LabelText("오른손 함정 백그라운드"), BoxGroup("오른손"), Required]
+    private Image _rightTrapImage;
+
     [SerializeField, LabelText("오른손 함정 키워드"), BoxGroup("오른손"), Required]
     private TMP_Text _rightTrapText;
 
 
-    [SerializeField, LabelText("왼손 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 이미지의 RectTransform 을 연결해 주세요.")]
-    private RectTransform _leftHandImage;
+    [SerializeField, LabelText("왼손 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 이미지의 Image 을 연결해 주세요.")]
+    private Image _leftHandImage;
+    [SerializeField, LabelText("왼손 활성 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 활성 이미지 스프라이트를 연결해주세요.")]
+    private Sprite _leftSelectedImage;
+    [SerializeField, LabelText("왼손 비활성 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 비활성 이미지 스프라이트를 연결해주세요.")]
+    private Sprite _leftUnSlectedImage;
 
-    [SerializeField, LabelText("오른손 이미지"), BoxGroup("현재 플레이어 손"), Required("오른손 이미지의 RectTransform 을 연결해 주세요.")]
-    private RectTransform _rightHandImage;
+    [SerializeField, LabelText("오른손 이미지"), BoxGroup("현재 플레이어 손"), Required("오른손 이미지의 Image 을 연결해 주세요.")]
+    private Image _rightHandImage;
+    [SerializeField, LabelText("오른손 활성 이미지"), BoxGroup("현재 플레이어 손"), Required("오른손 활성 이미지 스프라이트를 연결해주세요.")]
+    private Sprite _rightSlectedImage;
+    [SerializeField, LabelText("오른손 비활성 이미지"), BoxGroup("현재 플레이어 손"), Required("오른손 비활성 이미지 스프라이트를 연결해주세요.")]
+    private Sprite _rightUnSelectedImage;
 
     [SerializeField, LabelText("선택된 손 크기 (배)"), BoxGroup("현재 플레이어 손"), MinValue(0f)]
     private float _selectedHandScale = 1.25f;
@@ -104,6 +118,7 @@ public class ShakePotionUI : MonoBehaviour
         private readonly CanvasGroup group;
         private readonly Image icon;
         private readonly TMP_Text nameText;
+        private readonly Image trapTagImage;
         private readonly TMP_Text trapText;
         private readonly string trapFormat;
         private readonly float showDuration;
@@ -113,12 +128,13 @@ public class ShakePotionUI : MonoBehaviour
         private bool shown;
         private Tween fade;
 
-        public Slot(CanvasGroup group, Image icon, TMP_Text nameText, TMP_Text trapText, string trapFormat,
+        public Slot(CanvasGroup group, Image icon, TMP_Text nameText,Image trapTagImage, TMP_Text trapText, string trapFormat,
             float showDuration, Ease showEase, float hideDuration, Ease hideEase)
         {
             this.group = group;
             this.icon = icon;
             this.nameText = nameText;
+            this.trapTagImage = trapTagImage;
             this.trapText = trapText;
             this.trapFormat = trapFormat;
             this.showDuration = showDuration;
@@ -146,6 +162,7 @@ public class ShakePotionUI : MonoBehaviour
 
             // 함정인지는 Inspect 로만 확인합니다. (IsTrap 같은 실제 값을 직접 읽지 않음) 정상 포션은 키워드 칸을 비웁니다.
             bool isTrap = potion.Inspect(out TrapPotionKeyword keyword);
+            trapTagImage.gameObject.SetActive(isTrap);
             trapText.SetText(isTrap && keyword != null ? string.Format(trapFormat, keyword.KeywordName) : string.Empty);
 
             if (shown)
@@ -232,20 +249,20 @@ public class ShakePotionUI : MonoBehaviour
 
     private void Awake()
     {
-        leftSlot = new Slot(_leftGroup, _leftIcon, _leftNameText, _leftTrapText, _trapFormat, _showDuration, _showEase, _hideDuration, _hideEase);
-        rightSlot = new Slot(_rightGroup, _rightIcon, _rightNameText, _rightTrapText, _trapFormat, _showDuration, _showEase, _hideDuration, _hideEase);
+        leftSlot = new Slot(_leftGroup, _leftIcon, _leftNameText, _leftTrapImage, _leftTrapText, _trapFormat, _showDuration, _showEase, _hideDuration, _hideEase);
+        rightSlot = new Slot(_rightGroup, _rightIcon, _rightNameText, _rightTrapImage, _rightTrapText, _trapFormat, _showDuration, _showEase, _hideDuration, _hideEase);
 
         leftSlot.HideImmediate();
         rightSlot.HideImmediate();
 
         if (_leftHandImage != null)
         {
-            _leftHandBaseScale = _leftHandImage.localScale;
+            _leftHandBaseScale = _leftHandImage.rectTransform.localScale;
         }
 
         if (_rightHandImage != null)
         {
-            _rightHandBaseScale = _rightHandImage.localScale;
+            _rightHandBaseScale = _rightHandImage.rectTransform.localScale;
         }
     }
 
@@ -414,10 +431,12 @@ public class ShakePotionUI : MonoBehaviour
 
         ScaleHand(_leftHandImage, _leftHandBaseScale, ref _leftHandTween, side == 0 ? _selectedHandScale : _normalHandScale);
         ScaleHand(_rightHandImage, _rightHandBaseScale, ref _rightHandTween, side == 0 ? _normalHandScale : _selectedHandScale);
+        _leftHandImage.sprite = side == 0 ? _leftSelectedImage : _leftUnSlectedImage;
+        _rightHandImage.sprite = side == 0 ? _rightUnSelectedImage : _rightSlectedImage;
     }
 
     // 이전 크기 변화는 끝내고, 지금 크기에서 목표 크기(원래 크기의 factor 배)까지 키우거나 줄입니다. (Time.timeScale 의 영향을 받지 않음)
-    private void ScaleHand(RectTransform target, Vector3 baseScale, ref Tween tween, float factor)
+    private void ScaleHand(Image target, Vector3 baseScale, ref Tween tween, float factor)
     {
         if (target == null)
         {
@@ -425,8 +444,10 @@ public class ShakePotionUI : MonoBehaviour
         }
 
         tween?.Kill();
+        
 
-        tween = target.DOScale(baseScale * factor, _handScaleDuration)
+        tween = target.rectTransform
+            .DOScale(baseScale * factor, _handScaleDuration)
             .SetEase(_handScaleEase)
             .SetUpdate(true)
             .SetLink(target.gameObject);
@@ -442,12 +463,12 @@ public class ShakePotionUI : MonoBehaviour
 
         if (_leftHandImage != null)
         {
-            _leftHandImage.localScale = _leftHandBaseScale * _normalHandScale;
+            _leftHandImage.rectTransform.localScale = _leftHandBaseScale * _normalHandScale;
         }
 
         if (_rightHandImage != null)
         {
-            _rightHandImage.localScale = _rightHandBaseScale * _normalHandScale;
+            _rightHandImage.rectTransform.localScale = _rightHandBaseScale * _normalHandScale;
         }
 
         _currentHandSide = -1;

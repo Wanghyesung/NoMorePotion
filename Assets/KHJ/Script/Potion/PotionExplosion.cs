@@ -45,9 +45,24 @@ namespace Enzeun.Runtime
             return ExplodeCore(instance.Data, instance.TrapKeyword, position);
         }
 
+        /// <summary>
+        /// 범위 장판이 간격마다 반복하는 틱입니다. 지금 범위 안에 있는 대상에게만 체력 증감(초당 대미지 등) 효과를 적용합니다.
+        /// 처음 폭발(Explode)에서 이미 적용한 상태 효과, 생존 상태 증감, 월드 오브젝트 대미지는 반복하지 않고, 화면 연출도 다시 재생하지 않습니다.
+        /// </summary>
+        public static int ExplodeTick(PotionInstance instance, Vector3 position)
+        {
+            if (instance == null)
+            {
+                return 0;
+            }
+
+            return ExplodeCore(instance.Data, instance.TrapKeyword, position, true);
+        }
+
         /// <param name="potion">효과와 폭발 범위의 기준이 되는 원래 포션</param>
         /// <param name="trapKeyword">함정 키워드. 있으면 그 효과도 같이 적용합니다. (범위는 원래 포션을 따름)</param>
-        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position)
+        /// <param name="tickOnly">true 면 체력 증감 효과만 적용하고 연출은 재생하지 않습니다. (범위 장판의 반복 틱)</param>
+        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false)
         {
             if (potion == null)
             {
@@ -63,7 +78,10 @@ namespace Enzeun.Runtime
             }
 
             // 화면 단위 연출(카메라, 후처리 등)은 씬의 허브가 맡습니다. 허브가 없으면 아무 일도 일어나지 않습니다.
-            ExplosionFeedbackHub.Play(position, potion.potionSize);
+            if (!tickOnly)
+            {
+                ExplosionFeedbackHub.Play(position, potion.potionSize);
+            }
 
             float radius = config.GetRadius(potion.potionExplosionRange);
             int hitCount = Physics.OverlapSphereNonAlloc(position, radius, ColliderBuffer, config.TargetLayers, QueryTriggerInteraction.Collide);
@@ -98,11 +116,23 @@ namespace Enzeun.Runtime
                     continue;
                 }
 
-                PotionEffectApplier.Apply(potion, target, position);
-
-                if (trapKeyword != null)
+                if (tickOnly)
                 {
-                    PotionEffectApplier.Apply(trapKeyword, target, position);
+                    PotionEffectApplier.ApplyHealthOnly(potion, target, position);
+
+                    if (trapKeyword != null)
+                    {
+                        PotionEffectApplier.ApplyHealthOnly(trapKeyword, target, position);
+                    }
+                }
+                else
+                {
+                    PotionEffectApplier.Apply(potion, target, position);
+
+                    if (trapKeyword != null)
+                    {
+                        PotionEffectApplier.Apply(trapKeyword, target, position);
+                    }
                 }
 
                 targetCount++;

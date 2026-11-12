@@ -30,9 +30,13 @@ public sealed class PotionDetector : MonoBehaviour
     #endregion
 
     private PotionInstance instance;
-    private float nextAttackDelay = 1f; // 초 단위
+    // 포션에 반복 체력 증감(초당 대미지) 효과가 없을 때 쓰는 기본 반복 간격(초)과 횟수
+    private const float DefaultAttackDelay = 1f;
+    private const int DefaultMaxAttackCount = 10;
+
+    private float nextAttackDelay = DefaultAttackDelay; // 초 단위
     private int AttackCount = 0;
-    private int MaxAttackCount = 10;
+    private int MaxAttackCount = DefaultMaxAttackCount;
 
     private void Awake()
     {
@@ -71,9 +75,20 @@ public sealed class PotionDetector : MonoBehaviour
         // 풀 재사용 시 이전 사용분 값이 남아 있으므로 초기화
         AttackCount = 0;
 
+        // 반복 공격(범위 장판)이면 포션의 초당 대미지 간격과 지속시간으로 반복 간격과 횟수를 정한다. (예: 간격 1초, 지속 10초 → 1초마다 10번)
+        // 풀 재사용 때 이전 포션의 값이 남지 않도록 매번 기본값에서 다시 정한다.
+        nextAttackDelay = DefaultAttackDelay;
+        MaxAttackCount = DefaultMaxAttackCount;
+
+        if (!attackOnce && instance.Data.TryGetHealthTickSchedule(out float tickInterval, out float tickDuration))
+        {
+            nextAttackDelay = tickInterval;
+            MaxAttackCount = Mathf.Max(1, Mathf.CeilToInt(tickDuration / tickInterval));
+        }
+
         // lifetime(직렬화 필드)에 직접 더하면 재사용할 때마다 누적됨 → 지역 변수로 계산
-        // 반복 공격이면 공격이 다 끝날 때까지 살아 있어야 하므로 공격 시간(횟수 × 간격)만큼 더함
-        float releaseDelay = attackOnce ? lifetime : lifetime + MaxAttackCount * nextAttackDelay;
+        // 반복 공격(범위 장판)은 지속시간(횟수 × 간격)이 끝나는 즉시 반납해서 파티클도 같이 사라지게 한다. (lifetime 은 한 번짜리 폭발에만 쓴다)
+        float releaseDelay = attackOnce ? lifetime : MaxAttackCount * nextAttackDelay;
 
         // 반납 토큰: 먼저 반납되거나 파괴되면 예약 취소 → 재사용 중인 오브젝트를 옛 예약이 반납하지 않음
         TimeManager.Instance.Schedule(releaseDelay, () =>
@@ -93,14 +108,21 @@ public sealed class PotionDetector : MonoBehaviour
             return;
 
 
-        PotionExplosion.Explode(instance, transform.position);
+        // 첫 공격은 폭발 전체(상태 효과, 생존 상태, 월드 오브젝트 포함)를 적용하고, 이후 반복은 지금 범위 안에 있는 대상에게 체력 증감(초당 대미지)만 적용한다.
+        // 범위를 벗어난 대상은 다음 틱부터 맞지 않는다.
+        if (AttackCount == 0)
+            PotionExplosion.Explode(instance, transform.position);
+        else
+            PotionExplosion.ExplodeTick(instance, transform.position);
 
         if (!attackOnce)
         {
+            // 이번 공격까지 센 뒤 총 횟수에 도달하면 끝낸다. (지속 10초, 간격 1초면 0~9초에 10번)
+            AttackCount += 1;
+
             if (AttackCount >= MaxAttackCount)
                 return;
 
-            AttackCount += 1;
             WaitNextAttackAsync().Forget();
         }
     }

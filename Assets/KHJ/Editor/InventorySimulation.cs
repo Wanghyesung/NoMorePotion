@@ -149,6 +149,7 @@ namespace Enzeun.Editor
                 TestStorageAndAccess();
                 TestTakeOut();
                 TestWorldGrant();
+                TestWorldObjectApplyKind();
                 TestDeathAndLeave();
                 TestVersionAndSnapshot();
                 CheckPotionIdsUnique("마지막 상태");
@@ -502,6 +503,35 @@ namespace Enzeun.Editor
             };
             Expect("알 수 없는 재료와 0 개는 거부", !_master.TryCreateWorldGrant(bad, out InventoryCommand _));
             ExpectSynced("월드 재료 지급 후");
+        }
+
+        private static void TestWorldObjectApplyKind()
+        {
+            // 월드 오브젝트의 적용 메시지는 타격 종류(Interact / PotionDamage)를 잃지 않고 전달되어야 한다.
+            // (잃으면 상호작용으로 얻은 재료가 공용 인벤으로 가지 않고 바닥 주머니가 됨)
+            foreach (WorldObjectHitKind kind in new[] { WorldObjectHitKind.Interact, WorldObjectHitKind.PotionDamage })
+            {
+                var apply = new WorldObjectCommand
+                {
+                    RequestId = 7,
+                    RequesterActor = ActorA,
+                    Version = 3,
+                    NetworkId = 5,
+                    Kind = kind,
+                    Previous = 1,
+                    Remaining = 0,
+                    Drops = new[] { new WorldDrop { DropId = 11, MaterialId = MatSmall, Count = 2 } },
+                };
+
+                bool ok = WorldObjectMessages.TryUnpackApply(WorldObjectMessages.PackApply(apply), out WorldObjectCommand back);
+                Expect($"월드 오브젝트 적용 메시지 왕복 ({kind})",
+                    ok && back.Kind == kind && back.NetworkId == 5 && back.Previous == 1 && back.Remaining == 0
+                    && back.Drops.Length == 1 && back.Drops[0].DropId == 11 && back.Drops[0].Count == 2);
+            }
+
+            // 종류가 없는(None) 적용 메시지는 깨진 것으로 거부한다.
+            var broken = new WorldObjectCommand { RequestId = 1, NetworkId = 1, Kind = WorldObjectHitKind.None, Previous = 1, Remaining = 0, Drops = new WorldDrop[0] };
+            Expect("종류가 None 인 적용 메시지는 거부", !WorldObjectMessages.TryUnpackApply(WorldObjectMessages.PackApply(broken), out WorldObjectCommand _));
         }
 
         private static void TestDeathAndLeave()
