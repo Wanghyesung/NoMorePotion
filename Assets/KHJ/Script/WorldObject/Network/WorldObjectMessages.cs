@@ -9,17 +9,19 @@ namespace Enzeun.Runtime
     ///
     /// 형식 (리틀 엔디언, 맨 앞은 항상 버전 1 byte)
     /// - 요청 : 버전, 요청 번호(int), 종류(byte), 오브젝트 번호(int), 대미지(ushort), 대상 종류 마스크(byte)
-    /// - 적용 : 버전, 요청 번호(int), 요청한 사람(int), 사본 버전(int), 오브젝트 번호(int), 이전 횟수(ushort), 남은 횟수(ushort), 드롭 수(byte), 드롭들(번호 int, 재료 ushort, 개수 ushort)
+    /// - 적용 : 버전, 요청 번호(int), 요청한 사람(int), 사본 버전(int), 오브젝트 번호(int), 타격 종류(byte), 이전 횟수(ushort), 남은 횟수(ushort), 드롭 수(byte), 드롭들(번호 int, 재료 ushort, 개수 ushort)
+    ///   (타격 종류는 상호작용으로 얻은 재료가 공용 인벤으로 바로 들어갈지, 바닥 주머니가 될지 가르는 데 쓰므로 모든 사본이 같은 값을 받아야 합니다)
     /// - 거부 : 버전, 요청 번호(int), 이유(byte)
     /// 형식이 어긋나면(모자람, 남음, 모르는 값) 예외 없이 false 를 반환합니다.
     /// </summary>
     public static class WorldObjectMessages
     {
+        // 버전과 맞지않는 이전 형식의 메시지는 받지 않음
         public const byte Version = 1;
 
         private const int RequestLength = 13;
         private const int DenyLength = 6;
-        private const int ApplyHeaderLength = 1 + 4 + 4 + 4 + 4 + 2 + 2 + 1;
+        private const int ApplyHeaderLength = 1 + 4 + 4 + 4 + 4 + 1 + 2 + 2 + 1;
         private const int DropLength = 4 + 2 + 2;
 
         // ==================== 요청 (클라이언트 -> 마스터) ============================
@@ -112,6 +114,7 @@ namespace Enzeun.Runtime
                 writer.Write(command.RequesterActor);
                 writer.Write(command.Version);
                 writer.Write(command.NetworkId);
+                writer.Write((byte)command.Kind);
                 writer.Write(checked((ushort)command.Previous));
                 writer.Write(checked((ushort)command.Remaining));
 
@@ -156,9 +159,18 @@ namespace Enzeun.Runtime
                     RequesterActor = reader.ReadInt32(),
                     Version = reader.ReadInt32(),
                     NetworkId = reader.ReadInt32(),
-                    Previous = reader.ReadUInt16(),
-                    Remaining = reader.ReadUInt16(),
                 };
+
+                c.Kind = (WorldObjectHitKind)reader.ReadByte();
+
+                // 요청과 같은 두 종류만 있습니다. 그 밖의 값은 깨진 메시지입니다.
+                if (c.Kind != WorldObjectHitKind.Interact && c.Kind != WorldObjectHitKind.PotionDamage)
+                {
+                    return false;
+                }
+
+                c.Previous = reader.ReadUInt16();
+                c.Remaining = reader.ReadUInt16();
 
                 int dropCount = reader.ReadByte();
 
