@@ -143,6 +143,34 @@ namespace Enzeun.SO
         private List<PotionEffect> _effects = new List<PotionEffect>();
         public IReadOnlyList<PotionEffect> effects => _effects;
 
+        /// <summary>
+        /// 초당 대미지처럼 반복되는 체력 증감 효과의 반복 간격과 총 지속시간을 알려 줍니다. (범위 장판이 몇 초마다, 몇 번 틱을 줄지 정하는 기준)
+        /// 간격과 지속시간이 모두 있는 체력 증감 효과가 여러 개면 가장 짧은 간격, 가장 긴 지속시간을 씁니다.
+        /// </summary>
+        /// <returns>반복되는 체력 증감 효과가 있으면 true</returns>
+        public bool TryGetHealthTickSchedule(out float intervalSeconds, out float durationSeconds)
+        {
+            intervalSeconds = 0f;
+            durationSeconds = 0f;
+
+            if (_effects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _effects.Count; i++)
+            {
+                if (_effects[i] is HealthChangePotionEffect health
+                    && health.healthChange.intervalSeconds > 0f && health.durationSeconds > 0f)
+                {
+                    intervalSeconds = intervalSeconds <= 0f ? health.healthChange.intervalSeconds : Mathf.Min(intervalSeconds, health.healthChange.intervalSeconds);
+                    durationSeconds = Mathf.Max(durationSeconds, health.durationSeconds);
+                }
+            }
+
+            return intervalSeconds > 0f && durationSeconds > 0f;
+        }
+
 
 
 #if UNITY_EDITOR
