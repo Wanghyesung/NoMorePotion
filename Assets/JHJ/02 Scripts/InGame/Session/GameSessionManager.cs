@@ -37,9 +37,11 @@ public class GameSessionManager : MonoBehaviour
     // [임시] CBT용 죽으면 게임종료
     private Player localPlayer;
 
+    private PhotonView view;
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
     private ReactiveProperty<RankingSubmitResult> rankingSubmit = new ReactiveProperty<RankingSubmitResult>(RankingSubmitResult.None);
+    
 
 
     /// <summary> 현재 진행 단계. 구독 즉시 현재 값 받음. 알림은 이것 하나 </summary>
@@ -76,6 +78,10 @@ public class GameSessionManager : MonoBehaviour
         {
             pool.ResourceCache[playerPrefab.name] = playerPrefab.gameObject;
         }
+
+        view = gameObject.GetComponent<PhotonView>();
+        if (view == null)
+            Debug.LogWarning("[GameSessionManager] PhotonView 없음 -> 멀티 동기화 불가", this);
     }
 
     private void Start()
@@ -123,10 +129,15 @@ public class GameSessionManager : MonoBehaviour
         var token = this.GetCancellationTokenOnDestroy();
         await UniTask.NextFrame(token);
 
+        if (IsEnded) return;
+
         // TODO: 불러오기면 저장값 복원
+
+
         // 플레이어 프리팹을 지정한 씬에서만 네트워크 플레이어를 생성한다.
         if (playerPrefab != null && SpawnLocalPlayer() == false)
             return;
+
         // TODO(멀티): 전원 씬 로드 완료 대기
 
         // InputManager는 씬을 넘어 유지되므로, 이전 판 결과창에서 꺼 둔 입력·커서를 되돌린다
@@ -212,7 +223,6 @@ public class GameSessionManager : MonoBehaviour
 
     private void Finish(GameResult gameResult)
     {
-        // TODO(멀티): 방장 외 클라이언트에 결과 전달 필요
         if (!GameAuthority.HasAuthority)
         {
             Debug.Log($"[GameSessionManager] 판정 권한 없음, 무시 : {gameResult}");
@@ -238,6 +248,7 @@ public class GameSessionManager : MonoBehaviour
 
         Debug.Log($"[GameSessionManager] 게임 종료 : {gameResult} ({record.Value.DayCount}일차, {record.Value.PlayTime:F1}초)");
 
+        SendEnded(record.Value);
         SubmitRankingAsync(record.Value).Forget();
     }
 
@@ -275,10 +286,36 @@ public class GameSessionManager : MonoBehaviour
 
     #endregion
 
+    #region 네트워크
+    private void SendEnded(GameRecord record)
+    {
+        if (view == null || !PhotonNetwork.InRoom)
+            return;
+
+        view.RPC(nameof(RpcApplyEnded), RpcTarget.Others, (int)record.Result, record.PlayTime, record.DayCount); 
+    }
+
+    [PunRPC]
+    private void RpcApplyEnded(int result, float playtime, int dayCount, PhotonMessageInfo info)
+    {
+        if (info.Sender == null || !info.Sender.IsMasterClient)
+            return;
+
+        if (phase.CurrentValue == SessionPhase.Ended)
+            return;
+
+        record = new GameRecord((GameResult)result, playtime, dayCount);
+
+        ChangePhase(phase.CurrentValue, SessionPhase.Ended);
+        rankingSubmit.Value = RankingSubmitResult.NotHost;
+        Debug.Log($"[GameSessionManager] 방장 종료 수신 : {(GameResult)result} ({dayCount}일차, {playtime:F1}초)");
+    }
+
+    #endregion
 
     /// <summary>
     /// 단계 전환은 반드시 여기를 거친다. 현재 단계가 from이 아니면 거부
-    /// → 역방향(끝난 뒤 다시 시작)·건너뛰기(준비 중 바로 끝)가 불가능
+    /// → 역방향(끝난 뒤 다시 시작)·건너뛰기(준비 중 바로 끝)가 불가능 (예외: 클라이언트가 방장 종료를 받을 때, RpcApplyEnded)
     /// </summary>
     private bool ChangePhase(SessionPhase from, SessionPhase to)
     {
