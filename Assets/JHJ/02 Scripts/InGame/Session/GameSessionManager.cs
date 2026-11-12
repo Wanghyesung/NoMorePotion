@@ -34,6 +34,8 @@ public class GameSessionManager : MonoBehaviour
     [SerializeField] private PlayerUIBinding playerBinder;
     [SerializeField] private Transform spawnPoint;
     private GameObject spawnedPlayer;
+    // [임시] CBT용 죽으면 게임종료
+    private Player localPlayer;
 
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
     private GameRecord? record;
@@ -88,6 +90,7 @@ public class GameSessionManager : MonoBehaviour
             Instance = null;
 
         UnsubscribeCrystal();
+        UnsubscribePlayer();
 
         phase?.Dispose();
         rankingSubmit?.Dispose();
@@ -157,12 +160,33 @@ public class GameSessionManager : MonoBehaviour
         if (spawnedPlayer == null)
             return false;
 
-        playerBinder.SetPlayer(spawnedPlayer.GetComponent<Player>());
+        // [임시] CBT용
+        localPlayer = spawnedPlayer.GetComponent<Player>();
+        SubscribePlayer();
+        playerBinder.SetPlayer(localPlayer);
+
         return true;
     }
 
     #endregion
 
+    #region [임시] 플레이어 죽으면 게임 종료되도록. cbt용
+
+    private void SubscribePlayer()
+    {
+        if (localPlayer != null)
+            localPlayer.OnDead += OnPlayerDead;
+    }
+
+    private void UnsubscribePlayer()
+    {
+        if (localPlayer != null)
+            localPlayer.OnDead -= OnPlayerDead;
+    }
+
+    private void OnPlayerDead(Vector3 position) => ReportDefeat();
+
+    #endregion
 
     #region 수정구슬
 
