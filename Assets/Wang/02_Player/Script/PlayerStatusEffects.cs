@@ -125,6 +125,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         fsm.ReverseMovement = false;
         fsm.MoveSpeedMultiplier = 1f;
         player.ConfusePotionUse = false;
+        player.Character.AttackMultiplier = 1f;
+        player.Character.Defend = 1f;
         if (playerBuffContainer != null)
         {
             playerBuffContainer.OnEffectAdded -= OnBuffAdded;
@@ -154,6 +156,8 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         RefreshMoveSpeed();
         RefreshBuffVision();
         RefreshThirst();
+        RefreshAttackValue();
+        RefreshDefendValue();
     }
 
     /*//////////////////////////////////////////
@@ -193,9 +197,11 @@ public sealed class PlayerStatusEffects : MonoBehaviour
                 break;
             case 60004: // 튼튼이
             case 61012: // 허약이: 공격력
+                RefreshAttackValue();
                 break;
             case 60005: // 단단이
             case 61013: // 물렁이: 방어력
+                RefreshDefendValue();
                 break;
             case 60006: // 차분함
             case 60007: // 열혈: 체온 제한
@@ -238,6 +244,22 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         }
     }
 
+    private void RefreshAttackValue()
+    {
+        if (playerBuffContainer == null)
+            return;
+
+        player.Character.AttackMultiplier = playerBuffContainer.GetStatMultiplier(StatType.AttackPower);
+    }
+
+    private void RefreshDefendValue()
+    {
+        if (playerBuffContainer == null)
+            return;
+
+        player.Character.Defend = playerBuffContainer.GetStatMultiplier(StatType.Defense);
+    }
+
     private void RefreshMoveSpeed()
     {
         if (playerBuffContainer == null)
@@ -275,7 +297,7 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         float reduction = playerBuffContainer != null
             ? Mathf.Clamp01(1f - playerBuffContainer.GetStatMultiplier(StatType.Vision)) : 0f;
 #if UNITY_EDITOR
-        // 6을 누르는 동안만 강도 0.8 이상을 유지한다. 떼면 남아 있는 버프의 강도로 복구한다.
+        // F6을 누르는 동안만 강도 0.8 이상을 유지한다. 떼면 남아 있는 버프의 강도로 복구한다.
         if (testStrongVision == true)
             reduction = Mathf.Max(reduction, 0.8f);
 #endif

@@ -3542,7 +3542,7 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 64
-  maxAimDistance: 300
+  maxAimDistance: 40
   fallbackDistance: 10
   minArcHeight: 0.01
   maxArcHeight: 0.5
@@ -3550,6 +3550,7 @@ MonoBehaviour:
   pointCount: 40
   fadePointCount: 20
   positions: []
+  rangePrefab: {fileID: 8310088953244483013, guid: cf5ceeb82808d1544b1f23e4b78cd62d, type: 3}
 --- !u!120 &3529070776815809507
 LineRenderer:
   serializedVersion: 3

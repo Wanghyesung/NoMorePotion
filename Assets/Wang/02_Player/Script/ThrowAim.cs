@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Enzeun.SO;
 
 /*///////////////////////////////////////////
                   ThrowAim
@@ -29,6 +30,7 @@ public sealed class ThrowAim : MonoBehaviour
     [SerializeField, Min(2)] private int fadePointCount = 20;
     [SerializeField] private List<Vector3> positions = new List<Vector3>(40);
     public IReadOnlyList<Vector3> Positions => positions;
+    [SerializeField] private GameObject rangePrefab;
     #endregion
 
     #region Runtime
@@ -37,6 +39,10 @@ public sealed class ThrowAim : MonoBehaviour
     private Gradient lineGradient;
     private GradientColorKey[] lineColors;
     private readonly GradientAlphaKey[] fadeAlphas = new GradientAlphaKey[3];
+    private LineRenderer rangeRenderer;
+    private PoolManager rangePool;
+    private Vector3 targetNormal;
+    private float explosionRadius;
 
     public ThrowData ThrowData { get; private set; }
     public Vector3 TargetPosition { get; private set; }
@@ -60,6 +66,8 @@ public sealed class ThrowAim : MonoBehaviour
     public void Show(Transform throwOrigin)
     {
         origin = throwOrigin;
+        PotionMover potion = throwOrigin.GetComponent<PotionMover>();
+        explosionRadius = PotionExplosionConfig.Instance.GetRadius(potion.Data.potionExplosionRange);
         enabled = true;
 
     }
@@ -105,12 +113,38 @@ public sealed class ThrowAim : MonoBehaviour
             lineRenderer.SetPosition(i, positions[i]);
 
         UpdateLineFade();
+        DrawLandingRange();
+    }
+
+    private void DrawLandingRange()
+    {
+        // 벽·천장과 공중 목표에서는 지면 범위를 표시하지 않습니다.
+        bool grounded = ThrowData.StopAtTarget && Vector3.Dot(targetNormal, Vector3.up) > 0.1f;
+        if (grounded == false)
+        {
+            if (rangeRenderer != null)
+                rangeRenderer.gameObject.SetActive(false);
+            return;
+        }
+
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.up, targetNormal);
+        Vector3 center = TargetPosition + targetNormal * 0.03f;
+        if (rangeRenderer == null)
+        {
+            rangePool = PoolManager.Instance;
+            rangeRenderer = rangePool.Get(rangePrefab, center, rotation).GetComponent<LineRenderer>();
+        }
+        rangeRenderer.transform.SetPositionAndRotation(center, rotation);
+        rangeRenderer.transform.localScale = Vector3.one * explosionRadius;
+        rangeRenderer.gameObject.SetActive(true);
+        rangeRenderer.enabled = true;
     }
 
     // 커서 위치와 무관하게 실제 카메라 뷰포트 중앙을 조준한다.
     public bool TryCreateThrowData(Vector3 throwOrigin, out ThrowData data)
     {
         data = default;
+        targetNormal = Vector3.zero;
         if (aimCamera == null)
             return false;
 
@@ -118,6 +152,7 @@ public sealed class ThrowAim : MonoBehaviour
         bool hitSurface = Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
             QueryTriggerInteraction.Ignore);
         Vector3 target = hitSurface == true ? hit.point : ray.GetPoint(fallbackDistance);
+        targetNormal = hitSurface ? hit.normal : Vector3.zero;
 
         // 수평 거리 0~maxArcDistance를 높이 minArcHeight~maxArcHeight로 변환
         float distance = Vector3.ProjectOnPlane(target - throwOrigin, Physics.gravity).magnitude;
@@ -157,11 +192,26 @@ public sealed class ThrowAim : MonoBehaviour
         positions.Clear();
         lineRenderer.positionCount = 0;
         lineRenderer.enabled = false;
+        ReleaseRange();
+    }
+
+    private void ReleaseRange()
+    {
+        if (rangeRenderer == null)
+            return;
+
+        rangeRenderer.enabled = false;
+        // 씬 종료 시 풀부터 파괴된 경우에는 씬의 오브젝트 정리에 맡깁니다.
+        if (rangePool != null)
+            rangePool.Release(rangeRenderer.gameObject);
+        rangeRenderer = null;
+        rangePool = null;
     }
 
     private void OnDisable()
     {
         if (lineRenderer != null)
             lineRenderer.enabled = false;
+        ReleaseRange();
     }
 }

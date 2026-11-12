@@ -14,8 +14,17 @@ using System;
 
 public class PlayerCharacter : Character
 {
-    public PlayerCharacter(string name, int maxHp, int hp, Dictionary<DamageType, int> immune)
-        : base(name, maxHp, hp, immune) { }
+    public int BaseAttackPower { get; }
+    public float AttackMultiplier = 1f;
+    public float AttackPower => BaseAttackPower * AttackMultiplier;
+    public float Defend = 1f; // 방어 배율: 받는 피해를 이 값으로 나눕니다.
+    public int maxAttackPower = 10;
+    public PlayerCharacter(string name, int maxHp, int hp, Dictionary<DamageType, int> immune , int attackPower, int maxAttackPower)
+        : base(name, maxHp, hp, immune)
+    {
+        BaseAttackPower = attackPower;
+        this.maxAttackPower = maxAttackPower;  
+    }
 }
 
 
@@ -53,7 +62,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
     public Hand Hand => hand;
-    public Character Character => character;
+    public PlayerCharacter Character => character;
     public bool ConfusePotionUse { get; set; }
     public Transform CameraPosition => cameraPosition;
     public Transform LookPivot => lookPivot;
@@ -85,12 +94,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (character.HP <= 0)
             return;
 
-        float defenseMultiplier = 1f;
-        if (buffContainer != null)
-            defenseMultiplier = buffContainer.GetStatMultiplier(StatType.Defense);
-
         // 피해 / 방어력 배율: +20%(1.2배)이면 피해 100 → 83. 0.01은 0 나눗셈 방지용 하한이다.
-        int damage = Mathf.Max(0, Mathf.RoundToInt(attackInfo.Damage / Mathf.Max(0.01f, defenseMultiplier)));
+        int damage = Mathf.Max(0, Mathf.RoundToInt(attackInfo.Damage / Mathf.Max(0.01f, character.Defend)));
         character.HP = Mathf.Max(0, character.HP - damage);
 
         if (character.HP <= 0)
@@ -124,7 +129,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         SetLookPitch(Mathf.DeltaAngle(0f, lookPivot.localEulerAngles.x));
         Dictionary<DamageType, int> immune = new();
         // 현재 플레이어의 기본 최대 HP / 시작 HP. 버프 컨테이너는 HP 자체를 보관하지 않는다.
-        character = new PlayerCharacter("Player", 10000, 10000, immune);
+        character = new PlayerCharacter("Player", 10000, 10000, immune, 1,10);
 
         fsm = GetComponent<FSM>();
         fsm.Init(this);
