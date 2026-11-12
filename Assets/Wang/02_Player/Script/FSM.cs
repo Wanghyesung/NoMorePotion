@@ -206,7 +206,8 @@ public sealed class FSM : MonoBehaviour
 
     private void HoldGroundWhenIdle()
     {
-        bool hold = groundContacts.Count > 0 && hasStateVelocity == false
+        bool hold = CurrentState?.Type != StateType.Jump
+            && groundContacts.Count > 0 && hasStateVelocity == false
             && (HasGameplayInput == false || MoveInput.sqrMagnitude <= 0.001f);
 
         Rigidbody.useGravity = hold == false;
