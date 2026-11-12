@@ -78,12 +78,12 @@ public class RoomSession : IDisposable
     }
 
     /// <summary>
-    /// 내 레디를 false로. 방을 나가거나 연결이 끊겼을 때 호출
-    /// (로컬 플레이어 속성은 다음 방 입장 시 그대로 전송되므로 초기화 필요)
+    /// 방 범위 플레이어 속성(PlayerProps.CreateRoomScopedReset)을 초기화. 방 퇴장·연결 끊김 시 호출
+    /// (로컬 플레이어 속성은 다음 방 입장 시 그대로 전송되므로 초기화 필요. 방 밖에서는 로컬 값만 바뀜)
     /// </summary>
-    public void ResetReady()
+    public void ResetRoomScopedProps()
     {
-        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.READY, false } });
+        PhotonNetwork.LocalPlayer.SetCustomProperties(PlayerProps.CreateRoomScopedReset());
     }
 
     public void Dispose()
