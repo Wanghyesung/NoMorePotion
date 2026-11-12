@@ -310,7 +310,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         match.ClearRoomList();
         room.Clear();
-        room.ResetReady();
+        room.ResetRoomScopedProps();
         chat.Clear();       // 방 안에서 끊기면 OnLeftRoom이 오지 않을 수 있으므로 여기서도 비움
         pendingNewMaster = null;
 
@@ -420,6 +420,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         chat.AddSystem("방에 입장했습니다");
 
         SetState(FlowState.Room);
+        //PhotonNetwork.LocalPlayer.SetCustomProperties( )
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
@@ -526,7 +527,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public override void OnLeftRoom()
     {
         room.Clear();
-        room.ResetReady();
+        room.ResetRoomScopedProps();
         chat.Clear();
         pendingNewMaster = null;
     }

@@ -13,6 +13,7 @@ public enum RankingSubmitResult
     Offline,        // 오프라인 싱글 → 등록 안 함
     Pending,        // 등록 중
     Submitted,      // 등록 완료
+    NotHost,        // MasterClient가 아닐때
     Failed          // 등록 실패
 }
 
