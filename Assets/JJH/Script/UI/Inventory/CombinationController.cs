@@ -4,7 +4,6 @@ using Enzeun.Runtime;
 using Enzeun.SO;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -40,14 +39,23 @@ public class CombinationController : ItemInventory
         }
     }
 
+    [Header("슬롯")]
     [SF] private CombineSlot leftSlot;
     [SF] private CombineSlot rightSlot;
     [SF] private CombineSlot resultSlot;
-    [SF] private TextMeshProUGUI WarningText;
-    [SF] private Sprite defaultImage;
 
+    [Header("텍스트")]
+    [SF] private TextMeshProUGUI WarningText;
+    [SF] private TextMeshProUGUI successPerText;
+
+    [Header("기타")]
+    [SF] private Sprite defaultImage;
+    [SF] private Color highColor = new Color32(0xF2, 0xE8, 0xD5, 0xFF);
+    [SF] private Color lowColor = new Color32(0xE0, 0x77, 0x5A, 0xFF);
+    [SF, Range(0f, 1f)] private float threshold = 0.5f;
     private bool leftFull;
     private bool rightFull;
+    private bool? isLow;
     private readonly ContainerRef publicInvenCRef = new()
     {
         Id = -1,
@@ -231,7 +239,9 @@ public class CombinationController : ItemInventory
         Ingredient left = MakeIngredient(leftSlot, leftId);
         Ingredient right = MakeIngredient(rightSlot, rightId);
 
-        InventoryResult result = await InventoryNetworkSyncManager.Instance.CraftAsync(left, right);
+        int keywordId = PotionCrafter.RollTrapKeywordId();
+        InventoryResult result = 
+            await InventoryNetworkSyncManager.Instance.CraftAsync(left, right, keywordId);
 
         if (result.Success)
             Debug.Log($"[Craft] 포션 제작 성공 - {result.Outcome.Potion.Data.potionName}");
@@ -241,6 +251,37 @@ public class CombinationController : ItemInventory
         Clear();
     }
     #endregion
+
+    /// <summary>
+    /// 포션의 성공 확률 표시 텍스트 갱신 함수
+    /// </summary>
+    /// <param name="type">false일 경우 0으로 초기화</param>
+    public void RefreshSuccessPerText(bool type = true)
+    {
+        int successPer = 0;
+        if(type)
+            successPer = 100 - PotionCrafter.GetPlayerCraftFailChance();
+        
+        successPerText.SetText($"{successPer}%");
+
+        bool low = successPer / 100 <= threshold;
+
+        if (isLow == low) return;
+
+        isLow = low;
+        successPerText.color = low ? lowColor : highColor;
+    }
+
+    public void ChangeQuickCombinedDisable()
+    {
+        combineAction.Disable();
+    }
+
+    public void ChangeQuickCombinedEnable()
+    {
+        combineAction.Enable();
+    }
+
     private void OnDestroy()
     {
         warningTextToken?.Cancel();

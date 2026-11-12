@@ -136,10 +136,12 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler
             if (Item == null || Item.ItemCount <= 0) return;
             SetAlpha();
             inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId, this);
+            inventory.potionCombined.RefreshSuccessPerText();
         }
         else if (isCombinedSlot)
         {
             inventory.potionCombined.Clear();
+            inventory.potionCombined.RefreshSuccessPerText(false);
         }
 
 
