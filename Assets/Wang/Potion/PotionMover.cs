@@ -145,9 +145,10 @@ public class PotionMover : MonoBehaviour
 
         bool networked = photonView != null && photonView.ViewID != 0;
         if (networked)
-            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact);
+            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, Data.potionID,
+                PotionInstance != null && PotionInstance.TrapKeyword != null ? PotionInstance.TrapKeyword.KeywordID : 0);
 
-        PlayExplosion(position, impact, true);
+        PlayExplosion(position, impact, true, Data, null);
         if (networked)
             PhotonNetwork.Destroy(gameObject);
         else
@@ -155,16 +156,22 @@ public class PotionMover : MonoBehaviour
     }
 
     [PunRPC]
-    private void RpcExplode(Vector3 position, bool impact, PhotonMessageInfo info)
+    private void RpcExplode(Vector3 position, bool impact, int potionId, int keywordId, PhotonMessageInfo info)
     {
         if (info.Sender != photonView.Owner || photonView.IsMine)
             return;
 
         // 삭제는 소유자가 뒤이어 보내는 PhotonNetwork.Destroy로 처리합니다.
-        PlayExplosion(position, impact, false);
+        if (!PotionDataManager.Instance.TryGetPotionData(potionId, out PotionData data))
+            return;
+        TrapPotionKeyword keyword = null;
+        if (keywordId != 0 && !PotionDataManager.Instance.TryGetTrapKeyword(keywordId, out keyword))
+            return;
+
+        PlayExplosion(position, impact, false, data, keyword);
     }
 
-    private void PlayExplosion(Vector3 position, bool impact, bool applyEffects)
+    private void PlayExplosion(Vector3 position, bool impact, bool applyEffects, PotionData data, TrapPotionKeyword keyword)
     {
         if (HasExploded)
             return;
@@ -175,9 +182,9 @@ public class PotionMover : MonoBehaviour
         if (impact)
             PlayImpact(position);
 
-        if (Data.explosionPrefab != null)
+        if (data.explosionPrefab != null)
         {
-            var explosion = PoolManager.Instance.Get(Data.explosionPrefab, position, Quaternion.identity);
+            var explosion = PoolManager.Instance.Get(data.explosionPrefab, position, Quaternion.identity);
             if (explosion == null)
             {
                 Debug.LogError("[Potionover] : 폭발 프리팹이 없습니다");
@@ -188,7 +195,7 @@ public class PotionMover : MonoBehaviour
                 if (applyEffects)
                     detector.Initialize(PotionInstance);
                 else
-                    detector.InitializeVisual(Data);
+                    detector.InitializeVisual(data);
             }
 
         }

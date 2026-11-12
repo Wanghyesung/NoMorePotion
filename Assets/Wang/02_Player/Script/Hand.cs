@@ -213,32 +213,6 @@ public sealed class Hand : MonoBehaviour
         }
     }
 
-
-
-    /* ------------------------------------------------
-                        네트워크 이벤트
-    ---------------------------------------------------*/
-    [PunRPC]
-    private void RpcTakeOutPotion(int potionViewId, int sideValue, int potionId, PhotonMessageInfo info)
-    {
-        if (info.Sender != playerView.Owner || playerView.IsMine
-            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
-            return;
-
-        PhotonView potionView = PhotonView.Find(potionViewId);
-        if (potionView == null || potionView.Owner != info.Sender)
-            return;
-
-        Side side = (Side)sideValue;
-        if (GetPotion(side) != null
-            || PotionDataManager.Instance.TryGetPotionData(potionId, out var data) == false)
-            return;
-
-        Potion potion = potionView.GetComponent<Potion>();
-        potion.InitializeVisual(data);
-        Hold(side, potion.potionMover);
-    }
-
     // 포커스한 손이 비어 있으면 그 손, 아니면 반대 손을 돌려줍니다. 둘 다 차 있으면 false 입니다.
     private bool TryGetEmptySide(out Side side)
     {
@@ -272,31 +246,6 @@ public sealed class Hand : MonoBehaviour
             throwData.Origin, throwData.Target, throwData.Gravity, throwData.ArcHeight, throwData.StopAtTarget);
     }
 
-    [PunRPC]
-    private void RpcThrowPotion(int potionViewId, int sideValue, Vector3 origin, Vector3 target,
-        Vector3 gravity, float arcHeight, bool stopAtTarget, PhotonMessageInfo info)
-    {
-        if (info.Sender != playerView.Owner || playerView.IsMine
-            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
-            return;
-
-        PhotonView potionView = PhotonView.Find(potionViewId);
-        if (potionView == null || potionView.Owner != info.Sender)
-            return;
-
-        PotionMover potion = potionView.GetComponent<PotionMover>();
-        Side side = (Side)sideValue;
-        if (GetPotion(side) != potion)
-            return;
-
-        var data = new ThrowData(origin, target, gravity, arcHeight, stopAtTarget);
-        if (float.IsNaN(data.FlightTime) || float.IsInfinity(data.FlightTime) || data.FlightTime <= 0f)
-            return;
-
-        SetPotion(side, null);
-        potion.transform.SetParent(null, true);
-        potion.ThrowVisual(data, Mathf.Max(0f, (float)(PhotonNetwork.Time - info.SentServerTime)));
-    }
 
     public void Drink(Side side)
     {
@@ -319,4 +268,58 @@ public sealed class Hand : MonoBehaviour
         else
             rightPotion = potion;
     }
+
+
+    /* ------------------------------------------------
+                        네트워크 이벤트
+    ---------------------------------------------------*/
+    [PunRPC]
+    private void RpcTakeOutPotion(int potionViewId, int sideValue, int potionId, PhotonMessageInfo info)
+    {
+        if (info.Sender != playerView.Owner || playerView.IsMine
+            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
+            return;
+
+        PhotonView potionView = PhotonView.Find(potionViewId);
+        if (potionView == null || potionView.Owner != info.Sender)
+            return;
+
+        Side side = (Side)sideValue;
+        if (GetPotion(side) != null
+            || PotionDataManager.Instance.TryGetPotionData(potionId, out var data) == false)
+            return;
+
+        Potion potion = potionView.GetComponent<Potion>();
+        potion.InitializeVisual(data);
+        Hold(side, potion.potionMover);
+    }
+
+
+    [PunRPC]
+    private void RpcThrowPotion(int potionViewId, int sideValue, Vector3 origin, Vector3 target,
+        Vector3 gravity, float arcHeight, bool stopAtTarget, PhotonMessageInfo info)
+    {
+        if (info.Sender != playerView.Owner || playerView.IsMine
+            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
+            return;
+
+        PhotonView potionView = PhotonView.Find(potionViewId);
+        if (potionView == null || potionView.Owner != info.Sender)
+            return;
+
+        PotionMover potion = potionView.GetComponent<PotionMover>();
+        Side side = (Side)sideValue;
+        if (GetPotion(side) != potion)
+            return;
+
+        var data = new ThrowData(origin, target, gravity, arcHeight, stopAtTarget);
+        if (data.FlightTime <= 0f)
+            return;
+
+        SetPotion(side, null);
+        potion.transform.SetParent(null, true);
+        potion.ThrowVisual(data, Mathf.Max(0f, (float)(PhotonNetwork.Time - info.SentServerTime)));
+    }
+
+    
 }

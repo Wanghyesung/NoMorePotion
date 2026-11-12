@@ -62,7 +62,12 @@ namespace Enzeun.Runtime
         /// <param name="potion">효과와 폭발 범위의 기준이 되는 원래 포션</param>
         /// <param name="trapKeyword">함정 키워드. 있으면 그 효과도 같이 적용합니다. (범위는 원래 포션을 따름)</param>
         /// <param name="tickOnly">true 면 체력 증감 효과만 적용하고 연출은 재생하지 않습니다. (범위 장판의 반복 틱)</param>
-        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false)
+        public static int ExplodeLocalPlayer(PotionData potion, TrapPotionKeyword keyword, Vector3 position, bool tickOnly)
+        {
+            return ExplodeCore(potion, keyword, position, tickOnly, true);
+        }
+
+        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, bool localPlayerOnly = false)
         {
             if (potion == null)
             {
@@ -109,6 +114,16 @@ namespace Enzeun.Runtime
                     WorldObject = collider.GetComponentInParent<WorldObject>(),
                     IsLocalPlayer = IsLocalPlayerContainer(container),
                 };
+
+                if (target.Damageable is Player player)
+                {
+                    if (!player.IsLocalPlayer)
+                        continue;
+                }
+                else if (localPlayerOnly)
+                {
+                    continue;
+                }
 
                 Object key = GetTargetKey(target);
                 if (key == null || !AppliedTargets.Add(key))
