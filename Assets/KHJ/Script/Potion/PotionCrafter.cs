@@ -114,5 +114,18 @@ namespace Enzeun.Runtime
 
             return pool[Random.Range(0, pool.Count)];
         }
+
+
+        // 실패 확률로 판정해서 함정이면 키워드 번호, 정상이면 0 을 돌려준다. (0 은 정상 포션 키워드)
+        public static int RollTrapKeywordId()
+        {
+            int chance = Mathf.Clamp(GetPlayerCraftFailChance(), 0, 100);
+            if (Random.Range(0, 100) < chance)
+            {
+                TrapPotionKeyword keyword = PickTrapKeyword();
+                if (keyword != null) return keyword.KeywordID;
+            }
+            return 0;
+        }
     }
 }
