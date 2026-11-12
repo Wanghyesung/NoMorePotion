@@ -17,13 +17,17 @@ public sealed class PlayerStatusEffects : MonoBehaviour
     private bool thirsty;
     private bool started;
     private BuffContainer playerBuffContainer;
+
+    public void SetVisionEffect(VisionEffect effect)
+    {
+        if (visionEffect != effect && visionEffect != null)
+            visionEffect.Stop();
+        visionEffect = effect;
+        if (started && player.IsLocalPlayer)
+            RefreshBuffVision();
+    }
 #if UNITY_EDITOR
-    private StatusEffectData testWhat;
-    private StatusEffectData testConfusion;
     private StatusEffectData testThirst;
-    private bool testStrongVision;
-    private readonly object testWhatSource = new object();
-    private readonly object testConfusionSource = new object();
     private readonly object testThirstSource = new object();
 #endif
 
@@ -33,8 +37,6 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         player = GetComponent<Player>();
         hand = GetComponent<Hand>();
 #if UNITY_EDITOR
-        testWhat = Resources.Load<StatusEffectData>("ScriptableObjects/StatusEffects/61014");
-        testConfusion = Resources.Load<StatusEffectData>("ScriptableObjects/StatusEffects/61003");
         testThirst = Resources.Load<StatusEffectData>("ScriptableObjects/StatusEffects/61004");
 #endif
     }
@@ -66,29 +68,12 @@ public sealed class PlayerStatusEffects : MonoBehaviour
     {
         if (player.IsLocalPlayer == false)
             return;
-        bool holdVision = Keyboard.current != null && Application.isFocused == true
-            && InputManager.Instance != null && InputManager.Instance.HasGameplayInput == true
-            && Keyboard.current.f6Key.isPressed == true;
-
-        if (testStrongVision != holdVision)
-        {
-            testStrongVision = holdVision;
-            RefreshBuffVision();
-        }
-
         if (playerBuffContainer == null || Keyboard.current == null)
             return;
 
         // 윗줄 숫자키와 숫자패드 모두 지원한다. 누를 때 한 번만 적용/해제한다.
         if (Keyboard.current.digit0Key.wasPressedThisFrame == true || Keyboard.current.numpad0Key.wasPressedThisFrame == true)
             ToggleTestEffect(testThirst, testThirstSource);
-        if (Keyboard.current.digit7Key.wasPressedThisFrame == true || Keyboard.current.numpad7Key.wasPressedThisFrame == true)
-            ToggleTestEffect(testWhat, testWhatSource);
-        if (Keyboard.current.digit8Key.wasPressedThisFrame == true || Keyboard.current.numpad8Key.wasPressedThisFrame == true)
-            ToggleTestEffect(testConfusion, testConfusionSource);
-        // 9: 추위 정지 동작을 즉시 1초 동안 테스트한다(버프 자체는 추가하지 않음).
-        if (Keyboard.current.digit9Key.wasPressedThisFrame == true || Keyboard.current.numpad9Key.wasPressedThisFrame == true)
-            fsm.Freeze(1f);
     }
 
     private void ToggleTestEffect(StatusEffectData data, object source)
@@ -117,9 +102,6 @@ public sealed class PlayerStatusEffects : MonoBehaviour
             return;
         hand.OnPotionHeld -= OnPotionHeld;
         thirsty = false;
-#if UNITY_EDITOR
-        testStrongVision = false;
-#endif
 
         // 플레이어에 반영한 값만 복구한다. 컨테이너의 효과는 유지하며 재활성화 때 다시 읽는다.
         fsm.ReverseMovement = false;
@@ -133,8 +115,6 @@ public sealed class PlayerStatusEffects : MonoBehaviour
             playerBuffContainer.OnEffectRemoved -= OnBuffRemoved;
             playerBuffContainer.OnPeriodicAction -= OnBuffPeriodicAction;
 #if UNITY_EDITOR
-            playerBuffContainer.RemoveBySource(testWhatSource);
-            playerBuffContainer.RemoveBySource(testConfusionSource);
             playerBuffContainer.RemoveBySource(testThirstSource);
 #endif
         }
@@ -296,11 +276,7 @@ public sealed class PlayerStatusEffects : MonoBehaviour
         // 시야 배율 0.8 → 비네트 강도 0.2. 화면 면적을 정확히 20% 가리는 값은 아니다.
         float reduction = playerBuffContainer != null
             ? Mathf.Clamp01(1f - playerBuffContainer.GetStatMultiplier(StatType.Vision)) : 0f;
-#if UNITY_EDITOR
-        // F6을 누르는 동안만 강도 0.8 이상을 유지한다. 떼면 남아 있는 버프의 강도로 복구한다.
-        if (testStrongVision == true)
-            reduction = Mathf.Max(reduction, 0.8f);
-#endif
+
         if (reduction > 0f)
             visionEffect.Play(reduction);
         else
