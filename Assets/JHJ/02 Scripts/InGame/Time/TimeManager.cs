@@ -1,3 +1,4 @@
+using Photon.Pun;
 using R3;
 using System;
 using System.Threading;
@@ -46,7 +47,10 @@ public class TimeManager : MonoBehaviour
 
     [SerializeField] float dayDuration = 10; // [임시] 설정값
     [SerializeField] float nightDuration = 10;
-
+    [SerializeField] float syncInterval = 2f;   // 보정 간격
+    
+    private float syncTimer;
+    private PhotonView view;
     private TimerScheduler timer = new TimerScheduler();
     // StartClock에서만 생성. null = 시작 전 (미리 생성하지 말 것)
     private TimeState state;
@@ -85,6 +89,14 @@ public class TimeManager : MonoBehaviour
         }
 
         Instance = this;
+
+        view = gameObject.GetComponent<PhotonView>();
+    }
+
+    private void Start()
+    {
+        if (PhotonNetwork.InRoom && !GameAuthority.HasAuthority)
+            view.RPC(nameof(RpcRequestState), RpcTarget.MasterClient);
     }
 
     private void OnValidate()
@@ -107,10 +119,12 @@ public class TimeManager : MonoBehaviour
     private void Update()
     {
         if (!isRunning) return;
-        // TODO(멀티): 방장만 진행하므로 다른 클라이언트는 값이 갱신되지 않음. 동기화 어떻게할지
-        if (!GameAuthority.HasAuthority) return;
+        
+        if (GameAuthority.HasAuthority)
+            Tick(Time.deltaTime);
+        else
+            PredictTick(Time.deltaTime);
 
-        Tick(Time.deltaTime);
     }
 
     /// <summary>시계를 1일차 낮으로 초기화하고 시작한다. 이미 진행 중이면 무시.</summary>
@@ -126,6 +140,7 @@ public class TimeManager : MonoBehaviour
         isRunning = true;
         SyncPublicValues();
 
+        SendState();
         Debug.Log("[TimeManager] 1일차 낮 시작");
     }
 
@@ -142,6 +157,7 @@ public class TimeManager : MonoBehaviour
         }
 
         isRunning = false;
+        SendState();
         Debug.Log($"[TimeManager] 시계 정지 ({state.DayCount}일차 {state.Phase}, 총 {state.TotalElapsed:F1}초)");
     }
 
@@ -183,6 +199,15 @@ public class TimeManager : MonoBehaviour
         timer.Tick(state.TotalElapsed);
     }
 
+    // MasterClient가 아니라면 시간만 흘리고 낮밤 전환이나 예약실행 없음
+    private void PredictTick(float deltaTime)
+    {
+        // 실제 전환은 방장 메세지가 오면
+        state.Elapsed = Mathf.Min(state.Elapsed + deltaTime, currentDuration);
+        state.TotalElapsed += deltaTime;
+        remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
+    }
+
     /// <summary>낮↔밤 전환. 일차는 아침 기준으로 증가. 전환은 반드시 이 함수를 거침</summary>
     private void AdvancePhase()
     {
@@ -197,6 +222,7 @@ public class TimeManager : MonoBehaviour
 
         Debug.Log($"[TimeManager] {state.DayCount}일차 {state.Phase}");
         SyncPublicValues();
+        SendState();
     }
 
     private void SyncPublicValues()
@@ -205,6 +231,48 @@ public class TimeManager : MonoBehaviour
         dayCount.Value = state.DayCount;
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
     }
+
+    //===================================================================
+    #region 네트워크
+    private void SendState(RpcTarget target = RpcTarget.Others)
+    {
+        if (!PhotonNetwork.InRoom || !GameAuthority.HasAuthority || state == null)
+            return;
+
+        view.RPC(nameof(RpcApplyState), target, state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning);
+    }
+
+    [PunRPC]
+    private void RpcApplyState(int day, int phaseValue, float elapsed, float totalElapsed, bool running, PhotonMessageInfo info)
+    {
+        if (info.Sender == null || !info.Sender.IsMasterClient)
+            return;
+
+        // 보내는 동안 흐른 시간 보정
+        float lag = running ? Mathf.Max(0f, (float)(PhotonNetwork.Time - info.SentServerTime)) : 0f;
+
+        state ??= new TimeState(); // state가 null이면
+        state.DayCount = day;
+        state.Phase = (TimePhase)phaseValue;
+        state.Elapsed = Mathf.Min(elapsed + lag, currentDuration);
+        state.TotalElapsed = totalElapsed + lag;
+        isRunning = running;
+
+        SyncPublicValues(); //같은 값이면 ReactiveProperty가 알림을 안 보내서 중복 실행 없음
+    }
+
+    // 마스터보다 늦게 들어온 경우 첫 메세지 요청
+    [PunRPC]
+    private void RpcRequestState(PhotonMessageInfo info)
+    {
+        if(!GameAuthority.HasAuthority || info.Sender == null || state == null)
+                return;
+
+        view.RPC(nameof(RpcApplyState), info.Sender, state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning);
+    }
+
+    #endregion
+    //===================================================================
 
     // 디버그용
     [ContextMenu("다음 단계로 강제 전환")]
