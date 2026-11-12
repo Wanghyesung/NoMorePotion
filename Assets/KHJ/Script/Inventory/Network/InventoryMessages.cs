@@ -71,6 +71,10 @@ namespace Enzeun.Runtime
                         writer.Write(checked((byte)command.Count));
                         writer.Write(command.From.Slot < 0 ? (byte)255 : checked((byte)command.From.Slot));
                         break;
+
+                    // Consume 은 종류와 요청 번호만 보냅니다. (어느 칸을 소모할지는 마스터가 정함)
+                    case InventoryOp.Consume:
+                        break;
                 }
 
                 writer.Flush();
@@ -151,6 +155,9 @@ namespace Enzeun.Runtime
                             c.From = new ContainerRef { Kind = ContainerKind.None, Slot = slot == 255 ? -1 : slot };
                             break;
                         }
+
+                        case InventoryOp.Consume:
+                            break;
 
                         default:
                             return false;   // 알 수 없는 종류 또는 마스터 전용 종류

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Enzeun.SO;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -74,6 +75,45 @@ namespace Enzeun.Runtime
         /// </summary>
         public BuffContainer PlayerBuffContainer => buffContainer;
 
+        // ==================== 자연 감소 / 체온 제한 설정 ============================
+        // 기획 : 수분, 포만감은 5초당 1% 감소. 더위 디버프 중에는 수분이, 추위 디버프 중에는 포만감이 2배 빨리 감소한다.
+        //        차분함 버프 중에는 체온이 69% 이상 올라가지 않고, 열혈 버프 중에는 체온이 31% 밑으로 내려가지 않는다.
+
+        // 상태 효과 ID 입니다. (데이터 시트 기준)
+        private const int CalmBuffId = 60006;       // 차분함
+        private const int PassionBuffId = 60007;    // 열혈
+        private const int HotDebuffId = 61001;      // 더위
+        private const int ColdDebuffId = 61002;     // 추위
+
+        [SerializeField, LabelText("자연 감소 사용"), BoxGroup("자연 감소")]
+        private bool _useNaturalDecay = true;
+
+        [SerializeField, LabelText("감소 간격 (초)"), MinValue(0.1f), BoxGroup("자연 감소")]
+        private float _decayIntervalSeconds = 5f;
+
+        [SerializeField, LabelText("1회 감소량"), MinValue(0), BoxGroup("자연 감소")]
+        private int _decayAmount = 1;
+
+        [SerializeField, LabelText("더위/추위 중 감소 속도 배율"), MinValue(1f), BoxGroup("자연 감소")]
+        private float _extremeDecayMultiplier = 2f;
+
+        [SerializeField, LabelText("차분함 체온 상한 (%)"), Range(0, 100), BoxGroup("체온 제한")]
+        private int _calmMaxTemperature = 69;
+
+        [SerializeField, LabelText("열혈 체온 하한 (%)"), Range(0, 100), BoxGroup("체온 제한")]
+        private int _passionMinTemperature = 31;
+
+        // 감소 진행도(초 × 속도 배율)입니다. 간격에 도달할 때마다 한 번 감소하고 남은 만큼은 이어서 쌓습니다.
+        private float _hydrationProgress;
+        private float _satiationProgress;
+
+        // 현재 감소 속도 배율입니다. 상태 효과가 바뀔 때만 다시 계산합니다.
+        private float _hydrationRate = 1f;
+        private float _satiationRate = 1f;
+
+        // 상태 효과 변경 이벤트 안에서 바로 체온을 바꾸면 컨테이너가 효과를 처리하는 도중에 다시 효과가 바뀔 수 있으므로, 다음 프레임에 처리합니다.
+        private bool _limitsDirty;
+
         /// <summary>
         /// 내 플레이어 오브젝트를 연결합니다. 로컬 플레이어가 생성된 뒤에 호출합니다.
         /// 연결하면 체력 증감 효과(탈수 등)가 이 플레이어의 IDamageable 에게 적용됩니다.
@@ -102,7 +142,12 @@ namespace Enzeun.Runtime
             if (buffContainer != null)
             {
                 buffContainer.OnPeriodicAction += HandlePeriodicAction;
+                buffContainer.OnEffectAdded += HandleEffectChanged;
+                buffContainer.OnEffectRemoved += HandleEffectChanged;
             }
+
+            RefreshDecayRates();
+            _limitsDirty = true;
         }
 
         /// <summary>
@@ -118,6 +163,8 @@ namespace Enzeun.Runtime
             if (buffContainer != null)
             {
                 buffContainer.OnPeriodicAction -= HandlePeriodicAction;
+                buffContainer.OnEffectAdded -= HandleEffectChanged;
+                buffContainer.OnEffectRemoved -= HandleEffectChanged;
             }
         }
 
@@ -131,6 +178,103 @@ namespace Enzeun.Runtime
             }
 
             ResetAllStatus();
+        }
+
+        private void Update()
+        {
+            // 제거될 중복 인스턴스는 아무것도 하지 않습니다.
+            if (Instance != this)
+            {
+                return;
+            }
+
+            if (_limitsDirty)
+            {
+                _limitsDirty = false;
+                ApplyTemperatureLimits();
+            }
+
+            if (_useNaturalDecay)
+            {
+                float deltaTime = Time.deltaTime;
+                TickDecay(ref _hydrationProgress, _hydrationRate, deltaTime, SurviveStatusType.Hydration);
+                TickDecay(ref _satiationProgress, _satiationRate, deltaTime, SurviveStatusType.Satiation);
+            }
+        }
+
+        // ==================== 자연 감소 ============================
+
+        /// <summary>
+        /// 감소 진행도를 쌓고, 간격에 도달할 때마다 한 번씩 감소시킵니다. (프레임이 길어도 놓치지 않도록 반복)
+        /// </summary>
+        private void TickDecay(ref float progress, float rate, float deltaTime, SurviveStatusType type)
+        {
+            float interval = Mathf.Max(0.1f, _decayIntervalSeconds);
+            progress += deltaTime * rate;
+
+            while (progress >= interval)
+            {
+                progress -= interval;
+                ChangeStatus(type, -_decayAmount);
+            }
+        }
+
+        /// <summary>
+        /// 더위/추위 디버프가 걸려 있는지 보고 감소 속도 배율을 다시 정합니다. (더위 : 수분, 추위 : 포만감)
+        /// </summary>
+        private void RefreshDecayRates()
+        {
+            _hydrationRate = HasEffect(HotDebuffId) ? _extremeDecayMultiplier : 1f;
+            _satiationRate = HasEffect(ColdDebuffId) ? _extremeDecayMultiplier : 1f;
+        }
+
+        /// <summary>
+        /// 차분함/열혈 버프가 걸려 있는지 보고 체온 범위를 정합니다. 현재 체온이 범위를 벗어나 있으면 범위 안으로 맞춥니다.
+        /// (예: 체온 80 에서 차분함을 받으면 69 가 되어 더움 구간에서 벗어남)
+        /// </summary>
+        private void ApplyTemperatureLimits()
+        {
+            int max = HasEffect(CalmBuffId) ? _calmMaxTemperature : 100;
+            int min = HasEffect(PassionBuffId) ? _passionMinTemperature : 0;
+            bodyTemperatureManager.SetLimits(min, max);
+        }
+
+        /// <summary>
+        /// 내 플레이어에게 해당 ID 의 상태 효과(버프 또는 디버프)가 걸려 있는지 확인합니다.
+        /// </summary>
+        private bool HasEffect(int effectId)
+        {
+            if (buffContainer == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < buffContainer.buffs.Count; i++)
+            {
+                if (buffContainer.buffs[i].data.ID == effectId)
+                {
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < buffContainer.debuffs.Count; i++)
+            {
+                if (buffContainer.debuffs[i].data.ID == effectId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 상태 효과가 걸리거나 빠졌을 때 감소 속도 배율은 바로, 체온 범위는 다음 프레임에 다시 정합니다.
+        /// </summary>
+        private void HandleEffectChanged(ActiveStatusEffect effect)
+        {
+            RefreshDecayRates();
+            _limitsDirty = true;
         }
 
         /// <summary>
@@ -156,6 +300,10 @@ namespace Enzeun.Runtime
         public void ResyncStatusEffects()
         {
             SyncAllEffects();
+
+            // 컨테이너를 비운 뒤라면 감소 배율과 체온 범위도 지금 효과 기준으로 다시 맞춥니다.
+            RefreshDecayRates();
+            _limitsDirty = true;
         }
 
         // ==================== 구간 -> 상태 효과(버프/디버프) 연결 ============================
@@ -293,50 +441,34 @@ namespace Enzeun.Runtime
             Debug.Log($"[SurviveStatusManager] : 주기 행동 발동 {effect.data.statusEffectName} / {module.ActionType}");
 #endif
 
-            switch (module.ActionType)
+            // StopPlayerMove(추위), DrinkHeldPotion(갈증)은 플레이어 몸(이동, 손)을 다루는 행동이라 PlayerStatusEffects 가 같은 이벤트를 받아 처리합니다.
+            if (module.ActionType == PeriodicActionType.ConsumeFirstItem)
             {
-                case PeriodicActionType.StopPlayerMove:
-                    StopPlayerMove(module.DurationSeconds);
-                    break;
-
-                case PeriodicActionType.ConsumeFirstItem:
-                    // 아이템을 소모했을 때만 포만감을 채웁니다.
-                    if (ConsumeFirstInventoryItem())
-                    {
-                        ChangeStatus(SurviveStatusType.Satiation, module.Amount);
-                    }
-                    break;
-
-                case PeriodicActionType.DrinkHeldPotion:
-                    DrinkHeldPotion();
-                    break;
+                ConsumeFirstItemAsync(module.Amount).Forget();
             }
         }
 
         /// <summary>
-        /// 플레이어의 이동을 durationSeconds 동안 막습니다. (추위)
+        /// 내 개인 인벤토리의 첫 번째 아이템을 소모하고, 소모에 성공했을 때만 포만감을 채웁니다. (허기)
+        /// 소모는 마스터가 확정하므로 결과를 기다립니다. 개인 인벤토리가 비어 있으면(NotFound) 아무 일도 일어나지 않습니다.
         /// </summary>
-        private void StopPlayerMove(float durationSeconds)
+        private async UniTaskVoid ConsumeFirstItemAsync(int satiationAmount)
         {
-            // 플레이어의 이동을 막는 코드를 여기 넣습니다.
-        }
+            InventoryNetworkSyncManager inventory = InventoryNetworkSyncManager.Instance;
+            if (inventory == null)
+            {
+                return;
+            }
 
-        /// <summary>
-        /// 인벤토리의 첫 번째 아이템을 소모합니다. (허기) 소모했으면 true 를 반환합니다.
-        /// </summary>
-        private bool ConsumeFirstInventoryItem()
-        {
-            // 인벤토리의 첫 번째 아이템을 소모하는 코드를 여기 넣습니다.
-            return false;
-        }
+            InventoryResult result = await inventory.ConsumeFirstPersonalAsync();
 
-        /// <summary>
-        /// 들고 있는 물약을 오른손, 왼손 순으로 하나 마십니다. (갈증)
-        /// 아무것도 들고 있지 않으면 아무것도 하지 않습니다.
-        /// </summary>
-        private void DrinkHeldPotion()
-        {
-            // 들고 있는 물약을 마시는 코드를 여기 넣습니다.
+            // 기다리는 사이 이 매니저가 사라졌으면 더 할 것이 없습니다.
+            if (this == null || !result.Success)
+            {
+                return;
+            }
+
+            ChangeStatus(SurviveStatusType.Satiation, satiationAmount);
         }
 
         /// <summary>

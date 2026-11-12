@@ -25,7 +25,7 @@ namespace Enzeun.Runtime
         // 기본값 : 50%
         // 구간 판정 : 70% 이상 -> 촉촉함 버프 / 10% 이하 -> 갈증 디버프 / 0% -> 탈수 디버프(갈증보다 우선)
 
-        // TODO(미구현 기획): 5초당 1% 감소 (러프)
+        // 5초당 1% 자연 감소(더위 중에는 2배)는 SurviveStatusManager 가 시간을 재서 DecreaseHydration 으로 처리합니다.
 
 
         // 수분 초기값

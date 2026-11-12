@@ -204,6 +204,9 @@ namespace Enzeun.Runtime
                 case InventoryOp.TakeOut:
                     return ValidateTakeOut(request, requesterActor, ref apply, out reason);
 
+                case InventoryOp.Consume:
+                    return ValidateConsume(requesterActor, ref apply, out reason);
+
                 default:
                     // SpawnGround, Leave 는 클라이언트가 요청할 수 없는 마스터 전용 변경입니다.
                     reason = InventoryDenyReason.Invalid;
@@ -865,6 +868,42 @@ namespace Enzeun.Runtime
             apply.Count = taken;
             apply.Changes = ctx.Flush();
             return true;
+        }
+
+        /// <summary>
+        /// 소모(허기)를 검증합니다. 내 개인 인벤토리에서 앞에서부터 처음 나오는 비어 있지 않은 칸의 아이템 한 개를 없앱니다.
+        /// 재료 칸이면 한 개를 덜어 내고(0 개가 되면 칸이 빔), 포션 칸이면 포션을 없앱니다. 소모한 아이템은 어디에도 남지 않습니다.
+        /// 개인 인벤토리가 비어 있으면 NotFound 로 거부합니다. (공용 인벤은 다른 사람과 함께 쓰므로 소모하지 않음)
+        /// </summary>
+        private bool ValidateConsume(int actor, ref InventoryCommand apply, out InventoryDenyReason reason)
+        {
+            reason = InventoryDenyReason.None;
+            var ctx = new Context(this);
+            PersonalInventory personal = ctx.Slots(ContainerRef.Personal(actor));
+
+            for (int i = 0; i < personal.Capacity; i++)
+            {
+                if (personal.Slots[i].IsEmpty)
+                {
+                    continue;
+                }
+
+                if (personal.Slots[i].Kind == InventorySlotKind.Material)
+                {
+                    personal.TakeFromSlot(i, 1);
+                }
+                else
+                {
+                    personal.TakeSlot(i);
+                }
+
+                apply.Count = 1;
+                apply.Changes = ctx.Flush();
+                return true;
+            }
+
+            reason = InventoryDenyReason.NotFound;   // 소모할 아이템이 없음
+            return false;
         }
 
         /// <summary>

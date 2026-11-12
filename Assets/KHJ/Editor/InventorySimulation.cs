@@ -148,6 +148,7 @@ namespace Enzeun.Editor
                 TestCraft();
                 TestStorageAndAccess();
                 TestTakeOut();
+                TestConsume();
                 TestWorldGrant();
                 TestWorldObjectApplyKind();
                 TestDeathAndLeave();
@@ -457,6 +458,90 @@ namespace Enzeun.Editor
             // 뒤 시험이 쓰도록 개인 인벤에 포션을 하나 되돌려 둔다.
             Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
             _master.SetRandom(null);
+        }
+
+        private static void TestConsume()
+        {
+            // 소모(허기): 개인 인벤토리의 첫 번째 아이템 한 개가 사라진다. 재료는 한 개씩, 포션은 통째로.
+            Send(ActorA, GrantMaterial(ContainerRef.Personal(ActorA), MatSmall, 2));
+            Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
+
+            int before = CountPersonalItems(ActorA);
+            Expect("소모 시험 준비(개인 인벤에 아이템 있음)", before >= 2);
+
+            PersonalInventory mine = _master.GetPersonal(ActorA);
+            int firstSlot = -1;
+            for (int i = 0; i < mine.Capacity; i++)
+            {
+                if (!mine.Slots[i].IsEmpty)
+                {
+                    firstSlot = i;
+                    break;
+                }
+            }
+
+            InventorySlot firstBefore = firstSlot >= 0 ? mine.Slots[firstSlot] : default;
+            int firstAmount = firstBefore.Kind == InventorySlotKind.Material ? firstBefore.Count : 1;
+
+            Res one = Send(ActorA, new InventoryCommand { Op = InventoryOp.Consume });
+            Expect("소모 성공(한 개)", one.Ok && one.Outcome.Value == 1);
+            Expect("개인 인벤 아이템이 한 개 줄어듦", CountPersonalItems(ActorA) == before - 1);
+
+            // 앞 칸부터 소모한다: 그 칸이 한 개 줄었거나(재료) 비었어야 한다.
+            InventorySlot firstAfter = _master.GetPersonal(ActorA).Slots[firstSlot];
+            int afterAmount = firstAfter.IsEmpty ? 0 : (firstAfter.Kind == InventorySlotKind.Material ? firstAfter.Count : 1);
+            Expect("첫 번째 칸에서 소모됨", afterAmount == firstAmount - 1);
+            ExpectSynced("소모 후");
+
+            // 메시지 왕복: 요청 종류만 담긴다.
+            byte[] packed = InventoryMessages.PackRequest(new InventoryCommand { Op = InventoryOp.Consume, RequestId = 7 });
+            Expect("소모 요청 메시지 왕복", InventoryMessages.TryUnpackRequest(packed, out InventoryCommand unpacked) && unpacked.Op == InventoryOp.Consume && unpacked.RequestId == 7);
+
+            // 모두 소모하면 더 소모할 것이 없다.
+            int guard = 0;
+            Res last = default;
+            do
+            {
+                last = Send(ActorA, new InventoryCommand { Op = InventoryOp.Consume });
+            }
+            while (last.Ok && guard++ < 500);
+
+            Expect("개인 인벤이 비면 NotFound", !last.Ok && last.Reason == InventoryDenyReason.NotFound && CountPersonalItems(ActorA) == 0);
+
+            // 공용 인벤은 소모 대상이 아니다.
+            Send(ActorA, GrantMaterial(ContainerRef.PackRef, MatSmall, 3));
+            int packBefore = _master.Pack.Materials.GetCount(MatSmall);
+            Res packUntouched = Send(ActorA, new InventoryCommand { Op = InventoryOp.Consume });
+            Expect("공용 인벤은 소모하지 않음", !packUntouched.Ok && _master.Pack.Materials.GetCount(MatSmall) == packBefore);
+            ExpectSynced("소모 시험 끝");
+
+            // 뒤 시험이 쓰도록 개인 인벤에 포션을 하나 되돌려 둔다.
+            Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
+        }
+
+        // 마스터 사본에서 해당 플레이어의 개인 인벤토리에 든 아이템 수입니다. (재료는 개수, 포션은 한 개)
+        private static int CountPersonalItems(int actor)
+        {
+            PersonalInventory inventory = _master.GetPersonal(actor);
+            if (inventory == null)
+            {
+                return 0;
+            }
+
+            int total = 0;
+            for (int i = 0; i < inventory.Capacity; i++)
+            {
+                if (inventory.Slots[i].Kind == InventorySlotKind.Material)
+                {
+                    total += inventory.Slots[i].Count;
+                }
+                else if (inventory.Slots[i].Kind == InventorySlotKind.Potion)
+                {
+                    total += 1;
+                }
+            }
+
+            return total;
         }
 
         private static void TestWorldGrant()
