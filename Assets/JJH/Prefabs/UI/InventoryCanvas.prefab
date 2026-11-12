@@ -4177,6 +4177,7 @@ GameObject:
   - component: {fileID: 4715455369283312144}
   - component: {fileID: 211628181530706796}
   - component: {fileID: 8962268923330261532}
+  - component: {fileID: 5236363090731897316}
   m_Layer: 5
   m_Name: BottomSlot
   m_TagString: Untagged
@@ -4242,6 +4243,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5236363090731897316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3507823130194218369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f464ffb8b2f371c41a888ac4aab24c5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombineSlot
+  image: {fileID: 8300572069239411357}
+  rect: {fileID: 4715455369283312144}
+  boundSlot: {fileID: 0}
+  id: 0
+  instanceId: 0
 --- !u!1 &3525268086085755285
 GameObject:
   m_ObjectHideFlags: 0
@@ -5030,6 +5048,7 @@ GameObject:
   - component: {fileID: 6819377981769891078}
   - component: {fileID: 4421395329252468188}
   - component: {fileID: 2246312021539317135}
+  - component: {fileID: 6915573545131833488}
   m_Layer: 5
   m_Name: TopSlot
   m_TagString: Untagged
@@ -5095,6 +5114,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6915573545131833488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3745827034558090897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f464ffb8b2f371c41a888ac4aab24c5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombineSlot
+  image: {fileID: 1605116370592819292}
+  rect: {fileID: 6819377981769891078}
+  boundSlot: {fileID: 0}
+  id: 0
+  instanceId: 0
 --- !u!1 &3773521777475704506
 GameObject:
   m_ObjectHideFlags: 0
@@ -6773,8 +6809,8 @@ MonoBehaviour:
   m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
-  m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 5
+  m_DecelerationRate: 0.05
+  m_ScrollSensitivity: 20
   m_Viewport: {fileID: 6354073628508130099}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 0}
@@ -10525,24 +10561,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombinationController
   inven: {fileID: 3983757447896502346}
   potionCombined: {fileID: 8808581820877125490}
-  leftSlot:
-    image: {fileID: 1605116370592819292}
-    rect: {fileID: 6819377981769891078}
-    boundSlot: {fileID: 0}
-    id: 0
-    instanceId: 0
-  rightSlot:
-    image: {fileID: 8300572069239411357}
-    rect: {fileID: 4715455369283312144}
-    boundSlot: {fileID: 0}
-    id: 0
-    instanceId: 0
-  resultSlot:
-    image: {fileID: 5311844365362685490}
-    rect: {fileID: 8336310189191857675}
-    boundSlot: {fileID: 0}
-    id: 0
-    instanceId: 0
+  leftSlot: {fileID: 6915573545131833488}
+  rightSlot: {fileID: 5236363090731897316}
+  resultSlot: {fileID: 4976455802651997030}
   WarningText: {fileID: 6043429315390881631}
   successPerText: {fileID: 8981749171509048385}
   defaultImage: {fileID: 21300000, guid: 950d81749f13d4c47b2f4d84abc57e87, type: 3}
@@ -11791,7 +11812,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: -%
+  m_text: 0%
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e4cba53ab065c824b86dbac96f252816, type: 2}
   m_sharedMaterial: {fileID: -1163071563999899092, guid: e4cba53ab065c824b86dbac96f252816, type: 2}
@@ -11800,8 +11821,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294953313
-  m_fontColor: {r: 0.3820755, g: 0.78669155, b: 1, a: 1}
+    rgba: 4292208882
+  m_fontColor: {r: 0.9490196, g: 0.9098039, b: 0.8352941, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11874,6 +11895,7 @@ GameObject:
   - component: {fileID: 8336310189191857675}
   - component: {fileID: 4466153223975427302}
   - component: {fileID: 4354355735901109920}
+  - component: {fileID: 4976455802651997030}
   m_Layer: 5
   m_Name: ResultSlot
   m_TagString: Untagged
@@ -11939,6 +11961,23 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4976455802651997030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8672026640750953676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f464ffb8b2f371c41a888ac4aab24c5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombineSlot
+  image: {fileID: 5311844365362685490}
+  rect: {fileID: 8336310189191857675}
+  boundSlot: {fileID: 0}
+  id: 0
+  instanceId: 0
 --- !u!1 &8727897080168175659
 GameObject:
   m_ObjectHideFlags: 0

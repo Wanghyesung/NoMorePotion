@@ -13,45 +13,6 @@ using static UnityEngine.InputSystem.InputAction;
 using SF = UnityEngine.SerializeField;
 public class CombinationController : ItemInventory
 {
-    [Serializable]
-    public class CombineSlot : IPointerEnterHandler, IPointerExitHandler
-    {
-        public Image image;
-        public RectTransform rect;
-        public InventoryIcon boundSlot;
-        public int id;
-        public int instanceId;
-
-        public void Init(Sprite image, int id, int instanceId, InventoryIcon slot)
-        {
-            this.image.sprite = image;
-            this.id = id;
-            this.instanceId = instanceId;
-            boundSlot = slot;
-        }
-
-        public void Clear(Sprite defaultImage)
-        {
-            image.sprite = defaultImage;
-            id = 0;
-            instanceId = 0;
-            if(boundSlot != null)
-                boundSlot.RestoreAlpha();
-            boundSlot = null;
-        }
-
-        public void OnPointerEnter(PointerEventData e)
-        {
-            ItemInstance item = new(id, null, InventorySlotKind.Potion);
-            if (item != null) InventoryTooltip.Instance.Show(item, rect);
-        }
-
-        public void OnPointerExit(PointerEventData e)
-        {
-            InventoryTooltip.Instance.Hide();
-        }
-    }
-
     [Header("슬롯")]
     [SF] private CombineSlot leftSlot;
     [SF] private CombineSlot rightSlot;
@@ -118,8 +79,9 @@ public class CombinationController : ItemInventory
 
         if (!leftFull)
         {
-            leftSlot.Init(icon, id, instanceId, slot);
+            leftSlot.Init(icon, id, instanceId, slot, this);
             leftFull = true;
+            slot.SetAlpha();
             return;
         }
         if (rightFull) return;
@@ -153,9 +115,9 @@ public class CombinationController : ItemInventory
             return;
         }
 
-        rightSlot.Init(icon, id, instanceId, slot);
+        rightSlot.Init(icon, id, instanceId, slot, this);
         rightFull = true;
-
+        slot.SetAlpha();
         PotionData result = isMaterial
             ? dm.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id)
             : dm.GetUpgradedPotion(leftSlot.id, rightSlot.id);

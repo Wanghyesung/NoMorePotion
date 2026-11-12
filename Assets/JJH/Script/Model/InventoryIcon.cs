@@ -134,18 +134,12 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
         if (e.button == PointerEventData.InputButton.Right)
         {
             if (Item == null || Item.ItemCount <= 0) return;
-            SetAlpha();
+            
             inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId, this);
             inventory.potionCombined.RefreshSuccessPerText();
         }
-        else if (isCombinedSlot)
-        {
-            inventory.potionCombined.Clear();
-            inventory.potionCombined.RefreshSuccessPerText(false);
-        }
-
-
     }
+
     public void OnPointerEnter(PointerEventData e)
     {
         if (Item != null) InventoryTooltip.Instance.Show(Item, rect);
