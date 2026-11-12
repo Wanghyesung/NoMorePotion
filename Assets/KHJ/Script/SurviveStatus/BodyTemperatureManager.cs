@@ -50,8 +50,12 @@ namespace Enzeun.Runtime
 
         private int _bodyTemperature;
 
+        // 체온이 움직일 수 있는 범위입니다. 기본은 0~100 이고, 차분함(상한), 열혈(하한) 같은 효과가 SetLimits 로 좁힙니다.
+        private int _minLimit = 0;
+        private int _maxLimit = 100;
+
         /// <summary>
-        /// 현재 체온 수치(0~100). 변경은 증감 메서드로만 합니다.
+        /// 현재 체온 수치(0~100, 제한이 있으면 그 범위 안). 변경은 증감 메서드로만 합니다.
         /// </summary>
         [ShowInInspector, ReadOnly, PropertyOrder(-2)]
         public int bodyTemperature
@@ -59,8 +63,34 @@ namespace Enzeun.Runtime
             get => _bodyTemperature;
             private set
             {
-                _bodyTemperature = Mathf.Clamp(value, 0, 100);
+                _bodyTemperature = Mathf.Clamp(value, _minLimit, _maxLimit);
             }
+        }
+
+        /// <summary>
+        /// 체온이 움직일 수 있는 범위를 정합니다. (기본 0~100) 현재 체온이 범위를 벗어나 있으면 범위 안으로 맞추고 구간을 다시 판정합니다.
+        /// 예) 차분함 : SetLimits(0, 69) / 열혈 : SetLimits(31, 100) / 효과가 끝나면 SetLimits(0, 100)
+        /// </summary>
+        public void SetLimits(int min, int max)
+        {
+            int newMin = Mathf.Clamp(min, 0, 100);
+            int newMax = Mathf.Clamp(max, newMin, 100);
+
+            if (newMin == _minLimit && newMax == _maxLimit)
+            {
+                return;
+            }
+
+            _minLimit = newMin;
+            _maxLimit = newMax;
+
+#if UNITY_EDITOR
+            Debug.Log($"[BodyTemperatureManager] : 체온 범위를 {_minLimit}~{_maxLimit}으로 정합니다. 현재 체온: {_bodyTemperature}");
+#endif
+
+            // 현재 값이 범위를 벗어났으면 맞춥니다. (범위 안이면 값은 그대로)
+            bodyTemperature = _bodyTemperature;
+            CheckCurrentBodyTemp();
         }
 
         /// <summary>
@@ -68,7 +98,7 @@ namespace Enzeun.Runtime
         /// </summary>
         public void ResetBodyTemperature()
         {
-            _bodyTemperature = initialBodyTemperature;
+            _bodyTemperature = Mathf.Clamp(initialBodyTemperature, _minLimit, _maxLimit);
 
 #if UNITY_EDITOR
             Debug.Log($"[BodyTemperatureManager] : 플레이어의 체온을 초기값 {initialBodyTemperature}으로 재설정 합니다.");

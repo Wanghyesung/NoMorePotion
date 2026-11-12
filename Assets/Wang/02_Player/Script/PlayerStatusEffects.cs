@@ -291,9 +291,11 @@ public sealed class PlayerStatusEffects : MonoBehaviour
             case PeriodicActionType.StopPlayerMove: // 추위: 일시 이동 정지
                 fsm.Freeze(module.DurationSeconds);
                 break;
-            case PeriodicActionType.ConsumeFirstItem: // 허기: 첫 아이템 소모
+            case PeriodicActionType.ConsumeFirstItem: // 허기: 첫 아이템 소모는 SurviveStatusManager 가 같은 이벤트로 처리한다.
                 break;
-
+            case PeriodicActionType.DrinkHeldPotion: // 갈증: 들고 있는 포션을 오른손부터 한 개 마신다. (포션을 들 때 바로 마시는 것은 OnPotionHeld)
+                OnPotionHeld();
+                break;
         }
     }
 

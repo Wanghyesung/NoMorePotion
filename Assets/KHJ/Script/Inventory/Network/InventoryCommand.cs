@@ -8,6 +8,7 @@ namespace Enzeun.Runtime
     /// 인벤토리 요청의 종류입니다.
     /// Grant : 개발용으로 아이템을 만들어 넣음 / Transfer : 장소 사이(또는 칸 사이) 이동 / Craft : 조합 /
     /// Die : 죽어서 개인 인벤토리를 시체 상자로 / TakeOut : 포션을 꺼내 손에 듦(인벤토리에서는 사라지고 결과로 포션을 받음) /
+    /// Consume : 내 개인 인벤토리의 첫 번째 아이템 한 개를 소모함(허기. 마스터가 첫 번째 칸을 정함) /
     /// SpawnGround, Leave : 마스터만 만드는 변경 (클라이언트가 요청하지 않음)
     /// </summary>
     public enum InventoryOp : byte
@@ -20,6 +21,7 @@ namespace Enzeun.Runtime
         SpawnGround = 5,
         Leave = 6,
         TakeOut = 7,
+        Consume = 8,
     }
 
     /// <summary>

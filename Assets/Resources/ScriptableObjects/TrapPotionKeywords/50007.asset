@@ -16,7 +16,17 @@ MonoBehaviour:
   _keywordName: "\uD3ED\uBC1C"
   _effectDescription: "\uD3EC\uC158\uC774 \uB9C8\uC2DC\uAC70\uB098\n\uAE68\uC9C4
     \uACF3\uC5D0 \uBC94\uC704 \uD3ED\uBC1C \uD53C\uD574"
-  _effects: []
+  _effects:
+  - rid: 4119466684650618990
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 4119466684650618990
+      type: {class: HealthChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _healthChange:
+          _changeType: 1
+          _damageType: 1
+          _amount: 400
+          _intervalSeconds: 0
+        _durationSeconds: 0

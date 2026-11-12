@@ -25,7 +25,7 @@ namespace Enzeun.Runtime
         // 기본값 : 50%
         // 구간 판정 : 90% 이상 -> 배부름 디버프 / 20% 이하 -> 허기 디버프 / 0% -> 굶주림 디버프(허기보다 우선)
 
-        // TODO(미구현 기획): 5초당 1% 감소 (러프)
+        // 5초당 1% 자연 감소(추위 중에는 2배)는 SurviveStatusManager 가 시간을 재서 DecreaseSatiation 으로 처리합니다.
 
 
         // 포만감 초기값

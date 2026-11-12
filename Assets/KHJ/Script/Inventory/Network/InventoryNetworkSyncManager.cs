@@ -287,6 +287,15 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 내 개인 인벤토리의 첫 번째 아이템(앞 칸부터 처음 나오는 것) 한 개를 소모합니다. (허기)
+        /// 재료는 한 개, 포션은 그 포션을 없앱니다. 개인 인벤토리가 비어 있으면 NotFound 로 실패하니 아무 일도 일어나지 않은 것으로 보면 됩니다.
+        /// </summary>
+        public UniTask<InventoryResult> ConsumeFirstPersonalAsync()
+        {
+            return SendRequestAsync(new InventoryCommand { Op = InventoryOp.Consume });
+        }
+
+        /// <summary>
         /// 죽었을 때 호출합니다. 마스터가 내 개인 인벤토리의 내용을 시체 상자로 옮깁니다. 남길 것이 없으면 Invalid 로 거부됩니다.
         /// 공용 인벤과 공용 창고는 그대로 남습니다. Outcome.CorpseId 가 만들어진 상자의 ID 입니다.
         /// </summary>
