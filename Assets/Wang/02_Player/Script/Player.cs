@@ -98,6 +98,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
             CancelPending();
             if (attackTarget != null)
                 attackTarget.SetTargetable(false);
+
+            OnDead?.Invoke(transform.position);
         }
 
         // HP 차감량만 보정한다. 피격 위치·넉백에 쓰는 원본 공격 정보는 유지한다.

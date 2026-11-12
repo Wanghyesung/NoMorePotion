@@ -1,5 +1,6 @@
 ﻿using Enzeun.Runtime;
 using Enzeun.SO;
+using Photon.Pun;
 using Sirenix.OdinInspector;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -22,6 +23,9 @@ public class PotionMover : MonoBehaviour
     public PotionInstance PotionInstance => potion.Instance;
     public bool HasExploded { get; private set; }
     private bool canExplodeOnContact;
+    private PhotonView photonView;
+
+    private void Awake() => photonView = GetComponent<PhotonView>();
 
     [SerializeField] private LayerMask mask;
     [SerializeField] private GameObject impactPrefab;
@@ -116,6 +120,13 @@ public class PotionMover : MonoBehaviour
         canExplodeOnContact = true;
     }
 
+    public void ThrowVisual(ThrowData data, float elapsedSeconds)
+    {
+        canExplodeOnContact = false;
+        movement.enabled = true;
+        movement.Launch(data, mask, elapsedSeconds, false);
+    }
+
     public void Drink(Vector3 position)
     {
         canExplodeOnContact = false;
@@ -124,13 +135,45 @@ public class PotionMover : MonoBehaviour
 
     public void ExplodeAt(Vector3 position)
     {
-        if (HasExploded == true)
+        FinishExplosion(position, false);
+    }
+
+    private void FinishExplosion(Vector3 position, bool impact)
+    {
+        if (HasExploded || (photonView != null && photonView.ViewID != 0 && !photonView.IsMine))
+            return;
+
+        bool networked = photonView != null && photonView.ViewID != 0;
+        if (networked)
+            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact);
+
+        PlayExplosion(position, impact, true);
+        if (networked)
+            PhotonNetwork.Destroy(gameObject);
+        else
+            Destroy(gameObject);
+    }
+
+    [PunRPC]
+    private void RpcExplode(Vector3 position, bool impact, PhotonMessageInfo info)
+    {
+        if (info.Sender != photonView.Owner || photonView.IsMine)
+            return;
+
+        // 삭제는 소유자가 뒤이어 보내는 PhotonNetwork.Destroy로 처리합니다.
+        PlayExplosion(position, impact, false);
+    }
+
+    private void PlayExplosion(Vector3 position, bool impact, bool applyEffects)
+    {
+        if (HasExploded)
             return;
 
         HasExploded = true;
         canExplodeOnContact = false;
         movement.enabled = false;
-
+        if (impact)
+            PlayImpact(position);
 
         if (Data.explosionPrefab != null)
         {
@@ -138,14 +181,18 @@ public class PotionMover : MonoBehaviour
             if (explosion == null)
             {
                 Debug.LogError("[Potionover] : 폭발 프리팹이 없습니다");
-                Destroy(gameObject);
                 return;
             }
-            explosion.GetComponent<PotionDetector>()?.Initialize(PotionInstance);
+            if (explosion.TryGetComponent(out PotionDetector detector))
+            {
+                if (applyEffects)
+                    detector.Initialize(PotionInstance);
+                else
+                    detector.InitializeVisual(Data);
+            }
 
         }
 
-        Destroy(gameObject);
     }
 
     // hitPoint: SphereCast로 얻은 월드 충돌 위치
@@ -154,9 +201,11 @@ public class PotionMover : MonoBehaviour
         if (canExplodeOnContact == false || HasExploded == true)
             return;
 
-        canExplodeOnContact = false;
-        movement.enabled = false;
+        FinishExplosion(hitPoint, true);
+    }
 
+    private void PlayImpact(Vector3 hitPoint)
+    {
         if (impactPrefab != null)
         {
             GameObject particleObj =
@@ -180,6 +229,5 @@ public class PotionMover : MonoBehaviour
             }, PoolManager.GetReleaseToken(particleObj));
         }
 
-        ExplodeAt(hitPoint);
     }
 }

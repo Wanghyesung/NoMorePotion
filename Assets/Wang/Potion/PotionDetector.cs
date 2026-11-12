@@ -54,12 +54,24 @@ public sealed class PotionDetector : MonoBehaviour
         }
 
         instance = potionInstance;
+        InitializeEffect(instance.Data);
+        TryAttack();
+    }
+
+    public void InitializeVisual(PotionData data)
+    {
+        instance = null;
+        InitializeEffect(data);
+    }
+
+    private void InitializeEffect(PotionData data)
+    {
 
         #region 진희진
         // 판정과 이펙트는 같은 radius(소 3 / 중 5 / 대 8m, PotionExplosionConfig) 따로 적용
         // 루트 스케일은 1로 고정, 루트를 키우면 자식 이펙트까지 같이 커져 크기가 이중으로 곱해진다.
 
-        float radius = PotionExplosionConfig.Instance.GetRadius(instance.Data.potionExplosionRange);
+        float radius = PotionExplosionConfig.Instance.GetRadius(data.potionExplosionRange);
 
         transform.localScale = Vector3.one; // 루트는 그대로
 
@@ -68,7 +80,7 @@ public sealed class PotionDetector : MonoBehaviour
             effectRoot.localScale = Vector3.one * (radius / effectBaseRadius);
 
         // 이펙트 색 = 원래 색 × 포션 색 (PotionData의 포션 액체 색상)
-        ApplyEffectColor(instance.Data.potionColor);
+        ApplyEffectColor(data.potionColor);
 
         #endregion
 
@@ -99,7 +111,6 @@ public sealed class PotionDetector : MonoBehaviour
             PoolManager.Instance.Release(gameObject);
         }, PoolManager.GetReleaseToken(gameObject));
 
-        TryAttack();
     }
 
     private void TryAttack()
