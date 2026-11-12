@@ -4,6 +4,8 @@ using R3;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
+using PhotonPlayer = Photon.Realtime.Player;
 
 /// <summary>
 /// 한 판의 진행 단계 관리 (준비 → 플레이 → 끝).
@@ -24,6 +26,10 @@ using UnityEngine.InputSystem;
 ///
 /// [읽는 값] Record(끝나기 전 null), Result(끝나기 전 None), IsEnded
 /// [단계] Preparing → Playing → Ended, 한 방향으로만. 전환은 ChangePhase만
+///   멀티: 단계는 방장이 정하고 클라이언트는 RPC로 따라감 (스스로 바꾸지 않음)
+///   시작: 각자 로드 → PlayerProps.LOADED → 방장이 전원 로드(최대 loadTimeout초) 대기 → StartClock → RpcStart
+///   늦게 로드된 클라이언트: RpcRequestPhase로 현재 단계 요청 (Playing → RpcStart / Ended → RpcApplyEnded)
+///   입력은 Playing 진입(EnterPlaying)에서만 켜짐
 /// </remarks>
 public class GameSessionManager : MonoBehaviour
 {
@@ -36,6 +42,8 @@ public class GameSessionManager : MonoBehaviour
     private GameObject spawnedPlayer;
     // [임시] CBT용 죽으면 게임종료
     private Player localPlayer;
+
+    [SerializeField] private float loadTimeout = 30f;   // 로드 대기 최대 시간
 
     private PhotonView view;
     private ReactiveProperty<SessionPhase> phase = new ReactiveProperty<SessionPhase>(SessionPhase.Preparing);
@@ -124,6 +132,10 @@ public class GameSessionManager : MonoBehaviour
     /// </summary>
     private async UniTaskVoid RunStartSequence()
     {
+        // 플레이어 입력 막기
+        if (InputManager.Instance != null)
+            InputManager.Instance.SetInputEnabled(false);
+
         // 다른 오브젝트의 Start(구독 등록)가 끝난 뒤 진행하기 위해 한 프레임 대기
         // 대기 중 파괴되면(타이틀로 나감) 이후 단계는 실행되지 않음
         var token = this.GetCancellationTokenOnDestroy();
@@ -138,21 +150,30 @@ public class GameSessionManager : MonoBehaviour
         if (playerPrefab != null && SpawnLocalPlayer() == false)
             return;
 
-        // TODO(멀티): 전원 씬 로드 완료 대기
+        MarkLoaded();
 
-        // InputManager는 씬을 넘어 유지되므로, 이전 판 결과창에서 꺼 둔 입력·커서를 되돌린다
-        if (InputManager.Instance != null)
+        if (GameAuthority.HasAuthority)
         {
-            InputManager.Instance.SetInputEnabled(true);
-            InputManager.Instance.SetCursorLocked(true);
+            float deadline = Time.realtimeSinceStartup + loadTimeout;
+
+            await UniTask.WaitUntil(() => AllLoaded() || Time.realtimeSinceStartup >= deadline, cancellationToken: token);
+
+            if (!AllLoaded())
+                Debug.LogWarning($"[GameSessionManager] 로드 대기 {loadTimeout}초 초과, 로드 안 된 플레이어 제외하고 시작 ");
+
+            if (TimeManager.Instance != null)
+                TimeManager.Instance.StartClock();
+            else
+                Debug.LogWarning("[GameSessionManager] 타임매니저 없음");
+
+            EnterPlaying();
+
+            if (CanSend())
+                view.RPC(nameof(RpcStart), RpcTarget.Others);
         }
 
-        if (TimeManager.Instance != null)
-            TimeManager.Instance.StartClock();
         else
-            Debug.LogWarning("[GameSessionManager] 타임매니저 없음");
-
-        ChangePhase(SessionPhase.Preparing, SessionPhase.Playing);
+            view.RPC(nameof(RpcRequestPhase), RpcTarget.MasterClient);
     }
 
     private bool SpawnLocalPlayer()
@@ -178,6 +199,39 @@ public class GameSessionManager : MonoBehaviour
 
         return true;
     }
+
+    #endregion
+
+    #region 로딩
+    private void MarkLoaded()
+    {
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.LOADED, true } });
+    }
+
+    private bool AllLoaded()
+    {
+        foreach(PhotonPlayer p in PhotonNetwork.PlayerList)
+        {
+            if (!PlayerProps.IsLoaded(p))
+                return false;
+        }
+
+        return true;
+    }
+
+    private void EnterPlaying()
+    {
+        if (!ChangePhase(SessionPhase.Preparing, SessionPhase.Playing))
+            return;
+
+        // 페이즈 스타트되면 커서 잠금, 입력켜기
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.SetInputEnabled(true);
+            InputManager.Instance.SetCursorLocked(true);
+        }
+    }
+    
 
     #endregion
 
@@ -287,12 +341,36 @@ public class GameSessionManager : MonoBehaviour
     #endregion
 
     #region 네트워크
-    private void SendEnded(GameRecord record)
+
+    [PunRPC]
+    private void RpcStart(PhotonMessageInfo info)
     {
-        if (view == null || !PhotonNetwork.InRoom)
+        if (info.Sender == null || !info.Sender.IsMasterClient)
             return;
 
-        view.RPC(nameof(RpcApplyEnded), RpcTarget.Others, (int)record.Result, record.PlayTime, record.DayCount); 
+        EnterPlaying();
+    }
+
+    [PunRPC]
+    private void RpcRequestPhase(PhotonMessageInfo info)
+    {
+        if (!GameAuthority.HasAuthority || info.Sender == null)
+            return;
+
+        switch(phase.CurrentValue)
+        {
+            case SessionPhase.Playing:
+                view.RPC(nameof(RpcStart), info.Sender);
+                return;
+
+            case SessionPhase.Ended:
+                SendEnded(record.Value, info.Sender);
+                return;
+
+                // 전원 로드 이후 RpcStart 보내기때문에 그때 받음. 여기서는 무시
+            case SessionPhase.Preparing:
+                return;
+        }
     }
 
     [PunRPC]
@@ -310,6 +388,35 @@ public class GameSessionManager : MonoBehaviour
         rankingSubmit.Value = RankingSubmitResult.NotHost;
         Debug.Log($"[GameSessionManager] 방장 종료 수신 : {(GameResult)result} ({dayCount}일차, {playtime:F1}초)");
     }
+
+    #region 내부
+
+    /// <summary> 방장 → 다른 모든 사람 (Finish에서) </summary>
+    private void SendEnded(GameRecord record)
+    {
+        if (!CanSend()) return;
+        view.RPC(nameof(RpcApplyEnded), RpcTarget.Others, BuildEndedArgs(record));
+    }
+
+    /// <summary> 방장 → 한 사람 (늦게 로드된 사람의 요청 응답, RpcRequestPhase에서) </summary>
+    private void SendEnded(GameRecord record, PhotonPlayer target)
+    {
+        if (target == null || !CanSend()) return;
+        view.RPC(nameof(RpcApplyEnded), target, BuildEndedArgs(record));
+    }
+
+
+    // RpcApplyEnded 인자 순서와 반드시 같아야 함
+    private object[] BuildEndedArgs(GameRecord record)
+    {
+        return new object[] { (int)record.Result, record.PlayTime, record.DayCount };
+    }
+
+    private bool CanSend()
+    {
+        return view != null && PhotonNetwork.InRoom;
+    }
+    #endregion
 
     #endregion
 
