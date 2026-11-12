@@ -19,8 +19,9 @@ public class InventoryController : MonoBehaviour
 {
     [Header("전체")]
     [SF] private CanvasGroup invenCanvasGroup;
-    [SF] private RectTransform invenRect;
+    public RectTransform invenRect;
     public InventoryIcon iconPrefab;
+    [SF] private Canvas invenCanvas;
 
     [Header("공용 인벤토리")]
     [SF] private PublicInventory publicInventory;
@@ -29,14 +30,18 @@ public class InventoryController : MonoBehaviour
 
     [Header("개인 인벤토리")]
 
+    [Header("조합창")]
+    [SF] private CombinationController combineController;
+
     [Header("창고")]
     [SF] private RectTransform storageSideRect;
     
 
     [Header("시체 상자")]
     [SF] private RectTransform rootBoxSideRect;
-
-    bool flag = false;
+    
+    private bool isOpen = false;
+    private bool flag = false;
     private InputAction closeAction;
 
     public List<InventoryIcon> publicList;
@@ -47,6 +52,14 @@ public class InventoryController : MonoBehaviour
     private void Awake()
     {
         publicList = new();
+
+        isOpen = false;
+        invenCanvasGroup.alpha = 0f;
+        invenCanvasGroup.blocksRaycasts = false;
+        invenCanvas.enabled = false;
+
+        if (combineController == null)
+            combineController = GetComponentInChildren<CombinationController>();
     }
 
     private void Start()
@@ -120,28 +133,32 @@ public class InventoryController : MonoBehaviour
     /// <returns></returns>
     public async UniTask InventoryActive(CancellationToken token)
     {
-        bool fade = false;
+        isOpen = !isOpen;
+        bool open = isOpen;
 
-        if (invenRect.gameObject.activeSelf)
+        if (open)
         {
-            fade = false;
-            InputManager.Instance.SetCursorLocked(true);
-            InputManager.Instance.SetInputEnabled(true);
-        }
-        else
-        {
-            invenRect.gameObject.SetActive(true);
-            fade = true;
+            combineController.ChangeQuickCombinedEnable();
+            invenCanvas.enabled = true;
+            invenCanvasGroup.blocksRaycasts = true;
             InputManager.Instance.SetCursorLocked(false);
             InputManager.Instance.SetInputEnabled(false);
         }
+        else
+        {
+            combineController.ChangeQuickCombinedDisable();
+            invenCanvasGroup.blocksRaycasts = false;
+            InputManager.Instance.SetCursorLocked(true);
+            InputManager.Instance.SetInputEnabled(true);
+        }
 
-        await invenCanvasGroup.DOFade(fade ? 1 : 0, COMMON_FADE_TIME)
+        bool canceled = await invenCanvasGroup.DOFade(open ? 1f : 0f, COMMON_FADE_TIME)
             .SetUpdate(true)
-            .WithCancellation(token);
+            .ToUniTask(cancellationToken: token)
+            .SuppressCancellationThrow();
 
-        if (!fade)
-            invenRect.gameObject.SetActive(false);
+        if (!canceled && !open)
+            invenCanvas.enabled = false;
     }
 
     /// <summary>
