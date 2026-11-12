@@ -40,6 +40,33 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 포션의 체력 증감(대미지, 회복) 효과만 대상 한 개에게 적용합니다. 상태 효과, 생존 상태 증감, 월드 오브젝트 대미지는 건너뜁니다.
+        /// 범위 장판이 간격마다 반복해서 적용하는 틱에 쓰며, 처음 폭발 때 이미 적용한 나머지 효과가 반복되지 않게 합니다.
+        /// </summary>
+        public static void ApplyHealthOnly(PotionData potion, in PotionTarget target, Vector3 explosionPosition)
+        {
+            if (potion == null)
+            {
+                return;
+            }
+
+            Apply(potion.effects, potion, target, explosionPosition, true);
+        }
+
+        /// <summary>
+        /// 함정 키워드의 체력 증감 효과만 대상 한 개에게 적용합니다. (범위 장판의 반복 틱용)
+        /// </summary>
+        public static void ApplyHealthOnly(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition)
+        {
+            if (keyword == null)
+            {
+                return;
+            }
+
+            Apply(keyword.Effects, keyword, target, explosionPosition, true);
+        }
+
+        /// <summary>
         /// 함정 키워드의 효과를 대상 한 개에게 적용합니다. (원래 포션의 효과에 더해서 적용)
         /// </summary>
         public static void Apply(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition)
@@ -55,10 +82,16 @@ namespace Enzeun.Runtime
 
         /// <param name="effects">적용할 효과 목록</param>
         /// <param name="source">효과를 건 주체(포션 또는 키워드 SO). 같은 주체가 다시 걸었을 때 중첩 정책이 의도대로 동작하게 합니다.</param>
-        private static void Apply(IReadOnlyList<PotionEffect> effects, Object source, in PotionTarget target, Vector3 explosionPosition)
+        /// <param name="healthOnly">true 면 체력 증감 효과만 적용합니다. (범위 장판의 반복 틱)</param>
+        private static void Apply(IReadOnlyList<PotionEffect> effects, Object source, in PotionTarget target, Vector3 explosionPosition, bool healthOnly = false)
         {
             for (int i = 0; i < effects.Count; i++)
             {
+                if (healthOnly && !(effects[i] is HealthChangePotionEffect))
+                {
+                    continue;
+                }
+
                 switch (effects[i])
                 {
                     case ApplyStatusPotionEffect status:
@@ -69,7 +102,7 @@ namespace Enzeun.Runtime
                         break;
 
                     case HealthChangePotionEffect health:
-                        // 대상에게 붙는 지속 효과다. 범위를 벗어나도 컨테이너가 남은 시간을 처리한다.
+                        // 한 번(한 틱)만 적용한다. 초당 대미지처럼 반복되는 효과는 범위 장판이 간격마다 다시 적용하므로, 범위를 벗어나면 멈춘다.
                         if (target.BuffContainer != null)
                         {
                             target.BuffContainer.ApplyPotionHealth(health, source, explosionPosition);
