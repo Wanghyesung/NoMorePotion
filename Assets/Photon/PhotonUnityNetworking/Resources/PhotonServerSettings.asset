@@ -45,8 +45,9 @@ MonoBehaviour:
   - RpcReady
   - RpcRequest
   - RpcSnapshot
-  - RpcApplyState
-  - RpcRequestState
+  - RpcTakeOutPotion
+  - RpcExplode
+  - RpcThrowPotion
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

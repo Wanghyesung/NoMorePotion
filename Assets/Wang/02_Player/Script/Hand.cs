@@ -1,10 +1,12 @@
+using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
+using Photon.Pun;
 using System;
+using System.Drawing;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using static InputManager;
-using Cysharp.Threading.Tasks;
-using Enzeun.Runtime;
 
 
 /*///////////////////////////////////////////
@@ -35,6 +37,7 @@ public sealed class Hand : MonoBehaviour
 
     #region 플레이어와 입력 상태
     private Player player;
+    private PhotonView playerView;
     private bool started;
     private bool inputSubscribed;
     #endregion
@@ -72,7 +75,15 @@ public sealed class Hand : MonoBehaviour
     public Side TakeSide => FocusedPotion == null
         ? focusedSide : (focusedSide == Side.Left ? Side.Right : Side.Left);
 
-    private void Awake() => player = GetComponent<Player>();
+    private void Awake()
+    {
+        player = GetComponent<Player>();
+        playerView = GetComponent<PhotonView>();
+
+        // 같은 수신 묶음의 포션 생성 이벤트가 Start보다 먼저 올 수 있습니다. -> TestCode
+        if (itemPrefab != null && PhotonNetwork.PrefabPool is DefaultPool pool)
+            pool.ResourceCache[itemPrefab.name] = itemPrefab.gameObject;
+    }
 
     private void Start()
     {
@@ -121,7 +132,6 @@ public sealed class Hand : MonoBehaviour
     {
         PotionInstance left = leftPotion != null ? leftPotion.PotionInstance : null;
         PotionInstance right = rightPotion != null ? rightPotion.PotionInstance : null;
-        Debug.Log($"흔들기 전달: 왼손={(left != null ? $"{left.Data} (ID: {left.InstanceId})" : "null")}, 오른손={(right != null ? $"{right.Data} (ID: {right.InstanceId})" : "null")}", this);
         OnShake?.Invoke(left, right);
     }
 
@@ -186,15 +196,47 @@ public sealed class Hand : MonoBehaviour
                     break;
                 }
 
-                Potion potion = Instantiate(itemPrefab, transform.position, Quaternion.identity);
+                GameObject potionObj = PhotonNetwork.Instantiate(itemPrefab.name, transform.position, Quaternion.identity);
+                Potion potion = potionObj.GetComponent<Potion>();
+
+                //Potion potion = Instantiate(itemPrefab, transform.position, Quaternion.identity);
                 potion.Initialize(instance);
                 Hold(side, potion.potionMover);
+
+                playerView.RPC(nameof(RpcTakeOutPotion), RpcTarget.Others,
+                    potionObj.GetComponent<PhotonView>().ViewID, (int)side, instance.Data.potionID);
             }
         }
         finally
         {
             isTakingOut = false;
         }
+    }
+
+
+
+    /* ------------------------------------------------
+                        네트워크 이벤트
+    ---------------------------------------------------*/
+    [PunRPC]
+    private void RpcTakeOutPotion(int potionViewId, int sideValue, int potionId, PhotonMessageInfo info)
+    {
+        if (info.Sender != playerView.Owner || playerView.IsMine
+            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
+            return;
+
+        PhotonView potionView = PhotonView.Find(potionViewId);
+        if (potionView == null || potionView.Owner != info.Sender)
+            return;
+
+        Side side = (Side)sideValue;
+        if (GetPotion(side) != null
+            || PotionDataManager.Instance.TryGetPotionData(potionId, out var data) == false)
+            return;
+
+        Potion potion = potionView.GetComponent<Potion>();
+        potion.InitializeVisual(data);
+        Hold(side, potion.potionMover);
     }
 
     // 포커스한 손이 비어 있으면 그 손, 아니면 반대 손을 돌려줍니다. 둘 다 차 있으면 false 입니다.
@@ -214,6 +256,9 @@ public sealed class Hand : MonoBehaviour
 
     public void Throw(Side side, ThrowData throwData)
     {
+        if (player.IsLocalPlayer == false)
+            return;
+
         PotionMover potion = GetPotion(side);
         if (potion == null)
             return;
@@ -221,6 +266,36 @@ public sealed class Hand : MonoBehaviour
         SetPotion(side, null);
         potion.transform.SetParent(null, true);
         potion.Throw(throwData);
+
+        playerView.RPC(nameof(RpcThrowPotion), RpcTarget.Others,
+            potion.GetComponent<PhotonView>().ViewID, (int)side,
+            throwData.Origin, throwData.Target, throwData.Gravity, throwData.ArcHeight, throwData.StopAtTarget);
+    }
+
+    [PunRPC]
+    private void RpcThrowPotion(int potionViewId, int sideValue, Vector3 origin, Vector3 target,
+        Vector3 gravity, float arcHeight, bool stopAtTarget, PhotonMessageInfo info)
+    {
+        if (info.Sender != playerView.Owner || playerView.IsMine
+            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
+            return;
+
+        PhotonView potionView = PhotonView.Find(potionViewId);
+        if (potionView == null || potionView.Owner != info.Sender)
+            return;
+
+        PotionMover potion = potionView.GetComponent<PotionMover>();
+        Side side = (Side)sideValue;
+        if (GetPotion(side) != potion)
+            return;
+
+        var data = new ThrowData(origin, target, gravity, arcHeight, stopAtTarget);
+        if (float.IsNaN(data.FlightTime) || float.IsInfinity(data.FlightTime) || data.FlightTime <= 0f)
+            return;
+
+        SetPotion(side, null);
+        potion.transform.SetParent(null, true);
+        potion.ThrowVisual(data, Mathf.Max(0f, (float)(PhotonNetwork.Time - info.SentServerTime)));
     }
 
     public void Drink(Side side)

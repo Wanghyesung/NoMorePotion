@@ -13,6 +13,7 @@ public sealed class ParabolicMovement : MonoBehaviour
     private float elapsedTime;
     private LayerMask collisionMask;
     private Rigidbody body;
+    private bool checkCollisions;
     public event System.Action<Vector3> OnHitAction;
     public bool IsFlying { get; private set; }
 
@@ -44,12 +45,15 @@ public sealed class ParabolicMovement : MonoBehaviour
     }
 
     // data: 발사 순간 확정된 월드 궤적. 조준선의 좌표 리스트는 참조하지 않음
-    public void Launch(ThrowData data, LayerMask mask)
+    public void Launch(ThrowData data, LayerMask mask, float elapsedSeconds = 0f, bool checkCollisions = true)
     {
+        this.checkCollisions = checkCollisions;
         collisionMask = mask;
         throwData = data;
-        elapsedTime = 0f;
-        body.position = data.Origin;
+        elapsedTime = Mathf.Max(0f, elapsedSeconds) * speedMultiplier;
+        if (data.StopAtTarget)
+            elapsedTime = Mathf.Min(elapsedTime, data.FlightTime);
+        body.position = GetFlightPosition(elapsedTime);
         body.rotation = transform.rotation;
         body.interpolation = RigidbodyInterpolation.Interpolate;
         IsFlying = true;
@@ -68,7 +72,7 @@ public sealed class ParabolicMovement : MonoBehaviour
         Vector3 delta = nextPosition - body.position;
         float distance = delta.magnitude;
 
-        if (distance > 0.0001f && Physics.SphereCast(body.position, collisionRadius,
+        if (checkCollisions && distance > 0.0001f && Physics.SphereCast(body.position, collisionRadius,
             delta / distance, out RaycastHit hit, distance, collisionMask, QueryTriggerInteraction.Collide) == true)
         {
             body.MovePosition(body.position + delta / distance * hit.distance);

@@ -42,6 +42,16 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 원격 포션은 인벤토리 인스턴스 없이 외형만 설정합니다.
+        /// </summary>
+        public void InitializeVisual(PotionData data)
+        {
+            _data = data;
+            Instance = null;
+            potionMover.InitMeshAndColor();
+        }
+
+        /// <summary>
         /// 뱃속에서 꺼낸 제작 인스턴스를 지정할 때 사용합니다. 함정 포션이면 키워드 효과가 폭발에 더해집니다.
         /// </summary>
         public void Initialize(PotionInstance instance)

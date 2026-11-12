@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6580273603360606887}
   - component: {fileID: 8345132339382727302}
   - component: {fileID: 7315166993734013683}
+  - component: {fileID: 2804034304033486125}
   m_Layer: 0
   m_Name: PotionPrefab
   m_TagString: Untagged
@@ -69,7 +70,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1472
   impactPrefab: {fileID: 1860508455090463011, guid: ff9f371b9095a474daf717c11261d546, type: 3}
-  impactLifetime: 5
   potionMesh_S: {fileID: 3044090502182019207}
   potionMesh_M: {fileID: 3043351919106009194}
   potionMesh_L: {fileID: 3011965957532694556}
@@ -118,6 +118,28 @@ MonoBehaviour:
   speedMultiplier: 3
   fallGravityMultiplier: 2
   collisionRadius: 0.06
+--- !u!114 &2804034304033486125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 117064862345573204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &2670017501387228493
 PrefabInstance:
   m_ObjectHideFlags: 0
