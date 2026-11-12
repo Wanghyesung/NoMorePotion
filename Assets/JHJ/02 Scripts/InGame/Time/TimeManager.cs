@@ -1,7 +1,9 @@
+using Photon.Pun;
 using R3;
 using System;
 using System.Threading;
 using UnityEngine;
+using PhotonPlayer = Photon.Realtime.Player;
 
 /// <summary>
 /// 인게임 내 낮/밤 순환 및 일차 관리
@@ -36,6 +38,9 @@ using UnityEngine;
 ///
 /// [주의] 구독 즉시 현재 값으로 한 번 호출됨.
 ///   전환 순간에만 실행할 거면 .Skip(1) 붙이기
+///   
+/// [TODO(멀티)] 방장 이전 시 예약(Schedule)은 새 방장에 없음 → 전 방장이 예약한 작업 유실
+///   클라이언트에서 등록한 예약은 실행·정리되지 않고 남음
 /// </remarks>
 public class TimeManager : MonoBehaviour
 {
@@ -46,7 +51,10 @@ public class TimeManager : MonoBehaviour
 
     [SerializeField] float dayDuration = 10; // [임시] 설정값
     [SerializeField] float nightDuration = 10;
-
+    [SerializeField] float syncInterval = 2f;   // 보정 간격
+    
+    private float syncTimer;
+    private PhotonView view;
     private TimerScheduler timer = new TimerScheduler();
     // StartClock에서만 생성. null = 시작 전 (미리 생성하지 말 것)
     private TimeState state;
@@ -85,6 +93,16 @@ public class TimeManager : MonoBehaviour
         }
 
         Instance = this;
+
+        view = gameObject.GetComponent<PhotonView>();
+        if (view == null)
+            Debug.LogWarning("[TimeManager] PhotonView 없음 -> 멀티 동기화 불가", this);
+    }
+
+    private void Start()
+    {
+        if (view != null && PhotonNetwork.InRoom && !GameAuthority.HasAuthority)
+            view.RPC(nameof(RpcRequestState), RpcTarget.MasterClient);
     }
 
     private void OnValidate()
@@ -107,10 +125,12 @@ public class TimeManager : MonoBehaviour
     private void Update()
     {
         if (!isRunning) return;
-        // TODO(멀티): 방장만 진행하므로 다른 클라이언트는 값이 갱신되지 않음. 동기화 어떻게할지
-        if (!GameAuthority.HasAuthority) return;
+        
+        if (GameAuthority.HasAuthority)
+            Tick(Time.deltaTime);
+        else
+            PredictTick(Time.deltaTime);
 
-        Tick(Time.deltaTime);
     }
 
     /// <summary>시계를 1일차 낮으로 초기화하고 시작한다. 이미 진행 중이면 무시.</summary>
@@ -123,9 +143,11 @@ public class TimeManager : MonoBehaviour
         }
 
         state = new TimeState { DayCount = 1, Phase = TimePhase.Day, Elapsed = 0, TotalElapsed = 0 };
+        syncTimer = 0f;
         isRunning = true;
         SyncPublicValues();
 
+        SendState();
         Debug.Log("[TimeManager] 1일차 낮 시작");
     }
 
@@ -142,6 +164,7 @@ public class TimeManager : MonoBehaviour
         }
 
         isRunning = false;
+        SendState();
         Debug.Log($"[TimeManager] 시계 정지 ({state.DayCount}일차 {state.Phase}, 총 {state.TotalElapsed:F1}초)");
     }
 
@@ -181,6 +204,23 @@ public class TimeManager : MonoBehaviour
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
 
         timer.Tick(state.TotalElapsed);
+
+        // 주기 보정
+        syncTimer += deltaTime;
+        if(syncTimer >= syncInterval)
+        {
+            syncTimer = 0f;
+            SendState();
+        }
+    }
+
+    // MasterClient가 아니라면 시간만 흘리고 낮밤 전환이나 예약실행 없음
+    private void PredictTick(float deltaTime)
+    {
+        // 실제 전환은 방장 메세지가 오면
+        state.Elapsed = Mathf.Min(state.Elapsed + deltaTime, currentDuration);
+        state.TotalElapsed += deltaTime;
+        remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
     }
 
     /// <summary>낮↔밤 전환. 일차는 아침 기준으로 증가. 전환은 반드시 이 함수를 거침</summary>
@@ -197,6 +237,7 @@ public class TimeManager : MonoBehaviour
 
         Debug.Log($"[TimeManager] {state.DayCount}일차 {state.Phase}");
         SyncPublicValues();
+        SendState();
     }
 
     private void SyncPublicValues()
@@ -205,6 +246,62 @@ public class TimeManager : MonoBehaviour
         dayCount.Value = state.DayCount;
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
     }
+
+    //===================================================================
+    #region 네트워크
+    /// <summary> 방장 → 다른 모든 사람 </summary>
+    private void SendState()
+    {
+        if (!CanSendState()) return;
+        view.RPC(nameof(RpcApplyState), RpcTarget.Others, BuildStateArgs());
+    }
+
+    [PunRPC]
+    private void RpcApplyState(int day, int phaseValue, float elapsed, float totalElapsed, bool running, PhotonMessageInfo info)
+    {
+        if (info.Sender == null || !info.Sender.IsMasterClient)
+            return;
+
+        // 보내는 동안 흐른 시간 보정
+        float lag = running ? Mathf.Max(0f, (float)(PhotonNetwork.Time - info.SentServerTime)) : 0f;
+
+        state ??= new TimeState(); // state가 null이면
+        state.DayCount = day;
+        state.Phase = (TimePhase)phaseValue;
+        state.Elapsed = Mathf.Min(elapsed + lag, currentDuration);
+        state.TotalElapsed = totalElapsed + lag;
+        isRunning = running;
+
+        SyncPublicValues(); //같은 값이면 ReactiveProperty가 알림을 안 보내서 중복 실행 없음
+    }
+
+    // 마스터보다 늦게 들어온 경우 첫 메시지 요청
+    // 방장 state가 아직 없으면 응답하지 않음 → 주기 보정(syncInterval)이 안전망
+    [PunRPC]
+    private void RpcRequestState(PhotonMessageInfo info)
+    {
+        SendState(info.Sender);
+    }
+
+    /// <summary> 방장 → 특정 한 사람 (늦게 들어온 사람 응답용) </summary>
+    private void SendState(PhotonPlayer target)
+    {
+        if (target == null || !CanSendState()) return;
+        view.RPC(nameof(RpcApplyState), target, BuildStateArgs());
+    }
+
+    // RpcApplyState 인자 순서와 반드시 같아야 함
+    private object[] BuildStateArgs()
+    {
+        return new object[] { state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning };
+    }
+
+    private bool CanSendState()
+    {
+        return view != null && PhotonNetwork.InRoom && GameAuthority.HasAuthority && state != null;
+    }
+    #endregion
+    //===================================================================
 
     // 디버그용
     [ContextMenu("다음 단계로 강제 전환")]
