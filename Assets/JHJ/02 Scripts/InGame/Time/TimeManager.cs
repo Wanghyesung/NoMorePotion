@@ -91,6 +91,8 @@ public class TimeManager : MonoBehaviour
         Instance = this;
 
         view = gameObject.GetComponent<PhotonView>();
+        if (view == null)
+            Debug.LogWarning("[TimeManager] PhotonView 없음 -> 멀티 동기화 불가", this);
     }
 
     private void Start()
@@ -197,6 +199,14 @@ public class TimeManager : MonoBehaviour
         remainSec.Value = Mathf.CeilToInt(currentDuration - state.Elapsed);
 
         timer.Tick(state.TotalElapsed);
+
+        // 주기 보정
+        syncTimer += deltaTime;
+        if(syncTimer >= syncInterval)
+        {
+            syncTimer = 0f;
+            SendState();
+        }
     }
 
     // MasterClient가 아니라면 시간만 흘리고 낮밤 전환이나 예약실행 없음
@@ -236,7 +246,7 @@ public class TimeManager : MonoBehaviour
     #region 네트워크
     private void SendState(RpcTarget target = RpcTarget.Others)
     {
-        if (!PhotonNetwork.InRoom || !GameAuthority.HasAuthority || state == null)
+        if (view == null || !PhotonNetwork.InRoom || !GameAuthority.HasAuthority || state == null)
             return;
 
         view.RPC(nameof(RpcApplyState), target, state.DayCount, (int)state.Phase, state.Elapsed, state.TotalElapsed, isRunning);
