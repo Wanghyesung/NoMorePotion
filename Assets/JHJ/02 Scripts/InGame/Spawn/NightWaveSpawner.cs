@@ -6,7 +6,6 @@ public class NightWaveSpawner : MonoBehaviour
 {
     [SerializeField] private WaveTable waveTable;
     [SerializeField] private Transform[] spawnPoints;
-    [SerializeField] private Transform spawnRoot;
     [SerializeField] private GameObject defendTarget;   // 수정 구슬
     private CompositeDisposable pendingSpawns = new CompositeDisposable(); // 예약 중 묶음
     private TimeManager time;
@@ -26,6 +25,8 @@ public class NightWaveSpawner : MonoBehaviour
             return;
         }
 
+        RegisterAllPrefabs();
+
         pendingSpawns.AddTo(this);
         time.Phase
             .Where(p => p == TimePhase.Night)
@@ -38,11 +39,25 @@ public class NightWaveSpawner : MonoBehaviour
             .AddTo(this);
     }
 
+    // 웨이브 테이블의 모든 몬스터를 풀 대상으로 등록 (모든 클라이언트)
+    // 방장이 생성 주문을 보냈을 때 각자 PhotonPoolAdapter 장부에서 찾을 수 있어야 함
+    private void RegisterAllPrefabs()
+    {
+        foreach (WaveData wave in waveTable.Waves)
+        {
+            if (wave == null)
+                continue;
+
+            foreach (WaveEntry entry in wave.Entries)
+            {
+                if (entry != null && entry.Prefab != null)
+                    PhotonPoolAdapter.RegisterPooled(entry.Prefab);
+            }
+        }
+    }
+
     private void StartWave()
     {
-        if (!GameAuthority.HasAuthority)
-            return;
-
         // TODO(세이브): 밤에 불러오기 시 웨이브 재시작 여부
         CancelPendingSpawns();
 
@@ -54,6 +69,17 @@ public class NightWaveSpawner : MonoBehaviour
             return;
         }
 
+        // Prewarm은 모든 클라이언트: 방장의 생성 주문이 오면 각자 자기 풀에서 꺼냄
+        foreach (WaveEntry entry in wave.Entries)
+        {
+            if (entry.Prefab != null)
+                NetPool.Prepare(entry.Prefab, entry.Count);
+        }
+
+        // 생성 예약은 방장만 (다른 클라이언트는 포톤 생성 이벤트로 받음)
+        if (!GameAuthority.HasAuthority)
+            return;
+
         int order = 0;
 
         foreach(WaveEntry entry in wave.Entries)
@@ -63,8 +89,6 @@ public class NightWaveSpawner : MonoBehaviour
                 Debug.LogWarning("[NightWaveSpawner] entry 프리팹 없음");
                 continue;
             }
-
-            PoolManager.Instance.Prewarm(entry.Prefab, entry.Count);
 
             for (int i = 0; i < entry.Count; i++)
             {
@@ -82,7 +106,9 @@ public class NightWaveSpawner : MonoBehaviour
     private void SpawnOne(GameObject prefab)
     {
         Transform point = PickSpawnPoint();
-        GameObject go = PoolManager.Instance.Get(prefab, point.position, point.rotation, spawnRoot);
+        // 방 안: 방장이 포톤으로 생성 → 모든 클라이언트에 생성됨 / 방 밖: 로컬 풀에서 생성
+        // 포톤 생성은 부모 지정 불가 → 씬 루트에 생성
+        GameObject go = NetPool.Spawn(prefab, point.position, point.rotation);
         if (go == null) return;
 
         // 웨이브 몹은 기본적으로 수정 구슬을 노림
@@ -94,7 +120,6 @@ public class NightWaveSpawner : MonoBehaviour
             combat.Died += OnMonsterDied;
             aliveCount++;
         }
-        // TODO(멀티): Resources 이동 후 PhotonNetwork.InstantiateRoomObject(prefab.name, ...)
     }
 
     private Transform PickSpawnPoint()

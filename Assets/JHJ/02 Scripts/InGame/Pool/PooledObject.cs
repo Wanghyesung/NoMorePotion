@@ -1,12 +1,13 @@
 using System;
 using System.Threading;
 using UnityEngine;
+using Photon.Pun;
 
 /// <summary>
 /// 풀에서 나왔다는 표시 PoolManager가 생성 시 자동으로 붙임 → 프리팹에 직접 붙이지 말 것
 /// 출신 프리팹(반납할 풀 찾기용), 풀 안 여부(두 번 반납 막기용), IPoolable 목록(캐싱)을 가짐
 /// </summary>
-public class PooledObject : MonoBehaviour
+public class PooledObject : MonoBehaviour, IPunInstantiateMagicCallback
 {
     public GameObject OriginalPrefab {  get; private set; }
     public bool IsInPool { get; private set; }
@@ -91,5 +92,11 @@ public class PooledObject : MonoBehaviour
             // 취소 콜백 하나가 실패해도 반납은 계속
             Debug.LogException(e, this);
         }
+    }
+
+    // 포톤 호출
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        NotifyGet();
     }
 }

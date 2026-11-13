@@ -8,6 +8,8 @@ public class OutGameUI : MonoBehaviour
     [SerializeField] private GameObject lobbyPanel;
     [SerializeField] private GameObject roomPanel;
     [SerializeField] private GameObject offlineSetupPanel;
+    [SerializeField] private LoadingPanelUI loadingPanel;
+
     
     [SerializeField] private PopupUI popup;
 
@@ -23,6 +25,7 @@ public class OutGameUI : MonoBehaviour
 
         manager.State.Subscribe(ApplyState).AddTo( this );
         manager.Error.Subscribe(popup.Show).AddTo( this );
+        manager.GameStarting.Subscribe(_ => loadingPanel.ShowWaiting()).AddTo(this);
         
     }
 

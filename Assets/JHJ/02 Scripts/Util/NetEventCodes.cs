@@ -5,4 +5,6 @@
 public static class NetEventCodes
 {
     public const byte RoomChat = 1;
+    public const byte GameStarting = 2;
+
 }
