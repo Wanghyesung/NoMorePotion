@@ -11,12 +11,14 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 using PhotonPlayer = Photon.Realtime.Player;
 using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
+using System.Threading.Tasks;
 
 public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     public static NetworkFlowManager Instance { get; private set; }
 
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
+    private const int LOADED_DELAY_MS = 300;
 
 
     private ReactiveProperty<FlowState> state;
@@ -29,6 +31,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private PhotonPlayer pendingNewMaster;  // 방장 변경 안내를 퇴장 안내 뒤에 띄우려고 잠시 보관
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
     private bool isLeavingToLobby;          // 멀티 인게임에서 나가는 중 (방 나가기 → 로비 입장까지)
+    private readonly Subject<Unit> gameStarting = new Subject<Unit>();
 
 
     // 실제 값은 NicknameService가 가짐. UI는 기존처럼 매니저를 통해 구독
@@ -46,6 +49,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public Observable<ChatMessage> ChatReceived => chat.Received;
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
+    public Observable<Unit> GameStarting => gameStarting;
 
     //===============================================================
 
@@ -102,6 +106,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         nicknameService?.Dispose();
         room?.Dispose();
         chat?.Dispose();
+        gameStarting?.Dispose();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
@@ -541,10 +546,27 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     #region 내부
 
-    private void StartGameInternal()        // 오프라인 게임도 여기로 시작
+    private async UniTaskVoid StartGameInternal()        // 오프라인 게임도 여기로 시작
     {
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
+
+        gameStarting.OnNext(Unit.Default);  // MasterClient, 싱글은 바로 표시
+
+        if (!PhotonNetwork.OfflineMode) // 다른 사람에게 알림
+            PhotonNetwork.RaiseEvent(
+                NetEventCodes.GameStarting,
+                null,
+                new RaiseEventOptions { Receivers = ReceiverGroup.Others },
+                SendOptions.SendReliable);
+
+        // 패널이 모두의 화면에 그려질 시간
+        bool canceled = await UniTask.Delay(LOADED_DELAY_MS, DelayType.Realtime, cancellationToken:
+            this.GetCancellationTokenOnDestroy()).SuppressCancellationThrow();
+
+        if (canceled || !PhotonNetwork.InRoom)
+            return;
+
         PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
     }
 
@@ -552,8 +574,19 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     public void OnEvent(EventData photonEvent)
     {
-        if (photonEvent.Code != NetEventCodes.RoomChat) return;
-        chat.Receive(photonEvent.Sender, photonEvent.CustomData);
+        // RasieEvent 
+        switch(photonEvent.Code)
+        {
+            case NetEventCodes.RoomChat:
+                chat.Receive(photonEvent.Sender, photonEvent.CustomData);
+                break;
+
+            case NetEventCodes.GameStarting:
+                if(PhotonNetwork.MasterClient != null && photonEvent.Sender == PhotonNetwork.MasterClient.ActorNumber)
+                    gameStarting.OnNext(Unit.Default);
+                break;
+        }
+        
     }
 
     #endregion
