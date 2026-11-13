@@ -3541,12 +3541,11 @@ MonoBehaviour:
   aimCamera: {fileID: 0}
   targetLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 1088
   maxAimDistance: 40
-  fallbackDistance: 10
+  groundProbeDistance: 100
   minArcHeight: 0.01
-  maxArcHeight: 0.5
-  maxArcDistance: 10
+  maxArcHeight: 1
   pointCount: 40
   fadePointCount: 20
   positions: []

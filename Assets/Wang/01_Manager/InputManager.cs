@@ -115,6 +115,9 @@ public sealed class InputManager : MonoBehaviour
 
     private void Update()
     {
+        if (Keyboard.current != null && Keyboard.current.altKey.wasPressedThisFrame)
+            SetCursorLocked(!cursorLocked);
+
         if (HasGameplayInput == false)
             return;
 

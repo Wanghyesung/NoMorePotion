@@ -2,7 +2,6 @@ using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
 using Photon.Pun;
 using System;
-using System.Drawing;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -30,7 +29,6 @@ public sealed class Hand : MonoBehaviour
 
     #region 포션 생성과 사용
     [SerializeField] private Potion itemPrefab;
-    //[SerializeField] private Inventory inventory = new Inventory();
     [SerializeField] private UnityEvent<PotionMover> OnDrink = new UnityEvent<PotionMover>();
     private bool isTakingOut;
     #endregion
@@ -199,7 +197,6 @@ public sealed class Hand : MonoBehaviour
                 GameObject potionObj = PhotonNetwork.Instantiate(itemPrefab.name, transform.position, Quaternion.identity);
                 Potion potion = potionObj.GetComponent<Potion>();
 
-                //Potion potion = Instantiate(itemPrefab, transform.position, Quaternion.identity);
                 potion.Initialize(instance);
                 Hold(side, potion.potionMover);
 
@@ -241,9 +238,10 @@ public sealed class Hand : MonoBehaviour
         potion.transform.SetParent(null, true);
         potion.Throw(throwData);
 
+        // 다른 클라이언트도 같은 목표점과 높이로 포물선을 복원한다.
         playerView.RPC(nameof(RpcThrowPotion), RpcTarget.Others,
             potion.GetComponent<PhotonView>().ViewID, (int)side,
-            throwData.Origin, throwData.Target, throwData.Gravity, throwData.ArcHeight, throwData.StopAtTarget);
+            throwData.Origin, throwData.Target, throwData.Gravity, throwData.ArcHeight);
     }
 
 
@@ -297,7 +295,7 @@ public sealed class Hand : MonoBehaviour
 
     [PunRPC]
     private void RpcThrowPotion(int potionViewId, int sideValue, Vector3 origin, Vector3 target,
-        Vector3 gravity, float arcHeight, bool stopAtTarget, PhotonMessageInfo info)
+        Vector3 gravity, float arcHeight, PhotonMessageInfo info)
     {
         if (info.Sender != playerView.Owner || playerView.IsMine
             || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
@@ -312,12 +310,13 @@ public sealed class Hand : MonoBehaviour
         if (GetPotion(side) != potion)
             return;
 
-        var data = new ThrowData(origin, target, gravity, arcHeight, stopAtTarget);
-        if (data.FlightTime <= 0f)
+        if (arcHeight <= 0f || gravity.sqrMagnitude <= 0f)
             return;
+        var data = new ThrowData(origin, target, gravity, arcHeight);
 
         SetPotion(side, null);
         potion.transform.SetParent(null, true);
+        // 송신 후 지난 시간만큼 이동을 보정하며, 원격 포션은 이동 연출만 담당한다.
         potion.ThrowVisual(data, Mathf.Max(0f, (float)(PhotonNetwork.Time - info.SentServerTime)));
     }
 

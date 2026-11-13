@@ -2,7 +2,6 @@
 using Enzeun.SO;
 using Photon.Pun;
 using Sirenix.OdinInspector;
-using Unity.VisualScripting;
 using UnityEngine;
 
 /*///////////////////////////////////////////
@@ -28,9 +27,8 @@ public class PotionMover : MonoBehaviour
     private void Awake() => photonView = GetComponent<PhotonView>();
 
     [SerializeField] private LayerMask mask;
+    public LayerMask CollisionMask => mask;
     [SerializeField] private GameObject impactPrefab;
-
-    //[SerializeField, Min(0f)] private float impactLifetime = 5f;
 
     [SerializeField, BoxGroup("포션 연결"), LabelText("포션 메시 (소)")]
     private GameObject potionMesh_S;
@@ -82,19 +80,18 @@ public class PotionMover : MonoBehaviour
 
     public void InitMeshAndColor()
     {
-        var p = Data.potionSize;
-        switch (p)
+        switch (Data.potionSize)
         {
             case PotionSize.Small:
-                potionRenderer_S.material.color = Data != null ? Data.potionColor : Color.white;
+                potionRenderer_S.material.color = Data.potionColor;
                 potionMesh_S.SetActive(true);
                 break;
             case PotionSize.Medium:
-                potionRenderer_M.material.color = Data != null ? Data.potionColor : Color.white;
+                potionRenderer_M.material.color = Data.potionColor;
                 potionMesh_M.SetActive(true);
                 break;
             case PotionSize.Large:
-                potionRenderer_L.material.color = Data != null ? Data.potionColor : Color.white;
+                potionRenderer_L.material.color = Data.potionColor;
                 potionMesh_L.SetActive(true);
                 break;
         }
@@ -145,10 +142,9 @@ public class PotionMover : MonoBehaviour
 
         bool networked = photonView != null && photonView.ViewID != 0;
         if (networked)
-            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, Data.potionID,
-                PotionInstance != null && PotionInstance.TrapKeyword != null ? PotionInstance.TrapKeyword.KeywordID : 0);
+            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, Data.potionID);
 
-        PlayExplosion(position, impact, true, Data, null);
+        PlayExplosion(position, impact, true, Data);
         if (networked)
             PhotonNetwork.Destroy(gameObject);
         else
@@ -156,7 +152,7 @@ public class PotionMover : MonoBehaviour
     }
 
     [PunRPC]
-    private void RpcExplode(Vector3 position, bool impact, int potionId, int keywordId, PhotonMessageInfo info)
+    private void RpcExplode(Vector3 position, bool impact, int potionId, PhotonMessageInfo info)
     {
         if (info.Sender != photonView.Owner || photonView.IsMine)
             return;
@@ -164,14 +160,11 @@ public class PotionMover : MonoBehaviour
         // 삭제는 소유자가 뒤이어 보내는 PhotonNetwork.Destroy로 처리합니다.
         if (!PotionDataManager.Instance.TryGetPotionData(potionId, out PotionData data))
             return;
-        TrapPotionKeyword keyword = null;
-        if (keywordId != 0 && !PotionDataManager.Instance.TryGetTrapKeyword(keywordId, out keyword))
-            return;
 
-        PlayExplosion(position, impact, false, data, keyword);
+        PlayExplosion(position, impact, false, data);
     }
 
-    private void PlayExplosion(Vector3 position, bool impact, bool applyEffects, PotionData data, TrapPotionKeyword keyword)
+    private void PlayExplosion(Vector3 position, bool impact, bool applyEffects, PotionData data)
     {
         if (HasExploded)
             return;
@@ -202,7 +195,7 @@ public class PotionMover : MonoBehaviour
 
     }
 
-    // hitPoint: SphereCast로 얻은 월드 충돌 위치
+    // hitPoint: 포션 콜라이더로 검사한 월드 충돌 위치
     private void HandleImpact(Vector3 hitPoint)
     {
         if (canExplodeOnContact == false || HasExploded == true)

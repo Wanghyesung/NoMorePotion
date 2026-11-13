@@ -4,8 +4,7 @@ using Enzeun.SO;
 
 /*///////////////////////////////////////////
                   ThrowAim
-기능 : 카메라 화면 중앙으로 목표 지점을 선택하고 도착 궤적을 역산
-       거리에 따라 포물선 높이를 조절하고 List 좌표를 LineRenderer에 표시
+기능 : 중앙 조준 또는 최대 거리 아래의 바닥을 목표로 포물선을 계산
  *///////////////////////////////////////////
 
 [DisallowMultipleComponent]
@@ -15,37 +14,38 @@ public sealed class ThrowAim : MonoBehaviour
     #region AimSettings
     [SerializeField] private Camera aimCamera;
     [SerializeField] private LayerMask targetLayers;
-    [SerializeField, Min(0.01f)] private float maxAimDistance = 100f;
-    [SerializeField, Min(0.01f)] private float fallbackDistance = 10f;
+    [SerializeField, Min(0.01f)] private float maxAimDistance = 40f;
+    [SerializeField, Min(0.01f)] private float groundProbeDistance = 100f;
     #endregion
 
     #region ArcSettings
     [SerializeField, Min(0.01f)] private float minArcHeight = 0.3f;
     [SerializeField, Min(0.01f)] private float maxArcHeight = 3f;
-    [SerializeField, Min(0.01f)] private float maxArcDistance = 15f;
     #endregion
 
     #region LineSettings
     [SerializeField, Min(2)] private int pointCount = 40;
     [SerializeField, Min(2)] private int fadePointCount = 20;
     [SerializeField] private List<Vector3> positions = new List<Vector3>(40);
-    public IReadOnlyList<Vector3> Positions => positions;
     [SerializeField] private GameObject rangePrefab;
     #endregion
 
     #region Runtime
     private LineRenderer lineRenderer;
     private Transform origin;
+    private ParabolicMovement movement;
+    private LayerMask collisionMask;
+    private bool hasLandingPoint;
     private Gradient lineGradient;
     private GradientColorKey[] lineColors;
     private readonly GradientAlphaKey[] fadeAlphas = new GradientAlphaKey[3];
     private LineRenderer rangeRenderer;
     private PoolManager rangePool;
     private Vector3 targetNormal;
+    private Vector3 landingPosition;
     private float explosionRadius;
 
     public ThrowData ThrowData { get; private set; }
-    public Vector3 TargetPosition { get; private set; }
     public bool HasTarget { get; private set; }
     #endregion
 
@@ -67,9 +67,10 @@ public sealed class ThrowAim : MonoBehaviour
     {
         origin = throwOrigin;
         PotionMover potion = throwOrigin.GetComponent<PotionMover>();
+        movement = throwOrigin.GetComponent<ParabolicMovement>();
+        collisionMask = potion.CollisionMask;
         explosionRadius = PotionExplosionConfig.Instance.GetRadius(potion.Data.potionExplosionRange);
         enabled = true;
-
     }
 
     public void Hide()
@@ -100,12 +101,7 @@ public sealed class ThrowAim : MonoBehaviour
 
         HasTarget = true;
         ThrowData = data;
-        TargetPosition = data.Target;
-
-        positions.Clear();
-        float timeStep = ThrowData.FlightTime / (pointCount - 1);
-        for (int i = 0; i < pointCount; i++)
-            positions.Add(ThrowData.GetPosition(i * timeStep));
+        BuildTrajectory(data);
 
         lineRenderer.enabled = true;
         lineRenderer.positionCount = positions.Count;
@@ -116,11 +112,41 @@ public sealed class ThrowAim : MonoBehaviour
         DrawLandingRange();
     }
 
+    // 조준선 좌표를 만들면서 첫 충돌 위치를 찾는다.
+    private void BuildTrajectory(ThrowData data)
+    {
+        // 바닥 목표점까지 그리되, 중간에 먼저 맞는 물체가 있으면 거기서 선을 끝낸다.
+        hasLandingPoint = true;
+        landingPosition = data.Target;
+        positions.Clear();
+        positions.Add(data.Origin);
+        float step = data.FlightTime / (pointCount - 1);
+
+        // shortcut: 선의 구간으로 착지를 근사한다. 정밀도가 더 필요하면 pointCount를 늘린다.
+        for (int i = 1; i < pointCount; i++)
+        {
+            Vector3 previous = positions[positions.Count - 1];
+            Vector3 next = data.GetPosition(i * step);
+            if (movement.Cast(previous, next, collisionMask, out RaycastHit hit))
+            {
+                positions.Add(Vector3.MoveTowards(previous, next, hit.distance));
+                landingPosition = hit.point;
+                targetNormal = hit.normal;
+                // 조준 대상 레이어의 바닥에 닿았을 때만 범위 원을 표시한다.
+                hasLandingPoint = hit.collider.isTrigger == false
+                    && (targetLayers.value & (1 << hit.collider.gameObject.layer)) != 0
+                    && Vector3.Dot(targetNormal, Vector3.up) > 0.1f;
+                return;
+            }
+
+            positions.Add(next);
+        }
+    }
+
+    // 예상 착지면의 위치와 기울기에 맞춰 폭발 범위 원을 배치한다.
     private void DrawLandingRange()
     {
-        // 벽·천장과 공중 목표에서는 지면 범위를 표시하지 않습니다.
-        bool grounded = ThrowData.StopAtTarget && Vector3.Dot(targetNormal, Vector3.up) > 0.1f;
-        if (grounded == false)
+        if (hasLandingPoint == false)
         {
             if (rangeRenderer != null)
                 rangeRenderer.gameObject.SetActive(false);
@@ -128,7 +154,7 @@ public sealed class ThrowAim : MonoBehaviour
         }
 
         Quaternion rotation = Quaternion.FromToRotation(Vector3.up, targetNormal);
-        Vector3 center = TargetPosition + targetNormal * 0.03f;
+        Vector3 center = landingPosition + targetNormal * 0.03f;
         if (rangeRenderer == null)
         {
             rangePool = PoolManager.Instance;
@@ -140,27 +166,34 @@ public sealed class ThrowAim : MonoBehaviour
         rangeRenderer.enabled = true;
     }
 
-    // 커서 위치와 무관하게 실제 카메라 뷰포트 중앙을 조준한다.
+    // 바닥을 못 찍으면 최대 조준 거리 지점에서 수직 아래의 바닥을 찾는다.
     public bool TryCreateThrowData(Vector3 throwOrigin, out ThrowData data)
     {
         data = default;
-        targetNormal = Vector3.zero;
         if (aimCamera == null)
             return false;
 
+        // 화면 중앙으로 먼저 쏜다. 표면의 위쪽 성분으로 벽·천장을 바닥과 구분한다.
         Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        bool hitSurface = Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
-            QueryTriggerInteraction.Ignore);
-        Vector3 target = hitSurface == true ? hit.point : ray.GetPoint(fallbackDistance);
-        targetNormal = hitSurface ? hit.normal : Vector3.zero;
+        bool grounded = Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
+            QueryTriggerInteraction.Ignore) && Vector3.Dot(hit.normal, Vector3.up) > 0.1f;
 
-        // 수평 거리 0~maxArcDistance를 높이 minArcHeight~maxArcHeight로 변환
-        float distance = Vector3.ProjectOnPlane(target - throwOrigin, Physics.gravity).magnitude;
-        float ratio = Mathf.InverseLerp(0f, maxArcDistance, distance);
+        
+        if (grounded == false)
+        {
+            // 조준 Ray의 최대 거리 끝점에서 수직 아래로 탐색한다. 여기에도 바닥이 없으면 투척하지 않는다.
+            if (Physics.Raycast(ray.GetPoint(maxAimDistance), Vector3.down, out hit,
+                groundProbeDistance, targetLayers, QueryTriggerInteraction.Ignore) == false
+                || Vector3.Dot(hit.normal, Vector3.up) <= 0.1f)
+                return false;
+        }
+
+        targetNormal = hit.normal;
+        // 가까운 목표는 낮게, 먼 목표는 높게 던지도록 수평 거리를 포물선 높이로 바꾼다.
+        float distance = Vector3.ProjectOnPlane(hit.point - throwOrigin, Physics.gravity).magnitude;
+        float ratio = Mathf.InverseLerp(0f, maxAimDistance, distance);
         float arcHeight = Mathf.Lerp(minArcHeight, maxArcHeight, ratio);
-
-        // ThrowData(월드 출발 위치, 월드 목표 위치, 중력 가속도, 정점 높이)
-        data = new ThrowData(throwOrigin, target, Physics.gravity, arcHeight, hitSurface);
+        data = new ThrowData(throwOrigin, hit.point, Physics.gravity, arcHeight);
         return true;
     }
 
@@ -189,6 +222,7 @@ public sealed class ThrowAim : MonoBehaviour
     private void ClearLine()
     {
         HasTarget = false;
+        hasLandingPoint = false;
         positions.Clear();
         lineRenderer.positionCount = 0;
         lineRenderer.enabled = false;

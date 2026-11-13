@@ -2,8 +2,7 @@
 
 /*///////////////////////////////////////////
                   ThrowData
-기능 : 목표 위치와 포물선 높이로 초기 속도·비행 시간을 역산
-       계산한 궤적에서 시간별 위치를 제공
+기능 : 목표점과 포물선 높이로 초기 속도·도착 시간을 계산
  *///////////////////////////////////////////
 
 public readonly struct ThrowData
@@ -15,38 +14,35 @@ public readonly struct ThrowData
     public Vector3 Velocity { get; }
     public Vector3 Gravity { get; }
     public float FlightTime { get; }
-    public bool StopAtTarget { get; }
     #endregion
 
-    // origin/target: 월드 위치, gravity: 중력 가속도, arcHeight: 두 위치 중 높은 곳 위의 정점 높이
-    // stopAtTarget: 실제 표면이면 도착 시 정지, 가상 목표이면 통과 후 계속 낙하
-    public ThrowData(Vector3 origin, Vector3 target, Vector3 gravity,
-        float arcHeight, bool stopAtTarget = true)
+    public ThrowData(Vector3 origin, Vector3 target, Vector3 gravity, float arcHeight)
     {
-        
-        float acceleration = gravity.magnitude;
         Origin = origin;
         Target = target;
-        ArcHeight = arcHeight;
         Gravity = gravity;
-        StopAtTarget = stopAtTarget;
+        ArcHeight = arcHeight;
 
-        float targetHeight = Vector3.Dot(target - origin, -gravity / acceleration);
+        float acceleration = gravity.magnitude;
+        // 출발점을 높이 0으로 보고, 출발점과 목표점 중 높은 쪽보다 arcHeight만큼 더 올라간다.
+        float targetHeight = Vector3.Dot(target - origin, -gravity.normalized);
         float peakHeight = Mathf.Max(0f, targetHeight) + arcHeight;
-
+        // 정점까지 올라가는 시간과 정점에서 목표 높이까지 내려가는 시간을 더한다.
         FlightTime = Mathf.Sqrt(2f * peakHeight / acceleration)
             + Mathf.Sqrt(2f * (peakHeight - targetHeight) / acceleration);
-
-        // 목표 = 출발 + 초기 속도 * 시간 + 1/2 * 중력 * 시간²을 초기 속도에 대해 역산
+        // 정해진 시간에 목표점에 도착하도록 운동식에서 초기 속도를 역산한다.
         Velocity = (target - origin - gravity * (0.5f * FlightTime * FlightTime)) / FlightTime;
     }
 
     // time: 발사 후 경과 시간(초). p0 + v0t + 1/2gt^2
     public Vector3 GetPosition(float time)
     {
+        // 프레임 간격이나 통신 지연으로 도착 시간이 지나도 목표점을 넘어가지 않는다.
+        if (time >= FlightTime)
+            return Target;
         return Origin + Velocity * time + Gravity * (0.5f * time * time);
     }
 
-    // origin: 실제 손에서 분리되는 순간의 월드 출발 위치
-    public ThrowData WithOrigin(Vector3 origin) => new ThrowData(origin, Target, Gravity, ArcHeight, StopAtTarget);
+    // 손에서 놓는 순간 출발점만 갱신하고, 같은 목표점에 도착하도록 속도와 시간을 다시 계산한다.
+    public ThrowData WithOrigin(Vector3 origin) => new ThrowData(origin, Target, Gravity, ArcHeight);
 }

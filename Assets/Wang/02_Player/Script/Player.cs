@@ -54,6 +54,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     #endregion
 
     #region 카메라와 시선
+    public const float MinLookPitch = -40f;
+    public const float MaxLookPitch = 50f;
     [SerializeField] private Transform cameraPosition;
     [SerializeField] private Transform lookPivot;
     [SerializeField, Min(0f)] private float pitchSensitivity = 0.15f;
@@ -70,7 +72,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     public event Action<Vector3> OnDead;
     public void SetLookPitch(float pitch)
     {
-        lookPitch = Mathf.Clamp(pitch, -15f, 30f);
+        lookPitch = Mathf.Clamp(pitch, MinLookPitch, MaxLookPitch);
         lookPivot.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
     }
 

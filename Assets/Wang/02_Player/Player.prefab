@@ -1209,11 +1209,9 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 64
-  maxAimDistance: 100
-  fallbackDistance: 10
   minArcHeight: 0.2
   maxArcHeight: 0.5
-  maxArcDistance: 10
+  forwardSpeed: 8
   pointCount: 40
   fadePointCount: 20
   positions: []
