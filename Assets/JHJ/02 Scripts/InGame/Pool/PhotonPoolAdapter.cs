@@ -2,6 +2,17 @@ using Photon.Pun;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 포톤 PrefabPool 대체. 이름 → 프리팹 등록부 + PoolManager 연결 (게임 시작 시 자동 설치)
+/// 포톤이 생성/파괴할 때 모든 클라이언트에서 각각 호출됨 (직접 호출하지 않음)
+///
+/// 사용 규칙:
+/// - PhotonNetwork.Instantiate로 만드는 프리팹이 Resources 밖에 있으면, 생성 전에 모든 클라이언트에서 등록
+///     PhotonPoolAdapter.Register(prefab)         // 풀 미사용: 매번 생성/파괴 (플레이어, 포션)
+///     PhotonPoolAdapter.RegisterPooled(prefab)   // 풀 사용: PoolManager로 재사용 (몬스터, NetPool.Prepare가 해줌)
+/// - Resources 안의 프리팹은 등록 없이도 이름으로 찾음 (DefaultPool과 동일)
+/// - PhotonNetwork.PrefabPool은 더 이상 DefaultPool이 아님 → "is DefaultPool" 검사·ResourceCache 사용 금지
+/// </summary>
 public class PhotonPoolAdapter : IPunPrefabPool
 {
 

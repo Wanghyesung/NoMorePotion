@@ -15,6 +15,15 @@ using UnityEngine.Pool;
 ///     UniTask.Delay(..., cancellationToken: PoolManager.GetReleaseToken(gameObject));
 /// - 프리팹에 아무것도 붙일 필요 없음
 /// - 재사용 시 Start/Awake는 다시 안 불림 → 초기화는 IPoolable.OnGetFromPool에서
+///
+/// 로컬 vs 네트워크:
+///   로컬 (각자 화면에서만 재생: 이펙트, 파티클, 조준 표시 등) → 위의 Get/Release 그대로 사용
+///   네트워크 (모두에게 같은 오브젝트가 보여야 함: 몬스터 등) → PoolManager 대신 NetPool 사용
+///     NetPool.Prepare(prefab, 개수)       // 모든 클라이언트, Spawn 전에
+///     NetPool.Spawn(prefab, 위치, 회전)    // 방장만 실제 생성
+///     NetPool.Despawn(gameObject)         // 방장만 실제 반납
+///   네트워크로 만든 오브젝트를 Release로 반납하지 말 것 (내 화면에서만 사라짐)
+/// - Rent는 PhotonPoolAdapter 전용. 일반 코드는 Get 사용
 /// </summary>
 public class PoolManager : MonoBehaviour
 {
