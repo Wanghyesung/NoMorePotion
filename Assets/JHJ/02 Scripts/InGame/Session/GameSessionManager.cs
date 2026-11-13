@@ -82,10 +82,8 @@ public class GameSessionManager : MonoBehaviour
         Instance = this;
 
         // Resources 밖의 프리팹도 이름으로 생성할 수 있도록 모든 클라이언트에서 등록한다.
-        if (playerPrefab != null && PhotonNetwork.PrefabPool is DefaultPool pool)
-        {
-            pool.ResourceCache[playerPrefab.name] = playerPrefab.gameObject;
-        }
+        if (playerPrefab != null)
+            PhotonPoolAdapter.Register(playerPrefab.gameObject);
 
         view = gameObject.GetComponent<PhotonView>();
         if (view == null)

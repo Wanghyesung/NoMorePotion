@@ -81,8 +81,8 @@ public sealed class Hand : MonoBehaviour
         playerView = GetComponent<PhotonView>();
 
         // 같은 수신 묶음의 포션 생성 이벤트가 Start보다 먼저 올 수 있습니다. -> TestCode
-        if (itemPrefab != null && PhotonNetwork.PrefabPool is DefaultPool pool)
-            pool.ResourceCache[itemPrefab.name] = itemPrefab.gameObject;
+        if (itemPrefab != null)
+            PhotonPoolAdapter.Register(itemPrefab.gameObject);
     }
 
     private void Start()
