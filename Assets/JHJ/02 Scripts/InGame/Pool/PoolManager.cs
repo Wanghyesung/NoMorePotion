@@ -56,22 +56,24 @@ public class PoolManager : MonoBehaviour
     /// </summary>
     public GameObject Get(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
     {
-        if(prefab == null)
-        {
-            Debug.LogError("[PoolManager] 프리팹 없음");
+        PooledObject pooled = RentPooled(prefab, position, rotation, parent);
+
+        if (pooled == null)             
             return null;
-        }
 
-        PooledObject pooled = GetOrCreatePool(prefab).Get();
-
-        // 순서 중요: 위치 → 부모 → 켜기. 켜는 순간 Awake/OnEnable이 이 위치에서 돎
-        // (켜고 나서 옮기면 NavMeshAgent가 이전 위치에 붙음)
-        pooled.transform.SetPositionAndRotation(position, rotation);
-        pooled.transform.SetParent(parent, true);
         pooled.gameObject.SetActive(true);
         pooled.NotifyGet(); // 켜진 뒤 알림 → OnGetFromPool에서 켜진 상태가 필요한 초기화 가능
 
         return pooled.gameObject;
+    }
+
+    /// <summary>
+    /// 켜지 않고 꺼냄. PhotonAdaptor 전용 /  로컬은 Get 사용
+    /// </summary>
+    public GameObject Rent(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
+    {
+        PooledObject pooled = RentPooled(prefab, position, rotation, parent);
+        return pooled != null ? pooled.gameObject : null;
     }
 
     /// <summary>
@@ -179,6 +181,22 @@ public class PoolManager : MonoBehaviour
             pooled = go.AddComponent<PooledObject>();
 
         pooled.Setup(prefab);   // 출신 프리팹 기록 + IPoolable 캐싱
+        return pooled;
+    }
+
+    private PooledObject RentPooled(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
+    {
+        if(prefab == null)
+        {
+            Debug.LogError("[PoolManager] 프리팹 없음");
+            return null;
+        }
+
+        PooledObject pooled = GetOrCreatePool(prefab).Get();
+
+        pooled.transform.SetPositionAndRotation(position, rotation);
+        pooled.transform.SetParent(parent, true);
+
         return pooled;
     }
 }
