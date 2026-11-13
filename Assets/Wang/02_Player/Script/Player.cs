@@ -54,8 +54,8 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     #endregion
 
     #region 카메라와 시선
-    public const float MinLookPitch = -40f;
-    public const float MaxLookPitch = 50f;
+    public const float MinLookPitch = -30f;
+    public const float MaxLookPitch = 40f;
     [SerializeField] private Transform cameraPosition;
     [SerializeField] private Transform lookPivot;
     [SerializeField, Min(0f)] private float pitchSensitivity = 0.15f;

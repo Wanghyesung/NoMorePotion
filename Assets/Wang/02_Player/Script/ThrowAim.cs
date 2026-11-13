@@ -135,7 +135,7 @@ public sealed class ThrowAim : MonoBehaviour
                 // 조준 대상 레이어의 바닥에 닿았을 때만 범위 원을 표시한다.
                 hasLandingPoint = hit.collider.isTrigger == false
                     && (targetLayers.value & (1 << hit.collider.gameObject.layer)) != 0
-                    && Vector3.Dot(targetNormal, Vector3.up) > 0.1f;
+                   /* && Vector3.Dot(targetNormal, Vector3.up) > 0.1f*/;
                 return;
             }
 
@@ -176,7 +176,7 @@ public sealed class ThrowAim : MonoBehaviour
         // 화면 중앙으로 먼저 쏜다. 표면의 위쪽 성분으로 벽·천장을 바닥과 구분한다.
         Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         bool grounded = Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, targetLayers,
-            QueryTriggerInteraction.Ignore) && Vector3.Dot(hit.normal, Vector3.up) > 0.1f;
+            QueryTriggerInteraction.Ignore) /*&& Vector3.Dot(hit.normal, Vector3.up) > 0.1f*/;
 
         
         if (grounded == false)
@@ -184,7 +184,7 @@ public sealed class ThrowAim : MonoBehaviour
             // 조준 Ray의 최대 거리 끝점에서 수직 아래로 탐색한다. 여기에도 바닥이 없으면 투척하지 않는다.
             if (Physics.Raycast(ray.GetPoint(maxAimDistance), Vector3.down, out hit,
                 groundProbeDistance, targetLayers, QueryTriggerInteraction.Ignore) == false
-                || Vector3.Dot(hit.normal, Vector3.up) <= 0.1f)
+               /* || Vector3.Dot(hit.normal, Vector3.up) <= 0.1f*/)
                 return false;
         }
 
