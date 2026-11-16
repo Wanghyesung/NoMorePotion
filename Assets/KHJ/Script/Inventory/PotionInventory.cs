@@ -11,6 +11,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public sealed class PotionInventory
     {
+        #region State
         /// <summary>
         /// 기본 보관 한도입니다.
         /// </summary>
@@ -47,7 +48,9 @@ namespace Enzeun.Runtime
         /// 포션이 들어오거나 빠져서 목록이 바뀔 때 발생합니다.
         /// </summary>
         public event Action OnChanged;
+        #endregion
 
+        #region Add
         /// <summary>
         /// 포션을 넣습니다. 가득 찼거나 null 이면 넣지 않고 false 를 반환합니다.
         /// </summary>
@@ -87,7 +90,9 @@ namespace Enzeun.Runtime
             OnChanged?.Invoke();
             return true;
         }
+        #endregion
 
+        #region Access
         /// <summary>
         /// index 위치의 포션을 꺼냅니다. 범위를 벗어나면 null 입니다.
         /// </summary>
@@ -168,5 +173,6 @@ namespace Enzeun.Runtime
         {
             return TakeAt(UnityEngine.Random.Range(0, Count));
         }
+        #endregion
     }
 }

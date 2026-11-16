@@ -16,6 +16,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public static class InventoryMessages
     {
+        #region Consts
         /// <summary>
         /// 현재 형식의 버전입니다. 형식을 바꾸면 올립니다. (스냅샷도 같은 버전을 씁니다)
         /// </summary>
@@ -23,7 +24,9 @@ namespace Enzeun.Runtime
 
         // 한 적용 메시지에 담을 수 있는 변경의 최대 개수입니다. (깨진 메시지가 큰 메모리를 쓰지 않게)
         private const int MaxChangesPerMessage = 1024;
+        #endregion
 
+        #region Request
         // ==================== 요청 (클라이언트 -> 마스터) ============================
 
         /// <summary>
@@ -194,7 +197,9 @@ namespace Enzeun.Runtime
             requestId = System.BitConverter.ToInt32(data, 2);
             return true;
         }
+        #endregion
 
+        #region Apply
         // ==================== 적용 (마스터 -> 전원) ============================
 
         /// <summary>
@@ -294,7 +299,9 @@ namespace Enzeun.Runtime
                 return false;
             }
         }
+        #endregion
 
+        #region Deny
         // ==================== 거부 (마스터 -> 요청한 사람) ============================
 
         /// <summary>
@@ -331,7 +338,9 @@ namespace Enzeun.Runtime
             reason = (InventoryDenyReason)data[5];
             return true;
         }
+        #endregion
 
+        #region Change
         // ==================== 변경 한 건 ============================
 
         // 변경 한 건 : 종류(byte 1) + 종류별 내용
@@ -457,7 +466,9 @@ namespace Enzeun.Runtime
             change = c;
             return true;
         }
+        #endregion
 
+        #region Common
         // ==================== 공통 ============================
 
         // 보관 장소 : 종류(byte 1) + 번호(int 4) + 칸(short 2)
@@ -517,5 +528,6 @@ namespace Enzeun.Runtime
         {
             return new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
         }
+        #endregion
     }
 }

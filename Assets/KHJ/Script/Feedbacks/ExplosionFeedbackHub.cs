@@ -18,6 +18,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class ExplosionFeedbackHub : MonoBehaviour
     {
+        #region State
         public static ExplosionFeedbackHub Instance { get; private set; }
 
         [SerializeField, LabelText("화면 연출 플레이어"), Required("재생할 MMF_Player 를 연결해 주세요.")]
@@ -48,7 +49,9 @@ namespace Enzeun.Runtime
         // 마지막으로 재생한 시각과 세기입니다. 겹침 판정에 씁니다.
         private float _lastPlayTime = float.NegativeInfinity;
         private float _lastIntensity;
+        #endregion
 
+        #region Lifecycle
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -68,7 +71,9 @@ namespace Enzeun.Runtime
                 Instance = null;
             }
         }
+        #endregion
 
+        #region Play
         /// <summary>
         /// 허브가 씬에 있으면 폭발 연출을 재생합니다. 없으면 아무것도 하지 않습니다.
         /// </summary>
@@ -144,7 +149,9 @@ namespace Enzeun.Runtime
 
             return Mathf.Clamp01(_distanceFalloff.Evaluate(distance / _maxDistance));
         }
+        #endregion
 
+        #region EditorTest
 #if UNITY_EDITOR
         // ==================== 에디터 테스트용 ============================
 
@@ -161,5 +168,6 @@ namespace Enzeun.Runtime
             PlayInternal(transform.position, size);
         }
 #endif
+        #endregion
     }
 }

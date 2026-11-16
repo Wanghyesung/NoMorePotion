@@ -18,6 +18,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class BuffContainer : MonoBehaviour
     {
+        #region State
         [ShowInInspector, ReadOnly, LabelText("버프 목록"), PropertyOrder(-3)]
         private List<ActiveStatusEffect> _buffs = new List<ActiveStatusEffect>();
         public IReadOnlyList<ActiveStatusEffect> buffs => _buffs;
@@ -61,8 +62,10 @@ namespace Enzeun.Runtime
         private readonly float[] _buffMultipliers = new float[StatTypeCount];
         private readonly float[] _debuffMultipliers = new float[StatTypeCount];
         private bool _isStatMultiplierDirty = true;
+        #endregion
 
 
+        #region Owner
         // ==================== owner (이 컨테이너의 주인) ============================
 
         // 몬스터처럼 컨테이너가 주인과 같은 오브젝트에 붙는 경우 켭니다. 플레이어 컨테이너(생존 상태 매니저 쪽)는 끄고 SetOwner 로 연결합니다.
@@ -93,7 +96,9 @@ namespace Enzeun.Runtime
 
         // 등록할 때 쓴 키입니다. 주인이 먼저 파괴되어도 같은 키로 등록을 해제하기 위해 따로 들고 있습니다.
         private GameObject _registeredKey;
+        #endregion
 
+        #region Lifecycle
         private void Awake()
         {
             if (_assignOwnerOnAwake)
@@ -139,7 +144,9 @@ namespace Enzeun.Runtime
         {
             Unregister();
         }
+        #endregion
 
+        #region OwnerApi
         /// <summary>
         /// 이 컨테이너의 주인을 지정합니다. 주인(또는 그 부모/자식)에서 IDamageable 을 찾아 체력 증감 대상으로 삼습니다.
         /// 플레이어는 생성된 뒤에 호출해서 연결합니다.
@@ -209,7 +216,9 @@ namespace Enzeun.Runtime
 
             _registeredKey = null;
         }
+        #endregion
 
+        #region Tick
         private void Update()
         {
             Tick(Time.deltaTime);
@@ -225,7 +234,9 @@ namespace Enzeun.Runtime
             TickAndRemoveExpired(_debuffs, deltaTime);
             UpdateEnabledState();
         }
+        #endregion
 
+        #region PotionHealth
         /// <summary>
         /// 포션의 체력 증감 효과를 대상에게 한 번(한 틱) 적용합니다. 대상에게 지속 효과로 붙이지 않습니다.
         /// 초당 대미지처럼 반복되는 효과는 범위 장판(PotionDetector)이 간격마다 이 함수를 다시 불러서, 범위 안에 있는 대상만 맞게 합니다.
@@ -257,7 +268,9 @@ namespace Enzeun.Runtime
 
             return true;
         }
+        #endregion
 
+        #region Effects
         /// <summary>
         /// 상태 효과를 적용합니다.
         /// </summary>
@@ -390,7 +403,9 @@ namespace Enzeun.Runtime
             ClearList(_debuffs);
             UpdateEnabledState();
         }
+        #endregion
 
+        #region Query
         /// <summary>
         /// 포션을 제작할 때 실패해서 함정 포션이 될 확률(%)입니다. 걸려 있는 상태 효과의 "제조 실패 확률" 중 가장 높은 값이며,
         /// 해당 효과가 없으면 0 입니다. (예: 똑똑이 0%, 멍청함 50%)
@@ -461,7 +476,9 @@ namespace Enzeun.Runtime
 
             return _statMultipliers[(int)stat];
         }
+        #endregion
 
+        #region Internal
         // ==================== 내부 처리 ============================
 
         /// <summary>
@@ -713,7 +730,9 @@ namespace Enzeun.Runtime
 
             return strength;
         }
+        #endregion
 
+        #region EditorTest
 #if UNITY_EDITOR
         // ==================== 에디터 테스트용 ============================
 
@@ -742,5 +761,6 @@ namespace Enzeun.Runtime
             Clear();
         }
 #endif
+        #endregion
     }
 }

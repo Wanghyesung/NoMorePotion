@@ -27,6 +27,7 @@ namespace Enzeun.Runtime
     public class SurviveStatusManager : MonoBehaviour
     {
 
+        #region Singleton
         // ==================== 싱글턴 (어디서든 생존 상태에 접근) ============================
         public static SurviveStatusManager Instance { get; private set; }
 
@@ -52,7 +53,9 @@ namespace Enzeun.Runtime
                 Instance = null;
             }
         }
+        #endregion
 
+        #region Refs
         [SerializeField, Required("체온 매니저를 연결해 주세요.")]
         private BodyTemperatureManager bodyTemperatureManager;
         [SerializeField, Required("정신력 매니저를 연결해 주세요.")]
@@ -74,7 +77,9 @@ namespace Enzeun.Runtime
         /// 내 플레이어의 BuffContainer 입니다. 포션 폭발 등에서 "내 플레이어인지" 판정할 때 사용합니다.
         /// </summary>
         public BuffContainer PlayerBuffContainer => buffContainer;
+        #endregion
 
+        #region DecayConfig
         // ==================== 자연 감소 / 체온 제한 설정 ============================
         // 기획 : 수분, 포만감은 5초당 1% 감소. 더위 디버프 중에는 수분이, 추위 디버프 중에는 포만감이 2배 빨리 감소한다.
         //        차분함 버프 중에는 체온이 69% 이상 올라가지 않고, 열혈 버프 중에는 체온이 31% 밑으로 내려가지 않는다.
@@ -123,7 +128,9 @@ namespace Enzeun.Runtime
 
         // 상태 효과 변경 이벤트 안에서 바로 체온을 바꾸면 컨테이너가 효과를 처리하는 도중에 다시 효과가 바뀔 수 있으므로, 다음 프레임에 처리합니다.
         private bool _limitsDirty;
+        #endregion
 
+        #region MentalConfig
         // ==================== 정신력 변화 설정 ============================
         // 시트 : 기본값 50%. 대미지를 입을 때마다 5% 감소. 0% 가 되면 즉사.
         //        밝기 3단계(기본 환경) : 50% 이하이면 50% 까지 2초당 1% 증가 / 밝기 2단계 : 5초당 1% 감소 / 밝기 1단계 : 5초당 2% 감소
@@ -183,7 +190,9 @@ namespace Enzeun.Runtime
 
         // 정신력이 0 이 되면 즉사시키는 대미지입니다. 방어력으로 나눠도 체력을 넘도록 충분히 크게 둡니다.
         private const int LethalDamage = 1000000;
+        #endregion
 
+        #region PlayerBind
         /// <summary>
         /// 내 플레이어 오브젝트를 연결합니다. 로컬 플레이어가 생성된 뒤에 호출합니다.
         /// 연결하면 체력 증감 효과(탈수 등)가 이 플레이어의 IDamageable 에게 적용됩니다.
@@ -221,7 +230,9 @@ namespace Enzeun.Runtime
                 _boundFsm.OnHitAction -= HandlePlayerHit;
             }
         }
+        #endregion
 
+        #region Lifecycle
         /// <summary>
         /// 각 생존 상태의 구간 변경 이벤트와 주기 행동 이벤트를 구독합니다.
         /// </summary>
@@ -309,7 +320,9 @@ namespace Enzeun.Runtime
                 TickMental(Time.deltaTime);
             }
         }
+        #endregion
 
+        #region Mental
         // ==================== 정신력 ============================
 
         /// <summary>
@@ -453,7 +466,9 @@ namespace Enzeun.Runtime
 
             damageable.TakeDamage(new CommonStruct.AttackInfo { Position = position, Damage = LethalDamage });
         }
+        #endregion
 
+        #region Decay
         // ==================== 자연 감소 ============================
 
         /// <summary>
@@ -529,7 +544,9 @@ namespace Enzeun.Runtime
             RefreshDecayRates();
             _limitsDirty = true;
         }
+        #endregion
 
+        #region Reset
         /// <summary>
         /// 모든 생존 상태를 초기값으로 재설정하고, 초기 구간의 상태 효과도 다시 겁니다.
         /// (구간이 바뀌지 않으면 이벤트가 오지 않기 때문)
@@ -558,7 +575,9 @@ namespace Enzeun.Runtime
             RefreshDecayRates();
             _limitsDirty = true;
         }
+        #endregion
 
+        #region EffectSync
         // ==================== 구간 -> 상태 효과(버프/디버프) 연결 ============================
 
         private void HandleBodyTemperatureStateChanged(BodyTemperatureState prev, BodyTemperatureState next)
@@ -682,7 +701,9 @@ namespace Enzeun.Runtime
 
             return false;
         }
+        #endregion
 
+        #region Periodic
         // ==================== 주기 행동 (BuffContainer 가 발동 시점을 알려 주면 여기서 처리) ============================
 
         /// <summary>
@@ -723,7 +744,9 @@ namespace Enzeun.Runtime
 
             ChangeStatus(SurviveStatusType.Satiation, satiationAmount);
         }
+        #endregion
 
+        #region StatusChange
         /// <summary>
         /// 지정한 생존 상태를 amount 만큼 증감합니다. 양수는 증가, 음수는 감소입니다.
         /// 모든 생존 상태가 0~100 범위라서 퍼센트와 수치가 같습니다. (예: 수분 +5% -> 5)
@@ -758,5 +781,6 @@ namespace Enzeun.Runtime
                     break;
             }
         }
+        #endregion
     }
 }

@@ -16,6 +16,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class GroundPouch : MonoBehaviour
     {
+        #region Props
         [ShowInInspector, ReadOnly, LabelText("주머니 번호")]
         public int DropId { get; private set; }
 
@@ -31,7 +32,9 @@ namespace Enzeun.Runtime
         public event Action<int> CountChanged;
 
         private bool _isPickingUp;
+        #endregion
 
+        #region Actions
         /// <summary>
         /// 데이터(GroundDrop)에 묶어 위치를 맞춥니다. 만든 직후 한 번 호출합니다.
         /// </summary>
@@ -98,5 +101,6 @@ namespace Enzeun.Runtime
                 _isPickingUp = false;
             }
         }
+        #endregion
     }
 }

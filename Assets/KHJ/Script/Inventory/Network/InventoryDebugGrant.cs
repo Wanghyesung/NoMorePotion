@@ -16,6 +16,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class InventoryDebugGrant : MonoBehaviour
     {
+        #region Types
         [Serializable]
         private struct PotionGrant
         {
@@ -29,7 +30,9 @@ namespace Enzeun.Runtime
             [LabelText("재료 ID")] public int MaterialId;
             [LabelText("개수"), MinValue(1)] public int Count;
         }
+        #endregion
 
+        #region Settings
         [SerializeField, LabelText("시작할 때 자동 지급"), BoxGroup("자동 지급")]
         private bool _grantOnStart = true;
 
@@ -41,7 +44,9 @@ namespace Enzeun.Runtime
 
         [SerializeField, LabelText("공용 인벤에 넣을 재료"), BoxGroup("지급 목록")]
         private List<MaterialGrant> _packMaterials = new List<MaterialGrant> { new MaterialGrant { MaterialId = 20001, Count = 10 } };
+        #endregion
 
+        #region Auto
         private void Start()
         {
             if (_grantOnStart)
@@ -68,7 +73,9 @@ namespace Enzeun.Runtime
                 GrantPackAsync().Forget();
             }
         }
+        #endregion
 
+        #region Grant
         [Button("공용 인벤에 지급 (포션 + 재료)", ButtonSizes.Large), BoxGroup("지급 버튼")]
         public void GrantPack()
         {
@@ -135,7 +142,9 @@ namespace Enzeun.Runtime
                 LogResult($"포션 {potionId} -> {to.Kind}", result);
             }
         }
+        #endregion
 
+        #region Log
         private static void LogResult(string what, InventoryResult result)
         {
             if (!result.Success)
@@ -149,5 +158,6 @@ namespace Enzeun.Runtime
             }
 #endif
         }
+        #endregion
     }
 }

@@ -37,6 +37,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public sealed class TeamInventoryState
     {
+        #region Fields
         /// <summary>
         /// 시체 상자의 칸 수는 byte 1개로 보내므로 255칸이 한계입니다.
         /// </summary>
@@ -58,7 +59,9 @@ namespace Enzeun.Runtime
         private readonly HashSet<int> _changedCorpses = new HashSet<int>();
         private readonly HashSet<int> _createdDrops = new HashSet<int>();
         private readonly HashSet<int> _changedDrops = new HashSet<int>();
+        #endregion
 
+        #region Init
         /// <param name="data">재료 한도, 포션 조회, 레시피를 알려 주는 창구. 지정하지 않으면 씬의 PotionDataManager 를 사용</param>
         /// <param name="storageAccessGate">플레이어(ActorNumber)가 공용 창고를 쓸 수 있는지 알려 주는 함수. 지정하지 않으면 항상 허용</param>
         public TeamInventoryState(IInventoryData data = null, Func<int, bool> storageAccessGate = null)
@@ -71,7 +74,9 @@ namespace Enzeun.Runtime
                 new MaterialInventory(id => _data.GetMaterialLimit(id) * InventoryRules.StorageMaterialMultiplier),
                 new PotionInventory(InventoryRules.StoragePotionCapacity));
         }
+        #endregion
 
+        #region Props
         /// <summary>
         /// 공용 인벤(배낭)입니다. 맵 어디서든 쓸 수 있습니다.
         /// </summary>
@@ -133,7 +138,9 @@ namespace Enzeun.Runtime
         {
             return _personals.TryGetValue(actor, out PersonalInventory inventory) ? inventory : null;
         }
+        #endregion
 
+        #region Events
         public event Action<int> OnPersonalAdded;
         public event Action<int> OnPersonalRemoved;
 
@@ -171,7 +178,9 @@ namespace Enzeun.Runtime
         /// 스냅샷으로 전체 상태가 통째로 바뀌었을 때 발생합니다. (보여 주는 쪽이 처음부터 다시 그려야 함)
         /// </summary>
         public event Action OnReloaded;
+        #endregion
 
+        #region MasterValidate
         // ==================== 마스터: 요청 검증 ============================
 
         /// <summary>
@@ -311,7 +320,9 @@ namespace Enzeun.Runtime
 
             return apply.Changes.Count > 0;
         }
+        #endregion
 
+        #region Transfer
         // ---------- 이동 ----------
 
         private bool ValidateTransfer(InventoryCommand request, int actor, ref InventoryCommand apply, out InventoryDenyReason reason)
@@ -599,7 +610,9 @@ namespace Enzeun.Runtime
                     return false;
             }
         }
+        #endregion
 
+        #region Craft
         // ---------- 조합 ----------
 
         private bool ValidateCraft(InventoryCommand request, int actor, ref InventoryCommand apply, out InventoryDenyReason reason)
@@ -753,7 +766,9 @@ namespace Enzeun.Runtime
                     return false;
             }
         }
+        #endregion
 
+        #region TakeOut
         // ---------- 포션 꺼내기 (손에 들기) ----------
 
         /// <summary>
@@ -946,7 +961,9 @@ namespace Enzeun.Runtime
 
             return taken;
         }
+        #endregion
 
+        #region DieGrant
         // ---------- 사망, 개발용 생성 ----------
 
         /// <summary>
@@ -1065,7 +1082,9 @@ namespace Enzeun.Runtime
             apply.Changes = ctx.Flush();
             return true;
         }
+        #endregion
 
+        #region Common
         // ---------- 공통 검증 ----------
 
         /// <summary>
@@ -1174,7 +1193,9 @@ namespace Enzeun.Runtime
 
             return a.Potion.InstanceId == b.Potion.InstanceId;
         }
+        #endregion
 
+        #region Context
         /// <summary>
         /// 검증 한 번 동안의 "해 보기" 기록입니다. 칸 구조 장소는 복사본에 해 보고 원본과의 차이를 변경으로 만들고,
         /// 재료 총량과 포션 목록은 변화량으로 모았다가 변경으로 만듭니다. 실제 사본은 바꾸지 않습니다.
@@ -1314,7 +1335,9 @@ namespace Enzeun.Runtime
                 return Changes;
             }
         }
+        #endregion
 
+        #region Apply
         // ==================== 모든 클라이언트: 적용 ============================
 
         /// <summary>
@@ -1555,7 +1578,9 @@ namespace Enzeun.Runtime
 
             return null;
         }
+        #endregion
 
+        #region Snapshot
         // ==================== 스냅샷 (전체 목록) ============================
 
         /// <summary>
@@ -1788,5 +1813,6 @@ namespace Enzeun.Runtime
 
             return reader.ReadBytes(length);
         }
+        #endregion
     }
 }

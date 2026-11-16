@@ -19,6 +19,7 @@ namespace Enzeun.Runtime
             public int Remaining;
         }
 
+        #region Fields
         private const byte SnapshotVersion = 1;
 
         private readonly Dictionary<int, Entry> _entries = new Dictionary<int, Entry>();
@@ -46,7 +47,9 @@ namespace Enzeun.Runtime
         /// 방식이 Interact 이면 상호작용으로 얻은 것이라 공용 인벤으로 바로 들어가고, PotionDamage 이면 바닥 주머니가 됩니다.
         /// </summary>
         public event Action<int, WorldDrop[], WorldObjectHitKind> OnDropped;
+        #endregion
 
+        #region Register
         // ==================== 등록 / 조회 ============================
 
         /// <summary>
@@ -79,7 +82,9 @@ namespace Enzeun.Runtime
         {
             return _entries.TryGetValue(networkId, out Entry entry) ? entry.Remaining : -1;
         }
+        #endregion
 
+        #region MasterValidate
         // ==================== [마스터] 검증 ============================
 
         /// <summary>
@@ -149,7 +154,9 @@ namespace Enzeun.Runtime
 
             return drops.ToArray();
         }
+        #endregion
 
+        #region Apply
         // ==================== [전원] 적용 ============================
 
         /// <summary>
@@ -200,7 +207,9 @@ namespace Enzeun.Runtime
 
             return WorldObjectApplyStatus.Applied;
         }
+        #endregion
 
+        #region Snapshot
         // ==================== 전체 목록 ============================
 
         /// <summary>
@@ -305,5 +314,6 @@ namespace Enzeun.Runtime
 
             return true;
         }
+        #endregion
     }
 }

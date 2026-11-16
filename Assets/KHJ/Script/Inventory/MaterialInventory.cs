@@ -11,6 +11,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public sealed class MaterialInventory
     {
+        #region State
         private readonly Dictionary<int, int> _counts = new Dictionary<int, int>();
         private readonly Func<int, int> _limitProvider;
 
@@ -29,7 +30,9 @@ namespace Enzeun.Runtime
         /// 재료의 보관 개수가 바뀔 때 해당 재료 ID 와 함께 발생합니다.
         /// </summary>
         public event Action<int> OnChanged;
+        #endregion
 
+        #region Query
         /// <summary>
         /// 해당 재료의 보관 개수입니다. 없으면 0 입니다.
         /// </summary>
@@ -46,7 +49,9 @@ namespace Enzeun.Runtime
         {
             return Math.Max(0, _limitProvider(materialId) - GetCount(materialId));
         }
+        #endregion
 
+        #region Change
         /// <summary>
         /// 재료를 넣습니다. 한도를 넘는 만큼은 넣지 않습니다.
         /// </summary>
@@ -156,5 +161,6 @@ namespace Enzeun.Runtime
                 OnChanged?.Invoke(ids[i]);
             }
         }
+        #endregion
     }
 }

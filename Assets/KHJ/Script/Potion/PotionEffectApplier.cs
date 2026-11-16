@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Enzeun.Runtime
 {
+    #region Target
     /// <summary>
     /// 폭발에 닿은 대상 한 개가 가진 컴포넌트 묶음입니다. 없는 컴포넌트는 null 입니다.
     /// </summary>
@@ -17,7 +18,9 @@ namespace Enzeun.Runtime
         // 내 플레이어인지 여부입니다. 생존 상태(수분 등)는 내 플레이어에게만 적용합니다. (다른 플레이어, 몬스터는 false)
         public bool IsLocalPlayer;
     }
+    #endregion
 
+    #region Applier
     /// <summary>
     /// 포션의 효과 목록을 대상 한 개에게 적용하는 정적 도우미입니다.
     /// 효과 종류마다 대상이 해당 컴포넌트를 가지고 있을 때만 적용하고, 없으면 건너뜁니다.
@@ -133,4 +136,5 @@ namespace Enzeun.Runtime
             }
         }
     }
+    #endregion
 }

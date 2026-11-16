@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Enzeun.SO
 {
+    #region Enum
     /// <summary>
     /// 체력 증감 종류를 정의하는 열거형입니다. Damage 는 대미지, Heal 은 회복입니다.
     /// </summary>
@@ -14,7 +15,9 @@ namespace Enzeun.SO
         Damage,
         Heal,
     }
+    #endregion
 
+    #region Module
     /// <summary>
     /// 체력을 고정 수치(정수)만큼 깎거나 회복하는 모듈입니다. (플레이어 기본 체력 3000 기준)
     /// 대미지는 IDamageable, 회복은 IHealable 을 통해 대상에게 전달합니다.
@@ -120,4 +123,5 @@ namespace Enzeun.SO
             }
         }
     }
+    #endregion
 }

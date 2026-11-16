@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 
 namespace Enzeun.SO
 {
+    #region Enums
     /// <summary>
     /// 포션 타입을 정의하는 열거형입니다. 스탯 관리, 채집, 전투 로 나누어져 있습니다.
     /// </summary>
@@ -46,7 +47,9 @@ namespace Enzeun.SO
         Medium,
         Large,
     }
+    #endregion
 
+    #region PotionData
     [CreateAssetMenu(fileName = "PotionData", menuName = "Scriptable Objects/PotionData")]
     public class PotionData : ScriptableObject, IItemData
     {
@@ -180,4 +183,5 @@ namespace Enzeun.SO
         }
 #endif
     }
+    #endregion
 }

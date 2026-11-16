@@ -16,6 +16,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public static class WorldObjectMessages
     {
+        #region Consts
         // 버전과 맞지않는 이전 형식의 메시지는 받지 않음
         public const byte Version = 1;
 
@@ -23,7 +24,9 @@ namespace Enzeun.Runtime
         private const int DenyLength = 6;
         private const int ApplyHeaderLength = 1 + 4 + 4 + 4 + 4 + 1 + 2 + 2 + 1;
         private const int DropLength = 4 + 2 + 2;
+        #endregion
 
+        #region Request
         // ==================== 요청 (클라이언트 -> 마스터) ============================
 
         /// <summary>
@@ -98,7 +101,9 @@ namespace Enzeun.Runtime
             requestId = BitConverter.ToInt32(data, 1);
             return true;
         }
+        #endregion
 
+        #region Apply
         // ==================== 적용 (마스터 -> 전원) ============================
 
         /// <summary>
@@ -197,7 +202,9 @@ namespace Enzeun.Runtime
                 return true;
             }
         }
+        #endregion
 
+        #region Deny
         // ==================== 거부 (마스터 -> 요청한 사람) ============================
 
         /// <summary>
@@ -234,5 +241,6 @@ namespace Enzeun.Runtime
             reason = (WorldObjectDenyReason)data[5];
             return true;
         }
+        #endregion
     }
 }

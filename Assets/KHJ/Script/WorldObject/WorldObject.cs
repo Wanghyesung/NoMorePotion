@@ -17,6 +17,7 @@ namespace Enzeun.Runtime
         private WorldObjectData _data;
         public WorldObjectData data => _data;
 
+        #region Fields
         /// <summary>
         /// 멀티플레이에서 이 오브젝트를 구분하는 번호입니다. 씬 안에서 고유한 1 이상의 값이며, 모든 클라이언트가 같은 값을 가져야 합니다.
         /// 0 이면 동기화하지 않고 혼자 동작합니다. 번호는 메뉴 "Enzeun/월드 오브젝트/네트워크 번호 자동 부여"로 채웁니다.
@@ -55,8 +56,10 @@ namespace Enzeun.Runtime
         /// 횟수가 0 이 되어 소진되었을 때 한 번만 발생합니다.
         /// </summary>
         public event Action<WorldObject> OnDepleted;
+        #endregion
 
 
+        #region Init
         private void Awake()
         {
             InitializeCount();
@@ -109,7 +112,9 @@ namespace Enzeun.Runtime
                 OnCountChanged?.Invoke(previous, remainingCount);
             }
         }
+        #endregion
 
+        #region Hit
         /// <summary>
         /// 상호작용합니다. 상호작용 타입이면 횟수를 1 차감하고, 파괴 타입이면 아무것도 차감하지 않습니다.
         /// </summary>
@@ -226,7 +231,9 @@ namespace Enzeun.Runtime
 
             return true;
         }
+        #endregion
 
+        #region Hide
         private GameObject GetHideTarget()
         {
             return _hideTarget != null ? _hideTarget : gameObject;
@@ -261,7 +268,9 @@ namespace Enzeun.Runtime
 
             GetHideTarget().SetActive(false);
         }
+        #endregion
 
+        #region EditorTest
 #if UNITY_EDITOR
         // ==================== 에디터 테스트용 ============================
 
@@ -314,5 +323,6 @@ namespace Enzeun.Runtime
             ResetCount();
         }
 #endif
+        #endregion
     }
 }
