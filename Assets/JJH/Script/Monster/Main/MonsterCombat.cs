@@ -259,7 +259,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// </summary>
     public void DeathAnimationEnd()
     {
-        if (isSinking || data == null || data.HP > 0) return;   // 중복 실행, 오작동 방지
+        if (!GameAuthority.HasAuthority) return;
+        if (isSinking || data == null || data.HP > 0) return;
         StartDeathSink();
     }
 
@@ -505,7 +506,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     #region RPC
 
     [PunRPC]
-    private void RpcTakeDamage(int damage, int typeNum)
+    protected void RpcTakeDamage(int damage, int typeNum)
     {
         DamageType? type = typeNum >= 0 ? (DamageType)typeNum : null;
         HPChange(CalcFinalDamage(damage, type));
@@ -513,7 +514,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     }
 
     [PunRPC]
-    private void RpcSyncHP(int hp)
+    protected void RpcSyncHP(int hp)
     {
         if (data == null) return;
         int before = data.HP;
@@ -523,7 +524,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     }
 
     [PunRPC]
-    private void RpcHeal(int amount)
+    protected void RpcHeal(int amount)
     {
         HPChange(-amount);
     }

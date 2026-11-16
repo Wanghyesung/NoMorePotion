@@ -143,13 +143,21 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         if (ReferenceEquals(nowTarget, target)) return;
 
         ReleaseSlot();          // 이전 대상의 슬롯 반납
+        ApplyTarget(target);
+
+        // 방장이 정한 타겟을 다른 클라이언트에 전달 (시선 등 표시용)
+        if (PhotonNetwork.InRoom && GameAuthority.HasAuthority)
+            photonView.RPC(nameof(RpcSetTarget), RpcTarget.Others, NetTarget.ToViewId(target));
+    }
+
+    private void ApplyTarget(GameObject target)
+    {
         nowTarget = target;
         targetInfo = null;      // 이전 대상 정보 초기화
 
         if (target != null && target.TryGetComponent(out AttackTarget aTarget))
             targetInfo = aTarget;
     }
-
 
     /// <summary>
     /// 피격 시 가장 가까운 대상을 거리 제한 없이 일정 시간 추적
@@ -251,13 +259,15 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
+        anim.SetMoveAnimationSpeed();
         // 마스터가 아니라면 이동 및 애니메이션은 포톤이 전달
         if (!GameAuthority.HasAuthority)
         {
+            ApplyTarget(null);
             agent.enabled = false;
             return;
         }
-        anim.SetMoveAnimationSpeed();
+
         reachability.ResetState();
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
@@ -484,6 +494,14 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
     #endregion
 
+    #region RPC
+    [PunRPC]
+    protected void RpcSetTarget(int viewId)
+    {
+        ApplyTarget(NetTarget.FromViewId(viewId));
+    }
+    #endregion
+
     public void StopAI()
     {
         ReleaseSlot();
@@ -492,4 +510,5 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         aiCts.Dispose();
         aiCts = null;
     }
+
 }

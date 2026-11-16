@@ -37,5 +37,5 @@ public static class JJH_Constants
 
     public const float MIL_SEC_F = 1000f;
 
-    
+    public const int NetNone = -1;
 }

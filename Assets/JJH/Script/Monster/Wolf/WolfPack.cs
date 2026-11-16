@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -14,7 +15,7 @@ public enum PackPhase
     Assault     // Pound 쿨타임 동안 물기 공격
 }
 
-public class WolfPack : MonoBehaviour, IPoolable
+public class WolfPack : MonoBehaviourPun, IPoolable
 {
     #region 직렬화
 
@@ -333,6 +334,14 @@ public class WolfPack : MonoBehaviour, IPoolable
         NormalMonster data = alphaCombat.GetData();
         if (data == null) return;
 
+        ApplyEngaged(value, data);
+
+        if (PhotonNetwork.InRoom && GameAuthority.HasAuthority)
+            photonView.RPC(nameof(RpcEngaged), RpcTarget.Others, value);
+    }
+
+    private void ApplyEngaged(bool value, NormalMonster data)
+    {
         engaged = value;
         if (value) BossEvents.Engage(data, data.Name);
         else BossEvents.Disengage(data);
@@ -393,4 +402,15 @@ public class WolfPack : MonoBehaviour, IPoolable
 
         NetPool.Despawn(gameObject);
     }
+
+    #region RPC
+    [PunRPC]
+    private void RpcEngaged(bool value)
+    {
+        NormalMonster data = alphaCombat.GetData();
+        if (data == null || engaged == value) return;
+        ApplyEngaged(value, data);
+    }
+
+    #endregion
 }

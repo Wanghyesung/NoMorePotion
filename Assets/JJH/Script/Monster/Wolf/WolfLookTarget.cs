@@ -56,6 +56,10 @@ public class WolfLookTarget : MonoBehaviour
         if (mover.nowTarget == null || mover.state == null) return false;
         if (releaseDuringAnimation && mover.IsAnimation) return false;
 
+        // 로컬 클라이언트의 경우 타겟이 있으면 바라봄
+        if (!GameAuthority.HasAuthority) return true;
+        if (mover.state == null) return false;
+
         return mover.state.GetStateType() switch
         {
             MonsterState.Chase or 
