@@ -1,5 +1,7 @@
 using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
+using ExitGames.Client.Photon;
+using ExitGames.Client.Photon.StructWrapping;
 using Photon.Pun;
 using System;
 using System.Collections.Generic;
@@ -291,6 +293,20 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             state.ChangeState(stateGroup[MonsterState.Patrol]);
     }
 
+    /// <summary>
+    /// 방장을 이어받았을 때: 애니메이션 · 타겟 · 쿨타임은 유지하고 판단 루프만 시작
+    /// </summary>
+    private void RestartAI()
+    {
+        StopAI();
+
+        agent.enabled = true;
+        state = new();
+
+        aiCts = new CancellationTokenSource();
+        StartAILoop(aiCts.Token).Forget();
+    }
+
     protected virtual IMonsterState UpdateState()
     {
         IMonsterState result = null;
@@ -492,6 +508,23 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         return flat.sqrMagnitude <= slotTolerance * slotTolerance;
     }
 
+    #endregion
+
+    #region 포톤 제어
+    public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+    {
+        if(!PhotonNetwork.IsMasterClient) return;
+        if (combat == null || combat.GetData() == null) return;
+
+        if (combat.GetData().HP <= 0)
+        {
+            combat.ContinueDeathAnimation();
+            return;
+        }
+
+
+        RestartAI();
+    }
     #endregion
 
     #region RPC

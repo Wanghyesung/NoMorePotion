@@ -24,6 +24,11 @@ public static class JJH_Constants
     // 보스 데이터 호출 상수
     public const string WOLF_SUB_DATA_NORMAL_WOLF_HP = "NormalWolfHP";
 
+    //스포너 관련
+    public const string SPAWNER_DAY = "day";
+    public const string SPAWNER_WAVE_START_TIME = "waveStartTime";
+    public const string SPAWNER_ORDER = "order";
+
     public const int FSM_TIMER = 100;
     public const int MIL_SEC = 1000;
 
