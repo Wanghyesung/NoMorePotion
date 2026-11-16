@@ -152,7 +152,7 @@ public class PotionMover : MonoBehaviour
             photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, instance.Data.potionID, keywordId);
         }
 
-        PlayExplosion(position, impact, instance, true);
+        PlayExplosion(position, impact, instance);
         if (networked)
             PhotonNetwork.Destroy(gameObject);
         else
@@ -174,10 +174,11 @@ public class PotionMover : MonoBehaviour
         if (keywordId != 0 && !PotionDataManager.Instance.TryGetTrapKeyword(keywordId, out keyword))
             Debug.LogWarning($"[PotionMover] : 알 수 없는 함정 키워드 번호({keywordId})를 받아 정상 포션으로 폭발시킵니다.", this);
 
-        PlayExplosion(position, impact, new PotionInstance(data, keyword), false);
+        PlayExplosion(position, impact, new PotionInstance(data, keyword));
     }
 
-    private void PlayExplosion(Vector3 position, bool impact, PotionInstance instance, bool applyEffects)
+    // 던진 기기도, RPC 를 받은 기기도 같은 경로입니다. 어떤 대상을 처리할지는 PotionDetector 가 이 기기의 역할(방장인지)로 정합니다.
+    private void PlayExplosion(Vector3 position, bool impact, PotionInstance instance)
     {
         if (HasExploded)
             return;
@@ -199,8 +200,8 @@ public class PotionMover : MonoBehaviour
             }
             if (explosion.TryGetComponent(out PotionDetector detector))
             {
-                // 모든 기기가 같은 정보(포션, 키워드)로 초기화합니다. 효과 적용 여부만 다릅니다.
-                detector.Initialize(instance, applyEffects);
+                // 모든 기기가 같은 정보(포션, 키워드)로 초기화합니다.
+                detector.Initialize(instance);
             }
 
         }

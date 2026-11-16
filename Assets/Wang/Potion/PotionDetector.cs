@@ -31,8 +31,8 @@ public sealed class PotionDetector : MonoBehaviour
 
     private PotionInstance instance;
 
-    // 이 기기가 효과를 적용할지 여부입니다. false 면 이펙트와 반납 일정만 돌고 효과는 적용하지 않습니다.
-    private bool applyEffects;
+    // 이 기기가 처리할 대상 범위입니다. 내 플레이어는 모든 기기가, 플레이어가 아닌 대상(몬스터, 월드 오브젝트)은 방장만 처리합니다.
+    private PotionTargetScope scope = PotionTargetScope.LocalPlayer;
     // 포션에 반복 체력 증감(초당 대미지) 효과가 없을 때 쓰는 기본 반복 간격(초)과 횟수
     private const float DefaultAttackDelay = 1f;
     private const int DefaultMaxAttackCount = 10;
@@ -46,12 +46,13 @@ public sealed class PotionDetector : MonoBehaviour
         CacheEffectColors();
     }
 
-    public void Initialize(PotionInstance potionInstance) => Initialize(potionInstance, true);
-
     /// <summary>
-    /// 모든 기기가 같은 포션 정보로 초기화합니다. 이펙트, 크기, 색, 반납 일정은 항상 같고, 효과 적용(TryAttack)은 applyEffects 일 때만 합니다.
+    /// 모든 기기가 같은 포션 정보로 초기화하고, 같은 일정으로 폭발과 반복 공격을 돕니다.
+    /// 어떤 대상을 처리할지는 이 기기가 스스로 정합니다. (던진 사람이 누구인지와 무관)
+    /// - 내 플레이어 : 모든 기기가 각자 처리합니다.
+    /// - 플레이어가 아닌 대상(몬스터, 월드 오브젝트 등) : 방장만 처리합니다. 오프라인에서는 내가 방장입니다.
     /// </summary>
-    public void Initialize(PotionInstance potionInstance, bool applyEffects)
+    public void Initialize(PotionInstance potionInstance)
     {
 
         if (potionInstance == null || potionInstance.Data == null)
@@ -62,7 +63,10 @@ public sealed class PotionDetector : MonoBehaviour
         }
 
         instance = potionInstance;
-        this.applyEffects = applyEffects;
+        scope = GameAuthority.HasAuthority
+            ? PotionTargetScope.LocalPlayer | PotionTargetScope.NonPlayers
+            : PotionTargetScope.LocalPlayer;
+
         InitializeEffect(instance.Data);
         TryAttack();
     }
@@ -127,17 +131,16 @@ public sealed class PotionDetector : MonoBehaviour
 
     private void TryAttack()
     {
-        // 효과를 적용하지 않는 기기는 반복 공격도 돌리지 않습니다. (이펙트와 반납은 InitializeEffect 가 이미 예약함)
-        if (instance == null || applyEffects == false)
+        if (instance == null)
             return;
 
 
         // 첫 공격은 폭발 전체(상태 효과, 생존 상태, 월드 오브젝트 포함)를 적용하고, 이후 반복은 지금 범위 안에 있는 대상에게 체력 증감(초당 대미지)만 적용한다.
-        // 범위를 벗어난 대상은 다음 틱부터 맞지 않는다.
+        // 범위를 벗어난 대상은 다음 틱부터 맞지 않는다. 어떤 대상을 처리할지는 이 기기의 scope 가 정한다.
         if (AttackCount == 0)
-            PotionExplosion.Explode(instance, transform.position);
+            PotionExplosion.Explode(instance, transform.position, scope);
         else
-            PotionExplosion.ExplodeTick(instance, transform.position);
+            PotionExplosion.ExplodeTick(instance, transform.position, scope);
 
         if (!attackOnce)
         {

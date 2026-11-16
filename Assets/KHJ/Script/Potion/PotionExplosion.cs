@@ -12,6 +12,10 @@ namespace Enzeun.Runtime
     /// - 마시기 : 플레이어의 위치에서 호출합니다. 범위에 플레이어 자신도 포함되므로 자신에게도 적용됩니다.
     ///
     /// 한 대상에 콜라이더가 여러 개여도 효과는 대상당 한 번만 적용합니다.
+    ///
+    /// 멀티플레이 : 모든 기기가 같은 폭발을 각자 부르되, 어떤 대상을 처리할지는 scope(PotionTargetScope)로 나눕니다.
+    /// 내 플레이어는 각 기기가, 플레이어가 아닌 대상(몬스터, 월드 오브젝트)은 방장만 처리하고, 남의 플레이어는 처리하지 않습니다.
+    /// scope 를 지정하지 않으면 All(내 플레이어 + 플레이어가 아닌 대상)이라 오프라인이나 단독 호출에서는 이전과 같습니다.
     /// </summary>
     public static class PotionExplosion
     {
@@ -34,7 +38,7 @@ namespace Enzeun.Runtime
         /// 제작된 포션 인스턴스를 position 에서 폭발시킵니다. 함정 포션이면 원래 포션의 효과에 함정 키워드의 효과가 더해지고,
         /// 폭발 범위는 원래 포션을 따릅니다.
         /// </summary>
-        public static int Explode(PotionInstance instance, Vector3 position)
+        public static int Explode(PotionInstance instance, Vector3 position, PotionTargetScope scope = PotionTargetScope.All)
         {
             if (instance == null)
             {
@@ -42,32 +46,35 @@ namespace Enzeun.Runtime
                 return 0;
             }
 
-            return ExplodeCore(instance.Data, instance.TrapKeyword, position);
+            return ExplodeCore(instance.Data, instance.TrapKeyword, position, false, scope);
         }
 
         /// <summary>
         /// 범위 장판이 간격마다 반복하는 틱입니다. 지금 범위 안에 있는 대상에게만 체력 증감(초당 대미지 등) 효과를 적용합니다.
         /// 처음 폭발(Explode)에서 이미 적용한 상태 효과, 생존 상태 증감, 월드 오브젝트 대미지는 반복하지 않고, 화면 연출도 다시 재생하지 않습니다.
         /// </summary>
-        public static int ExplodeTick(PotionInstance instance, Vector3 position)
+        public static int ExplodeTick(PotionInstance instance, Vector3 position, PotionTargetScope scope = PotionTargetScope.All)
         {
             if (instance == null)
             {
                 return 0;
             }
 
-            return ExplodeCore(instance.Data, instance.TrapKeyword, position, true);
+            return ExplodeCore(instance.Data, instance.TrapKeyword, position, true, scope);
         }
 
+        /// <summary>
+        /// 내 플레이어에게만 적용하는 폭발입니다. (scope 가 LocalPlayer 인 Explode/ExplodeTick 과 같음)
+        /// </summary>
         /// <param name="potion">효과와 폭발 범위의 기준이 되는 원래 포션</param>
-        /// <param name="trapKeyword">함정 키워드. 있으면 그 효과도 같이 적용합니다. (범위는 원래 포션을 따름)</param>
+        /// <param name="keyword">함정 키워드. 있으면 그 효과도 같이 적용합니다. (범위는 원래 포션을 따름)</param>
         /// <param name="tickOnly">true 면 체력 증감 효과만 적용하고 연출은 재생하지 않습니다. (범위 장판의 반복 틱)</param>
         public static int ExplodeLocalPlayer(PotionData potion, TrapPotionKeyword keyword, Vector3 position, bool tickOnly)
         {
-            return ExplodeCore(potion, keyword, position, tickOnly, true);
+            return ExplodeCore(potion, keyword, position, tickOnly, PotionTargetScope.LocalPlayer);
         }
 
-        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, bool localPlayerOnly = false)
+        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, PotionTargetScope scope = PotionTargetScope.All)
         {
             if (potion == null)
             {
@@ -115,12 +122,13 @@ namespace Enzeun.Runtime
                     IsLocalPlayer = IsLocalPlayerContainer(container),
                 };
 
+                // 범위 구분 : 플레이어는 내 플레이어만(남의 플레이어는 그 기기가 처리), 플레이어가 아닌 대상은 NonPlayers 일 때만 처리합니다.
                 if (target.Damageable is Player player)
                 {
-                    if (!player.IsLocalPlayer)
+                    if (!player.IsLocalPlayer || (scope & PotionTargetScope.LocalPlayer) == 0)
                         continue;
                 }
-                else if (localPlayerOnly)
+                else if ((scope & PotionTargetScope.NonPlayers) == 0)
                 {
                     continue;
                 }

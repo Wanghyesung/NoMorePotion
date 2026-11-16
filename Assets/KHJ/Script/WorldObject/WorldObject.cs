@@ -140,7 +140,8 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 포션의 월드 오브젝트 대미지 효과를 받습니다. 파괴 타입이고, 효과의 대상 종류에 이 오브젝트의 종류가 있을 때만 차감합니다.
-        /// 주의 : 멀티플레이에서는 폭발을 일으킨 클라이언트 한 곳에서만 호출해야 합니다. (모든 클라이언트가 호출하면 요청이 중복되어 대미지가 여러 번 들어갑니다)
+        /// 주의 : 멀티플레이에서는 방장 한 곳에서만 호출해야 합니다. (모든 클라이언트가 호출하면 요청이 중복되어 대미지가 여러 번 들어갑니다)
+        /// 포션 폭발은 PotionTargetScope 로 플레이어가 아닌 대상(월드 오브젝트 포함)을 방장만 처리하게 해서 이 규칙을 지킵니다.
         /// </summary>
         /// <returns>횟수가 차감되었으면(멀티플레이에서는 요청을 보냈으면) true</returns>
         public bool ReceivePotionDamage(WorldObjectDamagePotionEffect effect)
