@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
+using Photon.Pun;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -51,6 +52,7 @@ public sealed class FSM : MonoBehaviour
 
     #region Components
     private Player player;
+    private PhotonView photonView;
     private int upperBodyLayer;
     private static readonly int upperBodyEmptyHash = Animator.StringToHash("UpperBody.Empty");
     public Animator Animator { get; private set; }
@@ -104,6 +106,7 @@ public sealed class FSM : MonoBehaviour
     public void Init(Player player)
     {
         this.player = player;
+        photonView = GetComponent<PhotonView>();
         Animator = playerView.GetComponent<Animator>();
         upperBodyLayer = Animator.GetLayerIndex("UpperBody");
         Rigidbody = GetComponent<Rigidbody>();
@@ -337,9 +340,32 @@ public sealed class FSM : MonoBehaviour
 
     public void ClearActionState()
     {
+        bool hadAction = CurrentActionState != null;
         CurrentActionState?.Exit();
         CurrentActionState = null;
 
+        ResetUpperBodyAnimation();
+
+        // 실제 액션을 끝낸 소유자만 전송한다. 초기화와 빈 상태 정리는 전송하지 않는다.
+        if (hadAction && PhotonNetwork.InRoom && photonView != null
+            && photonView.ViewID != 0 && photonView.IsMine)
+        {
+            photonView.RPC(nameof(RpcClearUpperBodyAnimation), RpcTarget.Others);
+        }
+    }
+
+    [PunRPC]
+    private void RpcClearUpperBodyAnimation(PhotonMessageInfo info)
+    {
+        if (info.Sender != photonView.Owner || photonView.IsMine)
+            return;
+
+        // 원격 FSM의 게임 상태는 바꾸지 않고 Animator의 종료 연출만 맞춘다.
+        ResetUpperBodyAnimation();
+    }
+
+    private void ResetUpperBodyAnimation()
+    {
         Animator.SetLayerWeight(upperBodyLayer, 0f);
         Animator.Play(upperBodyEmptyHash, upperBodyLayer, 0f);
     }
