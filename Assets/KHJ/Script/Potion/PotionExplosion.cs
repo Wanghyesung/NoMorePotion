@@ -106,6 +106,9 @@ namespace Enzeun.Runtime
             AppliedTargets.Clear();
             int targetCount = 0;
 
+            // 남의 플레이어 몸 연출에 쓸 피해 수치입니다. (효과 적용과 무관한 연출 전용)
+            int visualDamage = GetDamageAmount(potion, trapKeyword);
+
             for (int i = 0; i < hitCount; i++)
             {
                 Collider collider = ColliderBuffer[i];
@@ -125,7 +128,18 @@ namespace Enzeun.Runtime
                 // 범위 구분 : 플레이어는 내 플레이어만(남의 플레이어는 그 기기가 처리), 플레이어가 아닌 대상은 NonPlayers 일 때만 처리합니다.
                 if (target.Damageable is Player player)
                 {
-                    if (!player.IsLocalPlayer || (scope & PotionTargetScope.LocalPlayer) == 0)
+                    if (!player.IsLocalPlayer)
+                    {
+                        // 남의 플레이어에게는 효과를 적용하지 않습니다. 대신 이 기기에서 보이는 대로 몸 연출만 근사해서 재생합니다.
+                        if (visualDamage > 0 && AppliedTargets.Add(player))
+                        {
+                            PlayRemoteHitFeedback(player, visualDamage);
+                        }
+
+                        continue;
+                    }
+
+                    if ((scope & PotionTargetScope.LocalPlayer) == 0)
                         continue;
                 }
                 else if ((scope & PotionTargetScope.NonPlayers) == 0)
@@ -167,6 +181,47 @@ namespace Enzeun.Runtime
 #endif
 
             return targetCount;
+        }
+
+        /// <summary>
+        /// 포션과 함정 키워드의 체력 대미지 효과 수치를 합칩니다. 회복은 제외합니다. (남의 피격 몸 연출 세기용)
+        /// </summary>
+        private static int GetDamageAmount(PotionData potion, TrapPotionKeyword keyword)
+        {
+            int total = SumDamage(potion != null ? potion.effects : null);
+            total += SumDamage(keyword != null ? keyword.Effects : null);
+            return total;
+        }
+
+        private static int SumDamage(IReadOnlyList<PotionEffect> effects)
+        {
+            if (effects == null)
+            {
+                return 0;
+            }
+
+            int total = 0;
+            for (int i = 0; i < effects.Count; i++)
+            {
+                if (effects[i] is HealthChangePotionEffect health
+                    && health.healthChange.changeType == HealthChangeType.Damage)
+                {
+                    total += health.healthChange.amount;
+                }
+            }
+
+            return total;
+        }
+
+        /// <summary>
+        /// 남의 플레이어 캐릭터에 피격 몸 연출을 재생합니다. 연출 컴포넌트가 없으면 아무것도 하지 않습니다.
+        /// </summary>
+        private static void PlayRemoteHitFeedback(Player player, int damage)
+        {
+            if (player.TryGetComponent(out PlayerHitFeedbackRelay relay))
+            {
+                relay.PlayBodyFeedbackApprox(damage);
+            }
         }
 
         /// <summary>

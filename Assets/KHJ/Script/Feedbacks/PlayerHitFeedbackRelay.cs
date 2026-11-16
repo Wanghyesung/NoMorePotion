@@ -75,6 +75,23 @@ namespace Enzeun.Runtime
             PlayerHitFeedbackHub.Play(damageRatio);
         }
 
+        /// <summary>
+        /// 다른 기기에서 일어난 피격을 이 기기가 근사해서 몸 연출만 재생합니다. (포션 폭발 반경 안에 있는 남의 캐릭터)
+        /// 남의 캐릭터는 TakeDamage 가 무시되어 FSM 피격 이벤트가 오지 않으므로, 폭발을 본 기기가 직접 부릅니다.
+        /// 연출 전용이라 게임 상태에는 영향이 없습니다. 방어력은 알 수 없어 받을 피해의 원본 수치로 세기를 정하고, 화면 연출은 재생하지 않습니다.
+        /// </summary>
+        /// <param name="damage">받았을 것으로 보는 피해 수치(원본)</param>
+        public void PlayBodyFeedbackApprox(int damage)
+        {
+            Character character = _player != null ? _player.Character : null;
+            if (_bodyFeedback == null || character == null || character.MaxHP <= 0 || damage <= 0)
+            {
+                return;
+            }
+
+            _bodyFeedback.Play(damage / (float)character.MaxHP);
+        }
+
 #if UNITY_EDITOR
 
         [Button(ButtonSizes.Large)]
