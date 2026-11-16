@@ -251,6 +251,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
+        anim.SetMoveAnimationSpeed();
         reachability.ResetState();
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;

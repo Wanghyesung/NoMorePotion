@@ -166,9 +166,13 @@ MonoBehaviour:
     graceTime: 2.5
     reacquireCooldown: 3
     sampleRadius: 2
-  nowTarget: {fileID: 0}
   provokeDuration: 5
   provokeSearchRange: 50
+  useAttackSlot: 1
+  waitBuffer: 2
+  slotStandRatio: 0.7
+  slotTolerance: 1
+  defaultTarget: {fileID: 0}
   patrolTimer: 0
   patrolTimerActive: 0
   attackTimer: 0
@@ -218,7 +222,7 @@ NavMeshAgent:
   m_AutoBraking: 0
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: -0.1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!54 &7466904489326264937
