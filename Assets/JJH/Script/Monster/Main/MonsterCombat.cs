@@ -264,6 +264,12 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         StartDeathSink();
     }
 
+    public void ContinueDeathAnimation()
+    {
+        if (isSinking) return;
+        StartDeathSink();
+    }
+
     /// <summary>
     /// 속도 제어 반응 함수(속도가 감소했을 때)
     /// </summary>

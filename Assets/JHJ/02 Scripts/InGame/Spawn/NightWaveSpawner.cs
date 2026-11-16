@@ -1,8 +1,11 @@
+using ExitGames.Client.Photon;
+using Photon.Pun;
 using R3;
 using System;
 using UnityEngine;
+using static JJH_Constants;
 
-public class NightWaveSpawner : MonoBehaviour
+public class NightWaveSpawner : MonoBehaviourPunCallbacks
 {
     [SerializeField] private WaveTable waveTable;
     [SerializeField] private Transform[] spawnPoints;
@@ -80,30 +83,23 @@ public class NightWaveSpawner : MonoBehaviour
         if (!GameAuthority.HasAuthority)
             return;
 
-        int order = 0;
-
-        foreach(WaveEntry entry in wave.Entries)
+        if (PhotonNetwork.InRoom)
         {
-            if(entry.Prefab == null)
+            Hashtable data = new()
             {
-                Debug.LogWarning("[NightWaveSpawner] entry 프리팹 없음");
-                continue;
-            }
-
-            for (int i = 0; i < entry.Count; i++)
-            {
-                float delay = order * wave.SpawnInterval;
-                IDisposable handle = time.Schedule(delay, () => SpawnOne(entry.Prefab));
-                pendingSpawns.Add(handle);
-                order++;
-            }
+                [SPAWNER_DAY] = day,
+                [SPAWNER_WAVE_START_TIME] = PhotonNetwork.Time,
+                [SPAWNER_ORDER] = -1
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(data);
         }
 
-        Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {order}마리 예약");
+        int count = ScheduleWave(wave, -1, 0f);
+        Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {count}마리 예약");
     }
 
     // TODO(전멸 알림): aliveCount가 0이 될 경우 뭘 할지 정하기
-    private void SpawnOne(GameObject prefab)
+    private void SpawnOne(GameObject prefab,int order)
     {
         Transform point = PickSpawnPoint();
         // 방 안: 방장이 포톤으로 생성 → 모든 클라이언트에 생성됨 / 방 밖: 로컬 풀에서 생성
@@ -119,6 +115,15 @@ public class NightWaveSpawner : MonoBehaviour
         {
             combat.Died += OnMonsterDied;
             aliveCount++;
+        }
+
+        if (PhotonNetwork.InRoom)
+        {
+            Hashtable data = new()
+            {
+                [SPAWNER_ORDER] = order
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(data);
         }
     }
 
@@ -138,4 +143,78 @@ public class NightWaveSpawner : MonoBehaviour
         aliveCount--;
         // aliveCount == 0이면 전멸 알림
     }
+
+    #region 방장 변경 시 처리
+    public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+        if (time.Phase.CurrentValue == TimePhase.Day) return;
+
+        Hashtable table = PhotonNetwork.CurrentRoom.CustomProperties;
+        int dayNum = 0;
+        int orderNum = 0;
+        double waveTime = 0;
+
+        CancelPendingSpawns();
+
+        if (table.TryGetValue(SPAWNER_DAY, out object day))
+        {
+            dayNum = (int)day;
+            if (dayNum <= 0) return;
+        }
+        else return;
+
+        if (table.TryGetValue(SPAWNER_ORDER, out object order))
+            orderNum = (int)order;
+        else return;
+
+        if (table.TryGetValue(SPAWNER_WAVE_START_TIME, out object waveStartTime))
+            waveTime = (double)waveStartTime;
+        else return;
+
+        WaveData wave = waveTable.GetWave(dayNum);
+
+        if (wave == null)
+        {
+            Debug.LogWarning("[NightWaveSpawner] waveTable에서 가져올 웨이브가 없음");
+            return;
+        }
+        float beforeTime = (float)(PhotonNetwork.Time - waveTime);
+        int count = ScheduleWave(wave, orderNum, beforeTime);
+
+        Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 이어받음, {orderNum + 1} 번부터 {count}마리 생성");
+
+    }
+    #endregion
+
+    /// <summary>
+    /// 웨이브 계획대로 생성 예약
+    /// lastSpawned 이하 순번은 건너뜀 (-1이면 처음부터), elapsed는 웨이브 시작 후 지난 시간
+    /// </summary>
+    private int ScheduleWave(WaveData wave, int lastSpawned, float elapsed)
+    {
+        int order = 0;
+        int scheduled = 0;
+
+        foreach (WaveEntry entry in wave.Entries)
+        {
+            if (entry.Prefab == null) continue;
+
+            for (int i = 0; i < entry.Count; i++)
+            {
+                int spawnOrder = order;
+                order++;
+
+                if (spawnOrder <= lastSpawned) continue;
+
+                float delay = Mathf.Max(0f, spawnOrder * wave.SpawnInterval - elapsed);
+                GameObject prefab = entry.Prefab;
+                pendingSpawns.Add(time.Schedule(delay, () => SpawnOne(prefab, spawnOrder)));
+                scheduled++;
+            }
+        }
+        return scheduled;
+    }
+
 }
+ 
