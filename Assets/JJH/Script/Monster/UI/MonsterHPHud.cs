@@ -170,6 +170,17 @@ public class MonsterHPHud : MonoBehaviour
         HideAfterDelay(hideCts.Token).Forget();
     }
 
+    // MonsterHPHud
+    /// <summary>
+    /// 트윈 없이 즉시 종료하는 함수 (씬 종료, 비활성화 중 등 트윈을 만들면 안 될 때)
+    /// </summary>
+    public void HideImmediate()
+    {
+        KillTweens();
+        CancelHide();
+        canvasGroup.alpha = 0f;
+    }
+
     /// <summary>
     /// 설정 시간 이후 허드를 다시 감추는 지연 함수
     /// </summary>

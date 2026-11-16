@@ -53,6 +53,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
     private bool fromPool;
 
     public event Action<MonsterCombat> Died;
+    public event Action<MonsterCombat> Damaged;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
@@ -321,6 +322,9 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
         int before = data.HP;
         data.HP = Mathf.Clamp(data.HP - damage, 0,data.MaxHP);
         data.OnHPChanged?.Invoke(before, data.HP);
+
+        if (before > data.HP) Damaged?.Invoke(this);
+
         ShowNumber(before - data.HP);
         if (data.HP <= 0) data.OnDead?.Invoke();
     }
@@ -412,7 +416,7 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
             wolf.Pack.OnMemberGone();
         }            
         else
-            PoolManager.Instance.Release(gameObject);
+            NetPool.Despawn(gameObject);
     }
 
     private void CancelDeathSink()

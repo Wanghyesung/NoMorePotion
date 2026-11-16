@@ -56,6 +56,10 @@ public class WolfPack : MonoBehaviour, IPoolable
     [SF] private float cooldownReduce = 0.25f; 
     [SF] private float minCooldownRate = 0.4f;
 
+    [Header("전투 유지 값")]
+    [SF] private float engageHoldTime = 5f; 
+    private float lastHitTime = -999f;
+
     #endregion
 
     #region 필드 변수
@@ -80,6 +84,8 @@ public class WolfPack : MonoBehaviour, IPoolable
         foreach (WolfMove mover in members)
             mover.JoinPack(this);
         alphaCombat = alpha.GetComponent<WolfCombat>();
+        // 피격 이벤트 구독
+        alphaCombat.Damaged += _ => lastHitTime = Time.time;
         startNormalWolfCount = members.Count;
 
         startLocalPos = new Vector3[members.Count];
@@ -100,7 +106,7 @@ public class WolfPack : MonoBehaviour, IPoolable
         // 알파 사망 시 로직 해제, 노말은 기본 MonsterMove 로직으로 동작
         if (!IsActive)
         {
-            SetEngaged(false);
+            SetEngaged(Target != null || Time.time < lastHitTime + engageHoldTime);
             enabled = false;
             return;
         }
@@ -166,7 +172,7 @@ public class WolfPack : MonoBehaviour, IPoolable
         if (next == PackPhase.Assault)
         {
             foreach (WolfMove m in alive)
-                m.attackTimer = m.attackSpeed - Random.Range(0f, 0.5f);
+                m.attackTimer = m.attackSpeed - Random.Range(0f, 0.2f);
         }
     }
 
@@ -361,7 +367,7 @@ public class WolfPack : MonoBehaviour, IPoolable
             if (!member.gameObject.activeSelf)
                 member.gameObject.SetActive(true);
         }
-
+        lastHitTime = -999f;
         Phase = PackPhase.Patrol;
         phaseTimer = 0;
         turnAngle = 0;
@@ -385,6 +391,6 @@ public class WolfPack : MonoBehaviour, IPoolable
         foreach (WolfMove m in members)
             if (m != null && m.gameObject.activeSelf) return;
 
-        PoolManager.Instance.Release(gameObject);
+        NetPool.Despawn(gameObject);
     }
 }

@@ -26,7 +26,7 @@ public class WolfCombat : MonsterCombat
     [SF] private float landOffset = 0.3f;
     [SF] private float maxJumpDistance = 8f;
 
-    private WolfAnamationController WolfAnim => anim as WolfAnamationController;
+    private WolfAnimationController WolfAnim => anim as WolfAnimationController;
     private WolfMove WolfMover => mover as WolfMove;
 
     private CancellationTokenSource jumpCts;
@@ -97,6 +97,10 @@ public class WolfCombat : MonsterCombat
     {
         if (isWindup)
             FaceTargetDuringWindup();
+
+        // 웅크림도 점프도 아닌데 재생 속도가 바뀌어 있으면 재생 속도 초기화
+        if (!isWindup && !isJumping && WolfAnim.IsPlaybackModified)
+            WolfAnim.ResetPlayback();
     }
 
     protected override void OnDisable()
@@ -188,6 +192,16 @@ public class WolfCombat : MonsterCombat
 
         if (WolfMover != null && WolfMover.Pack != null)
             WolfMover.Pack.OnPoundFinished();
+    }
+
+    /// <summary>
+    /// 땅찍기 명령 취소
+    /// </summary>
+    public void CancelPound()
+    {
+        isWindup = false;
+        poundHitbox.gameObject.SetActive(false);
+        if (!isJumping) WolfAnim.ResetPlayback();
     }
     #endregion
 

@@ -298,7 +298,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
 
         // 기본 타겟이 있는 경우 기본 타겟으로 재설정
-        if (nowTarget == null && defaultTarget != null && defaultTarget.activeInHierarchy)
+        if (nowTarget == null && AttackTarget.IsValid(defaultTarget))
             SetTarget(defaultTarget);
 
         if (nowTarget == null)
@@ -467,6 +467,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private bool IsAtSlot()
     {
         if (!HasSlot) return true;
+
+        if (targetInfo.IsInSlotSector(this)) return true;
 
         Vector3 flat = GetChaseDestination() - transform.position;
         flat.y = 0f;

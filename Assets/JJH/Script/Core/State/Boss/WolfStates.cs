@@ -158,5 +158,10 @@ public class WolfPoundState : WolfStateBase
     {
         wolf.anim.IsRun(false);
         wolf.WolfAnim.IsPound(false);
+        WolfCombat wolfCombat = wolf.combat as WolfCombat;
+        if (wolf.combat as WolfCombat != null)
+        {
+            wolfCombat.CancelPound();
+        }
     }
 }

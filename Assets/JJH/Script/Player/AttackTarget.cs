@@ -160,6 +160,21 @@ public class AttackTarget : MonoBehaviour
     }
 
     /// <summary>
+    /// 몬스터가 배정된 슬롯의 구역(슬롯 방향 ± 반 간격) 안에 있는지
+    /// </summary>
+    public bool IsInSlotSector(MonsterMove mover)
+    {
+        if (!holders.TryGetValue(mover, out Holder h)) return false;
+
+        Vector3 dir = mover.transform.position - transform.position;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.001f) return true;
+
+        float halfSector = 180f / SlotCount;
+        return Vector3.Angle(dir, IndexToDirection(h.Index)) <= halfSector;
+    }
+
+    /// <summary>
     /// 플레이어 사망 시 false, 부활 시 true로 호출
     /// </summary>
     public void SetTargetable(bool value)

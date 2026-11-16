@@ -1,13 +1,15 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 using static JJH_Enums;
-
+using SF = UnityEngine.SerializeField;
 public class WolfMove : MonsterMove
 {
     public WolfPack Pack { get; private set; }
     public bool IsAlpha => Pack != null && Pack.Alpha == this;
+    [SF] private float attackExitMargin = 0.5f;
 
     // new 필드 대신 캐스팅. 부모 Awake가 채운 anim을 그대로 씀
-    public WolfAnamationController WolfAnim => anim as WolfAnamationController;
+    public WolfAnimationController WolfAnim => anim as WolfAnimationController;
 
     public void JoinPack(WolfPack pack) => Pack = pack;
 
@@ -50,6 +52,11 @@ public class WolfMove : MonsterMove
             default:
                 if (nowTarget == null) return base.UpdateState();
                 float dist = Vector3.Distance(transform.position, nowTarget.transform.position);
+
+                // 이미 공격 중이면 여유 거리를 줘서 경계에서 멈췄다 쫓았다 반복하지 않게
+                if (state.GetStateType() == MonsterState.Attack)
+                    dist -= attackExitMargin;
+
                 next = IsInAttackRange(dist) ? MonsterState.Attack : MonsterState.Chase;
                 break;
         }
