@@ -10,6 +10,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
     [SerializeField] private WaveTable waveTable;
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private GameObject defendTarget;   // 수정 구슬
+    [SerializeField] private PhotonView defendTargetView;
     private CompositeDisposable pendingSpawns = new CompositeDisposable(); // 예약 중 묶음
     private TimeManager time;
     private int aliveCount;
@@ -108,7 +109,9 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         if (go == null) return;
 
         // 웨이브 몹은 기본적으로 수정 구슬을 노림
-        if (go.TryGetComponent(out MonsterMove mover))
+        if (go.TryGetComponent(out WaveMonsterMember wave))
+            wave.MarkAsWave(defendTarget);
+        else if (go.TryGetComponent(out MonsterMove mover))
             mover.SetDefaultTarget(defendTarget);
 
         if (go.TryGetComponent(out MonsterCombat combat))
@@ -144,10 +147,30 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         // aliveCount == 0이면 전멸 알림
     }
 
+
+    /// <summary>
+    /// 방장 이탈 시 살아 있는 웨이브 몬스터를 다시 세고 사망을 구독시키는 함수
+    /// </summary>
+
+    private void RecountAliveWaveMonsters()
+    {
+        aliveCount = 0;
+
+        foreach (WaveMonsterMember m in WaveMonsterRegistry.Monsters)
+        {
+            if (!m.IsAlive) continue;   // 가라앉는 중인 시체 제외
+
+            m.Combat.Died -= OnMonsterDied;   // 혹시 모를 중복 구독 방지
+            m.Combat.Died += OnMonsterDied;
+            aliveCount++;
+        }
+    }
+
     #region 방장 변경 시 처리
     public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
     {
         if (!PhotonNetwork.IsMasterClient) return;
+        RecountAliveWaveMonsters();
         if (time.Phase.CurrentValue == TimePhase.Day) return;
 
         Hashtable table = PhotonNetwork.CurrentRoom.CustomProperties;
