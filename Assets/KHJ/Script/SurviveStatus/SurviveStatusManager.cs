@@ -124,6 +124,66 @@ namespace Enzeun.Runtime
         // 상태 효과 변경 이벤트 안에서 바로 체온을 바꾸면 컨테이너가 효과를 처리하는 도중에 다시 효과가 바뀔 수 있으므로, 다음 프레임에 처리합니다.
         private bool _limitsDirty;
 
+        // ==================== 정신력 변화 설정 ============================
+        // 시트 : 기본값 50%. 대미지를 입을 때마다 5% 감소. 0% 가 되면 즉사.
+        //        밝기 3단계(기본 환경) : 50% 이하이면 50% 까지 2초당 1% 증가 / 밝기 2단계 : 5초당 1% 감소 / 밝기 1단계 : 5초당 2% 감소
+        // 값은 틱마다 읽으므로 Play 중에 인스펙터에서 바꿔도 바로 반영됩니다.
+
+        [SerializeField, LabelText("정신력 변화 사용"), BoxGroup("정신력")]
+        private bool _useMentalChange = true;
+
+        [SerializeField, LabelText("시작 밝기 환경"), BoxGroup("정신력")]
+        private BrightnessLevel _initialBrightness = BrightnessLevel.Bright;
+
+        [SerializeField, LabelText("밝음(3단계) 회복 간격 (초)"), MinValue(0.1f), BoxGroup("정신력/밝기 3단계")]
+        private float _brightRecoverIntervalSeconds = 2f;
+
+        [SerializeField, LabelText("밝음(3단계) 1회 회복량"), MinValue(0), BoxGroup("정신력/밝기 3단계")]
+        private int _brightRecoverAmount = 1;
+
+        [SerializeField, LabelText("밝음(3단계) 회복 상한 (%)"), Range(0, 100), BoxGroup("정신력/밝기 3단계")]
+        private int _brightRecoverUpTo = 50;
+
+        [SerializeField, LabelText("어두움(2단계) 감소 간격 (초)"), MinValue(0.1f), BoxGroup("정신력/밝기 2단계")]
+        private float _dimDecayIntervalSeconds = 5f;
+
+        [SerializeField, LabelText("어두움(2단계) 1회 감소량"), MinValue(0), BoxGroup("정신력/밝기 2단계")]
+        private int _dimDecayAmount = 1;
+
+        [SerializeField, LabelText("매우 어두움(1단계) 감소 간격 (초)"), MinValue(0.1f), BoxGroup("정신력/밝기 1단계")]
+        private float _darkDecayIntervalSeconds = 5f;
+
+        [SerializeField, LabelText("매우 어두움(1단계) 1회 감소량"), MinValue(0), BoxGroup("정신력/밝기 1단계")]
+        private int _darkDecayAmount = 2;
+
+        [SerializeField, LabelText("대미지를 입을 때마다 감소 (%)"), MinValue(0), BoxGroup("정신력/피격")]
+        private int _damageMentalLoss = 5;
+
+        // 탈수, 굶주림, 범위 장판 같은 주기 대미지는 틱마다 계속 들어와서, 포함하면 정신력이 순식간에 0 이 되어 즉사합니다. 기본은 제외입니다.
+        [SerializeField, LabelText("주기 대미지(탈수, 장판 틱)도 감소에 포함"), BoxGroup("정신력/피격")]
+        private bool _periodicDamageReducesMental = false;
+
+        /// <summary>
+        /// 지금 플레이어가 있는 곳의 밝기 환경 단계입니다. 정신력이 변하는 방식을 정합니다.
+        /// 바꾸는 것은 SetBrightness 로만 합니다. (예: 동굴에 들어가면 Dim 이나 Dark 로)
+        /// </summary>
+        [ShowInInspector, ReadOnly, LabelText("현재 밝기 환경"), BoxGroup("정신력"), PropertyOrder(-10)]
+        public BrightnessLevel CurrentBrightness { get; private set; } = BrightnessLevel.Bright;
+
+        /// <summary>
+        /// 밝기 환경 단계가 바뀔 때 발생합니다. 값 : Prev, Next
+        /// </summary>
+        public event System.Action<BrightnessLevel, BrightnessLevel> OnBrightnessChanged;
+
+        // 정신력 변화 진행도(초)입니다. 간격에 도달할 때마다 한 번 변하고 남은 만큼은 이어서 쌓습니다. 밝기 환경이 바뀌면 0 부터 다시 셉니다.
+        private float _mentalProgress;
+
+        // 대미지를 입을 때마다 정신력을 깎기 위해 구독하는 내 플레이어의 FSM 입니다.
+        private FSM _boundFsm;
+
+        // 정신력이 0 이 되면 즉사시키는 대미지입니다. 방어력으로 나눠도 체력을 넘도록 충분히 크게 둡니다.
+        private const int LethalDamage = 1000000;
+
         /// <summary>
         /// 내 플레이어 오브젝트를 연결합니다. 로컬 플레이어가 생성된 뒤에 호출합니다.
         /// 연결하면 체력 증감 효과(탈수 등)가 이 플레이어의 IDamageable 에게 적용됩니다.
@@ -137,6 +197,29 @@ namespace Enzeun.Runtime
             }
 
             buffContainer.SetOwner(player);
+
+            // 대미지를 입을 때마다 정신력을 깎기 위해 내 플레이어의 피격 이벤트를 구독합니다. (다시 연결하면 이전 구독을 먼저 해제)
+            UnsubscribePlayerHit();
+            _boundFsm = player != null ? player.GetComponent<FSM>() : null;
+            SubscribePlayerHit();
+        }
+
+        private void SubscribePlayerHit()
+        {
+            if (_boundFsm != null)
+            {
+                // 중복 구독을 막기 위해 먼저 빼고 넣습니다.
+                _boundFsm.OnHitAction -= HandlePlayerHit;
+                _boundFsm.OnHitAction += HandlePlayerHit;
+            }
+        }
+
+        private void UnsubscribePlayerHit()
+        {
+            if (_boundFsm != null)
+            {
+                _boundFsm.OnHitAction -= HandlePlayerHit;
+            }
         }
 
         /// <summary>
@@ -156,6 +239,9 @@ namespace Enzeun.Runtime
                 buffContainer.OnEffectRemoved += HandleEffectChanged;
             }
 
+            mentalStrengthManager.OnDeathThresholdReached += HandleMentalDeath;
+            SubscribePlayerHit();
+
             RefreshDecayRates();
             _limitsDirty = true;
         }
@@ -169,6 +255,8 @@ namespace Enzeun.Runtime
             mentalStrengthManager.OnMentalStateChanged -= HandleMentalStateChanged;
             hydrationManager.OnHydrationStateChanged -= HandleHydrationStateChanged;
             satiationManager.OnSatiationStateChanged -= HandleSatiationStateChanged;
+            mentalStrengthManager.OnDeathThresholdReached -= HandleMentalDeath;
+            UnsubscribePlayerHit();
 
             if (buffContainer != null)
             {
@@ -187,6 +275,7 @@ namespace Enzeun.Runtime
                 return;
             }
 
+            CurrentBrightness = _initialBrightness;
             ResetAllStatus();
         }
 
@@ -214,6 +303,155 @@ namespace Enzeun.Runtime
                 TickDecay(ref _satiationProgress, _isCold ? _coldSatiationDecayMultiplier : 1f, deltaTime,
                     _satiationDecayIntervalSeconds, _satiationDecayAmount, SurviveStatusType.Satiation);
             }
+
+            if (_useMentalChange)
+            {
+                TickMental(Time.deltaTime);
+            }
+        }
+
+        // ==================== 정신력 ============================
+
+        /// <summary>
+        /// 밝기 환경 단계를 바꿉니다. (예: 동굴에 들어가면 Dim 이나 Dark, 나오면 Bright) 같은 값이면 아무 일도 없습니다.
+        /// 단계가 바뀌면 변화 진행도를 0 부터 다시 세고 OnBrightnessChanged 를 발생시킵니다.
+        /// </summary>
+        [Button("테스트: 밝기 환경 바꾸기")]
+        public void SetBrightness(BrightnessLevel level)
+        {
+            if (level == CurrentBrightness)
+            {
+                return;
+            }
+
+            BrightnessLevel previous = CurrentBrightness;
+            CurrentBrightness = level;
+            _mentalProgress = 0f;
+
+#if UNITY_EDITOR
+            Debug.Log($"[SurviveStatusManager] : 밝기 환경이 {previous} -> {level} 로 바뀌었습니다.");
+#endif
+
+            OnBrightnessChanged?.Invoke(previous, level);
+        }
+
+        /// <summary>
+        /// 밝기 환경에 따라 정신력을 시간에 맞춰 바꿉니다.
+        /// - Bright : 정신력이 회복 상한(기본 50%) 미만일 때만 상한까지 회복합니다. 상한 이상이면 변하지 않습니다.
+        /// - Dim, Dark : 정신력이 계속 감소합니다.
+        /// 이미 0 이하이면(즉사 처리됨) 더 변하지 않습니다.
+        /// </summary>
+        private void TickMental(float deltaTime)
+        {
+            int current = mentalStrengthManager.mentalStrength;
+
+            if (current <= 0)
+            {
+                _mentalProgress = 0f;
+                return;
+            }
+
+            switch (CurrentBrightness)
+            {
+                case BrightnessLevel.Bright:
+                    if (current >= _brightRecoverUpTo)
+                    {
+                        _mentalProgress = 0f;
+                        return;
+                    }
+
+                    TickMentalChange(deltaTime, _brightRecoverIntervalSeconds, _brightRecoverAmount, _brightRecoverUpTo);
+                    break;
+
+                case BrightnessLevel.Dim:
+                    TickMentalChange(deltaTime, _dimDecayIntervalSeconds, -_dimDecayAmount, 0);
+                    break;
+
+                case BrightnessLevel.Dark:
+                    TickMentalChange(deltaTime, _darkDecayIntervalSeconds, -_darkDecayAmount, 0);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 진행도를 쌓고, 간격에 도달할 때마다 signedAmount 만큼 바꿉니다. (양수는 limit 까지만 회복, 음수는 감소)
+        /// </summary>
+        private void TickMentalChange(float deltaTime, float intervalSeconds, int signedAmount, int limit)
+        {
+            float interval = Mathf.Max(0.1f, intervalSeconds);
+            _mentalProgress += deltaTime;
+
+            while (_mentalProgress >= interval)
+            {
+                _mentalProgress -= interval;
+
+                if (signedAmount > 0)
+                {
+                    int room = limit - mentalStrengthManager.mentalStrength;
+                    if (room <= 0)
+                    {
+                        _mentalProgress = 0f;
+                        break;
+                    }
+
+                    ChangeStatus(SurviveStatusType.MentalStrength, Mathf.Min(signedAmount, room));
+                }
+                else if (signedAmount < 0)
+                {
+                    ChangeStatus(SurviveStatusType.MentalStrength, signedAmount);
+
+                    // 0 이 되면 즉사 처리가 되므로 더 돌지 않습니다.
+                    if (mentalStrengthManager.mentalStrength <= 0)
+                    {
+                        _mentalProgress = 0f;
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 내 플레이어가 대미지를 입을 때마다(치명타 제외) 정신력을 깎습니다. 주기 대미지는 설정에 따라 제외합니다.
+        /// </summary>
+        private void HandlePlayerHit(CommonStruct.AttackInfo attackInfo)
+        {
+            if (!_useMentalChange)
+            {
+                return;
+            }
+
+            if (HealthChangeModule.IsApplyingPeriodic && !_periodicDamageReducesMental)
+            {
+                return;
+            }
+
+            ChangeStatus(SurviveStatusType.MentalStrength, -_damageMentalLoss);
+        }
+
+        /// <summary>
+        /// 정신력이 0 이 되면 내 플레이어를 즉사시킵니다. 일반 대미지와 같은 경로(사망 상태, 시체 상자, 세션 사망 처리)를 탑니다.
+        /// </summary>
+        private void HandleMentalDeath()
+        {
+            IDamageable damageable = buffContainer != null ? buffContainer.Damageable : null;
+
+            if (damageable == null)
+            {
+                Debug.LogWarning("[SurviveStatusManager] : 정신력이 0 이 되었지만 플레이어가 연결되지 않아 즉사시키지 못했습니다.");
+                return;
+            }
+
+            Vector3 position = buffContainer.Owner != null ? buffContainer.Owner.transform.position : Vector3.zero;
+
+#if UNITY_EDITOR
+            Debug.Log("[SurviveStatusManager] : 정신력이 0 이 되어 플레이어를 즉사시킵니다.");
+#endif
+
+            damageable.TakeDamage(new CommonStruct.AttackInfo { Position = position, Damage = LethalDamage });
         }
 
         // ==================== 자연 감소 ============================
