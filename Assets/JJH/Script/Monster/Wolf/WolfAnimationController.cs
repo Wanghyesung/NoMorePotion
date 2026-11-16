@@ -5,11 +5,12 @@ using static JJH_Constants;
 using SF = UnityEngine.SerializeField;
 
 
-public class WolfAnamationController : MonsterAnimationController
+public class WolfAnimationController : MonsterAnimationController
 {
     private static readonly int PoundHash = Animator.StringToHash(POUND);
 
     [SF] private float baseSpeed = 1;
+    public bool IsPlaybackModified => !Mathf.Approximately(animator.speed, baseSpeed);
     public void IsPound(bool type = true)
     {
         animator.SetBool(PoundHash, type);
@@ -32,5 +33,4 @@ public class WolfAnamationController : MonsterAnimationController
     {
         animator.speed = baseSpeed;
     }
-
 }

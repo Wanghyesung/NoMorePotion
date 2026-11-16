@@ -10,6 +10,7 @@ public sealed class PlayerUIBinding : MonoBehaviour
     [SerializeField] private CameraManager cameraManager;
     [SerializeField] private Camera aimCamera;
     [SerializeField] private VisionEffect visionEffect;
+    [SerializeField] private WorldVignetteController worldVignette;
 
     public void SetPlayer(Player target)
     {
@@ -27,6 +28,10 @@ public sealed class PlayerUIBinding : MonoBehaviour
             player.GetComponent<PlayerStatusEffects>().SetVisionEffect(null);
 
         player = target;
+        // 소유권 검사를 통과한 내 플레이어만 3D 가시 범위의 중심으로 사용한다.
+        if (worldVignette != null)
+            worldVignette.SetTarget(player.transform);
+
         if(visionEffect != null)
             player.GetComponent<PlayerStatusEffects>().SetVisionEffect(visionEffect);
             
@@ -42,6 +47,9 @@ public sealed class PlayerUIBinding : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (worldVignette != null)
+            worldVignette.SetTarget(null);
+
         if (player != null)
             player.GetComponent<PlayerStatusEffects>().SetVisionEffect(null);
         if (playerInfoUI != null)

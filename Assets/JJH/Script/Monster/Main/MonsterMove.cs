@@ -251,6 +251,13 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
+        // 마스터가 아니라면 이동 및 애니메이션은 포톤이 전달
+        if (!GameAuthority.HasAuthority)
+        {
+            agent.enabled = false;
+            return;
+        }
+        anim.SetMoveAnimationSpeed();
         reachability.ResetState();
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
@@ -298,7 +305,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
 
         // 기본 타겟이 있는 경우 기본 타겟으로 재설정
-        if (nowTarget == null && defaultTarget != null && defaultTarget.activeInHierarchy)
+        if (nowTarget == null && AttackTarget.IsValid(defaultTarget))
             SetTarget(defaultTarget);
 
         if (nowTarget == null)
@@ -467,6 +474,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private bool IsAtSlot()
     {
         if (!HasSlot) return true;
+
+        if (targetInfo.IsInSlotSector(this)) return true;
 
         Vector3 flat = GetChaseDestination() - transform.position;
         flat.y = 0f;
