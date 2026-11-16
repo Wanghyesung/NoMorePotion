@@ -38,7 +38,8 @@ namespace Enzeun.Runtime
         /// 제작된 포션 인스턴스를 position 에서 폭발시킵니다. 함정 포션이면 원래 포션의 효과에 함정 키워드의 효과가 더해지고,
         /// 폭발 범위는 원래 포션을 따릅니다.
         /// </summary>
-        public static int Explode(PotionInstance instance, Vector3 position, PotionTargetScope scope = PotionTargetScope.All)
+        /// <param name="damageMultiplier">체력 대미지 효과에만 곱하는 배율입니다. (던진 사람의 공격력 배율) 1 이면 그대로입니다.</param>
+        public static int Explode(PotionInstance instance, Vector3 position, PotionTargetScope scope = PotionTargetScope.All, float damageMultiplier = 1f)
         {
             if (instance == null)
             {
@@ -46,21 +47,21 @@ namespace Enzeun.Runtime
                 return 0;
             }
 
-            return ExplodeCore(instance.Data, instance.TrapKeyword, position, false, scope);
+            return ExplodeCore(instance.Data, instance.TrapKeyword, position, false, scope, damageMultiplier);
         }
 
         /// <summary>
         /// 범위 장판이 간격마다 반복하는 틱입니다. 지금 범위 안에 있는 대상에게만 체력 증감(초당 대미지 등) 효과를 적용합니다.
         /// 처음 폭발(Explode)에서 이미 적용한 상태 효과, 생존 상태 증감, 월드 오브젝트 대미지는 반복하지 않고, 화면 연출도 다시 재생하지 않습니다.
         /// </summary>
-        public static int ExplodeTick(PotionInstance instance, Vector3 position, PotionTargetScope scope = PotionTargetScope.All)
+        public static int ExplodeTick(PotionInstance instance, Vector3 position, PotionTargetScope scope = PotionTargetScope.All, float damageMultiplier = 1f)
         {
             if (instance == null)
             {
                 return 0;
             }
 
-            return ExplodeCore(instance.Data, instance.TrapKeyword, position, true, scope);
+            return ExplodeCore(instance.Data, instance.TrapKeyword, position, true, scope, damageMultiplier);
         }
 
         /// <summary>
@@ -69,12 +70,12 @@ namespace Enzeun.Runtime
         /// <param name="potion">효과와 폭발 범위의 기준이 되는 원래 포션</param>
         /// <param name="keyword">함정 키워드. 있으면 그 효과도 같이 적용합니다. (범위는 원래 포션을 따름)</param>
         /// <param name="tickOnly">true 면 체력 증감 효과만 적용하고 연출은 재생하지 않습니다. (범위 장판의 반복 틱)</param>
-        public static int ExplodeLocalPlayer(PotionData potion, TrapPotionKeyword keyword, Vector3 position, bool tickOnly)
+        public static int ExplodeLocalPlayer(PotionData potion, TrapPotionKeyword keyword, Vector3 position, bool tickOnly, float damageMultiplier = 1f)
         {
-            return ExplodeCore(potion, keyword, position, tickOnly, PotionTargetScope.LocalPlayer);
+            return ExplodeCore(potion, keyword, position, tickOnly, PotionTargetScope.LocalPlayer, damageMultiplier);
         }
 
-        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, PotionTargetScope scope = PotionTargetScope.All)
+        private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, PotionTargetScope scope = PotionTargetScope.All, float damageMultiplier = 1f)
         {
             if (potion == null)
             {
@@ -106,8 +107,8 @@ namespace Enzeun.Runtime
             AppliedTargets.Clear();
             int targetCount = 0;
 
-            // 남의 플레이어 몸 연출에 쓸 피해 수치입니다. (효과 적용과 무관한 연출 전용)
-            int visualDamage = GetDamageAmount(potion, trapKeyword);
+            // 남의 플레이어 몸 연출에 쓸 피해 수치입니다. (효과 적용과 무관한 연출 전용, 공격력 배율 반영)
+            int visualDamage = Mathf.RoundToInt(GetDamageAmount(potion, trapKeyword) * damageMultiplier);
 
             for (int i = 0; i < hitCount; i++)
             {
@@ -155,20 +156,20 @@ namespace Enzeun.Runtime
 
                 if (tickOnly)
                 {
-                    PotionEffectApplier.ApplyHealthOnly(potion, target, position);
+                    PotionEffectApplier.ApplyHealthOnly(potion, target, position, damageMultiplier);
 
                     if (trapKeyword != null)
                     {
-                        PotionEffectApplier.ApplyHealthOnly(trapKeyword, target, position);
+                        PotionEffectApplier.ApplyHealthOnly(trapKeyword, target, position, damageMultiplier);
                     }
                 }
                 else
                 {
-                    PotionEffectApplier.Apply(potion, target, position);
+                    PotionEffectApplier.Apply(potion, target, position, damageMultiplier);
 
                     if (trapKeyword != null)
                     {
-                        PotionEffectApplier.Apply(trapKeyword, target, position);
+                        PotionEffectApplier.Apply(trapKeyword, target, position, damageMultiplier);
                     }
                 }
 

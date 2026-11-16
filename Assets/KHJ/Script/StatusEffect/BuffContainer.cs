@@ -230,12 +230,13 @@ namespace Enzeun.Runtime
         /// 포션의 체력 증감 효과를 대상에게 한 번(한 틱) 적용합니다. 대상에게 지속 효과로 붙이지 않습니다.
         /// 초당 대미지처럼 반복되는 효과는 범위 장판(PotionDetector)이 간격마다 이 함수를 다시 불러서, 범위 안에 있는 대상만 맞게 합니다.
         /// </summary>
-        public void ApplyPotionHealth(HealthChangePotionEffect effect, object source, Vector3 position)
+        /// <param name="damageMultiplier">대미지에만 곱하는 배율입니다. (던진 사람의 공격력 배율) 회복에는 곱하지 않습니다.</param>
+        public void ApplyPotionHealth(HealthChangePotionEffect effect, object source, Vector3 position, float damageMultiplier = 1f)
         {
             if (effect == null || CanApplyHealthChange() == false)
                 return;
 
-            effect.healthChange.Apply(Damageable, position);
+            effect.healthChange.Apply(Damageable, position, damageMultiplier);
         }
 
         /// <summary>

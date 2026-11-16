@@ -19,6 +19,9 @@ public class PotionMover : MonoBehaviour
     [SerializeField]
     private Potion potion;
 
+    // 폭발 RPC 로 받는 공격력 배율의 상한입니다. (정상 값은 BuffContainer 상한인 1.7 배 이하)
+    private const float MaxAttackMultiplier = 3f;
+
     public PotionData Data => potion.Data;
     public PotionInstance PotionInstance => potion.Instance;
     public bool HasExploded { get; private set; }
@@ -144,15 +147,18 @@ public class PotionMover : MonoBehaviour
         // 인스턴스가 없으면(데이터만 연결된 경우) 정상 포션으로 취급합니다.
         PotionInstance instance = PotionInstance ?? new PotionInstance(Data);
 
+        // 던진(마신) 사람의 공격력 배율은 폭발 순간 값을 쓰고, 모든 기기가 같은 값으로 대미지를 계산하도록 함께 보냅니다.
+        float attackMultiplier = GetThrowerAttackMultiplier();
+
         bool networked = photonView != null && photonView.ViewID != 0;
         if (networked)
         {
             // 함정 키워드는 폭발 순간에만 알립니다. (날아가는 동안에는 보내지 않아 함정 여부가 미리 드러나지 않음) 정상 포션은 0 입니다.
             int keywordId = instance.TrapKeyword != null ? instance.TrapKeyword.KeywordID : 0;
-            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, instance.Data.potionID, keywordId);
+            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, instance.Data.potionID, keywordId, attackMultiplier);
         }
 
-        PlayExplosion(position, impact, instance);
+        PlayExplosion(position, impact, instance, attackMultiplier);
         if (networked)
             PhotonNetwork.Destroy(gameObject);
         else
@@ -160,7 +166,7 @@ public class PotionMover : MonoBehaviour
     }
 
     [PunRPC]
-    private void RpcExplode(Vector3 position, bool impact, int potionId, int keywordId, PhotonMessageInfo info)
+    private void RpcExplode(Vector3 position, bool impact, int potionId, int keywordId, float attackMultiplier, PhotonMessageInfo info)
     {
         if (info.Sender != photonView.Owner || photonView.IsMine)
             return;
@@ -174,11 +180,23 @@ public class PotionMover : MonoBehaviour
         if (keywordId != 0 && !PotionDataManager.Instance.TryGetTrapKeyword(keywordId, out keyword))
             Debug.LogWarning($"[PotionMover] : 알 수 없는 함정 키워드 번호({keywordId})를 받아 정상 포션으로 폭발시킵니다.", this);
 
-        PlayExplosion(position, impact, new PotionInstance(data, keyword));
+        // 정상 값은 BuffContainer 상한(최대 1.7배) 안이지만, 깨진 값이 와도 대미지가 터무니없어지지 않게 제한합니다.
+        attackMultiplier = Mathf.Clamp(attackMultiplier, 0f, MaxAttackMultiplier);
+
+        PlayExplosion(position, impact, new PotionInstance(data, keyword), attackMultiplier);
+    }
+
+    // 던진(마신) 사람의 공격력 배율입니다. 폭발은 이 포션의 주인 기기에서만 시작하므로 이 기기의 내 플레이어 값이 곧 던진 사람의 값입니다.
+    private static float GetThrowerAttackMultiplier()
+    {
+        SurviveStatusManager status = SurviveStatusManager.Instance;
+        BuffContainer container = status != null ? status.PlayerBuffContainer : null;
+
+        return container != null ? container.GetStatMultiplier(StatType.AttackPower) : 1f;
     }
 
     // 던진 기기도, RPC 를 받은 기기도 같은 경로입니다. 어떤 대상을 처리할지는 PotionDetector 가 이 기기의 역할(방장인지)로 정합니다.
-    private void PlayExplosion(Vector3 position, bool impact, PotionInstance instance)
+    private void PlayExplosion(Vector3 position, bool impact, PotionInstance instance, float attackMultiplier)
     {
         if (HasExploded)
             return;
@@ -200,8 +218,8 @@ public class PotionMover : MonoBehaviour
             }
             if (explosion.TryGetComponent(out PotionDetector detector))
             {
-                // 모든 기기가 같은 정보(포션, 키워드)로 초기화합니다.
-                detector.Initialize(instance);
+                // 모든 기기가 같은 정보(포션, 키워드, 공격력 배율)로 초기화합니다.
+                detector.Initialize(instance, attackMultiplier);
             }
 
         }

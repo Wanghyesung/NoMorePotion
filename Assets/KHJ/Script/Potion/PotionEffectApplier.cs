@@ -28,7 +28,8 @@ namespace Enzeun.Runtime
         /// <param name="potion">적용할 포션 데이터</param>
         /// <param name="target">효과를 받는 대상</param>
         /// <param name="explosionPosition">폭발 위치. 대미지의 공격 위치로 전달합니다.</param>
-        public static void Apply(PotionData potion, in PotionTarget target, Vector3 explosionPosition)
+        /// <param name="damageMultiplier">체력 대미지 효과에만 곱하는 배율입니다. (던진 사람의 공격력 배율) 회복, 생존 상태, 상태 효과, 월드 오브젝트 대미지에는 곱하지 않습니다.</param>
+        public static void Apply(PotionData potion, in PotionTarget target, Vector3 explosionPosition, float damageMultiplier = 1f)
         {
             if (potion == null)
             {
@@ -36,40 +37,40 @@ namespace Enzeun.Runtime
                 return;
             }
 
-            Apply(potion.effects, potion, target, explosionPosition);
+            Apply(potion.effects, potion, target, explosionPosition, false, damageMultiplier);
         }
 
         /// <summary>
         /// 포션의 체력 증감(대미지, 회복) 효과만 대상 한 개에게 적용합니다. 상태 효과, 생존 상태 증감, 월드 오브젝트 대미지는 건너뜁니다.
         /// 범위 장판이 간격마다 반복해서 적용하는 틱에 쓰며, 처음 폭발 때 이미 적용한 나머지 효과가 반복되지 않게 합니다.
         /// </summary>
-        public static void ApplyHealthOnly(PotionData potion, in PotionTarget target, Vector3 explosionPosition)
+        public static void ApplyHealthOnly(PotionData potion, in PotionTarget target, Vector3 explosionPosition, float damageMultiplier = 1f)
         {
             if (potion == null)
             {
                 return;
             }
 
-            Apply(potion.effects, potion, target, explosionPosition, true);
+            Apply(potion.effects, potion, target, explosionPosition, true, damageMultiplier);
         }
 
         /// <summary>
         /// 함정 키워드의 체력 증감 효과만 대상 한 개에게 적용합니다. (범위 장판의 반복 틱용)
         /// </summary>
-        public static void ApplyHealthOnly(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition)
+        public static void ApplyHealthOnly(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition, float damageMultiplier = 1f)
         {
             if (keyword == null)
             {
                 return;
             }
 
-            Apply(keyword.Effects, keyword, target, explosionPosition, true);
+            Apply(keyword.Effects, keyword, target, explosionPosition, true, damageMultiplier);
         }
 
         /// <summary>
         /// 함정 키워드의 효과를 대상 한 개에게 적용합니다. (원래 포션의 효과에 더해서 적용)
         /// </summary>
-        public static void Apply(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition)
+        public static void Apply(TrapPotionKeyword keyword, in PotionTarget target, Vector3 explosionPosition, float damageMultiplier = 1f)
         {
             if (keyword == null)
             {
@@ -77,13 +78,14 @@ namespace Enzeun.Runtime
                 return;
             }
 
-            Apply(keyword.Effects, keyword, target, explosionPosition);
+            Apply(keyword.Effects, keyword, target, explosionPosition, false, damageMultiplier);
         }
 
         /// <param name="effects">적용할 효과 목록</param>
         /// <param name="source">효과를 건 주체(포션 또는 키워드 SO). 같은 주체가 다시 걸었을 때 중첩 정책이 의도대로 동작하게 합니다.</param>
         /// <param name="healthOnly">true 면 체력 증감 효과만 적용합니다. (범위 장판의 반복 틱)</param>
-        private static void Apply(IReadOnlyList<PotionEffect> effects, Object source, in PotionTarget target, Vector3 explosionPosition, bool healthOnly = false)
+        /// <param name="damageMultiplier">체력 대미지 효과에만 곱하는 배율입니다.</param>
+        private static void Apply(IReadOnlyList<PotionEffect> effects, Object source, in PotionTarget target, Vector3 explosionPosition, bool healthOnly = false, float damageMultiplier = 1f)
         {
             for (int i = 0; i < effects.Count; i++)
             {
@@ -105,11 +107,11 @@ namespace Enzeun.Runtime
                         // 한 번(한 틱)만 적용한다. 초당 대미지처럼 반복되는 효과는 범위 장판이 간격마다 다시 적용하므로, 범위를 벗어나면 멈춘다.
                         if (target.BuffContainer != null)
                         {
-                            target.BuffContainer.ApplyPotionHealth(health, source, explosionPosition);
+                            target.BuffContainer.ApplyPotionHealth(health, source, explosionPosition, damageMultiplier);
                         }
                         else if (target.Damageable != null)
                         {
-                            health.healthChange.Apply(target.Damageable, explosionPosition);
+                            health.healthChange.Apply(target.Damageable, explosionPosition, damageMultiplier);
                         }
                         break;
 

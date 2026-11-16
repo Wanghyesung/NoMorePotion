@@ -33,6 +33,9 @@ public sealed class PotionDetector : MonoBehaviour
 
     // 이 기기가 처리할 대상 범위입니다. 내 플레이어는 모든 기기가, 플레이어가 아닌 대상(몬스터, 월드 오브젝트)은 방장만 처리합니다.
     private PotionTargetScope scope = PotionTargetScope.LocalPlayer;
+
+    // 던진 사람의 공격력 배율입니다. 폭발 순간 값으로 고정해서 첫 폭발과 반복 공격(장판)에 같이 씁니다.
+    private float damageMultiplier = 1f;
     // 포션에 반복 체력 증감(초당 대미지) 효과가 없을 때 쓰는 기본 반복 간격(초)과 횟수
     private const float DefaultAttackDelay = 1f;
     private const int DefaultMaxAttackCount = 10;
@@ -52,7 +55,8 @@ public sealed class PotionDetector : MonoBehaviour
     /// - 내 플레이어 : 모든 기기가 각자 처리합니다.
     /// - 플레이어가 아닌 대상(몬스터, 월드 오브젝트 등) : 방장만 처리합니다. 오프라인에서는 내가 방장입니다.
     /// </summary>
-    public void Initialize(PotionInstance potionInstance)
+    /// <param name="attackMultiplier">던진 사람의 공격력 배율입니다. 체력 대미지 효과에만 곱합니다. (지정하지 않으면 1)</param>
+    public void Initialize(PotionInstance potionInstance, float attackMultiplier = 1f)
     {
 
         if (potionInstance == null || potionInstance.Data == null)
@@ -63,6 +67,7 @@ public sealed class PotionDetector : MonoBehaviour
         }
 
         instance = potionInstance;
+        damageMultiplier = attackMultiplier;
         scope = GameAuthority.HasAuthority
             ? PotionTargetScope.LocalPlayer | PotionTargetScope.NonPlayers
             : PotionTargetScope.LocalPlayer;
@@ -138,9 +143,9 @@ public sealed class PotionDetector : MonoBehaviour
         // 첫 공격은 폭발 전체(상태 효과, 생존 상태, 월드 오브젝트 포함)를 적용하고, 이후 반복은 지금 범위 안에 있는 대상에게 체력 증감(초당 대미지)만 적용한다.
         // 범위를 벗어난 대상은 다음 틱부터 맞지 않는다. 어떤 대상을 처리할지는 이 기기의 scope 가 정한다.
         if (AttackCount == 0)
-            PotionExplosion.Explode(instance, transform.position, scope);
+            PotionExplosion.Explode(instance, transform.position, scope, damageMultiplier);
         else
-            PotionExplosion.ExplodeTick(instance, transform.position, scope);
+            PotionExplosion.ExplodeTick(instance, transform.position, scope, damageMultiplier);
 
         if (!attackOnce)
         {

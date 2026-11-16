@@ -58,7 +58,8 @@ namespace Enzeun.SO
         /// Heal 은 대상이 IHealable 이 아니면 경고만 하고 무시합니다.
         /// </summary>
         /// <param name="position">공격 위치. 대미지의 AttackInfo.Position 으로 전달됩니다.</param>
-        public void Apply(IDamageable target, Vector3 position = default)
+        /// <param name="damageMultiplier">대미지에만 곱하는 배율입니다. (던진 사람의 공격력 배율) 회복에는 곱하지 않고, 상태 효과 틱처럼 배율이 없는 곳은 기본값 1 을 씁니다.</param>
+        public void Apply(IDamageable target, Vector3 position = default, float damageMultiplier = 1f)
         {
             if (_amount <= 0)
             {
@@ -68,7 +69,13 @@ namespace Enzeun.SO
             switch (_changeType)
             {
                 case HealthChangeType.Damage:
-                    var attackInfo = new CommonStruct.AttackInfo { Position = position, Damage = _amount };
+                    int damage = Mathf.RoundToInt(_amount * damageMultiplier);
+                    if (damage <= 0)
+                    {
+                        break;
+                    }
+
+                    var attackInfo = new CommonStruct.AttackInfo { Position = position, Damage = damage };
 
                     // 속성이 None 이면 고정 대미지입니다. 공격자(IAttacker) 없이 TakeDamage(AttackInfo) 로 전달합니다.
                     if (_damageType == DamageType.None)
