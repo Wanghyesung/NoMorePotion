@@ -169,8 +169,8 @@ public sealed class FSM : MonoBehaviour
 
         if (Instance.HasGameplayInput == true && rotateLockMask == 0)
         {
+            // 마우스 Delta는 렌더 프레임마다 한 번만 누적하고, 물리 회전은 FixedUpdate에서 적용한다.
             rotateY = Mathf.Repeat(rotateY + Instance.InputInfo.Delta.x * rotateSensitivity, 360f);
-            Rigidbody.MoveRotation(ViewRotation);
         }
 
         CurrentState?.UpdateState();
@@ -184,6 +184,10 @@ public sealed class FSM : MonoBehaviour
             Rigidbody.useGravity = true;
             return;
         }
+
+        // Delta가 0이어도 남아 있는 물리 각속도 때문에 루트와 카메라가 돌아갈 수 있다.
+        Rigidbody.angularVelocity = Vector3.zero;
+        Rigidbody.MoveRotation(ViewRotation);
 
         // 기존 수직 속도는 유지하고, 이번 물리 프레임의 이동·넉백 속도를 새로 합산한다.
         Vel = Vector3.up * Rigidbody.linearVelocity.y;
