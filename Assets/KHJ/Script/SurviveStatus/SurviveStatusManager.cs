@@ -85,17 +85,27 @@ namespace Enzeun.Runtime
         private const int HotDebuffId = 61001;      // 더위
         private const int ColdDebuffId = 61002;     // 추위
 
-        [SerializeField, LabelText("자연 감소 사용"), BoxGroup("자연 감소")]
+        // 수분과 포만감은 각자 따로 조절합니다. (값은 틱마다 읽으므로 Play 중에 인스펙터에서 바꿔도 바로 반영)
+        [SerializeField, LabelText("자연 감소 사용 (수분, 포만감 모두)"), BoxGroup("자연 감소")]
         private bool _useNaturalDecay = true;
 
-        [SerializeField, LabelText("감소 간격 (초)"), MinValue(0.1f), BoxGroup("자연 감소")]
-        private float _decayIntervalSeconds = 5f;
+        [SerializeField, LabelText("감소 간격 (초)"), MinValue(0.1f), BoxGroup("자연 감소/수분")]
+        private float _hydrationDecayIntervalSeconds = 15f;
 
-        [SerializeField, LabelText("1회 감소량"), MinValue(0), BoxGroup("자연 감소")]
-        private int _decayAmount = 1;
+        [SerializeField, LabelText("1회 감소량"), MinValue(0), BoxGroup("자연 감소/수분")]
+        private int _hydrationDecayAmount = 1;
 
-        [SerializeField, LabelText("더위/추위 중 감소 속도 배율"), MinValue(1f), BoxGroup("자연 감소")]
-        private float _extremeDecayMultiplier = 2f;
+        [SerializeField, LabelText("더위 중 감소 속도 배율"), MinValue(1f), BoxGroup("자연 감소/수분")]
+        private float _hotHydrationDecayMultiplier = 2f;
+
+        [SerializeField, LabelText("감소 간격 (초)"), MinValue(0.1f), BoxGroup("자연 감소/포만감")]
+        private float _satiationDecayIntervalSeconds = 15f;
+
+        [SerializeField, LabelText("1회 감소량"), MinValue(0), BoxGroup("자연 감소/포만감")]
+        private int _satiationDecayAmount = 1;
+
+        [SerializeField, LabelText("추위 중 감소 속도 배율"), MinValue(1f), BoxGroup("자연 감소/포만감")]
+        private float _coldSatiationDecayMultiplier = 2f;
 
         [SerializeField, LabelText("차분함 체온 상한 (%)"), Range(0, 100), BoxGroup("체온 제한")]
         private int _calmMaxTemperature = 69;
@@ -107,9 +117,9 @@ namespace Enzeun.Runtime
         private float _hydrationProgress;
         private float _satiationProgress;
 
-        // 현재 감소 속도 배율입니다. 상태 효과가 바뀔 때만 다시 계산합니다.
-        private float _hydrationRate = 1f;
-        private float _satiationRate = 1f;
+        // 더위/추위 디버프가 걸려 있는지입니다. 상태 효과가 바뀔 때만 다시 확인하고, 배율은 틱마다 인스펙터 값을 읽습니다.
+        private bool _isHot;
+        private bool _isCold;
 
         // 상태 효과 변경 이벤트 안에서 바로 체온을 바꾸면 컨테이너가 효과를 처리하는 도중에 다시 효과가 바뀔 수 있으므로, 다음 프레임에 처리합니다.
         private bool _limitsDirty;
@@ -197,8 +207,12 @@ namespace Enzeun.Runtime
             if (_useNaturalDecay)
             {
                 float deltaTime = Time.deltaTime;
-                TickDecay(ref _hydrationProgress, _hydrationRate, deltaTime, SurviveStatusType.Hydration);
-                TickDecay(ref _satiationProgress, _satiationRate, deltaTime, SurviveStatusType.Satiation);
+
+                TickDecay(ref _hydrationProgress, _isHot ? _hotHydrationDecayMultiplier : 1f, deltaTime,
+                    _hydrationDecayIntervalSeconds, _hydrationDecayAmount, SurviveStatusType.Hydration);
+
+                TickDecay(ref _satiationProgress, _isCold ? _coldSatiationDecayMultiplier : 1f, deltaTime,
+                    _satiationDecayIntervalSeconds, _satiationDecayAmount, SurviveStatusType.Satiation);
             }
         }
 
@@ -206,26 +220,27 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 감소 진행도를 쌓고, 간격에 도달할 때마다 한 번씩 감소시킵니다. (프레임이 길어도 놓치지 않도록 반복)
+        /// 간격과 감소량은 수분, 포만감이 각자 가지고 있어서 호출하는 쪽에서 넘깁니다.
         /// </summary>
-        private void TickDecay(ref float progress, float rate, float deltaTime, SurviveStatusType type)
+        private void TickDecay(ref float progress, float rate, float deltaTime, float intervalSeconds, int amount, SurviveStatusType type)
         {
-            float interval = Mathf.Max(0.1f, _decayIntervalSeconds);
+            float interval = Mathf.Max(0.1f, intervalSeconds);
             progress += deltaTime * rate;
 
             while (progress >= interval)
             {
                 progress -= interval;
-                ChangeStatus(type, -_decayAmount);
+                ChangeStatus(type, -amount);
             }
         }
 
         /// <summary>
-        /// 더위/추위 디버프가 걸려 있는지 보고 감소 속도 배율을 다시 정합니다. (더위 : 수분, 추위 : 포만감)
+        /// 더위/추위 디버프가 걸려 있는지 다시 확인합니다. (더위 : 수분 감소 가속, 추위 : 포만감 감소 가속)
         /// </summary>
         private void RefreshDecayRates()
         {
-            _hydrationRate = HasEffect(HotDebuffId) ? _extremeDecayMultiplier : 1f;
-            _satiationRate = HasEffect(ColdDebuffId) ? _extremeDecayMultiplier : 1f;
+            _isHot = HasEffect(HotDebuffId);
+            _isCold = HasEffect(ColdDebuffId);
         }
 
         /// <summary>
