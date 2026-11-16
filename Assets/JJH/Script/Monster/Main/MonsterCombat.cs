@@ -3,6 +3,7 @@ using DamageNumbersPro;
 using DG.Tweening;
 using Enzeun.Runtime;
 using Enzeun.SO;
+using Photon.Pun;
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(MonsterAnimationController))]
 [RequireComponent(typeof(MonsterMove))]
 [RequireComponent(typeof(BuffContainer))]
-public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
+public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 {
     [Serializable]
     public class SkillHitbox
@@ -288,26 +289,47 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
     #region 인터페이스
     public void TakeDamage(AttackInfo attackInfo)
     {
-        HPChange(CalcFinalDamage(attackInfo.Damage, null));
-        TryProvoke();
+        if (!GameAuthority.HasAuthority)
+        {
+            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, attackInfo.Damage, -1);
+            return;
+        }
+
+        RpcTakeDamage(attackInfo.Damage, -1);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
-        HPChange(CalcFinalDamage(attackInfo.Damage, attacker?.DamageType));
-        
-        TryProvoke();
+        int type = attacker != null ? (int)attacker.DamageType : -1;
+
+        if (!GameAuthority.HasAuthority)
+        {
+            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, attackInfo.Damage, type);
+            return;
+        }
+
+        RpcTakeDamage(attackInfo.Damage, type);
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
-        HPChange(attackInfo.Damage);
-        TryProvoke();
+        if (!GameAuthority.HasAuthority)
+        {
+            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, attackInfo.Damage, -1);
+            return;
+        }
+
+        RpcTakeDamage(attackInfo.Damage, -1);
     }
 
     public void Heal(int amount)
     {
-        HPChange(-amount);
+        if (!GameAuthority.HasAuthority)
+        {
+            photonView.RPC(nameof(RpcHeal), RpcTarget.MasterClient, amount);
+            return;
+        }
+        RpcHeal(amount);
     }
 
     public float MultiplierCalc(float val, float multiplier)
@@ -320,12 +342,16 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
         if (data == null || data.HP <= 0) return;
 
         int before = data.HP;
-        data.HP = Mathf.Clamp(data.HP - damage, 0,data.MaxHP);
+        data.HP = Mathf.Clamp(data.HP - damage, 0, data.MaxHP);
+        if (before == data.HP) return;
+
         data.OnHPChanged?.Invoke(before, data.HP);
-
         if (before > data.HP) Damaged?.Invoke(this);
-
         ShowNumber(before - data.HP);
+
+        if (PhotonNetwork.InRoom)
+            photonView.RPC(nameof(RpcSyncHP), RpcTarget.Others, data.HP);
+
         if (data.HP <= 0) data.OnDead?.Invoke();
     }
 
@@ -473,6 +499,33 @@ public class MonsterCombat : MonoBehaviour, IDamageable, IHealable, IPoolable
         Died = null;
         CancelDeathSink();
         mover.StopAI();
+    }
+    #endregion
+
+    #region RPC
+
+    [PunRPC]
+    private void RpcTakeDamage(int damage, int typeNum)
+    {
+        DamageType? type = typeNum >= 0 ? (DamageType)typeNum : null;
+        HPChange(CalcFinalDamage(damage, type));
+        TryProvoke();
+    }
+
+    [PunRPC]
+    private void RpcSyncHP(int hp)
+    {
+        if (data == null) return;
+        int before = data.HP;
+        data.HP = hp;
+        data.OnHPChanged?.Invoke(before, hp);   // HUD 갱신
+        ShowNumber(before - hp);
+    }
+
+    [PunRPC]
+    private void RpcHeal(int amount)
+    {
+        HPChange(-amount);
     }
     #endregion
 }

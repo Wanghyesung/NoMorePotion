@@ -100,7 +100,7 @@ public class WolfPack : MonoBehaviour, IPoolable
     private void Update()
     {
 
-        // 포톤 사용하면 if (!GameAuthority.HasAuthority) return;
+        if (!GameAuthority.HasAuthority) return;
         RefreshAlive();
 
         // 알파 사망 시 로직 해제, 노말은 기본 MonsterMove 로직으로 동작

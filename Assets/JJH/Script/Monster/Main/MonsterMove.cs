@@ -251,6 +251,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
+        // 마스터가 아니라면 이동 및 애니메이션은 포톤이 전달
+        if (!GameAuthority.HasAuthority)
+        {
+            agent.enabled = false;
+            return;
+        }
         anim.SetMoveAnimationSpeed();
         reachability.ResetState();
         aiCts = new CancellationTokenSource();
