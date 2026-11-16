@@ -192,6 +192,53 @@ namespace Enzeun.Runtime
         private const int LethalDamage = 1000000;
         #endregion
 
+        #region TemperatureConfig
+        // 시트 : 용암지대(더움)는 체온 상승, 빙하지대(추움)는 체온 감소. 기본 지역에서는 기본값(50%)으로 천천히 돌아옵니다.
+        // 값은 틱마다 읽으므로 Play 중에 인스펙터에서 바꿔도 바로 반영됩니다.
+
+        [SerializeField, LabelText("체온 변화 사용"), BoxGroup("체온")]
+        private bool _useTemperatureChange = true;
+
+        [SerializeField, LabelText("시작 온도 환경"), BoxGroup("체온")]
+        private TemperatureEnvironment _initialTemperatureEnvironment = TemperatureEnvironment.Normal;
+
+        [SerializeField, LabelText("더운 지역 상승 간격 (초)"), MinValue(0.1f), BoxGroup("체온/더운 지역")]
+        private float _hotRiseIntervalSeconds = 3f;
+
+        [SerializeField, LabelText("더운 지역 1회 상승량"), MinValue(0), BoxGroup("체온/더운 지역")]
+        private int _hotRiseAmount = 1;
+
+        [SerializeField, LabelText("추운 지역 하락 간격 (초)"), MinValue(0.1f), BoxGroup("체온/추운 지역")]
+        private float _coldFallIntervalSeconds = 3f;
+
+        [SerializeField, LabelText("추운 지역 1회 하락량"), MinValue(0), BoxGroup("체온/추운 지역")]
+        private int _coldFallAmount = 1;
+
+        [SerializeField, LabelText("기본 지역 복귀 간격 (초)"), MinValue(0.1f), BoxGroup("체온/기본 지역")]
+        private float _normalRecoverIntervalSeconds = 5f;
+
+        [SerializeField, LabelText("기본 지역 1회 복귀량"), MinValue(0), BoxGroup("체온/기본 지역")]
+        private int _normalRecoverAmount = 1;
+
+        [SerializeField, LabelText("기본 지역 복귀 목표 (%)"), Range(0, 100), BoxGroup("체온/기본 지역")]
+        private int _normalRecoverTarget = 50;
+
+        /// <summary>
+        /// 지금 플레이어가 있는 지역의 온도 환경입니다. 체온이 변하는 방향을 정합니다.
+        /// 바꾸는 것은 SetTemperatureEnvironment 로만 합니다. (예: 용암지대에 들어가면 Hot, 나오면 Normal)
+        /// </summary>
+        [ShowInInspector, ReadOnly, LabelText("현재 온도 환경"), BoxGroup("체온"), PropertyOrder(-10)]
+        public TemperatureEnvironment CurrentTemperatureEnvironment { get; private set; } = TemperatureEnvironment.Normal;
+
+        /// <summary>
+        /// 온도 환경이 바뀔 때 발생합니다. 값 : Prev, Next
+        /// </summary>
+        public event System.Action<TemperatureEnvironment, TemperatureEnvironment> OnTemperatureEnvironmentChanged;
+
+        // 체온 변화 진행도(초)입니다. 간격에 도달할 때마다 한 번 변하고 남은 만큼은 이어서 쌓습니다. 온도 환경이 바뀌면 0 부터 다시 셉니다.
+        private float _temperatureProgress;
+        #endregion
+
         #region PlayerBind
         /// <summary>
         /// 내 플레이어 오브젝트를 연결합니다. 로컬 플레이어가 생성된 뒤에 호출합니다.
@@ -287,6 +334,7 @@ namespace Enzeun.Runtime
             }
 
             CurrentBrightness = _initialBrightness;
+            CurrentTemperatureEnvironment = _initialTemperatureEnvironment;
             ResetAllStatus();
         }
 
@@ -318,6 +366,11 @@ namespace Enzeun.Runtime
             if (_useMentalChange)
             {
                 TickMental(Time.deltaTime);
+            }
+
+            if (_useTemperatureChange)
+            {
+                TickTemperature(Time.deltaTime);
             }
         }
         #endregion
@@ -465,6 +518,114 @@ namespace Enzeun.Runtime
 #endif
 
             damageable.TakeDamage(new CommonStruct.AttackInfo { Position = position, Damage = LethalDamage });
+        }
+        #endregion
+
+        #region Temperature
+        /// <summary>
+        /// 온도 환경을 바꿉니다. (예: 용암지대에 들어가면 Hot, 빙하지대는 Cold, 나오면 Normal) 같은 값이면 아무 일도 없습니다.
+        /// 환경이 바뀌면 변화 진행도를 0 부터 다시 세고 OnTemperatureEnvironmentChanged 를 발생시킵니다.
+        /// </summary>
+        [Button("테스트: 온도 환경 바꾸기")]
+        public void SetTemperatureEnvironment(TemperatureEnvironment environment)
+        {
+            if (environment == CurrentTemperatureEnvironment)
+            {
+                return;
+            }
+
+            TemperatureEnvironment previous = CurrentTemperatureEnvironment;
+            CurrentTemperatureEnvironment = environment;
+            _temperatureProgress = 0f;
+
+#if UNITY_EDITOR
+            Debug.Log($"[SurviveStatusManager] : 온도 환경이 {previous} -> {environment} 로 바뀌었습니다.");
+#endif
+
+            OnTemperatureEnvironmentChanged?.Invoke(previous, environment);
+        }
+
+        /// <summary>
+        /// 온도 환경에 따라 체온을 시간에 맞춰 바꿉니다. 차분함/열혈로 좁아진 체온 범위(MinLimit, MaxLimit)를 넘지 않습니다.
+        /// - Hot : 체온이 계속 올라갑니다. 상한에 닿으면 멈춥니다.
+        /// - Cold : 체온이 계속 내려갑니다. 하한에 닿으면 멈춥니다.
+        /// - Normal : 체온이 복귀 목표(기본 50%)로 올라오거나 내려와서 목표에 닿으면 멈춥니다.
+        /// </summary>
+        private void TickTemperature(float deltaTime)
+        {
+            int current = bodyTemperatureManager.bodyTemperature;
+            int min = bodyTemperatureManager.MinLimit;
+            int max = bodyTemperatureManager.MaxLimit;
+
+            switch (CurrentTemperatureEnvironment)
+            {
+                case TemperatureEnvironment.Hot:
+                    if (current >= max)
+                    {
+                        _temperatureProgress = 0f;
+                        return;
+                    }
+
+                    TickTemperatureChange(deltaTime, _hotRiseIntervalSeconds, _hotRiseAmount, max);
+                    break;
+
+                case TemperatureEnvironment.Cold:
+                    if (current <= min)
+                    {
+                        _temperatureProgress = 0f;
+                        return;
+                    }
+
+                    TickTemperatureChange(deltaTime, _coldFallIntervalSeconds, -_coldFallAmount, min);
+                    break;
+
+                default:
+                    // 복귀 목표가 체온 범위 밖이면(예: 차분함 상한 69 인데 목표 80) 범위 안으로 맞춥니다.
+                    int target = Mathf.Clamp(_normalRecoverTarget, min, max);
+
+                    if (current == target)
+                    {
+                        _temperatureProgress = 0f;
+                        return;
+                    }
+
+                    int recover = current < target ? _normalRecoverAmount : -_normalRecoverAmount;
+                    TickTemperatureChange(deltaTime, _normalRecoverIntervalSeconds, recover, target);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 진행도를 쌓고, 간격에 도달할 때마다 signedAmount 만큼 limit 을 넘지 않게 바꿉니다. (양수는 limit 까지 올리고, 음수는 limit 까지 내림)
+        /// </summary>
+        private void TickTemperatureChange(float deltaTime, float intervalSeconds, int signedAmount, int limit)
+        {
+            if (signedAmount == 0)
+            {
+                _temperatureProgress = 0f;
+                return;
+            }
+
+            float interval = Mathf.Max(0.1f, intervalSeconds);
+            _temperatureProgress += deltaTime;
+
+            while (_temperatureProgress >= interval)
+            {
+                _temperatureProgress -= interval;
+
+                int current = bodyTemperatureManager.bodyTemperature;
+                int room = signedAmount > 0 ? limit - current : current - limit;
+
+                // 이미 limit 에 닿았으면 더 바꾸지 않습니다.
+                if (room <= 0)
+                {
+                    _temperatureProgress = 0f;
+                    break;
+                }
+
+                int step = Mathf.Min(Mathf.Abs(signedAmount), room);
+                ChangeStatus(SurviveStatusType.BodyTemperature, signedAmount > 0 ? step : -step);
+            }
         }
         #endregion
 
