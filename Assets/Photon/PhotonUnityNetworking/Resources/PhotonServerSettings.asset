@@ -60,6 +60,9 @@ MonoBehaviour:
   - RpcSetTarget
   - RpcEngaged
   - RpcExplode
+  - RpcPlayRagdoll
+  - RpcClearUpperBodyAnimation
+  - RpcUpperBodyPose
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

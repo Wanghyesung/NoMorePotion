@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
+using Photon.Pun;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -51,8 +52,10 @@ public sealed class FSM : MonoBehaviour
 
     #region Components
     private Player player;
+    private PhotonView photonView;
     private int upperBodyLayer;
     private static readonly int upperBodyEmptyHash = Animator.StringToHash("UpperBody.Empty");
+    private static readonly int upperBodyAnimationSpeedHash = Animator.StringToHash("UpperBodyAnimationSpeed");
     public Animator Animator { get; private set; }
     public Rigidbody Rigidbody { get; private set; }
     #endregion
@@ -104,6 +107,7 @@ public sealed class FSM : MonoBehaviour
     public void Init(Player player)
     {
         this.player = player;
+        photonView = GetComponent<PhotonView>();
         Animator = playerView.GetComponent<Animator>();
         upperBodyLayer = Animator.GetLayerIndex("UpperBody");
         Rigidbody = GetComponent<Rigidbody>();
@@ -339,11 +343,64 @@ public sealed class FSM : MonoBehaviour
         CurrentActionState.Enter();
     }
 
+    // 조준 정지 이벤트에서만 호출한다. 로컬 자세는 유지하고 원격에 재생 위치를 전달한다.
+    public void SendUpperBodyPose()
+    {
+        if (PhotonNetwork.InRoom == false || photonView == null
+            || photonView.ViewID == 0 || photonView.IsMine == false)
+            return;
+
+        AnimatorStateInfo state = Animator.GetCurrentAnimatorStateInfo(upperBodyLayer);
+        photonView.RPC(nameof(RpcUpperBodyPose), RpcTarget.Others,
+            state.fullPathHash, state.normalizedTime, Animator.GetFloat(upperBodyAnimationSpeedHash));
+    }
+
+    [PunRPC]
+    private void RpcUpperBodyPose(int stateHash, float normalizedTime, float speed, PhotonMessageInfo info)
+    {
+        // RPC를 보낸 사람이 이 캐릭터의 소유자인지 확인한다.
+        if (info.Sender != photonView.Owner || photonView.IsMine)
+            return;
+
+        ApplyUpperBodyPose(stateHash, normalizedTime, speed);
+    }
+
+    private void ApplyUpperBodyPose(int stateHash, float normalizedTime, float speed)
+    {
+        Animator.SetLayerWeight(upperBodyLayer, 1f);
+        // 원격이 덜 재생했어도 소유자가 멈춘 자세로 맞춘다.
+        Animator.Play(stateHash, upperBodyLayer, normalizedTime);
+        Animator.SetFloat(upperBodyAnimationSpeedHash, speed);
+    }
+
     public void ClearActionState()
     {
+        bool hadAction = CurrentActionState != null;
         CurrentActionState?.Exit();
         CurrentActionState = null;
 
+        ResetUpperBodyAnimation();
+
+        // 실제 액션을 끝낸 소유자만 전송한다. 초기화와 빈 상태 정리는 전송하지 않는다.
+        if (hadAction && PhotonNetwork.InRoom && photonView != null
+            && photonView.ViewID != 0 && photonView.IsMine)
+        {
+            photonView.RPC(nameof(RpcClearUpperBodyAnimation), RpcTarget.Others);
+        }
+    }
+
+    [PunRPC]
+    private void RpcClearUpperBodyAnimation(PhotonMessageInfo info)
+    {
+        if (info.Sender != photonView.Owner || photonView.IsMine)
+            return;
+
+        // 원격 FSM의 게임 상태는 바꾸지 않고 Animator의 종료 연출만 맞춘다.
+        ResetUpperBodyAnimation();
+    }
+
+    private void ResetUpperBodyAnimation()
+    {
         Animator.SetLayerWeight(upperBodyLayer, 0f);
         Animator.Play(upperBodyEmptyHash, upperBodyLayer, 0f);
     }

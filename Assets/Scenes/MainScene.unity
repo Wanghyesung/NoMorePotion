@@ -15929,6 +15929,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OfflineModeTest
   test: 1
+  _mode: 0
+  _onlineRoomName: KHJ_OnlineTest
+  _onlineMaxPlayers: 5
 --- !u!4 &878077785
 Transform:
   m_ObjectHideFlags: 0
@@ -27478,6 +27481,7 @@ MonoBehaviour:
   cameraManager: {fileID: 147583329}
   aimCamera: {fileID: 1861928731}
   visionEffect: {fileID: 0}
+  worldVignette: {fileID: 1861928733}
 --- !u!4 &1356043886
 Transform:
   m_ObjectHideFlags: 0
@@ -38079,7 +38083,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2213878889879734314, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
       propertyPath: m_RendererIndex
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5889560856771311830, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
       propertyPath: m_Name
@@ -38128,13 +38132,40 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5889560856771311830, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1861928733}
   m_SourcePrefab: {fileID: 100100000, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
 --- !u!20 &1861928731 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 7550396018291363947, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
   m_PrefabInstance: {fileID: 1861928730}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1861928732 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5889560856771311830, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
+  m_PrefabInstance: {fileID: 1861928730}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1861928733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1861928732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 305d1e37469f31e4fa6df38531b6f6c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldVignetteController
+  rendererData: {fileID: 11400000, guid: 5e7b3c69ea637c74194493852f3e8ccd, type: 2}
+  sourceMaterial: {fileID: 2100000, guid: 54ba73553dcbb5f4c92c714a38428dba, type: 2}
+  mentalStrengthManager: {fileID: 481280749}
+  baseDistance: 100
+  minimumDistance: 8
+  fadeRatio: 0.5
+  transitionTime: 2
 --- !u!1001 &1863333396
 PrefabInstance:
   m_ObjectHideFlags: 0

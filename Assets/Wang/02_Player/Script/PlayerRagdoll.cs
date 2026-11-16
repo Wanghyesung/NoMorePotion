@@ -1,4 +1,5 @@
 using MoreMountains.Tools;
+using Photon.Pun;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -11,9 +12,11 @@ public sealed class PlayerRagdoll : MonoBehaviour
     private bool[] rootColliderEnabled;
     private Rigidbody[] boneBodies;
     private Collider[] boneColliders;
+    private PhotonView photonView;
 
     private void Awake()
     {
+        photonView = GetComponent<PhotonView>();
         rootBody = GetComponent<Rigidbody>();
         rootColliders = GetComponents<Collider>();
         rootColliderEnabled = new bool[rootColliders.Length];
@@ -47,14 +50,41 @@ public sealed class PlayerRagdoll : MonoBehaviour
 
     public void Play(Vector3 attackPosition)
     {
+        if (photonView != null && photonView.ViewID != 0)
+        {
+            if (photonView.IsMine == false)
+                return;
+
+            // Send once on death; each client runs the ragdoll physics locally.
+            photonView.RPC(nameof(RpcPlayRagdoll), RpcTarget.Others, attackPosition);
+        }
+
+        PlayLocal(attackPosition);
+    }
+
+    [PunRPC]
+    private void RpcPlayRagdoll(Vector3 attackPosition, PhotonMessageInfo info)
+    {
+        if (info.Sender != photonView.Owner || photonView.IsMine)
+            return;
+
+        PlayLocal(attackPosition);
+    }
+
+    private void PlayLocal(Vector3 attackPosition)
+    {
         Vector3 direction = transform.position - attackPosition;
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f)
             direction = -transform.forward;
 
-        rootBody.linearVelocity = Vector3.zero;
-        rootBody.angularVelocity = Vector3.zero;
-        rootBody.isKinematic = true;
+        // Remote player roots are already kinematic; do not set their velocities.
+        if (rootBody.isKinematic == false)
+        {
+            rootBody.linearVelocity = Vector3.zero;
+            rootBody.angularVelocity = Vector3.zero;
+            rootBody.isKinematic = true;
+        }
         foreach (Collider rootCollider in rootColliders)
             rootCollider.enabled = false;
 
