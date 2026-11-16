@@ -131,6 +131,8 @@ public sealed class PlayerThrowState : PlayerState
             return;
 
         owner.Animator.SetFloat(AnimationSpeedHash, 0f);
+        // 속도뿐 아니라 실제 멈춘 자세도 다른 클라이언트에 전달한다.
+        owner.SendUpperBodyPose();
         throwAim.Show(throwingPotion.transform);
     }
 
