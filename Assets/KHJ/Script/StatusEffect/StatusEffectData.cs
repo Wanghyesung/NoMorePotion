@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Enzeun.SO
 {
+    #region Enums
     /// <summary>
     /// 상태 효과 종류를 정의하는 열거형입니다. 버프, 디버프로 나누어져 있습니다.
     /// </summary>
@@ -28,7 +29,9 @@ namespace Enzeun.SO
         RefreshDuration,
         Stackable,
     }
+    #endregion
 
+    #region Data
     [CreateAssetMenu(fileName = "StatusEffectData", menuName = "Scriptable Objects/StatusEffectData")]
     public class StatusEffectData : ScriptableObject, IItemData
     {
@@ -99,4 +102,5 @@ namespace Enzeun.SO
         }
 #endif
     }
+    #endregion
 }

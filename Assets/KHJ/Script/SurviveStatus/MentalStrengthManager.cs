@@ -28,12 +28,11 @@ namespace Enzeun.Runtime
         // Smart(smartThreshold 이상) -> 똑똑이 버프, 그 외 90 미만 -> 멍청함 디버프는
         // 이 클래스가 아니라 SurviveStatusEffectTable(상태 -> 효과)에서 설정합니다.
 
-        // TODO(미구현 기획): 대미지를 입을 때마다 5% 감소 / 디버프 받을 때마다 5% 감소
-        // TODO(미구현 기획): 밝기 3단계 : 50% 이하면 50% 까지 2초당 1% 증가
-        // TODO(미구현 기획): 밝기 2단계 : 3초당 1% 감소
-        // TODO(미구현 기획): 밝기 1단계 : 3초당 2% 감소
+        // 대미지를 입을 때마다 5% 감소, 밝기 환경(3단계 회복 / 2, 1단계 감소)에 따른 시간 변화, 0% 가 되면 즉사는
+        // 시간을 재고 플레이어의 피격을 받아야 하므로 SurviveStatusManager 가 맡고, 이 클래스의 증감 메서드와 사망 이벤트를 사용합니다.
 
 
+        #region Config
         // 정신력 초기값
         [SerializeField, LabelText("정신력 초기값")]
         private int initialMentalStrength = 50;
@@ -57,7 +56,9 @@ namespace Enzeun.Runtime
         // 사망 임계값
         [SerializeField, LabelText("사망 임계값")]
         private int deathThreshold = 0;
+        #endregion
 
+        #region StateEvents
         // 현재 정신력 상태
         [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public MentalState currentMentalState { get; private set; } = MentalState.Normal;
@@ -89,7 +90,9 @@ namespace Enzeun.Runtime
                 _mentalStrength = Mathf.Clamp(value, 0, 100);
             }
         }
+        #endregion
 
+        #region Change
         /// <summary>
         /// 값을 초기값으로 되돌리고 구간을 다시 판정합니다. 구간이 같으면 이벤트는 발생하지 않습니다.
         /// </summary>
@@ -174,6 +177,7 @@ namespace Enzeun.Runtime
 #endif
             }
         }
+        #endregion
     }
 
 }

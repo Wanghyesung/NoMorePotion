@@ -23,9 +23,11 @@ namespace Enzeun.Runtime
         // 기본값 : 50%
         // 구간 판정 : 70% 이상 -> 더움 상태 / 30% 이하 -> 추움 상태
 
-        // TODO(미구현 기획): 용암지대 : 체온 상승 / 빙하지대 : 체온 감소
+        // 용암지대(더움) 체온 상승 / 빙하지대(추움) 체온 감소 / 기본 지역 기본값 복귀는
+        // 시간을 재는 SurviveStatusManager 가 맡고, 이 클래스의 증감 메서드와 범위(MinLimit, MaxLimit)를 사용합니다.
 
 
+        #region Config
         // 체온 초기값
         [SerializeField, LabelText("체온 초기값")]
         private int initialBodyTemperature = 50;
@@ -37,7 +39,9 @@ namespace Enzeun.Runtime
         // 추움 임계값
         [SerializeField, LabelText("추움 임계값")]
         private int coldThreshold = 30;
+        #endregion
 
+        #region State
         // 현재 체온 상태
         [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public BodyTemperatureState currentBodyTemperatureState { get; private set; } = BodyTemperatureState.Normal;
@@ -49,10 +53,18 @@ namespace Enzeun.Runtime
 
 
         private int _bodyTemperature;
+        #endregion
 
+        #region Limits
         // 체온이 움직일 수 있는 범위입니다. 기본은 0~100 이고, 차분함(상한), 열혈(하한) 같은 효과가 SetLimits 로 좁힙니다.
         private int _minLimit = 0;
         private int _maxLimit = 100;
+
+        /// <summary>
+        /// 체온이 움직일 수 있는 범위의 하한과 상한입니다. 기본은 0~100 이고, 차분함(상한), 열혈(하한)이 걸리면 좁아집니다.
+        /// </summary>
+        public int MinLimit => _minLimit;
+        public int MaxLimit => _maxLimit;
 
         /// <summary>
         /// 현재 체온 수치(0~100, 제한이 있으면 그 범위 안). 변경은 증감 메서드로만 합니다.
@@ -92,7 +104,9 @@ namespace Enzeun.Runtime
             bodyTemperature = _bodyTemperature;
             CheckCurrentBodyTemp();
         }
+        #endregion
 
+        #region Change
         /// <summary>
         /// 값을 초기값으로 되돌리고 구간을 다시 판정합니다. 구간이 같으면 이벤트는 발생하지 않습니다.
         /// </summary>
@@ -159,5 +173,6 @@ namespace Enzeun.Runtime
 #endif
             }
         }
+        #endregion
     }
 }

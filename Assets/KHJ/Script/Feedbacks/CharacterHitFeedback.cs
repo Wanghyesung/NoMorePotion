@@ -35,6 +35,7 @@ namespace Enzeun.Runtime
         [SerializeField, LabelText("깜빡임 대상"), BoxGroup("자동 연결")]
         private MMBlink _blink;
 
+        #region Fields
         [SerializeField, LabelText("약한 피격 세기"), BoxGroup("세기"), MinValue(0f)]
         private float _lightIntensity = 0.5f;
 
@@ -61,7 +62,9 @@ namespace Enzeun.Runtime
         }
 
         private float _lastPlayTime = float.NegativeInfinity;
+        #endregion
 
+        #region Lifecycle
         private void Awake()
         {
             WireTargets();
@@ -76,7 +79,9 @@ namespace Enzeun.Runtime
                 _player.ResetFeedbacks();
             }
         }
+        #endregion
 
+        #region Play
         /// <summary>
         /// 피격 연출을 재생합니다.
         /// </summary>
@@ -142,7 +147,9 @@ namespace Enzeun.Runtime
                 }
             }
         }
+        #endregion
 
+        #region EditorTest
 #if UNITY_EDITOR
         // ==================== 에디터 테스트용 ============================
 
@@ -159,5 +166,6 @@ namespace Enzeun.Runtime
             Play(damageRatio);
         }
 #endif
+        #endregion
     }
 }

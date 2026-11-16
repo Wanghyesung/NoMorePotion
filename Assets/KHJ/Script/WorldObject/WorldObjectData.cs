@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace Enzeun.SO
 {
+    #region Enums
     /// <summary>
     /// 월드 오브젝트 타입을 정의하는 열거형입니다. Flower, Tree, Mushroom, Grass, Mineral, Bone 순서입니다.
     /// </summary>
@@ -27,8 +28,10 @@ namespace Enzeun.SO
         Interacting,
         Destroying,
     }
+    #endregion
 
 
+    #region Data
     /// <summary>
     /// 월드 오브젝트의 공유 설정 데이터입니다. 규칙은 WorldObjectRules 참고.
     /// </summary>
@@ -121,4 +124,5 @@ namespace Enzeun.SO
 #endif
 
     }
+    #endregion
 }

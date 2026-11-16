@@ -20,6 +20,7 @@ namespace Enzeun.Editor
     /// </summary>
     public static class InventorySimulation
     {
+        #region Consts
         // 플레이어 번호입니다. 1 이 마스터이고 2, 3 은 클라이언트입니다.
         private const int MasterActor = 1;
         private const int ActorA = 2;
@@ -30,7 +31,9 @@ namespace Enzeun.Editor
         private const int MatLimited = 20003;   // 한도 5 (가득 참 시험용)
         private const int PotionBase = 10001;
         private const int PotionUpgraded = 10002;
+        #endregion
 
+        #region State
         private struct Res
         {
             public bool Ok;
@@ -114,7 +117,9 @@ namespace Enzeun.Editor
         private static byte[] _lastApplyBytes;
         private static List<string> _failures;
         private static int _checks;
+        #endregion
 
+        #region Run
         [MenuItem("Enzeun/인벤토리/시뮬레이션 시험 실행")]
         public static void RunFromMenu()
         {
@@ -176,7 +181,9 @@ namespace Enzeun.Editor
 
             return summary.ToString();
         }
+        #endregion
 
+        #region Tests
         // ==================== 시험 ============================
 
         private static void TestGrantAndGround()
@@ -703,7 +710,9 @@ namespace Enzeun.Editor
             Array.Resize(ref request, request.Length - 1);
             Expect("깨진 요청은 거부", !InventoryMessages.TryUnpackRequest(request, out InventoryCommand _));
         }
+        #endregion
 
+        #region Flow
         // ==================== 요청 흐름 흉내 ============================
 
         private static Res Send(int actor, InventoryCommand command)
@@ -778,7 +787,9 @@ namespace Enzeun.Editor
 
             return allApplied;
         }
+        #endregion
 
+        #region Helpers
         // ==================== 도우미 ============================
 
         private static InventoryCommand GrantMaterial(ContainerRef to, int materialId, int count)
@@ -1022,6 +1033,7 @@ namespace Enzeun.Editor
         {
             _failures.Add(message);
         }
+        #endregion
     }
 }
 #endif

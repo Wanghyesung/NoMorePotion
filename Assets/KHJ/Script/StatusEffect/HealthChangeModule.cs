@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Enzeun.SO
 {
+    #region Enum
     /// <summary>
     /// 체력 증감 종류를 정의하는 열거형입니다. Damage 는 대미지, Heal 은 회복입니다.
     /// </summary>
@@ -14,7 +15,9 @@ namespace Enzeun.SO
         Damage,
         Heal,
     }
+    #endregion
 
+    #region Module
     /// <summary>
     /// 체력을 고정 수치(정수)만큼 깎거나 회복하는 모듈입니다. (플레이어 기본 체력 3000 기준)
     /// 대미지는 IDamageable, 회복은 IHealable 을 통해 대상에게 전달합니다.
@@ -50,6 +53,12 @@ namespace Enzeun.SO
             public DamageType DamageType { get; set; }
         }
 
+        /// <summary>
+        /// 지금 전달하고 있는 대미지가 주기 대미지(반복 간격이 0 보다 큰 효과: 탈수, 굶주림, 범위 장판의 틱 등)이면 true 입니다.
+        /// 대미지를 전달하는 호출 안에서만 true 이므로, 그 안에서 불리는 피격 이벤트가 "한 대 맞음"과 "계속 깎이는 중"을 구분하는 데 읽습니다.
+        /// </summary>
+        public static bool IsApplyingPeriodic { get; private set; }
+
         [NonSerialized]
         private ElementAttacker _elementAttacker;
 
@@ -77,18 +86,28 @@ namespace Enzeun.SO
 
                     var attackInfo = new CommonStruct.AttackInfo { Position = position, Damage = damage };
 
-                    // 속성이 None 이면 고정 대미지입니다. 공격자(IAttacker) 없이 TakeDamage(AttackInfo) 로 전달합니다.
-                    if (_damageType == DamageType.None)
-                    {
-                        target.TakeDamage(attackInfo);
-                        break;
-                    }
+                    // 주기 대미지는 전달하는 동안 표시해서, 받는 쪽이 한 번의 타격과 구분할 수 있게 합니다.
+                    IsApplyingPeriodic = _intervalSeconds > 0f;
 
-                    if (_elementAttacker == null)
+                    try
                     {
-                        _elementAttacker = new ElementAttacker { DamageType = _damageType };
+                        // 속성이 None 이면 고정 대미지입니다. 공격자(IAttacker) 없이 TakeDamage(AttackInfo) 로 전달합니다.
+                        if (_damageType == DamageType.None)
+                        {
+                            target.TakeDamage(attackInfo);
+                            break;
+                        }
+
+                        if (_elementAttacker == null)
+                        {
+                            _elementAttacker = new ElementAttacker { DamageType = _damageType };
+                        }
+                        target.TakeDamage(attackInfo, _elementAttacker);
                     }
-                    target.TakeDamage(attackInfo, _elementAttacker);
+                    finally
+                    {
+                        IsApplyingPeriodic = false;
+                    }
                     break;
 
                 case HealthChangeType.Heal:
@@ -104,4 +123,5 @@ namespace Enzeun.SO
             }
         }
     }
+    #endregion
 }

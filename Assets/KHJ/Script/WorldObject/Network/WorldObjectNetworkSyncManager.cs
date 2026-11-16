@@ -17,6 +17,7 @@ namespace Enzeun.Runtime
     [RequireComponent(typeof(PhotonView))]
     public sealed class WorldObjectNetworkSyncManager : MonoBehaviourPunCallbacks
     {
+        #region State
         public static WorldObjectNetworkSyncManager Instance { get; private set; }
 
         [SerializeField, LabelText("요청 제한 시간 (초)"), MinValue(0.5f)]
@@ -55,7 +56,9 @@ namespace Enzeun.Runtime
         /// 멀티플레이 중이라 요청을 보낼 수 있는 상태인지 여부입니다. WorldObject 가 로컬로 처리할지 요청할지 정하는 데 씁니다.
         /// </summary>
         public static bool IsActive => Instance != null && PhotonNetwork.InRoom;
+        #endregion
 
+        #region Lifecycle
         /// <summary>
         /// 싱글턴 등록 후 사본 이벤트를 구독합니다. 중복 매니저는 제거합니다.
         /// </summary>
@@ -130,7 +133,9 @@ namespace Enzeun.Runtime
 
             _pending.Clear();
         }
+        #endregion
 
+        #region Register
         /// <summary>
         /// 월드 오브젝트를 등록합니다. 씬에 있는 것은 Start 에서 자동으로 등록되며, 나중에 만든 오브젝트는 직접 호출합니다.
         /// 네트워크 번호가 0 이면 로컬 전용이라 등록하지 않습니다.
@@ -151,7 +156,9 @@ namespace Enzeun.Runtime
             _objects.Add(worldObject.NetworkId, worldObject);
             return true;
         }
+        #endregion
 
+        #region Requests
         // ==================== 요청 (어느 클라이언트에서나 호출) ============================
 
         /// <summary>
@@ -221,7 +228,9 @@ namespace Enzeun.Runtime
                 source.TrySetResult(result);
             }
         }
+        #endregion
 
+        #region Replica
         // ==================== 사본 변화 -> 씬 오브젝트 ============================
 
         /// <summary>
@@ -295,7 +304,9 @@ namespace Enzeun.Runtime
                 InventoryNetworkSyncManager.Instance.SpawnGroundDrops(spawns);
             }
         }
+        #endregion
 
+        #region Rpc
         // ==================== 네트워크 메시지 (RPC) ============================
 
         /// <summary>
@@ -423,7 +434,9 @@ namespace Enzeun.Runtime
                 Debug.LogWarning("[WorldObjectNetworkSyncManager]: 전체 목록을 풀지 못했습니다. 기존 사본을 유지합니다.");
             }
         }
+        #endregion
 
+        #region Internal
         // ==================== 내부 ============================
 
         private static bool IsFromMaster(PhotonMessageInfo info)
@@ -456,5 +469,6 @@ namespace Enzeun.Runtime
             _lastResyncRequestTime = Time.unscaledTime;
             SendReady();
         }
+        #endregion
     }
 }
