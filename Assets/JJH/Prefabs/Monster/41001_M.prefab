@@ -1248,7 +1248,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4960801443304062139}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
   m_Name: 
@@ -1274,6 +1274,9 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 1
     Name: Pound
+  - Type: 1
+    SynchronizeType: 0
+    Name: MoveSpeed
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
@@ -2541,7 +2544,6 @@ GameObject:
   - component: {fileID: 2687133219966239099}
   - component: {fileID: 9072288863858740342}
   - component: {fileID: 7446713184019589414}
-  - component: {fileID: 8782769351517086343}
   - component: {fileID: 789076002571954576}
   - component: {fileID: 9099992271117678229}
   - component: {fileID: 3081629175946003209}
@@ -2582,7 +2584,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9198116484777040148}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
@@ -2595,7 +2597,6 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 7446713184019589414}
-  - {fileID: 8782769351517086343}
   - {fileID: 4547543115401431219}
   sceneViewId: 0
   InstantiationId: 0
@@ -2607,7 +2608,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9198116484777040148}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
@@ -2616,22 +2617,6 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
---- !u!114 &8782769351517086343
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9198116484777040148}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
-  ShowLayerWeightsInspector: 1
-  ShowParameterInspector: 1
-  m_SynchronizeParameters: []
-  m_SynchronizeLayers: []
 --- !u!114 &789076002571954576
 MonoBehaviour:
   m_ObjectHideFlags: 0
