@@ -302,6 +302,8 @@ MonoBehaviour:
   playerInfoUI: {fileID: 197264561}
   cameraManager: {fileID: 1243406769}
   aimCamera: {fileID: 1861928731}
+  visionEffect: {fileID: 0}
+  worldVignette: {fileID: 1861928733}
 --- !u!4 &154709984
 Transform:
   m_ObjectHideFlags: 0
@@ -592,7 +594,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 219694929}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94df1ffae0c2c7d4ba695b68267eea10, type: 3}
   m_Name: 
@@ -893,7 +895,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 57d94797548149846b6fb7aec61488f2, type: 2}
+  sharedProfile: {fileID: 11400000, guid: 0d63f82476aae7f48abb70118b03af74, type: 2}
 --- !u!4 &219694935
 Transform:
   m_ObjectHideFlags: 0
@@ -1593,6 +1595,8 @@ MonoBehaviour:
   playerPrefab: {fileID: 1679380589598682981, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
   playerBinder: {fileID: 154709983}
   spawnPoint: {fileID: 1215619764}
+  loadTimeout: 30
+  enableDebugKeys: 1
 --- !u!114 &1073988826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2041,7 +2045,7 @@ MonoBehaviour:
     HP: 0
     Speed: 0
     DamageType: 0
-    SpawnArea: 
+    SpawnArea: 0
   BossMonsterDataList: []
   MonsterLocalizationDataList: []
 --- !u!4 &1199953796
@@ -2164,7 +2168,7 @@ MonoBehaviour:
   - {fileID: 1119489744}
   - {fileID: 1912374847}
   - {fileID: 1193439347}
-  spawnRoot: {fileID: 334533743}
+  defendTarget: {fileID: 0}
 --- !u!4 &1390244924
 Transform:
   m_ObjectHideFlags: 0
@@ -2250,6 +2254,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6545766105401767770, guid: 700183d8a8ec0c64696119879d6cdac7, type: 3}
+      propertyPath: managedReferences[4119466753204682837].Active
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6545766105401767770, guid: 700183d8a8ec0c64696119879d6cdac7, type: 3}
       propertyPath: managedReferences[4119466753204682839].Velocity.x
       value: 0.2
@@ -2382,7 +2390,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2213878889879734314, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
       propertyPath: m_RendererIndex
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5889560856771311830, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
       propertyPath: m_Name
@@ -2431,13 +2439,39 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5889560856771311830, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1861928733}
   m_SourcePrefab: {fileID: 100100000, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
 --- !u!20 &1861928731 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 7550396018291363947, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
   m_PrefabInstance: {fileID: 1861928730}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1861928732 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5889560856771311830, guid: f120bab7edaa58a4f8cef9e58e6f0fea, type: 3}
+  m_PrefabInstance: {fileID: 1861928730}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1861928733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1861928732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 305d1e37469f31e4fa6df38531b6f6c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldVignetteController
+  rendererData: {fileID: 11400000, guid: 5e7b3c69ea637c74194493852f3e8ccd, type: 2}
+  sourceMaterial: {fileID: 2100000, guid: 54ba73553dcbb5f4c92c714a38428dba, type: 2}
+  mentalStrengthManager: {fileID: 327108512}
+  strength: 1
+  minimumStartDistance: 2
+  minimumEndDistance: 6
 --- !u!1 &1912374846
 GameObject:
   m_ObjectHideFlags: 0
@@ -2608,6 +2642,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TimeManager
   dayDuration: 10
   nightDuration: 10
+  syncInterval: 2
 --- !u!4 &1999150016
 Transform:
   m_ObjectHideFlags: 0
@@ -2644,6 +2679,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1090232541676004700, guid: dc3628dfcf2f96248ac36fed1017e931, type: 3}
+      propertyPath: managedReferences[4119466753204682835].Active
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1090232541676004700, guid: dc3628dfcf2f96248ac36fed1017e931, type: 3}
       propertyPath: managedReferences[4119466753204682830].TargetFlash
       value: 
@@ -2752,6 +2791,10 @@ PrefabInstance:
       propertyPath: playerHPSlider
       value: 
       objectReference: {fileID: 1189345532}
+    - target: {fileID: 5941909418126356877, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
+      propertyPath: managedReferences[231626531498098767].Active
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6006001529373701175, guid: 0990a6515a44de646b006a23f38fa79e, type: 3}
       propertyPath: sceneViewId
       value: 3

@@ -127,7 +127,7 @@ public sealed class ThrowAim : MonoBehaviour
         {
             Vector3 previous = positions[positions.Count - 1];
             Vector3 next = data.GetPosition(i * step);
-            if (movement.Cast(previous, next, collisionMask, out RaycastHit hit))
+            if (movement.Cast(previous, next, collisionMask, out RaycastHit hit) == true)
             {
                 positions.Add(Vector3.MoveTowards(previous, next, hit.distance));
                 landingPosition = hit.point;
