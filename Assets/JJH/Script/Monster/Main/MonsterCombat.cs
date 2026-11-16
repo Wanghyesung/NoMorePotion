@@ -506,7 +506,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     #region RPC
 
     [PunRPC]
-    private void RpcTakeDamage(int damage, int typeNum)
+    protected void RpcTakeDamage(int damage, int typeNum)
     {
         DamageType? type = typeNum >= 0 ? (DamageType)typeNum : null;
         HPChange(CalcFinalDamage(damage, type));
@@ -514,7 +514,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     }
 
     [PunRPC]
-    private void RpcSyncHP(int hp)
+    protected void RpcSyncHP(int hp)
     {
         if (data == null) return;
         int before = data.HP;
@@ -524,7 +524,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     }
 
     [PunRPC]
-    private void RpcHeal(int amount)
+    protected void RpcHeal(int amount)
     {
         HPChange(-amount);
     }

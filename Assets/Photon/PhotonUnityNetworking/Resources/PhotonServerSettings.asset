@@ -53,6 +53,12 @@ MonoBehaviour:
   - RpcApplyEnded
   - RpcStart
   - RpcRequestPhase
+  - RpcHeal
+  - RpcReset
+  - RpcSyncHP
+  - RpcTakeDamage
+  - RpcSetTarget
+  - RpcEngaged
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

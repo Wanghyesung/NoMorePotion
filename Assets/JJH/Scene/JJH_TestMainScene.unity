@@ -512,6 +512,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2582766034040588608, guid: a883a7233ad6bf445a1beb606ba03e1d, type: 3}
+      propertyPath: sceneViewId
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 3445276007085165661, guid: a883a7233ad6bf445a1beb606ba03e1d, type: 3}
       propertyPath: m_Name
       value: WolfPack_V
@@ -522,7 +526,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5992183010661991021, guid: a883a7233ad6bf445a1beb606ba03e1d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 89.82
+      value: 36.6
       objectReference: {fileID: 0}
     - target: {fileID: 5992183010661991021, guid: a883a7233ad6bf445a1beb606ba03e1d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -530,7 +534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5992183010661991021, guid: a883a7233ad6bf445a1beb606ba03e1d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -49.72
+      value: -10.6
       objectReference: {fileID: 0}
     - target: {fileID: 5992183010661991021, guid: a883a7233ad6bf445a1beb606ba03e1d, type: 3}
       propertyPath: m_LocalRotation.w
@@ -17979,6 +17983,10 @@ PrefabInstance:
     - target: {fileID: 8512663465674920902, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
       propertyPath: m_Name
       value: AttackObj
+      objectReference: {fileID: 0}
+    - target: {fileID: 9101426482853130045, guid: ed066939f159e8148a54788e35dcbd10, type: 3}
+      propertyPath: sceneViewId
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
