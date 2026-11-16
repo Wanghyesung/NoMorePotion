@@ -30,6 +30,9 @@ public sealed class PotionDetector : MonoBehaviour
     #endregion
 
     private PotionInstance instance;
+
+    // 이 기기가 효과를 적용할지 여부입니다. false 면 이펙트와 반납 일정만 돌고 효과는 적용하지 않습니다.
+    private bool applyEffects;
     // 포션에 반복 체력 증감(초당 대미지) 효과가 없을 때 쓰는 기본 반복 간격(초)과 횟수
     private const float DefaultAttackDelay = 1f;
     private const int DefaultMaxAttackCount = 10;
@@ -43,7 +46,12 @@ public sealed class PotionDetector : MonoBehaviour
         CacheEffectColors();
     }
 
-    public void Initialize(PotionInstance potionInstance)
+    public void Initialize(PotionInstance potionInstance) => Initialize(potionInstance, true);
+
+    /// <summary>
+    /// 모든 기기가 같은 포션 정보로 초기화합니다. 이펙트, 크기, 색, 반납 일정은 항상 같고, 효과 적용(TryAttack)은 applyEffects 일 때만 합니다.
+    /// </summary>
+    public void Initialize(PotionInstance potionInstance, bool applyEffects)
     {
 
         if (potionInstance == null || potionInstance.Data == null)
@@ -54,14 +62,9 @@ public sealed class PotionDetector : MonoBehaviour
         }
 
         instance = potionInstance;
+        this.applyEffects = applyEffects;
         InitializeEffect(instance.Data);
         TryAttack();
-    }
-
-    public void InitializeVisual(PotionData data)
-    {
-        instance = null;
-        InitializeEffect(data);
     }
 
     private void InitializeEffect(PotionData data)
@@ -92,7 +95,7 @@ public sealed class PotionDetector : MonoBehaviour
         nextAttackDelay = DefaultAttackDelay;
         MaxAttackCount = DefaultMaxAttackCount;
 
-        if (!attackOnce && instance.Data.TryGetHealthTickSchedule(out float tickInterval, out float tickDuration))
+        if (!attackOnce && data.TryGetHealthTickSchedule(out float tickInterval, out float tickDuration))
         {
             nextAttackDelay = tickInterval;
             MaxAttackCount = Mathf.Max(1, Mathf.CeilToInt(tickDuration / tickInterval));
@@ -102,20 +105,30 @@ public sealed class PotionDetector : MonoBehaviour
         // 반복 공격(범위 장판)은 지속시간(횟수 × 간격)이 끝나는 즉시 반납해서 파티클도 같이 사라지게 한다. (lifetime 은 한 번짜리 폭발에만 쓴다)
         float releaseDelay = attackOnce ? lifetime : MaxAttackCount * nextAttackDelay;
 
-        // 반납 토큰: 먼저 반납되거나 파괴되면 예약 취소 → 재사용 중인 오브젝트를 옛 예약이 반납하지 않음
-        TimeManager.Instance.Schedule(releaseDelay, () =>
-        {
-            if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
-                return;
+        // 이펙트 반납은 모든 기기가 각자 돌려야 하므로 TimeManager.Schedule 을 쓰지 않는다.
+        // (Schedule 은 방장만 실행해서, 방장이 아닌 기기에서는 장판 이펙트가 반납되지 않고 계속 남는다)
+        ReleaseAfterAsync(releaseDelay).Forget();
+    }
 
-            PoolManager.Instance.Release(gameObject);
-        }, PoolManager.GetReleaseToken(gameObject));
+    private async UniTaskVoid ReleaseAfterAsync(float delaySeconds)
+    {
+        // 반납 토큰: 먼저 반납되거나 파괴되면 취소 → 재사용 중인 오브젝트를 옛 예약이 반납하지 않음
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds),
+                cancellationToken: PoolManager.GetReleaseToken(gameObject))
+            .SuppressCancellationThrow();
+        if (cancelled)
+            return;
 
+        if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
+            return;
+
+        PoolManager.Instance.Release(gameObject);
     }
 
     private void TryAttack()
     {
-        if (instance == null)
+        // 효과를 적용하지 않는 기기는 반복 공격도 돌리지 않습니다. (이펙트와 반납은 InitializeEffect 가 이미 예약함)
+        if (instance == null || applyEffects == false)
             return;
 
 

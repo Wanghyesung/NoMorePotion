@@ -1,4 +1,5 @@
-﻿using Enzeun.Runtime;
+﻿using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
 using Enzeun.SO;
 using Photon.Pun;
 using Sirenix.OdinInspector;
@@ -140,11 +141,18 @@ public class PotionMover : MonoBehaviour
         if (HasExploded || (photonView != null && photonView.ViewID != 0 && !photonView.IsMine))
             return;
 
+        // 인스턴스가 없으면(데이터만 연결된 경우) 정상 포션으로 취급합니다.
+        PotionInstance instance = PotionInstance ?? new PotionInstance(Data);
+
         bool networked = photonView != null && photonView.ViewID != 0;
         if (networked)
-            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, Data.potionID);
+        {
+            // 함정 키워드는 폭발 순간에만 알립니다. (날아가는 동안에는 보내지 않아 함정 여부가 미리 드러나지 않음) 정상 포션은 0 입니다.
+            int keywordId = instance.TrapKeyword != null ? instance.TrapKeyword.KeywordID : 0;
+            photonView.RPC(nameof(RpcExplode), RpcTarget.Others, position, impact, instance.Data.potionID, keywordId);
+        }
 
-        PlayExplosion(position, impact, true, Data);
+        PlayExplosion(position, impact, instance, true);
         if (networked)
             PhotonNetwork.Destroy(gameObject);
         else
@@ -152,7 +160,7 @@ public class PotionMover : MonoBehaviour
     }
 
     [PunRPC]
-    private void RpcExplode(Vector3 position, bool impact, int potionId, PhotonMessageInfo info)
+    private void RpcExplode(Vector3 position, bool impact, int potionId, int keywordId, PhotonMessageInfo info)
     {
         if (info.Sender != photonView.Owner || photonView.IsMine)
             return;
@@ -161,10 +169,15 @@ public class PotionMover : MonoBehaviour
         if (!PotionDataManager.Instance.TryGetPotionData(potionId, out PotionData data))
             return;
 
-        PlayExplosion(position, impact, false, data);
+        // 키워드 ID 0 은 정상 포션입니다. 모르는 ID 는 경고하고 정상 포션으로 취급합니다.
+        TrapPotionKeyword keyword = null;
+        if (keywordId != 0 && !PotionDataManager.Instance.TryGetTrapKeyword(keywordId, out keyword))
+            Debug.LogWarning($"[PotionMover] : 알 수 없는 함정 키워드 번호({keywordId})를 받아 정상 포션으로 폭발시킵니다.", this);
+
+        PlayExplosion(position, impact, new PotionInstance(data, keyword), false);
     }
 
-    private void PlayExplosion(Vector3 position, bool impact, bool applyEffects, PotionData data)
+    private void PlayExplosion(Vector3 position, bool impact, PotionInstance instance, bool applyEffects)
     {
         if (HasExploded)
             return;
@@ -175,6 +188,7 @@ public class PotionMover : MonoBehaviour
         if (impact)
             PlayImpact(position);
 
+        PotionData data = instance.Data;
         if (data.explosionPrefab != null)
         {
             var explosion = PoolManager.Instance.Get(data.explosionPrefab, position, Quaternion.identity);
@@ -185,10 +199,8 @@ public class PotionMover : MonoBehaviour
             }
             if (explosion.TryGetComponent(out PotionDetector detector))
             {
-                if (applyEffects)
-                    detector.Initialize(PotionInstance);
-                else
-                    detector.InitializeVisual(data);
+                // 모든 기기가 같은 정보(포션, 키워드)로 초기화합니다. 효과 적용 여부만 다릅니다.
+                detector.Initialize(instance, applyEffects);
             }
 
         }
@@ -219,15 +231,24 @@ public class PotionMover : MonoBehaviour
             main.startColor = color;
 
             particle.Play(true);
-            // 토큰은 파티클 것을 사용: 포션(this)은 바로 Destroy되므로 destroyCancellationToken을 쓰면 반납 예약도 같이 취소됨
-            TimeManager.Instance.Schedule(1.0f, () =>
-            {
-                if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
-                    return;
-
-                PoolManager.Instance.Release(particleObj);
-            }, PoolManager.GetReleaseToken(particleObj));
+            // 충격 파티클 반납도 모든 기기가 각자 돌려야 하므로 TimeManager.Schedule 을 쓰지 않는다. (Schedule 은 방장만 실행)
+            ReleaseParticleAsync(particleObj, 1.0f).Forget();
         }
 
+    }
+
+    // 포션(this)은 바로 Destroy되므로 이 오브젝트의 토큰을 쓰지 않고, 토큰은 파티클 것을 사용한다. (반납·파괴 시 취소)
+    private static async UniTaskVoid ReleaseParticleAsync(GameObject particleObj, float delaySeconds)
+    {
+        bool cancelled = await UniTask.Delay(System.TimeSpan.FromSeconds(delaySeconds),
+                cancellationToken: PoolManager.GetReleaseToken(particleObj))
+            .SuppressCancellationThrow();
+        if (cancelled)
+            return;
+
+        if (PoolManager.Instance == null) // 씬 종료 등으로 PoolManager가 먼저 사라진 경우
+            return;
+
+        PoolManager.Instance.Release(particleObj);
     }
 }
