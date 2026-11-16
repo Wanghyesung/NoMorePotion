@@ -259,7 +259,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// </summary>
     public void DeathAnimationEnd()
     {
-        if (isSinking || data == null || data.HP > 0) return;   // 중복 실행, 오작동 방지
+        if (!GameAuthority.HasAuthority) return;
+        if (isSinking || data == null || data.HP > 0) return;
         StartDeathSink();
     }
 

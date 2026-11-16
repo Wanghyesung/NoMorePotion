@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5992183010661991021}
   - component: {fileID: 7853957224262921117}
+  - component: {fileID: 2582766034040588608}
   m_Layer: 0
   m_Name: WolfPack_V
   m_TagString: Untagged
@@ -70,6 +71,30 @@ MonoBehaviour:
     sampleRadius: 2
   cooldownReduce: 0.25
   minCooldownRate: 0.4
+  engageHoldTime: 5
+--- !u!114 &2582766034040588608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3445276007085165661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 0
+  ObservedComponents:
+  - {fileID: 0}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1001 &1255604377745186483
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -55,7 +55,7 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
 
     private void Start()
     {
-        ResetHP();
+        ApplyReset();
     }
 
     /// <summary>
@@ -107,22 +107,6 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
         if (IsBroken || damage <= 0) return;
 
         SetHPAuthority(Mathf.Max(0, hp - damage));
-    }
-
-    private void ChangeHP(int newHp)
-    {
-        int before = hp;
-        hp = newHp;
-
-        OnHPChanged?.Invoke(before, hp);
-        if (hud != null) hud.HealthChange(before, hp);
-    }
-
-    private void Break()
-    {
-        attackTarget.SetTargetable(false);
-        SwapToFractured();
-        OnBroken?.Invoke(this);
     }
 
     private void SwapToFractured()

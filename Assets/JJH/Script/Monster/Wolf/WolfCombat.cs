@@ -160,6 +160,21 @@ public class WolfCombat : MonsterCombat
         }
 
         jumpCts = new CancellationTokenSource();
+
+        if (!GameAuthority.HasAuthority)
+        {
+            PausePlaybackDuringJump(jumpCts.Token).Forget();
+            return;
+        }
+
+        if (mover.nowTarget == null)
+        {
+            WolfAnim.ResetPlayback();
+            jumpCts.Dispose();
+            jumpCts = null;
+            return;
+        }
+
         PoundJump(jumpCts.Token).Forget();
     }
 
@@ -208,6 +223,7 @@ public class WolfCombat : MonsterCombat
     #region 도약 준비 이벤트
     private void FaceTargetDuringWindup()
     {
+        if (GameAuthority.HasAuthority) return;
         if (mover.nowTarget == null) return;
 
         Vector3 dir = mover.nowTarget.transform.position - transform.position;
@@ -260,6 +276,25 @@ public class WolfCombat : MonsterCombat
         }
 
         EndJump(end);
+    }
+
+    /// <summary>
+    /// 로컬 클라이언트 전용 늑대 정지 함수
+    /// </summary>
+    private async UniTaskVoid PausePlaybackDuringJump(CancellationToken token)
+    {
+        isJumping = true;
+        WolfAnim.SetPlaybackScale(0f);
+
+        float pause = Mathf.Max(0f, jumpDuration - landingLeadTime);
+        bool canceled = await UniTask.Delay(TimeSpan.FromSeconds(pause), cancellationToken: token)
+            .SuppressCancellationThrow();
+        if (canceled) return;
+
+        WolfAnim.ResetPlayback();
+        isJumping = false;
+        jumpCts?.Dispose();
+        jumpCts = null;
     }
 
     private Vector3 GetLandingPoint(Vector3 start)
