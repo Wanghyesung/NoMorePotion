@@ -94,7 +94,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
             PhotonNetwork.CurrentRoom.SetCustomProperties(data);
         }
 
-        int count = ScheduleWave(wave, -1, 0f);
+        int count = ScheduleWave(wave);
         Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {count}마리 예약");
     }
 
@@ -180,18 +180,22 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
             return;
         }
         float beforeTime = (float)(PhotonNetwork.Time - waveTime);
-        int count = ScheduleWave(wave, orderNum, beforeTime);
+        int count = ScheduleWave(wave,orderNum,beforeTime);
 
         Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 이어받음, {orderNum + 1} 번부터 {count}마리 생성");
 
     }
     #endregion
 
+   
     /// <summary>
-    /// 웨이브 계획대로 생성 예약
-    /// lastSpawned 이하 순번은 건너뜀 (-1이면 처음부터), elapsed는 웨이브 시작 후 지난 시간
+    /// 발행한 웨이브 계획대로 몬스터를 생성 예약하는 함수
     /// </summary>
-    private int ScheduleWave(WaveData wave, int lastSpawned, float elapsed)
+    /// <param name="wave">웨이브 데이터</param>
+    /// <param name="lastSpawned">건너뛸 순번 기준</param>
+    /// <param name="elapsed">웨이브 후 지난 시간</param>
+    /// <returns>총 예약된 몬스터 수</returns>
+    private int ScheduleWave(WaveData wave, int lastSpawned = -1, float elapsed = 0)
     {
         int order = 0;
         int scheduled = 0;
