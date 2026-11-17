@@ -148,6 +148,61 @@ namespace Enzeun.Runtime
         }
         #endregion
 
+        #region Corpse
+        [SerializeField, LabelText("시체 상자를 만들 위치 (내 앞쪽 거리, m)"), BoxGroup("시체 상자"), MinValue(0f)]
+        private float _corpseForwardDistance = 1.5f;
+
+        /// <summary>
+        /// 내 개인 인벤의 내용을 시체 상자로 옮깁니다. 사망 처리(DieAsync)와 같은 경로입니다.
+        /// </summary>
+        [Button("내 앞에 시체 상자 만들기 (개인 인벤 내용이 옮겨짐)", ButtonSizes.Large), BoxGroup("시체 상자")]
+        public void SpawnMyCorpse()
+        {
+            SpawnMyCorpseAsync().Forget();
+        }
+
+        private async UniTaskVoid SpawnMyCorpseAsync()
+        {
+            InventoryNetworkSyncManager manager = InventoryNetworkSyncManager.Instance;
+            if (manager == null || manager.LocalActor <= 0)
+            {
+                Debug.LogWarning("[InventoryDebugGrant] : 방에 들어가 있지 않아 시체 상자를 만들 수 없습니다.");
+                return;
+            }
+
+            Player local = null;
+            foreach (Player player in FindObjectsByType<Player>(FindObjectsSortMode.None))
+            {
+                if (player.IsLocalPlayer)
+                {
+                    local = player;
+                    break;
+                }
+            }
+
+            if (local == null)
+            {
+                Debug.LogWarning("[InventoryDebugGrant] : 내 플레이어를 찾지 못했습니다.");
+                return;
+            }
+
+            Vector3 position = local.transform.position + local.transform.forward * _corpseForwardDistance;
+            InventoryResult result = await manager.DieAsync(position);
+
+            if (!result.Success)
+            {
+                // Invalid : 개인 인벤이 비어 있음. 위의 "내 개인 인벤에 포션 지급"을 먼저 누르세요.
+                Debug.LogWarning($"[InventoryDebugGrant] : 시체 상자 생성 실패 ({result.Reason}) - 개인 인벤이 비어 있으면 실패합니다.");
+            }
+#if UNITY_EDITOR
+            else
+            {
+                Debug.Log("[InventoryDebugGrant] : 시체 상자 생성 요청 완료");
+            }
+#endif
+        }
+        #endregion
+
         #region Log
         private static void LogResult(string what, InventoryResult result)
         {

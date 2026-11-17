@@ -26,6 +26,10 @@ namespace Enzeun.Runtime
             {
                 privateInventories[i].SetSlotNum(i);
                 privateInventories[i].isPersonalSlot = true;
+
+                // 오른쪽 클릭(조합창에 올리기)이 부모 인벤토리의 조합창(potionCombined)을 쓰므로 부모를 지정합니다.
+                // 프리팹에서 개인 칸의 부모 인벤토리가 비어 있어서, 개인 칸을 오른쪽 클릭하면 NullReferenceException 이 났습니다.
+                privateInventories[i].SetParentInventory(this);
             }
 
             view = new LocalPersonalInventoryView();
