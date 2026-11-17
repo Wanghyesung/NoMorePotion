@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using PhotonPlayer = Photon.Realtime.Player;
 
 public class PlayerSlotUI : MonoBehaviour
@@ -12,6 +13,7 @@ public class PlayerSlotUI : MonoBehaviour
     [SerializeField] private GameObject masterIcon;        // playerView 안
     [SerializeField] private GameObject localIcon;       // playerView 안
     [SerializeField] private GameObject readyIcon;      // playerView 안
+    [SerializeField] private Image playerColor;
 
 
     private void SetView(GameObject showView)
@@ -29,6 +31,7 @@ public class PlayerSlotUI : MonoBehaviour
         nicknameText.text = player.NickName;
         masterIcon.SetActive(player.IsMasterClient);
         localIcon.SetActive(player.IsLocal);
+        playerColor.color = PlayerColors.Get(PlayerProps.GetColorIndex(player));
         readyIcon.SetActive(!player.IsMasterClient && PlayerProps.IsReady(player));
     }
 

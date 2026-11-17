@@ -51,6 +51,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     #region 캐릭터 정보
     private PlayerCharacter character = null;
+
+    [SerializeField] private SkinnedMeshRenderer skinMeshRenderer;
+    [SerializeField] private PlayerBlink playerBlink;
     #endregion
 
     #region 카메라와 시선
@@ -103,6 +106,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (character.HP <= 0)
         {
             CancelPending();
+
             if (attackTarget != null)
                 attackTarget.SetTargetable(false);
 
@@ -174,6 +178,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (IsLocalPlayer == false)
             return;
 
+        bool wasDead = character.HP <= 0;
         CancelPending();
 
         if (buffContainer != null)
@@ -182,7 +187,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
             // 포션 등이 건 효과만 지우고, 생존 상태 구간이 거는 효과(예: 정신력 초기값 50 의 멍청함)는 현재 구간에 맞게 다시 건다.
             if (SurviveStatusManager.Instance != null)
-                SurviveStatusManager.Instance.ResyncStatusEffects();
+                SurviveStatusManager.Instance.ResetAllStatus();
         }
 
         character.HP = character.MaxHP;
@@ -195,6 +200,36 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
         SetLookPitch(0f);
         fsm.RefreshState();
+        if (attackTarget != null)
+            attackTarget.SetTargetable(true);
+
+        // 최초 생성 시 초기화는 제외하고, 실제 부활만 다른 클라이언트에 전달한다.
+        if (wasDead == true && PhotonNetwork.InRoom && photonView != null && photonView.ViewID != 0)
+            photonView.RPC(nameof(RpcRevive), RpcTarget.Others, transform.position, transform.rotation);
+    }
+
+    [PunRPC]
+    private void RpcRevive(Vector3 position, Quaternion rotation, PhotonMessageInfo info)
+    {
+        if (info.Sender != photonView.Owner || photonView.IsMine == true)
+            return;
+
+        // 원격에서는 로컬 전용 HP/버프/FSM 초기화 대신 캐릭터의 표현만 복구한다.
+        if (ragdoll != null)
+            ragdoll.Restore();
+
+        transform.SetPositionAndRotation(position, rotation);
+        fsm.Rigidbody.position = position;
+        fsm.Rigidbody.rotation = rotation;
+        SetLookPitch(0f);
+
+        Animator animator = fsm.Animator;
+        animator.enabled = true;
+        animator.speed = 1f;
+        animator.Rebind();
+        animator.SetLayerWeight(animator.GetLayerIndex("UpperBody"), 0f);
+        animator.Update(0f);
+
         if (attackTarget != null)
             attackTarget.SetTargetable(true);
     }
@@ -236,6 +271,12 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
             if (Instance.HasGameplayInput == true && fsm.IsFrozen == false && fsm.IsRotationLocked == false)
                 SetLookPitch(lookPitch - Instance.InputInfo.Delta.y * pitchSensitivity);
             fsm.UpdateState();
+        }
+
+        if(Keyboard.current[Key.F8].wasPressedThisFrame)
+        {
+            ChangeColor();
+            RefreshPlayer();
         }
     }
 
@@ -350,6 +391,34 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
         return requestedType;
     }
+
+    public void ChangeColor()
+    {
+        if (IsLocalPlayer == false)
+            return;
+
+        ApplyColor();
+        if (PhotonNetwork.InRoom && photonView != null && photonView.ViewID != 0)
+            photonView.RPC(nameof(RpcChangeColor), RpcTarget.Others);
+    }
+
+    [PunRPC]
+    private void RpcChangeColor(PhotonMessageInfo info)
+    {
+        if (info.Sender != photonView.Owner || photonView.IsMine == true)
+            return;
+
+        ApplyColor();
+    }
+
+    private void ApplyColor()
+    {
+        // 임시로 4번 색상 고정. 첫 번째 머티리얼인 몸 색상만 변경한다.
+        Color color = PlayerColors.Get(4);
+        skinMeshRenderer.material.color = color;
+        playerBlink.SetBaseColor(color);
+    }
+
 
     private void OnHit(CommonStruct.AttackInfo info) => CancelPending();
 

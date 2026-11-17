@@ -1,5 +1,6 @@
 using System;
 using Enzeun.Runtime;
+using Photon.Pun;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +21,7 @@ public sealed class PlayerInfoUI : MonoBehaviour
     [SerializeField] private Gauge mentalStrength = new();
     [SerializeField] private Gauge hydration = new();
     [SerializeField] private Gauge satiation = new();
+    [SerializeField] private TMP_Text nameText;
 
 
     [Serializable]
@@ -49,6 +51,7 @@ public sealed class PlayerInfoUI : MonoBehaviour
         player = target;
         healthInitialized = false;
         RefreshHealth();
+        RefreshName(); //
     }
 
     public void UnbindPlayer(Player target)
@@ -81,6 +84,22 @@ public sealed class PlayerInfoUI : MonoBehaviour
         lastHealth = health;
         lastMaxHealth = maxHealth;
     }
+
+    #region 닉네임(진희진)
+
+    private void RefreshName()
+    {
+        if (nameText == null || player == null)
+            return;
+
+        PhotonView view = player.GetComponent<PhotonView>();
+        string nick = view != null && view.Owner != null ? view.Owner.NickName : PhotonNetwork.NickName;
+
+        if (string.IsNullOrEmpty(nick) == false)
+            nameText.text = nick;
+    }
+
+    #endregion
 
     private void LateUpdate()
     {

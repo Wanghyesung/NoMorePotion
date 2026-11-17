@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
+using UnityEngine;
 
 /*///////////////////////////////////////////
                  RangeDetector
@@ -16,15 +18,21 @@ public sealed class RangeDetector : MonoBehaviour
     #endregion
 
     private Collider[] hits = new Collider[32];
+    private GameObject nearestObj = null;
 
+    [SerializeField] private float waitTime = 0.1f;
     public GameObject Get()
     {
-        Transform target = Get<Transform>();
-        return target != null ? target.gameObject : null;
+        return nearestObj;
+    }
+
+    private void Start()
+    {
+        UpdateDetectorAsync().Forget();
     }
 
     // T: 콜라이더 또는 부모에서 찾을 컴포넌트. 일치하는 대상이 없으면 null 반환
-    public T Get<T>() where T : Component
+    private T Get<T>() where T : Component
     {
         Vector3 center = transform.position;
         int count = Detect(center);
@@ -49,8 +57,13 @@ public sealed class RangeDetector : MonoBehaviour
             }
         }
 
-        // 이전 탐지 대상이 버퍼에 참조로 남지 않도록 사용 구간만 비움
+        if (nearest == null)
+            return null;
+        
+        
         System.Array.Clear(hits, 0, count);
+        // 이전 탐지 대상이 버퍼에 참조로 남지 않도록 사용 구간만 비움
+        nearestObj = nearest.gameObject;
         return nearest;
     }
 
@@ -72,5 +85,21 @@ public sealed class RangeDetector : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, radius);
+    }
+
+
+    async UniTask UpdateDetectorAsync()
+    {
+        // 오브젝트가 파괴되면 대기와 탐지 루프를 함께 종료한다.
+        var cancellationToken = this.GetCancellationTokenOnDestroy();
+        while (cancellationToken.IsCancellationRequested == false)
+        {
+            Get<Transform>();
+            bool canceled = await UniTask.WaitForSeconds(waitTime, cancellationToken: cancellationToken)
+                .SuppressCancellationThrow();
+
+            if (canceled == true)
+                return;
+        }
     }
 }

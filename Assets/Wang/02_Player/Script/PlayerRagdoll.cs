@@ -41,9 +41,13 @@ public sealed class PlayerRagdoll : MonoBehaviour
             body.detectCollisions = false;
         }
         ragdoller.CurrentState = MMRagdoller.RagdollStates.Animated;
-        rootBody.isKinematic = false;
-        rootBody.linearVelocity = Vector3.zero;
-        rootBody.angularVelocity = Vector3.zero;
+        // Remote roots stay kinematic; only the owner runs root physics.
+        rootBody.isKinematic = photonView != null && photonView.IsMine == false;
+        if (rootBody.isKinematic == false)
+        {
+            rootBody.linearVelocity = Vector3.zero;
+            rootBody.angularVelocity = Vector3.zero;
+        }
         for (int i = 0; i < rootColliders.Length; i++)
             rootColliders[i].enabled = rootColliderEnabled[i];
     }
