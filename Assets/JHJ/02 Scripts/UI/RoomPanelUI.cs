@@ -22,8 +22,11 @@ public class RoomPanelUI : MonoBehaviour
     [SerializeField] private Button leaveBtn;
     [SerializeField] private Button readyBtn;
     [SerializeField] private Button startBtn;
-
     [SerializeField] private TMP_Text readyBtnText;
+
+    [Header("Color Palette")]
+    [SerializeField] private Button[] colorButtons;
+    [SerializeField] private GameObject[] colorChecks;
 
     private NetworkFlowManager manager;
     private readonly List<PlayerSlotUI> slots = new List<PlayerSlotUI>();
@@ -53,6 +56,14 @@ public class RoomPanelUI : MonoBehaviour
         leaveBtn.onClick.AddListener(manager.RequestLeaveRoom);
         readyBtn.onClick.AddListener(manager.RequestToggleReady);
         startBtn.onClick.AddListener(manager.RequestStartGame);
+
+        for(int i = 0; i< colorButtons.Length; i++)
+        {
+            int index = i;  // 람다가 반복문 변수 i를 직접 잡으면 모든 버튼이 같은 번호를 보냄 → 복사해서 넘김
+            colorButtons[i].image.color = PlayerColors.Get(index);
+            colorButtons[i].onClick.AddListener(() => manager.RequestSetColor(index));
+        }
+
         manager.CanStart.Subscribe(can => startBtn.interactable = can).AddTo(this);
     }
 
@@ -104,6 +115,16 @@ public class RoomPanelUI : MonoBehaviour
         // 방장이면 시작 버튼, 아니면 레디 버튼 (같은 자리에 하나만 보임)
         startBtn.gameObject.SetActive(me.IsMasterClient);
         readyBtn.gameObject.SetActive(!me.IsMasterClient);
+
+        int myColor = PlayerProps.GetColorIndex(me);
+        bool isReady = PlayerProps.IsReady(me);
+
+        for(int i = 0; i < colorButtons.Length; i++)
+        {
+            bool taken = manager.IsColorTaken(i);
+            colorButtons[i].interactable = !taken && !isReady;
+            colorChecks[i].SetActive(i == myColor);
+        }
 
         readyBtnText.text = PlayerProps.IsReady(me) ? "준비 취소" : "준비";
     }

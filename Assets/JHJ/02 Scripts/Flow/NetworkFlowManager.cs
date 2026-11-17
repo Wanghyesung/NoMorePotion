@@ -577,6 +577,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
     }
 
+    public bool IsColorTaken(int index)
+    {
+        return room.IsColorTaken(index);
+    }
+
     #endregion
 
     public void OnEvent(EventData photonEvent)
