@@ -78,6 +78,59 @@ public class RoomSession : IDisposable
     }
 
     /// <summary>
+    /// 다른 플레이어가 쓰고있는 색인지
+    /// </summary>
+    public bool IsColorTaken(int index)
+    {
+        foreach(PhotonPlayer player in PhotonNetwork.PlayerListOthers)  // 나를 뺀 플레이어 중
+        {
+            if (PlayerProps.GetColorIndex(player) == index)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 색 변경
+    /// </summary>
+    public void SetColor(int index)
+    {
+        // 준비완료시 불가
+        if (PlayerProps.IsReady(PhotonNetwork.LocalPlayer)) return;
+
+        if (index < 0 || index >= PlayerColors.Palette.Length)
+            return;
+
+        // 이미 내가 선택한 색
+        if (PlayerProps.GetColorIndex(PhotonNetwork.LocalPlayer) == index)
+            return;
+
+        if(IsColorTaken(index))
+        {
+            Debug.Log($"[RoomSession] 색 선택 무시: {index}번은 다른 플레이어가 선택 중");
+            return;
+        }
+
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new Hashtable { { PlayerProps.COLOR, index } });
+    }
+
+    /// <summary>
+    /// 방 입장시 비어있는 첫번째 색 자동 배정
+    /// </summary>
+    public void AssignFreeColor()
+    {
+        for(int i = 0; i < PlayerColors.Palette.Length; i++)
+        {
+            if(!IsColorTaken(i))
+            {
+                SetColor(i);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
     /// 방 범위 플레이어 속성(PlayerProps.CreateRoomScopedReset)을 초기화. 방 퇴장·연결 끊김 시 호출
     /// (로컬 플레이어 속성은 다음 방 입장 시 그대로 전송되므로 초기화 필요. 방 밖에서는 로컬 값만 바뀜)
     /// </summary>
