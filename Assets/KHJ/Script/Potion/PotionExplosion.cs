@@ -79,6 +79,73 @@ namespace Enzeun.Runtime
         }
         #endregion
 
+        #region Area
+        /// <summary>
+        /// position 에서 radius 안의 대상에게 체력 증감 효과 하나와 상태 이상 목록을 적용하고, 닿은 대상 수를 반환합니다.
+        /// 재해 장판(블랙홀 등)이 단계마다(처음, 틱, 마지막) 대미지를 줄 때 부릅니다.
+        /// 대상 구분(scope)은 폭발과 같고, 폭발 화면 연출은 재생하지 않습니다.
+        /// </summary>
+        /// <param name="health">적용할 체력 증감 효과. null 이면 대미지는 주지 않습니다.</param>
+        /// <param name="statuses">함께 걸 상태 이상 목록. null 이거나 비어 있으면 걸지 않습니다. 같은 효과를 틱마다 다시 걸어도 중첩 정책이 처리합니다.</param>
+        /// <param name="damageMultiplier">체력 대미지에 곱하는 배율입니다. (던진 사람의 공격력 배율) 상태 이상에는 곱하지 않습니다.</param>
+        public static int ApplyZonePhase(HealthChangePotionEffect health, IReadOnlyList<ApplyStatusPotionEffect> statuses, Vector3 position, float radius, PotionTargetScope scope = PotionTargetScope.All, float damageMultiplier = 1f)
+        {
+            bool hasStatuses = statuses != null && statuses.Count > 0;
+            if (health == null && !hasStatuses)
+            {
+                return 0;
+            }
+
+            PotionExplosionConfig config = PotionExplosionConfig.Instance;
+            if (config == null)
+            {
+                Debug.LogWarning($"[PotionExplosion]: 폭발 설정 에셋이 없습니다. (Resources/{PotionExplosionConfig.ResourcePath})");
+                return 0;
+            }
+
+            int hitCount = Physics.OverlapSphereNonAlloc(position, radius, ColliderBuffer, config.TargetLayers, QueryTriggerInteraction.Collide);
+
+            if (hitCount >= MaxColliders)
+            {
+                Debug.LogWarning($"[PotionExplosion]: 범위 안의 콜라이더가 {MaxColliders}개 이상이라 일부가 누락될 수 있습니다.");
+            }
+
+            AppliedTargets.Clear();
+            int targetCount = 0;
+
+            // 남의 플레이어 몸 연출에 쓸 피해 수치입니다. (대미지일 때만)
+            int visualDamage = health != null && health.healthChange.changeType == HealthChangeType.Damage
+                ? Mathf.RoundToInt(health.healthChange.amount * damageMultiplier)
+                : 0;
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider collider = ColliderBuffer[i];
+                ColliderBuffer[i] = null;   // 파괴된 오브젝트를 붙잡지 않도록 비웁니다.
+
+                if (!TryPrepareTarget(collider, scope, visualDamage, out PotionTarget target))
+                {
+                    continue;
+                }
+
+                // 대미지를 먼저 주고 상태 이상을 겁니다. 상태 이상의 주체(source)는 효과 객체 자신이라, 틱마다 다시 걸어도 같은 주체로 처리됩니다.
+                PotionEffectApplier.ApplyHealth(health, health, target, position, damageMultiplier);
+
+                if (hasStatuses)
+                {
+                    for (int s = 0; s < statuses.Count; s++)
+                    {
+                        PotionEffectApplier.ApplyStatus(statuses[s], statuses[s], target);
+                    }
+                }
+
+                targetCount++;
+            }
+
+            return targetCount;
+        }
+        #endregion
+
         #region Core
         private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, PotionTargetScope scope = PotionTargetScope.All, float damageMultiplier = 1f)
         {
@@ -120,41 +187,8 @@ namespace Enzeun.Runtime
                 Collider collider = ColliderBuffer[i];
                 ColliderBuffer[i] = null;   // 파괴된 오브젝트를 붙잡지 않도록 비웁니다.
 
-                // 컨테이너는 Owner 로 찾습니다. (플레이어 컨테이너는 콜라이더의 부모 계층에 없을 수 있음)
-                BuffContainer container = BuffContainer.FindByOwner(collider.transform);
-
-                var target = new PotionTarget
-                {
-                    BuffContainer = container,
-                    Damageable = collider.GetComponentInParent<IDamageable>(),
-                    WorldObject = collider.GetComponentInParent<WorldObject>(),
-                    IsLocalPlayer = IsLocalPlayerContainer(container),
-                };
-
-                // 범위 구분 : 플레이어는 내 플레이어만(남의 플레이어는 그 기기가 처리), 플레이어가 아닌 대상은 NonPlayers 일 때만 처리합니다.
-                if (target.Damageable is Player player)
-                {
-                    if (!player.IsLocalPlayer)
-                    {
-                        // 남의 플레이어에게는 효과를 적용하지 않습니다. 대신 이 기기에서 보이는 대로 몸 연출만 근사해서 재생합니다.
-                        if (visualDamage > 0 && AppliedTargets.Add(player))
-                        {
-                            PlayRemoteHitFeedback(player, visualDamage);
-                        }
-
-                        continue;
-                    }
-
-                    if ((scope & PotionTargetScope.LocalPlayer) == 0)
-                        continue;
-                }
-                else if ((scope & PotionTargetScope.NonPlayers) == 0)
-                {
-                    continue;
-                }
-
-                Object key = GetTargetKey(target);
-                if (key == null || !AppliedTargets.Add(key))
+                // 대상 구성, 범위 구분, 중복 제거는 공용 도우미가 합니다. false 면 이 대상은 건너뜁니다.
+                if (!TryPrepareTarget(collider, scope, visualDamage, out PotionTarget target))
                 {
                     continue;
                 }
@@ -179,6 +213,14 @@ namespace Enzeun.Runtime
                 }
 
                 targetCount++;
+            }
+
+            // 블랙홀 같은 재해 소환 효과는 폭발당 한 번, 처음 폭발에서만 소환합니다. (반복 틱에서는 소환하지 않음)
+            // 대상 루프가 끝난 뒤에 소환해야 합니다. 소환된 장판이 같은 정적 버퍼(ColliderBuffer, AppliedTargets)를 쓰기 때문입니다.
+            if (!tickOnly)
+            {
+                SpawnZones(potion.effects, position, radius, scope, damageMultiplier);
+                SpawnZones(trapKeyword != null ? trapKeyword.Effects : null, position, radius, scope, damageMultiplier);
             }
 
 #if UNITY_EDITOR
@@ -234,6 +276,101 @@ namespace Enzeun.Runtime
         #endregion
 
         #region Helpers
+        /// <summary>
+        /// 콜라이더 하나에서 효과 대상을 만들고, 이 기기가 처리할 대상인지 판정합니다. 처리할 대상이면 true 입니다.
+        /// 범위 구분 : 플레이어는 내 플레이어만(남의 플레이어는 그 기기가 처리), 플레이어가 아닌 대상은 NonPlayers 일 때만 처리합니다.
+        /// 한 대상의 여러 콜라이더는 같은 키가 되어 한 번만 처리합니다. (AppliedTargets 는 호출하는 쪽이 미리 비웁니다)
+        /// </summary>
+        /// <param name="visualDamage">남의 플레이어 몸 연출에 쓸 피해 수치. 0 이하면 연출하지 않습니다.</param>
+        private static bool TryPrepareTarget(Collider collider, PotionTargetScope scope, int visualDamage, out PotionTarget target)
+        {
+            // 컨테이너는 Owner 로 찾습니다. (플레이어 컨테이너는 콜라이더의 부모 계층에 없을 수 있음)
+            BuffContainer container = BuffContainer.FindByOwner(collider.transform);
+
+            target = new PotionTarget
+            {
+                BuffContainer = container,
+                Damageable = collider.GetComponentInParent<IDamageable>(),
+                WorldObject = collider.GetComponentInParent<WorldObject>(),
+                IsLocalPlayer = IsLocalPlayerContainer(container),
+            };
+
+            if (target.Damageable is Player player)
+            {
+                if (!player.IsLocalPlayer)
+                {
+                    // 남의 플레이어에게는 효과를 적용하지 않습니다. 대신 이 기기에서 보이는 대로 몸 연출만 근사해서 재생합니다.
+                    if (visualDamage > 0 && AppliedTargets.Add(player))
+                    {
+                        PlayRemoteHitFeedback(player, visualDamage);
+                    }
+
+                    return false;
+                }
+
+                if ((scope & PotionTargetScope.LocalPlayer) == 0)
+                {
+                    return false;
+                }
+            }
+            else if ((scope & PotionTargetScope.NonPlayers) == 0)
+            {
+                return false;
+            }
+
+            Object key = GetTargetKey(target);
+            return key != null && AppliedTargets.Add(key);
+        }
+
+        /// <summary>
+        /// 효과 목록에서 재해 소환 효과를 찾아 소환합니다. 목록이 null 이면 아무것도 하지 않습니다.
+        /// </summary>
+        private static void SpawnZones(IReadOnlyList<PotionEffect> effects, Vector3 position, float radius, PotionTargetScope scope, float damageMultiplier)
+        {
+            if (effects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < effects.Count; i++)
+            {
+                if (effects[i] is SummonDisasterPotionEffect summon)
+                {
+                    SpawnDisaster(summon, position, radius, scope, damageMultiplier);
+                }
+            }
+        }
+
+        private static void SpawnDisaster(SummonDisasterPotionEffect summon, Vector3 position, float radius, PotionTargetScope scope, float damageMultiplier)
+        {
+            if (summon.disasterPrefab == null)
+            {
+                Debug.LogWarning("[PotionExplosion]: 재해 프리팹이 비어 있어 소환하지 않습니다.");
+                return;
+            }
+
+            if (PoolManager.Instance == null)
+            {
+                Debug.LogWarning("[PotionExplosion]: PoolManager 가 없어 재해를 소환하지 못했습니다.");
+                return;
+            }
+
+            GameObject zoneObject = PoolManager.Instance.Get(summon.disasterPrefab, position, Quaternion.identity);
+            if (zoneObject == null)
+            {
+                return;
+            }
+
+            if (!zoneObject.TryGetComponent(out DisasterZone zone))
+            {
+                Debug.LogWarning($"[PotionExplosion]: 재해 프리팹({summon.disasterPrefab.name})에 DisasterZone 컴포넌트가 없어 반납합니다.");
+                PoolManager.Instance.Release(zoneObject);
+                return;
+            }
+
+            zone.Initialize(summon, radius, scope, damageMultiplier);
+        }
+
         /// <summary>
         /// 이 컨테이너가 내 플레이어의 컨테이너인지 확인합니다. 다른 플레이어나 몬스터는 false 입니다.
         /// </summary>

@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b72333df77f66b4f8af205a98e45354, type: 3}
+  m_Name: 51001
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.TrapPotionKeyword
+  _keywordID: 51001
+  _keywordName: "\uBE14\uB799\uD640"
+  _effectDescription: "\uBE14\uB799\uD640\uC744 \uC18C\uD658\uD55C\uB2E4"
+  _effects:
+  - rid: 4119466936475582553
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466936475582553
+      type: {class: SummonDisasterPotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _disasterPrefab: {fileID: 5734816136837425836, guid: bd7a18a056d1a004382a432ed2d029f1, type: 3}
+        _durationSeconds: 3.5
+        _tickIntervalSeconds: 0.5
+        _firstHit:
+          _healthChange:
+            _changeType: 1
+            _damageType: 5
+            _amount: 400
+            _intervalSeconds: 0
+          _durationSeconds: 0
+        _tickHit:
+          _healthChange:
+            _changeType: 1
+            _damageType: 5
+            _amount: 200
+            _intervalSeconds: 0.5
+          _durationSeconds: 0
+        _finalHit:
+          _healthChange:
+            _changeType: 1
+            _damageType: 5
+            _amount: 1000
+            _intervalSeconds: 0
+          _durationSeconds: 0
+        _statusEffects:
+        - _statusEffect: {fileID: 11400000, guid: 2d557020929e02c41ab53da3ca0df6c1, type: 2}
+          _percent: 0
+          _durationSeconds: 1

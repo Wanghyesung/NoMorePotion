@@ -84,6 +84,40 @@ namespace Enzeun.Runtime
             Apply(keyword.Effects, keyword, target, explosionPosition, false, damageMultiplier);
         }
 
+        /// <summary>
+        /// 체력 증감 효과 하나를 대상 한 개에게 한 번 적용합니다. 블랙홀 장판처럼 효과 목록 밖에서 단계별로 대미지를 줄 때도 이 경로를 씁니다.
+        /// </summary>
+        public static void ApplyHealth(HealthChangePotionEffect health, object source, in PotionTarget target, Vector3 explosionPosition, float damageMultiplier = 1f)
+        {
+            if (health == null)
+            {
+                return;
+            }
+
+            if (target.BuffContainer != null)
+            {
+                target.BuffContainer.ApplyPotionHealth(health, source, explosionPosition, damageMultiplier);
+            }
+            else if (target.Damageable != null)
+            {
+                health.healthChange.Apply(target.Damageable, explosionPosition, damageMultiplier);
+            }
+        }
+
+        /// <summary>
+        /// 상태 효과(버프/디버프) 하나를 대상 한 개에게 겁니다. 재해 장판이 틱마다 다시 걸 때도 이 경로를 씁니다.
+        /// source 가 같으면 중첩 정책(Unique/RefreshDuration/Stackable)에 따라 무시, 갱신, 추가로 처리됩니다.
+        /// </summary>
+        public static void ApplyStatus(ApplyStatusPotionEffect status, object source, in PotionTarget target)
+        {
+            if (status == null || target.BuffContainer == null)
+            {
+                return;
+            }
+
+            target.BuffContainer.Apply(status.statusEffect, source, status.percent, status.durationSeconds);
+        }
+
         /// <param name="effects">적용할 효과 목록</param>
         /// <param name="source">효과를 건 주체(포션 또는 키워드 SO). 같은 주체가 다시 걸었을 때 중첩 정책이 의도대로 동작하게 합니다.</param>
         /// <param name="healthOnly">true 면 체력 증감 효과만 적용합니다. (범위 장판의 반복 틱)</param>
@@ -100,22 +134,12 @@ namespace Enzeun.Runtime
                 switch (effects[i])
                 {
                     case ApplyStatusPotionEffect status:
-                        if (target.BuffContainer != null)
-                        {
-                            target.BuffContainer.Apply(status.statusEffect, source, status.percent, status.durationSeconds);
-                        }
+                        ApplyStatus(status, source, target);
                         break;
 
                     case HealthChangePotionEffect health:
                         // 한 번(한 틱)만 적용한다. 초당 대미지처럼 반복되는 효과는 범위 장판이 간격마다 다시 적용하므로, 범위를 벗어나면 멈춘다.
-                        if (target.BuffContainer != null)
-                        {
-                            target.BuffContainer.ApplyPotionHealth(health, source, explosionPosition, damageMultiplier);
-                        }
-                        else if (target.Damageable != null)
-                        {
-                            health.healthChange.Apply(target.Damageable, explosionPosition, damageMultiplier);
-                        }
+                        ApplyHealth(health, source, target, explosionPosition, damageMultiplier);
                         break;
 
                     case GaugeChangePotionEffect gauge:
