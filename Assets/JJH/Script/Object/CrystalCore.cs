@@ -29,6 +29,7 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
     // 화면 상단 체력 오버레이 설정
     // hideIsFull(체력 최대시 숨김) 끄기
     [SF] private MonsterHPHud hud;
+    [SF] private CrystalCoreHud coreHud;
     
     // 마스터에서 파괴 연출이 이미 적용됐는지 여부
     private bool brokenApplied;
@@ -60,6 +61,7 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
     private void Start()
     {
         ApplyReset();
+        coreHud.ResetHealth(maxHp);
     }
 
     /// <summary>
@@ -134,7 +136,6 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
         if (newHp == hp) return;
 
         ApplyHP(newHp);
-
         if (IsNetworked)
             photonView.RPC(nameof(RpcSyncHP), RpcTarget.Others, hp);
     }
@@ -163,7 +164,7 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
 
         OnHPChanged?.Invoke(before, hp);
         if (hud != null) hud.HealthChange(before, hp);
-
+        if (coreHud != null) coreHud.HealthChange(before, hp);
         if (IsBroken)
             ApplyBreak();
     }
