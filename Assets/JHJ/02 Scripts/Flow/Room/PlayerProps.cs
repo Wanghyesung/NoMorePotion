@@ -5,8 +5,8 @@ public static class PlayerProps
 {
     public const string READY = "rd";
     public const string LOADED = "ld";
-    // TODO(멀티) :  플레이어 색 연동
-    //public const string COLOR = "cl";
+    public const string COLOR = "cl";
+    public const int NO_COLOR = -1;
 
 
     /// <summary>
@@ -17,7 +17,7 @@ public static class PlayerProps
     public static Hashtable CreateRoomScopedReset()
     {
         // 공유 객체로 두면 누군가 내용을 바꿨을 때 모든 초기화에 섞여 들어감 → 매번 새로 생성 (방 퇴장 시 1회라 GC 부담 없음)
-        return new Hashtable { { READY, false }, { LOADED, false } };
+        return new Hashtable { { READY, false }, { LOADED, false }, { COLOR, NO_COLOR } };
     }
 
     public static bool IsReady(PhotonPlayer player) => GetBool(player, READY);
@@ -30,5 +30,10 @@ public static class PlayerProps
             && player.CustomProperties.TryGetValue(key, out object value)
             && value is bool b
             && b;
+    }
+
+    public static int GetColorIndex(PhotonPlayer player)
+    {
+        return player != null && player.CustomProperties.TryGetValue(COLOR, out object value) && value is int i ? i : NO_COLOR;
     }
 }
