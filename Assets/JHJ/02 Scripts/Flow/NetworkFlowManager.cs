@@ -425,7 +425,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         chat.AddSystem("방에 입장했습니다");
 
         SetState(FlowState.Room);
-        //PhotonNetwork.LocalPlayer.SetCustomProperties( )
+        room.AssignFreeColor();     // 색 자동배정
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
@@ -461,6 +461,13 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if (!RequireInRoom()) return;
 
         room.ToggleReady();
+    }
+
+    public void RequestSetColor(int index)
+    {
+        if (!RequireInRoom()) return;
+
+        room.SetColor(index);
     }
 
     public void RequestStartGame()
@@ -568,6 +575,11 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return;
 
         PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
+    }
+
+    public bool IsColorTaken(int index)
+    {
+        return room.IsColorTaken(index);
     }
 
     #endregion
