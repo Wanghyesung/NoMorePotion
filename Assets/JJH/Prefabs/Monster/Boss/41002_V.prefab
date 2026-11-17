@@ -223,11 +223,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: attackRange
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: attackSpeed
-      value: 2
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: patrolDelay
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: nextMoveDist
@@ -237,6 +241,10 @@ PrefabInstance:
       propertyPath: chaseCollider
       value: 
       objectReference: {fileID: 423136512668565773}
+    - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: useAttackSlot
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6907199649827217310, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: hud
       value: 
@@ -261,7 +269,8 @@ PrefabInstance:
       propertyPath: 'ObservedComponents.Array.data[1]'
       value: 
       objectReference: {fileID: 3881212277543037323}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6907199649827217310, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
     m_RemovedGameObjects:
     - {fileID: 2743018613495133992, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
     m_AddedGameObjects:
@@ -279,6 +288,9 @@ PrefabInstance:
       addedObject: {fileID: 8317895997623520430}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: 3
+      addedObject: {fileID: -1894072274430248284}
+    - targetCorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6306254642428671883}
   m_SourcePrefab: {fileID: 100100000, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
@@ -292,6 +304,30 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
   m_PrefabInstance: {fileID: 3918636443401983306}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &-1894072274430248284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7469139849173040859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07bf90cbfa08f3a448e0b8fd8cd34fb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossCombat
+  anim: {fileID: 0}
+  mover: {fileID: 0}
+  hud: {fileID: 0}
+  vfx: {fileID: 0}
+  statusEffect: {fileID: 0}
+  biteHitbox: {fileID: 7875655251101329595}
+  prefabId: 41002
+  skillHitboxes: []
+  sinkDuration: 2
+  sinkMargin: 0.3
+  damageNumberPrefab: {fileID: 0}
+  healNumberPrefab: {fileID: 0}
 --- !u!114 &6306254642428671883
 MonoBehaviour:
   m_ObjectHideFlags: 0
