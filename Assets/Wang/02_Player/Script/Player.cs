@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputManager;
 using System;
+using DamageNumbersPro;
 
 /*///////////////////////////////////////////
                       Player
@@ -54,6 +55,13 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     [SerializeField] private SkinnedMeshRenderer skinMeshRenderer;
     [SerializeField] private PlayerBlink playerBlink;
+    [SerializeField] private DamageNumber damageNumberPrefab;
+    [SerializeField] private Vector3 damageNumberOffset = new Vector3(0f, 1.8f, 0f);
+
+    public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
+    public Hand Hand => hand;
+    public PlayerCharacter Character => character;
+    public bool ConfusePotionUse { get; set; }
     #endregion
 
     #region 카메라와 시선
@@ -63,15 +71,13 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     [SerializeField] private Transform lookPivot;
     [SerializeField, Min(0f)] private float pitchSensitivity = 0.15f;
     private float lookPitch;
-    #endregion
 
-    public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
-    public Hand Hand => hand;
-    public PlayerCharacter Character => character;
-    public bool ConfusePotionUse { get; set; }
     public Transform CameraPosition => cameraPosition;
     public Transform LookPivot => lookPivot;
+    #endregion
 
+   
+    
     public event Action<Vector3> OnDead;
     public void SetLookPitch(float pitch)
     {
@@ -102,6 +108,15 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         // 피해 / 방어력 배율: +20%(1.2배)이면 피해 100 → 83. 0.01은 0 나눗셈 방지용 하한이다.
         int damage = Mathf.Max(0, Mathf.RoundToInt(attackInfo.Damage / Mathf.Max(0.01f, character.Defend)));
         character.HP = Mathf.Max(0, character.HP - damage);
+
+        // 사망하는 타격도 표시한다. 방어력을 반영한 숫자는 소유자가 한 번만 전송한다.
+        if (damage > 0)
+        {
+            Vector3 popupPosition = transform.position + damageNumberOffset;
+            ShowDamageNumber(popupPosition, damage);
+            if (PhotonNetwork.InRoom && photonView != null && photonView.ViewID != 0)
+                photonView.RPC(nameof(RpcShowDamageNumber), RpcTarget.Others, popupPosition, damage);
+        }
 
         if (character.HP <= 0)
         {
@@ -167,6 +182,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
         RefreshPlayer();
         SubscribePotionInput();
+        ChangeColor();
     }
 
     /// <summary>
@@ -275,7 +291,6 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
         if(Keyboard.current[Key.F8].wasPressedThisFrame)
         {
-            ChangeColor();
             RefreshPlayer();
         }
     }
@@ -397,28 +412,49 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (IsLocalPlayer == false)
             return;
 
-        ApplyColor();
+        int index = PlayerProps.GetColorIndex(photonView.Owner);
+        ApplyColor(index);
         if (PhotonNetwork.InRoom && photonView != null && photonView.ViewID != 0)
-            photonView.RPC(nameof(RpcChangeColor), RpcTarget.Others);
+            photonView.RPC(nameof(RpcChangeColor), RpcTarget.Others , index);
     }
 
     [PunRPC]
-    private void RpcChangeColor(PhotonMessageInfo info)
+    private void RpcChangeColor(int index, PhotonMessageInfo info)
     {
         if (info.Sender != photonView.Owner || photonView.IsMine == true)
             return;
 
-        ApplyColor();
+        ApplyColor(index);
     }
 
-    private void ApplyColor()
+    private void ApplyColor(int index)
     {
         // 임시로 4번 색상 고정. 첫 번째 머티리얼인 몸 색상만 변경한다.
-        Color color = PlayerColors.Get(4);
+        
+        Color color = PlayerColors.Get(index);
         skinMeshRenderer.material.color = color;
         playerBlink.SetBaseColor(color);
     }
 
+
+    [PunRPC]
+    private void RpcShowDamageNumber(Vector3 position, int damage, PhotonMessageInfo info)
+    {
+        // 이 플레이어 소유자가 확정한 데미지만 표시한다. 원격 HP는 변경하지 않는다.
+        if (info.Sender != photonView.Owner || photonView.IsMine == true)
+            return;
+
+        ShowDamageNumber(position, damage);
+    }
+
+    private void ShowDamageNumber(Vector3 position, int damage)
+    {
+        // 숫자 연출을 연결하지 않은 테스트 플레이어도 피격 처리는 유지한다.
+        if (damageNumberPrefab == null || damage <= 0)
+            return;
+
+        damageNumberPrefab.Spawn(position, damage);
+    }
 
     private void OnHit(CommonStruct.AttackInfo info) => CancelPending();
 

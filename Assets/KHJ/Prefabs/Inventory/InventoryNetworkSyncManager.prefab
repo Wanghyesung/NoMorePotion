@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3052044873274690003}
   - component: {fileID: 344179530727304378}
   - component: {fileID: 6254978150532759071}
+  - component: {fileID: 6873901188618463581}
   m_Layer: 0
   m_Name: InventoryNetworkSyncManager
   m_TagString: Untagged
@@ -83,4 +84,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.GroundPouchSpawner
   _pouchPrefab: {fileID: 5859654621399972262, guid: 331c7d65427f6cf40950cf153fb0d4b8, type: 3}
+  _parent: {fileID: 0}
+--- !u!114 &6873901188618463581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7359458089866407554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 598974d3e737b4e49a9ffbb5ef9e6754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.CorpseBoxSpawner
+  _chestPrefab: {fileID: 8416408322091837540, guid: d33ca015c1bd79a488a19dffb743eaa8, type: 3}
   _parent: {fileID: 0}
