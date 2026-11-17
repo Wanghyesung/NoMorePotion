@@ -103,6 +103,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (character.HP <= 0)
         {
             CancelPending();
+
             if (attackTarget != null)
                 attackTarget.SetTargetable(false);
 
