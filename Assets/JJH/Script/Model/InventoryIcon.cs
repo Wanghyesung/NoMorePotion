@@ -133,7 +133,8 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
         if (e.button == PointerEventData.InputButton.Right)
         {
             if (Item == null || Item.ItemCount <= 0) return;
-            
+            if (inventory == null || inventory.potionCombined == null) return;
+
             inventory.potionCombined.BoundSlot(Item.itemId, Item.instanceId, this);
             inventory.potionCombined.RefreshSuccessPerText();
         }

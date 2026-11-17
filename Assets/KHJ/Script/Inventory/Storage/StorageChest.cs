@@ -11,7 +11,7 @@ namespace Enzeun.Runtime
     /// 마을의 창고 상자입니다. 내 플레이어가 트리거 범위 안에서 상호작용 키(E)를 누르면 인벤토리를 열고 창고 패널을 펼칩니다.
     /// 인벤토리를 닫으면(Tab, 닫기 버튼) 창고 패널도 접히고 창고 이용이 끝납니다.
     ///
-    /// 설치 : 상자 오브젝트에 이 컴포넌트와 Is Trigger 콜라이더를 둡니다. (범위 = 트리거 크기)
+    /// 설치 : 상자 오브젝트에 이 컴포넌트와 Is Trigger 콜라이더를 둡니다. (범위 = 트리거 크기, 이 컴포넌트는 콜라이더와 같은 오브젝트에 있어야 트리거 이벤트를 받습니다)
     /// 상호작용 키 처리는 플레이어의 줍기(PlayerPickState)와 별개로 InputManager.InteractAction 을 직접 구독합니다. (기존 코드를 고치지 않기 위함)
     /// 아이템 이동은 InventoryTransferRelay, 창고 내용 표시는 StoragePanel 이 맡습니다.
     ///
@@ -23,6 +23,27 @@ namespace Enzeun.Runtime
         #region Config
         [SerializeField, LabelText("인벤토리 컨트롤러 (비우면 씬에서 찾음)")]
         private InventoryController _controller;
+        #endregion
+
+        #region Debug
+        // 플레이 중 인스펙터에서 지금 상태를 볼 수 있게 합니다. (안 열릴 때 어느 단계에서 막히는지 확인용)
+        [ShowInInspector, ReadOnly, LabelText("범위 안의 내 플레이어 콜라이더 수"), FoldoutGroup("상태 확인")]
+        private int DebugInRangeCount => _playerColliders.Count;
+
+        [ShowInInspector, ReadOnly, LabelText("상호작용 입력 구독 중"), FoldoutGroup("상태 확인")]
+        private bool DebugSubscribed => _subscribed;
+
+        [ShowInInspector, ReadOnly, LabelText("창고 이용 중 (StorageSession)"), FoldoutGroup("상태 확인")]
+        private bool DebugSessionOpen => StorageSession.IsOpen;
+
+        [ShowInInspector, ReadOnly, LabelText("플레이어 조작 가능 (HasGameplayInput)"), FoldoutGroup("상태 확인")]
+        private bool DebugHasInput => InputManager.Instance != null && InputManager.Instance.HasGameplayInput;
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        private void Log(string message)
+        {
+            Debug.Log($"[StorageChest] : {message}", this);
+        }
         #endregion
 
         #region Range
@@ -39,13 +60,19 @@ namespace Enzeun.Runtime
 
             _playerColliders.Add(other);
             Subscribe();
+            Log($"범위 안으로 들어왔습니다. (콜라이더 {other.name}, 합계 {_playerColliders.Count}개)");
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (_playerColliders.Remove(other) && _playerColliders.Count == 0)
+            if (_playerColliders.Remove(other))
             {
-                Unsubscribe();
+                Log($"범위를 벗어났습니다. (콜라이더 {other.name}, 남은 {_playerColliders.Count}개)");
+
+                if (_playerColliders.Count == 0)
+                {
+                    Unsubscribe();
+                }
             }
         }
 
@@ -92,16 +119,27 @@ namespace Enzeun.Runtime
         #region Open
         private void OnInteract(InputAction.CallbackContext context)
         {
-            // 인벤토리가 열려 있으면 상호작용 입력이 꺼져 있어서 오지 않지만, 한 번 더 확인합니다.
-            if (StorageSession.IsOpen || InputManager.Instance == null || !InputManager.Instance.HasGameplayInput)
+            InputManager input = InputManager.Instance;
+
+            // 인벤토리가 열려 있으면 플레이어 입력이 꺼져 있습니다. (상호작용 입력도 꺼져서 보통은 오지 않음)
+            if (input == null || !input.HasGameplayInput)
             {
+                Log("상호작용을 무시합니다: 플레이어 조작이 꺼져 있습니다.");
                 return;
+            }
+
+            // 조작이 켜져 있는데 창고 이용 중으로 남아 있으면 인벤토리는 이미 닫힌 것입니다. 닫힘 감지를 놓친 경우를 스스로 바로잡습니다.
+            if (StorageSession.IsOpen)
+            {
+                Log("창고 이용 상태가 남아 있어 초기화합니다.");
+                StorageSession.SetOpen(false);
             }
 
             // 범위를 벗어났는데 파괴된 콜라이더가 남아 있을 수 있으므로 비웁니다. (파괴된 콜라이더는 Exit 가 안 올 수 있음)
             _playerColliders.RemoveWhere(collider => collider == null);
             if (_playerColliders.Count == 0)
             {
+                Log("상호작용을 무시합니다: 범위 안에 내 플레이어가 없습니다.");
                 Unsubscribe();
                 return;
             }
@@ -121,6 +159,7 @@ namespace Enzeun.Runtime
             var token = this.GetCancellationTokenOnDestroy();
 
             StorageSession.SetOpen(true);
+            Log("창고를 엽니다.");
 
             // 인벤토리가 닫힌 상태에서만 상호작용이 들어오므로(열리면 상호작용 입력이 꺼짐), 한 번 부르면 열립니다.
             // InventoryActive 는 열자마자(대기 전에) 플레이어 입력을 끕니다. 아래 대기는 그 뒤에 시작합니다.
@@ -136,6 +175,7 @@ namespace Enzeun.Runtime
 
             // 이 시점부터 클릭 이동이 멈추고, 다시 상자를 열 수 있습니다.
             StorageSession.SetOpen(false);
+            Log($"창고 이용을 끝냅니다. (취소됨: {cancelled})");
 
             if (cancelled)
             {
