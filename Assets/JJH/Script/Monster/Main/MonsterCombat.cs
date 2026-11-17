@@ -33,6 +33,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
     [SF] protected MonsterHPHud hud;
+    [SF] protected MonsterVfx vfx;
     [SF] protected BuffContainer statusEffect;
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
@@ -87,7 +88,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             statusEffect = GetComponent<BuffContainer>();
         if (hud == null)
             hud = GetComponentInChildren<MonsterHPHud>();
-
+        if (vfx == null && TryGetComponent(out MonsterVfx vfxVal))
+            vfx = vfxVal;
+        
         CacheRenderers();
     }
 
@@ -241,6 +244,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     public void NormalAttackOn()
     {
         biteHitbox.gameObject.SetActive(true);
+        if (vfx != null)
+            vfx.PlayHit(0);
     }
 
     public void NormalAttackOff()
@@ -411,6 +416,10 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         anim.IsDead();
         mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
+
+        if(TryGetComponent(out MonsterVfx vfx))
+            vfx.HideAllWarnings();
+        
         mover.StopAI();
         Died?.Invoke(this);
 

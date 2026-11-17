@@ -27,5 +27,22 @@
     "BossSubData": {
       "NormalWolfHP": 3000
     }
+  },
+  {
+    "Id": 41002,
+    "HP": 15000,
+    "Speed": 3.9,
+    "DamageType": "Fire",
+    "AtkPoint": 300,
+    "AttackPower": 1,
+    "Immune": {
+      "1": 35,
+      "2": -40
+    },
+    "SpawnArea": "Plain",
+    "BossSkill": [
+    ],
+    "BossSubData": {
+    }
   }
 ]

@@ -1,0 +1,160 @@
+using System;
+using UnityEngine;
+
+using SF = UnityEngine.SerializeField;
+
+/// <summary>
+/// 경고 표시를 어디에 띄울지
+/// </summary>
+public enum WarningPlace
+{
+    Self,    // 보스 발밑
+    Front,   // 보스 앞쪽
+    Target   // 타겟 위치
+}
+
+/// <summary>
+/// 공격 하나(기본 공격 또는 스킬 칸)의 시각 효과 설정
+/// </summary>
+[Serializable]
+public class AttackVfx
+{
+    [Header("타격 파티클(선택)")]
+    public GameObject HitEffect;       
+    // 생성 위치 (입, 발 등), 비우면 몬스터 루트
+    public Transform HitPoint;
+
+    [Header("경고 표시 (스킬만)")]
+    // 비우면 경고 x
+    public GameObject Warning;
+    public WarningPlace Place = WarningPlace.Front;
+    // 경고 scale
+    public float WarningSize = 3f;
+    // WarningPlace.Front 전용
+    public float FrontOffset = 2f;
+}
+
+public interface IWarningIndicator
+{
+    void Play(float duration);
+}
+
+/// <summary>
+/// 몬스터 공격 시각 효과 (파티클 + 경고 표시)
+/// 칸 번호: 0 = 기본 공격, 1~4 = 스킬 칸
+/// </summary>
+public class MonsterVfx : MonoBehaviour
+{
+    [SF] private AttackVfx normalAttack = new();
+    [SF] private AttackVfx[] skills = new AttackVfx[4];
+
+    private MonsterMove mover;
+    private readonly GameObject[] activeWarnings = new GameObject[5];
+
+    private void Awake()
+    {
+        mover = GetComponent<MonsterMove>();
+    }
+
+    /// <summary>
+    /// 지정된 슬롯에 배정된 스킬 이펙트 획득
+    /// </summary>
+    /// <param name="slot"></param>
+    /// <returns></returns>
+    private AttackVfx GetSlot(int slot)
+    {
+        if (slot == 0) return normalAttack;
+        int idx = slot - 1;
+        return idx >= 0 && idx < skills.Length ? skills[idx] : null;
+    }
+
+    #region 타격 파티클
+    /// <summary>
+    /// 타격 파티클 표시용 함수
+    /// </summary>
+    /// <param name="slot"></param>
+    public void PlayHit(int slot)
+    {
+        AttackVfx vfx = GetSlot(slot);
+        if (vfx == null || vfx.HitEffect == null) return;
+
+        Transform point = vfx.HitPoint != null ? vfx.HitPoint : transform;
+        PoolManager.Instance.Get(vfx.HitEffect, point.position, point.rotation);
+    }
+    #endregion
+
+    #region 경고 표시
+    /// <summary>
+    /// 경고 표시용 함수
+    /// </summary>
+    /// <param name="slot">지정 슬롯 Num</param>
+    /// <param name="duration">경고 유지 시간 (애니메이션 이벤트의 float 값, 0이면 채우기 연출 없음)</param>
+
+    public void ShowWarning(int slot, float duration)
+    {
+        AttackVfx vfx = GetSlot(slot);
+        if (vfx == null || vfx.Warning == null) return;
+
+        HideWarning(slot);
+
+        Vector3 pos = GetWarningPosition(vfx);
+        Quaternion rot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+
+        GameObject warning = PoolManager.Instance.Get(vfx.Warning, pos, rot);
+        warning.transform.localScale = Vector3.one * vfx.WarningSize;
+
+        if (duration > 0f && warning.TryGetComponent(out IWarningIndicator indicator))
+            indicator.Play(duration);
+
+        activeWarnings[slot] = warning;
+    }
+
+    public void HideWarning(int slot)
+    {
+        if (slot < 0 || slot >= activeWarnings.Length) return;
+        if (activeWarnings[slot] == null) return;
+
+        PoolManager.Instance.Release(activeWarnings[slot]);
+        activeWarnings[slot] = null;
+    }
+
+    /// <summary>
+    /// 사망, 반납, 모션 끊김 등으로 남은 경고 전부 정리
+    /// </summary>
+    public void HideAllWarnings()
+    {
+        for (int i = 0; i < activeWarnings.Length; i++)
+            HideWarning(i);
+    }
+
+    /// <summary>
+    /// VFX내 벡터 값 추출 함수
+    /// </summary>
+    /// <param name="vfx">지정된 VFX 객체</param>
+    /// <returns>지정 위치 값 (Vector3)</returns>
+    private Vector3 GetWarningPosition(AttackVfx vfx)
+    {
+        switch (vfx.Place)
+        {
+            case WarningPlace.Target:
+                if (mover != null && mover.nowTarget != null)
+                    return mover.nowTarget.transform.position;
+                goto case WarningPlace.Front;   // 타겟이 없으면 앞쪽
+
+            case WarningPlace.Front:
+                Vector3 forward = transform.forward;
+                forward.y = 0f;
+                return transform.position + forward.normalized * vfx.FrontOffset;
+
+            default:
+                return transform.position;
+        }
+    }
+    #endregion
+
+    private void OnDisable()
+    {
+        if (PoolManager.Instance != null)
+            HideAllWarnings();
+    }
+}
