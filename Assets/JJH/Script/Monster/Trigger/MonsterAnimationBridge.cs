@@ -25,20 +25,26 @@ public class MonsterAnimationBridge : MonoBehaviour
     private void SkillAnimationEnd(string skillName) => combat.SkillAnimationEnd(skillName);
     private void WarningOn(AnimationEvent e)
     {
-        if(vfx != null)
+        if (combat.IsSkillCanceled) return;
+        if (vfx != null)
             vfx.ShowWarning(e.intParameter, e.floatParameter);
     }
+
 
     private void WarningOff(AnimationEvent e) 
     {
         if (vfx != null)
             vfx.HideWarning(e.intParameter); 
     }
+
     private void HitEffect(AnimationEvent e)
     {
-        if (vfx != null)
-            vfx.PlayHit(e.intParameter);
+        if (combat.IsSkillCanceled) return;
+        vfx?.PlayHit(e.intParameter);
     }
+
+    private void CounterOn() => combat.CounterOn();
+    private void CounterOff() => combat.CounterOff();
 
     // 사망
     private void DeathAnimationEnd() => combat.DeathAnimationEnd();

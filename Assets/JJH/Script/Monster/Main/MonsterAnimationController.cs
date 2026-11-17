@@ -14,6 +14,8 @@ public class MonsterAnimationController : MonoBehaviour
 
     [SF] protected Animator animator;
 
+    private int activeSkillHash;
+
     private void Awake()
     {
         if(animator == null)
@@ -77,8 +79,10 @@ public class MonsterAnimationController : MonoBehaviour
     /// <param name="pattern"></param>
     public void PlayAttack(AttackPattern pattern)
     {
-        animator.SetBool(pattern.NameHash, true);
+        activeSkillHash = pattern.NameHash;
+        animator.SetBool(activeSkillHash, true);
     }
+
     /// <summary>
     /// 스킬 종료 제어
     /// </summary>
@@ -87,5 +91,15 @@ public class MonsterAnimationController : MonoBehaviour
     public void SetSkill(string skillName, bool value)
     {
         animator.SetBool(skillName, value);
+    }
+
+    /// <summary>
+    /// 진행 중인 스킬 중단 (카운터 등)
+    /// </summary>
+    public void StopActiveSkill()
+    {
+        if (activeSkillHash == 0) return;
+        animator.SetBool(activeSkillHash, false);
+        activeSkillHash = 0;
     }
 }

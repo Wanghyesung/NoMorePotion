@@ -328,6 +328,7 @@ MonoBehaviour:
   sinkMargin: 0.3
   damageNumberPrefab: {fileID: 0}
   healNumberPrefab: {fileID: 0}
+  counterGrace: 0.2
 --- !u!114 &6306254642428671883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,9 +351,9 @@ MonoBehaviour:
   skills:
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
-    Warning: {fileID: 0}
-    Place: 1
-    WarningSize: 3
+    Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
+    Place: 2
+    WarningSize: 2
     FrontOffset: 2
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}

@@ -23,13 +23,6 @@ using SF = UnityEngine.SerializeField;
 [RequireComponent(typeof(BuffContainer))]
 public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 {
-    [Serializable]
-    public class SkillHitbox
-    {
-        public string Name;
-        public Collider Hitbox;
-    }
-
     [SF] protected MonsterAnimationController anim;
     [SF] protected MonsterMove mover;
     [SF] protected MonsterHPHud hud;
@@ -47,6 +40,14 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] private DamageNumber damageNumberPrefab;
     [SF] private DamageNumber healNumberPrefab;
 
+    [Header("카운터")]
+    // 카운터 서버 지연 보정 길이
+    [SF] private float counterGrace = 0.2f;  
+
+    private bool counterOpen;
+    private float counterClosedAt = -999f;
+    private bool skillCanceled;
+
     private Renderer[] bodyRenderers;
     protected NormalMonster data;
 
@@ -56,6 +57,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     public event Action<MonsterCombat> Died;
     public event Action<MonsterCombat> Damaged;
+
+    public bool IsSkillCanceled => skillCanceled;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
@@ -172,8 +175,28 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     }
 
     #region 스킬용
-    public void SkillAnimationStart() => mover.IsAnimation = true;
-    public void SkillHitOn(string skillName) => SetSkillHitbox(skillName, true);
+
+    public void CounterOn()
+    {
+        if (!skillCanceled) counterOpen = true;
+    }
+
+    public void CounterOff()
+    {
+        counterOpen = false;
+        counterClosedAt = Time.time;
+    }
+
+    public void SkillAnimationStart()
+    {
+        skillCanceled = false;    // 새 스킬마다 초기화
+        mover.IsAnimation = true;
+    }
+    public void SkillHitOn(string skillName)
+    {
+        if (skillCanceled) return;   // 끊긴 스킬의 판정은 무시
+        SetSkillHitbox(skillName, true);
+    }
     public void SkillHitOff(string skillName) => SetSkillHitbox(skillName, false);
 
     public void SkillAnimationEnd(string skillName)
@@ -185,14 +208,33 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private void SetSkillHitbox(string skillName, bool on)
     {
-        foreach (SkillHitbox h in skillHitboxes)
+        foreach (SkillHitbox hitbox in skillHitboxes)
         {
-            if (h.Name != skillName) continue;
-            h.Hitbox.gameObject.SetActive(on);
+            if (hitbox.Name != skillName) continue;
+            if (on && hitbox.FollowWarningSlot >= 0 && vfx != null)
+                hitbox.Hitbox.transform.position = 
+                    vfx.GetLastWarningPosition(hitbox.FollowWarningSlot);
+
+            hitbox.Hitbox.gameObject.SetActive(on);
             return;
         }
 
         Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillName}", this);
+    }
+
+
+
+    /// <summary>
+    /// 자신 화면 기준으로 카운터를 성공했을 경우 호출
+    /// </summary>
+    public void RequestCounter()
+    {
+        if (!counterOpen) return;
+
+        if (PhotonNetwork.InRoom && !GameAuthority.HasAuthority)
+            photonView.RPC(nameof(RpcRequestCounter), RpcTarget.MasterClient);
+        else
+            RpcRequestCounter();
     }
 
     /// <summary>
@@ -542,6 +584,35 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     protected void RpcHeal(int amount)
     {
         HPChange(-amount);
+    }
+
+    [PunRPC]
+    protected void RpcRequestCounter()
+    {
+        // 마스터의 카운터 성공 판정 
+        bool inWindow = counterOpen || Time.time - counterClosedAt <= counterGrace;
+        if (!inWindow || skillCanceled) return;
+
+        anim.StopActiveSkill();
+
+        if (PhotonNetwork.InRoom)
+            photonView.RPC(nameof(RpcSkillCanceled), RpcTarget.All);
+        else
+            RpcSkillCanceled();
+    }
+
+    [PunRPC]
+    protected void RpcSkillCanceled()
+    {
+        skillCanceled = true;
+        counterOpen = false;
+
+        foreach (SkillHitbox h in skillHitboxes)
+            h.Hitbox.gameObject.SetActive(false);
+
+        if(vfx != null) 
+            vfx.HideAllWarnings();
+        mover.IsAnimation = false;   // 방장은 다음 판단 틱에 바로 다음 행동
     }
     #endregion
 }

@@ -50,11 +50,19 @@ public class MonsterVfx : MonoBehaviour
 
     private MonsterMove mover;
     private readonly GameObject[] activeWarnings = new GameObject[5];
+    private readonly Vector3[] lastWarningPos = new Vector3[5];
 
     private void Awake()
     {
         mover = GetComponent<MonsterMove>();
     }
+
+    /// <summary>
+    /// 타겟이 지정된 최종 위치
+    /// </summary>
+    /// <param name="slot">지정한 스킬</param>
+    /// <returns>지정된 위치 (Vector3)</returns>
+    public Vector3 GetLastWarningPosition(int slot) => lastWarningPos[slot];
 
     /// <summary>
     /// 지정된 슬롯에 배정된 스킬 이펙트 획득
@@ -78,8 +86,24 @@ public class MonsterVfx : MonoBehaviour
         AttackVfx vfx = GetSlot(slot);
         if (vfx == null || vfx.HitEffect == null) return;
 
-        Transform point = vfx.HitPoint != null ? vfx.HitPoint : transform;
-        PoolManager.Instance.Get(vfx.HitEffect, point.position, point.rotation);
+        Vector3 pos;
+        Quaternion rot;
+
+        // 타겟인 경우
+        if (vfx.Place == WarningPlace.Target && vfx.Warning != null)
+        {
+            pos = lastWarningPos[slot];
+            rot = Quaternion.identity;
+        }
+        // 지정형인 경우
+        else
+        {
+            Transform point = vfx.HitPoint != null ? vfx.HitPoint : transform;
+            pos = point.position;
+            rot = point.rotation;
+        }
+
+        PoolManager.Instance.Get(vfx.HitEffect, pos, rot);
     }
     #endregion
 
@@ -98,6 +122,7 @@ public class MonsterVfx : MonoBehaviour
         HideWarning(slot);
 
         Vector3 pos = GetWarningPosition(vfx);
+        lastWarningPos[slot] = pos;
         Quaternion rot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
         GameObject warning = PoolManager.Instance.Get(vfx.Warning, pos, rot);
@@ -134,12 +159,13 @@ public class MonsterVfx : MonoBehaviour
     /// <returns>지정 위치 값 (Vector3)</returns>
     private Vector3 GetWarningPosition(AttackVfx vfx)
     {
+        WarningPlace placeType = vfx.Place;
+        if (mover != null && mover.nowTarget != null)
+            placeType = WarningPlace.Front;
         switch (vfx.Place)
         {
             case WarningPlace.Target:
-                if (mover != null && mover.nowTarget != null)
-                    return mover.nowTarget.transform.position;
-                goto case WarningPlace.Front;   // 타겟이 없으면 앞쪽
+                return mover.nowTarget.transform.position;
 
             case WarningPlace.Front:
                 Vector3 forward = transform.forward;
