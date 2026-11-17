@@ -160,7 +160,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         {
             if (!m.IsAlive) continue;   // 가라앉는 중인 시체 제외
 
-            m.Combat.Died -= OnMonsterDied;   // 혹시 모를 중복 구독 방지
+            m.Combat.Died -= OnMonsterDied;
             m.Combat.Died += OnMonsterDied;
             aliveCount++;
         }

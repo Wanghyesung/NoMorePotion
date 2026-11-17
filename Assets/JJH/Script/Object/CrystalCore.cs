@@ -21,13 +21,17 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
     [SF] private string displayName = "수정 구슬";
 
     [Header("조각 파괴 관련")]
-    [SF] private Renderer body;               // 원본 구슬 렌더러
-    [SF] private Collider bodyCollider;       // 조각과 겹치지 않게 파괴 시 끔
-    [SF] private GameObject fracturedRoot;    // 조각 모델 (평소 꺼둠)
+    [SF] private Renderer body;
+    [SF] private Collider bodyCollider;
+    [SF] private GameObject fracturedRoot;
 
     [Header("UI (선택)")]
-    [SF] private MonsterHPHud hud;   // 화면 상단 오버레이 등 (hideIsFull, faceCamera 끄기)
-    private bool brokenApplied;   // 파괴 연출이 이미 적용됐는지 (중복 방지)
+    // 화면 상단 체력 오버레이 설정
+    // hideIsFull(체력 최대시 숨김) 끄기
+    [SF] private MonsterHPHud hud;
+    
+    // 마스터에서 파괴 연출이 이미 적용됐는지 여부
+    private bool brokenApplied;
 
     private AttackTarget attackTarget;
     private int hp;
@@ -99,8 +103,10 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
     #endregion
 
     /// <summary>
+    /// 수정 구슬이 입는 피해 계산 함수
     /// 수정 구슬은 일정한 대미지만 받음(모든 저항 0)
     /// </summary>
+    /// <param name="damage">피해량</param>
     private void ApplyDamage(int damage)
     {
         if (!GameAuthority.HasAuthority) return;
@@ -109,6 +115,9 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
         SetHPAuthority(Mathf.Max(0, hp - damage));
     }
 
+    /// <summary>
+    /// 파괴시 파괴된 수정 구슬로 오브젝트를 전환하는 함수
+    /// </summary>
     private void SwapToFractured()
     {
         if (body != null) body.enabled = false;
@@ -116,6 +125,10 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
         if (fracturedRoot != null) fracturedRoot.SetActive(true);
     }
 
+    /// <summary>
+    /// 수정 구슬의 체력 조정 함수
+    /// </summary>
+    /// <param name="newHp">설정할 체력</param>
     private void SetHPAuthority(int newHp)
     {
         if (newHp == hp) return;
@@ -126,6 +139,9 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
             photonView.RPC(nameof(RpcSyncHP), RpcTarget.Others, hp);
     }
 
+    /// <summary>
+    /// 수정구슬을 복구하는 함수
+    /// </summary>
     private void ApplyReset()
     {
         hp = maxHp;
@@ -152,6 +168,9 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
             ApplyBreak();
     }
 
+    /// <summary>
+    /// 수정구슬의 외형 복구 함수
+    /// </summary>
     private void RestoreVisual()
     {
         if (body != null) body.enabled = true;
@@ -159,6 +178,9 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
         if (fracturedRoot != null) fracturedRoot.SetActive(false);
     }
 
+    /// <summary>
+    /// 파괴로 전환하는 함수
+    /// </summary>
     private void ApplyBreak()
     {
         if (brokenApplied) return;
@@ -170,11 +192,17 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
     }
 
     #region RPC
+    /// <summary>
+    /// 수정구슬 복구 명령 RPC
+    /// </summary>
     [PunRPC]
     private void RpcReset() => ApplyReset();
 
 
-
+    /// <summary>
+    /// 수정구슬 회복 명령 RPC
+    /// </summary>
+    /// <param name="amount">회복량</param>
     [PunRPC]
     private void RpcHeal(int amount)
     {
@@ -182,6 +210,10 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
         SetHPAuthority(Mathf.Min(maxHp, hp + amount));
     }
 
+    /// <summary>
+    /// 수정구슬 체력 조정 명령 RPC
+    /// </summary>
+    /// <param name="newHp"></param>
     [PunRPC]
     private void RpcSyncHP(int newHp) => ApplyHP(newHp);
     #endregion
