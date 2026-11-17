@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using static CommonStruct;
 using static JJH_Enums;
 
 public class NormalMonster : Character, IAttacker
