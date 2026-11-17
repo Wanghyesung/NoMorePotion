@@ -22,6 +22,9 @@ namespace Enzeun.Runtime
         {
             [LabelText("포션 ID")] public int PotionId;
             [LabelText("개수"), MinValue(1)] public int Count;
+
+            // 0 이면 정상 포션, 함정 키워드 번호(5만번대)를 넣으면 그 키워드가 붙은 함정 포션으로 지급합니다.
+            [LabelText("함정 키워드 ID (0 = 정상)")] public int KeywordId;
         }
 
         [Serializable]
@@ -101,7 +104,7 @@ namespace Enzeun.Runtime
             {
                 for (int n = 0; n < _packPotions[i].Count; n++)
                 {
-                    await GrantPotionAsync(manager, ContainerRef.PackRef, _packPotions[i].PotionId);
+                    await GrantPotionAsync(manager, ContainerRef.PackRef, _packPotions[i].PotionId, _packPotions[i].KeywordId);
                 }
             }
 
@@ -127,19 +130,20 @@ namespace Enzeun.Runtime
             {
                 for (int n = 0; n < _personalPotions[i].Count; n++)
                 {
-                    await GrantPotionAsync(manager, mine, _personalPotions[i].PotionId);
+                    await GrantPotionAsync(manager, mine, _personalPotions[i].PotionId, _personalPotions[i].KeywordId);
                 }
             }
         }
 
         // 포션은 한 개씩 지급합니다. (포션 인스턴스마다 번호가 필요하고, 개인 인벤은 칸 하나에 한 개라서)
-        private async UniTask GrantPotionAsync(InventoryNetworkSyncManager manager, ContainerRef to, int potionId)
+        private async UniTask GrantPotionAsync(InventoryNetworkSyncManager manager, ContainerRef to, int potionId, int keywordId = 0)
         {
-            InventoryResult result = await manager.GrantPotionAsync(to, potionId);
+            InventoryResult result = await manager.GrantPotionAsync(to, potionId, keywordId);
 
             if (!result.Success)
             {
-                LogResult($"포션 {potionId} -> {to.Kind}", result);
+                string trapInfo = keywordId != 0 ? $" (함정 {keywordId})" : "";
+                LogResult($"포션 {potionId}{trapInfo} -> {to.Kind}", result);
             }
         }
         #endregion
