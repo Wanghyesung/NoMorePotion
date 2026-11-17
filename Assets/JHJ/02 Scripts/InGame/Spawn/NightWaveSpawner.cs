@@ -1,12 +1,16 @@
+using ExitGames.Client.Photon;
+using Photon.Pun;
 using R3;
 using System;
 using UnityEngine;
+using static JJH_Constants;
 
-public class NightWaveSpawner : MonoBehaviour
+public class NightWaveSpawner : MonoBehaviourPunCallbacks
 {
     [SerializeField] private WaveTable waveTable;
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private GameObject defendTarget;   // 수정 구슬
+    [SerializeField] private PhotonView defendTargetView;
     private CompositeDisposable pendingSpawns = new CompositeDisposable(); // 예약 중 묶음
     private TimeManager time;
     private int aliveCount;
@@ -80,30 +84,23 @@ public class NightWaveSpawner : MonoBehaviour
         if (!GameAuthority.HasAuthority)
             return;
 
-        int order = 0;
-
-        foreach(WaveEntry entry in wave.Entries)
+        if (PhotonNetwork.InRoom)
         {
-            if(entry.Prefab == null)
+            Hashtable data = new()
             {
-                Debug.LogWarning("[NightWaveSpawner] entry 프리팹 없음");
-                continue;
-            }
-
-            for (int i = 0; i < entry.Count; i++)
-            {
-                float delay = order * wave.SpawnInterval;
-                IDisposable handle = time.Schedule(delay, () => SpawnOne(entry.Prefab));
-                pendingSpawns.Add(handle);
-                order++;
-            }
+                [SPAWNER_DAY] = day,
+                [SPAWNER_WAVE_START_TIME] = PhotonNetwork.Time,
+                [SPAWNER_ORDER] = -1
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(data);
         }
 
-        Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {order}마리 예약");
+        int count = ScheduleWave(wave);
+        Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 시작, {count}마리 예약");
     }
 
     // TODO(전멸 알림): aliveCount가 0이 될 경우 뭘 할지 정하기
-    private void SpawnOne(GameObject prefab)
+    private void SpawnOne(GameObject prefab,int order)
     {
         Transform point = PickSpawnPoint();
         // 방 안: 방장이 포톤으로 생성 → 모든 클라이언트에 생성됨 / 방 밖: 로컬 풀에서 생성
@@ -112,13 +109,24 @@ public class NightWaveSpawner : MonoBehaviour
         if (go == null) return;
 
         // 웨이브 몹은 기본적으로 수정 구슬을 노림
-        if (go.TryGetComponent(out MonsterMove mover))
+        if (go.TryGetComponent(out WaveMonsterMember wave))
+            wave.MarkAsWave(defendTarget);
+        else if (go.TryGetComponent(out MonsterMove mover))
             mover.SetDefaultTarget(defendTarget);
 
         if (go.TryGetComponent(out MonsterCombat combat))
         {
             combat.Died += OnMonsterDied;
             aliveCount++;
+        }
+
+        if (PhotonNetwork.InRoom)
+        {
+            Hashtable data = new()
+            {
+                [SPAWNER_ORDER] = order
+            };
+            PhotonNetwork.CurrentRoom.SetCustomProperties(data);
         }
     }
 
@@ -138,4 +146,102 @@ public class NightWaveSpawner : MonoBehaviour
         aliveCount--;
         // aliveCount == 0이면 전멸 알림
     }
+
+
+    /// <summary>
+    /// 방장 이탈 시 살아 있는 웨이브 몬스터를 다시 세고 사망을 구독시키는 함수
+    /// </summary>
+
+    private void RecountAliveWaveMonsters()
+    {
+        aliveCount = 0;
+
+        foreach (WaveMonsterMember m in WaveMonsterRegistry.Monsters)
+        {
+            if (!m.IsAlive) continue;   // 가라앉는 중인 시체 제외
+
+            m.Combat.Died -= OnMonsterDied;   // 혹시 모를 중복 구독 방지
+            m.Combat.Died += OnMonsterDied;
+            aliveCount++;
+        }
+    }
+
+    #region 방장 변경 시 처리
+    public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+        RecountAliveWaveMonsters();
+        if (time.Phase.CurrentValue == TimePhase.Day) return;
+
+        Hashtable table = PhotonNetwork.CurrentRoom.CustomProperties;
+        int dayNum = 0;
+        int orderNum = 0;
+        double waveTime = 0;
+
+        CancelPendingSpawns();
+
+        if (table.TryGetValue(SPAWNER_DAY, out object day))
+        {
+            dayNum = (int)day;
+            if (dayNum <= 0) return;
+        }
+        else return;
+
+        if (table.TryGetValue(SPAWNER_ORDER, out object order))
+            orderNum = (int)order;
+        else return;
+
+        if (table.TryGetValue(SPAWNER_WAVE_START_TIME, out object waveStartTime))
+            waveTime = (double)waveStartTime;
+        else return;
+
+        WaveData wave = waveTable.GetWave(dayNum);
+
+        if (wave == null)
+        {
+            Debug.LogWarning("[NightWaveSpawner] waveTable에서 가져올 웨이브가 없음");
+            return;
+        }
+        float beforeTime = (float)(PhotonNetwork.Time - waveTime);
+        int count = ScheduleWave(wave,orderNum,beforeTime);
+
+        Debug.Log($"[NightWaveSpawner] {day}일차 웨이브 이어받음, {orderNum + 1} 번부터 {count}마리 생성");
+
+    }
+    #endregion
+
+   
+    /// <summary>
+    /// 발행한 웨이브 계획대로 몬스터를 생성 예약하는 함수
+    /// </summary>
+    /// <param name="wave">웨이브 데이터</param>
+    /// <param name="lastSpawned">건너뛸 순번 기준</param>
+    /// <param name="elapsed">웨이브 후 지난 시간</param>
+    /// <returns>총 예약된 몬스터 수</returns>
+    private int ScheduleWave(WaveData wave, int lastSpawned = -1, float elapsed = 0)
+    {
+        int order = 0;
+        int scheduled = 0;
+
+        foreach (WaveEntry entry in wave.Entries)
+        {
+            if (entry.Prefab == null) continue;
+
+            for (int i = 0; i < entry.Count; i++)
+            {
+                int spawnOrder = order;
+                order++;
+
+                if (spawnOrder <= lastSpawned) continue;
+
+                float delay = Mathf.Max(0f, spawnOrder * wave.SpawnInterval - elapsed);
+                GameObject prefab = entry.Prefab;
+                pendingSpawns.Add(time.Schedule(delay, () => SpawnOne(prefab, spawnOrder)));
+                scheduled++;
+            }
+        }
+        return scheduled;
+    }
+
 }
+ 

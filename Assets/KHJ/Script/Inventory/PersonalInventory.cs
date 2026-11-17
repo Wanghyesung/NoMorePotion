@@ -15,6 +15,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public sealed class PersonalInventory
     {
+        #region Fields
         /// <summary>
         /// 기본 칸 수입니다.
         /// </summary>
@@ -23,7 +24,9 @@ namespace Enzeun.Runtime
         private readonly InventorySlot[] _slots;
         private readonly ReadOnlyCollection<InventorySlot> _slotsView;
         private readonly Func<int, int> _limitProvider;
+        #endregion
 
+        #region Ctor
         /// <param name="capacity">칸 수</param>
         /// <param name="limitProvider">재료 ID 별 한 칸의 최대 개수를 알려 주는 함수. 지정하지 않으면 재료 SO 의 최대 보유 개수를 사용</param>
         public PersonalInventory(int capacity = DefaultCapacity, Func<int, int> limitProvider = null)
@@ -47,7 +50,9 @@ namespace Enzeun.Runtime
         /// 칸의 내용이 바뀔 때 그 칸의 위치(index)와 함께 발생합니다.
         /// </summary>
         public event Action<int> OnSlotChanged;
+        #endregion
 
+        #region Add
         /// <summary>
         /// 재료를 넣습니다. 같은 재료가 든 칸을 먼저 채우고, 남으면 빈 칸을 씁니다.
         /// </summary>
@@ -137,7 +142,9 @@ namespace Enzeun.Runtime
 
             return -1;
         }
+        #endregion
 
+        #region Move
         /// <summary>
         /// 칸 하나를 다른 칸으로 옮깁니다. (UI 에서 끌어다 놓기)
         /// 도착 칸이 비어 있으면 이동, 같은 재료면 한도까지 합치고 남은 것은 원래 칸에 두며, 그 외에는 서로 바꿉니다.
@@ -281,7 +288,9 @@ namespace Enzeun.Runtime
 
             return false;
         }
+        #endregion
 
+        #region Take
         /// <summary>
         /// 칸의 내용을 통째로 꺼내고 그 칸을 비웁니다. 위치가 잘못되었거나 빈 칸이면 빈 칸을 반환합니다.
         /// </summary>
@@ -336,7 +345,9 @@ namespace Enzeun.Runtime
                 OnSlotChanged?.Invoke(i);
             }
         }
+        #endregion
 
+        #region Query
         /// <summary>
         /// 해당 재료의 전체 개수입니다. (여러 칸에 나뉘어 있으면 합산)
         /// </summary>
@@ -364,7 +375,9 @@ namespace Enzeun.Runtime
             Array.Copy(_slots, copy._slots, _slots.Length);
             return copy;
         }
+        #endregion
 
+        #region Apply
         /// <summary>
         /// 칸의 내용을 지정한 값으로 정합니다. (빈 칸 값이면 비움) 마스터가 확정한 변경을 적용할 때만 사용하며, 규칙 검사는 하지 않습니다.
         /// </summary>
@@ -410,5 +423,6 @@ namespace Enzeun.Runtime
         {
             return index >= 0 && index < _slots.Length;
         }
+        #endregion
     }
 }

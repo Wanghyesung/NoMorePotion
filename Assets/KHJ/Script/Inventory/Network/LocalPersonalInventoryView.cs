@@ -18,6 +18,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public sealed class LocalPersonalInventoryView : IDisposable
     {
+        #region State
         private TeamInventoryState _state;
         private PersonalInventory _current;
         private int _actor;
@@ -34,7 +35,9 @@ namespace Enzeun.Runtime
 
         public event Action OnRebound;
         public event Action<int> OnSlotChanged;
+        #endregion
 
+        #region Run
         /// <summary>
         /// 방에 들어가고 인벤토리 매니저가 준비될 때까지 기다린 뒤 연결합니다. 취소되면 아무것도 연결하지 않고 끝납니다.
         /// </summary>
@@ -73,7 +76,9 @@ namespace Enzeun.Runtime
 
             Detach();
         }
+        #endregion
 
+        #region Handlers
         private void HandlePersonalAdded(int actor)
         {
             // 새 개인 인벤토리가 만들어진 직후라 첫 칸 변경은 이어서 옵니다.
@@ -123,5 +128,6 @@ namespace Enzeun.Runtime
         {
             OnSlotChanged?.Invoke(slot);
         }
+        #endregion
     }
 }

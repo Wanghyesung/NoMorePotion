@@ -10,6 +10,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class ActiveStatusEffect
     {
+        #region Init
         public ActiveStatusEffect(StatusEffectData data, object source, int percentOverride, float duration)
         {
             this.data = data;
@@ -65,7 +66,9 @@ namespace Enzeun.Runtime
         /// 지속시간이 있는 효과가 시간이 다 되어 만료되었는지 여부입니다.
         /// </summary>
         public bool isExpired => hasDuration && remaining <= 0f;
+        #endregion
 
+        #region Tick
         /// <summary>
         /// 남은 시간을 deltaTime 만큼 줄입니다. 지속시간이 없는 효과는 변하지 않습니다.
         /// </summary>
@@ -109,5 +112,6 @@ namespace Enzeun.Runtime
             _tickTimers[moduleIndex] = interval > 0f ? interval : float.PositiveInfinity;
             return true;
         }
+        #endregion
     }
 }

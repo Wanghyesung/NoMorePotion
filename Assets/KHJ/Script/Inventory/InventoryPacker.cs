@@ -16,6 +16,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public static class InventoryPacker
     {
+        #region Core
         /// <summary>
         /// 현재 형식의 버전입니다. 형식을 바꾸면 올립니다.
         /// </summary>
@@ -25,7 +26,9 @@ namespace Enzeun.Runtime
         /// 재료와 포션 ID 를 확인할 때 쓰는 게임 데이터 창구입니다. 기본은 씬의 PotionDataManager 이고, 시험에서는 가짜 데이터로 바꿉니다.
         /// </summary>
         public static IInventoryData Data { get; set; } = DefaultInventoryData.Instance;
+        #endregion
 
+        #region Potions
         // ==================== 포션 목록 ============================
 
         /// <summary>
@@ -78,7 +81,9 @@ namespace Enzeun.Runtime
             potions = success ? result : null;
             return success;
         }
+        #endregion
 
+        #region Materials
         // ==================== 재료 ============================
 
         /// <summary>
@@ -135,7 +140,9 @@ namespace Enzeun.Runtime
             counts = success ? result : null;
             return success;
         }
+        #endregion
 
+        #region Slots
         // ==================== 칸 (개인 인벤토리, 시체 상자) ============================
 
         /// <summary>
@@ -188,7 +195,9 @@ namespace Enzeun.Runtime
             slots = success ? unpacked : null;
             return success;
         }
+        #endregion
 
+        #region Slot
         // ==================== 칸 한 개 (네트워크 메시지에서도 사용) ============================
 
         /// <summary>
@@ -250,7 +259,9 @@ namespace Enzeun.Runtime
                     return false;   // 알 수 없는 종류
             }
         }
+        #endregion
 
+        #region Potion
         // ==================== 포션 한 개 (목록, 칸, 네트워크 메시지가 함께 사용) ============================
 
         /// <summary>
@@ -288,7 +299,9 @@ namespace Enzeun.Runtime
             potion = new PotionInstance(data, keyword, instanceId);
             return true;
         }
+        #endregion
 
+        #region Common
         // ==================== 공통 ============================
 
         private static bool IsKnownMaterial(int materialId)
@@ -332,5 +345,6 @@ namespace Enzeun.Runtime
                 return false;
             }
         }
+        #endregion
     }
 }

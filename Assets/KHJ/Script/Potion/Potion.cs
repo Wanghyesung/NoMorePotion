@@ -11,6 +11,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class Potion : MonoBehaviour
     {
+        #region Fields
         //[SerializeField, LabelText("포션 데이터"), Required("포션 데이터를 연결해 주세요.")]
         private PotionData _data;
         public PotionData Data => _data;
@@ -29,8 +30,10 @@ namespace Enzeun.Runtime
         public PotionMover potionMover;
 
         //============= 혜성님 스크립트에 필요한 필드 ==================================
+        #endregion
 
 
+        #region Init
         /// <summary>
         /// 생성한 쪽에서 포션 데이터만 지정할 때 사용합니다. (정상 포션)
         /// </summary>
@@ -106,5 +109,6 @@ namespace Enzeun.Runtime
 
         //         Destroy(gameObject);
         //     }
+        #endregion
     }
 }

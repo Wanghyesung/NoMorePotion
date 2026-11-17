@@ -20,6 +20,7 @@ namespace Enzeun.Runtime
         [SerializeField, LabelText("이 칸이 보여 줄 상태 효과"), Required("버프/디버프 SO 를 연결해 주세요. 같은 ID 의 효과가 이 칸에 묶입니다.")]
         private StatusEffectData _data;
 
+        #region Fields
         [SerializeField, LabelText("아이콘"), Required]
         private Image _icon;
 
@@ -41,7 +42,9 @@ namespace Enzeun.Runtime
         private int _shownCount = -1;
         private int _shownSeconds = -1;
         private bool _timeVisible;
+        #endregion
 
+        #region View
         /// <summary>
         /// 칸을 처음 상태로 준비합니다. (숨김) 효과에 아이콘이 없으면 기본 아이콘을 씁니다.
         /// </summary>
@@ -157,5 +160,6 @@ namespace Enzeun.Runtime
                 _shownSeconds = -1;
             }
         }
+        #endregion
     }
 }

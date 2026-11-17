@@ -82,7 +82,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9072288863858740342, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       propertyPath: ObservedComponents.Array.size
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 9072288863858740342, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       propertyPath: 'ObservedComponents.Array.data[2]'
@@ -99,7 +99,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2687133219966239099, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       insertIndex: 1
       addedObject: {fileID: 9090301073998315889}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9198116484777040148, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1813763956511924012}
   m_SourcePrefab: {fileID: 100100000, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
 --- !u!4 &875710241541400390 stripped
 Transform:
@@ -112,11 +115,28 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 2985245254216738365}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
+--- !u!1 &6254372382850334505 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9198116484777040148, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+  m_PrefabInstance: {fileID: 2985245254216738365}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1813763956511924012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6254372382850334505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38ecfc96a4c907d4286266e42fd4b57c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaveMonsterMember
 --- !u!1001 &5996600071230015382
 PrefabInstance:
   m_ObjectHideFlags: 0

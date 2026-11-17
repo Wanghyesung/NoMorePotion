@@ -15,6 +15,7 @@ using UnityEngine;
 /// </summary>
 public class OfflineModeTest : MonoBehaviourPunCallbacks
 {
+    #region Settings
     public enum TestMode
     {
         Offline,
@@ -36,7 +37,9 @@ public class OfflineModeTest : MonoBehaviourPunCallbacks
     // 방에 들어갈 때까지 시작을 미뤄 둔 세션입니다.
     private GameSessionManager _gatedSession;
     private bool _waitingForRoom;
+    #endregion
 
+    #region Start
     // 오프라인 : 서버 없이 마스터 방을 만든다 / 온라인 : 서버에 접속해서 방에 들어간다
     private void Awake()
     {
@@ -94,7 +97,9 @@ public class OfflineModeTest : MonoBehaviourPunCallbacks
             Debug.LogWarning($"[OfflineModeTest] : 방 입장 요청을 보내지 못했습니다. ({_onlineRoomName})");
         }
     }
+    #endregion
 
+    #region Callbacks
     public override void OnConnectedToMaster()
     {
         if (!_waitingForRoom || PhotonNetwork.InRoom) return;
@@ -131,5 +136,6 @@ public class OfflineModeTest : MonoBehaviourPunCallbacks
 
         Debug.LogWarning($"[OfflineModeTest] : 포톤 접속이 끊겼습니다. ({cause})");
     }
+    #endregion
 }
 #endif

@@ -16,11 +16,14 @@ namespace Enzeun.Runtime
     [DisallowMultipleComponent]
     public class PlayerHitFeedbackRelay : MonoBehaviour
     {
+        #region Fields
         private FSM _fsm;
         private Player _player;
         private PhotonView _photonView;
         private CharacterHitFeedback _bodyFeedback;
+        #endregion
 
+        #region Lifecycle
         private void Awake()
         {
             _fsm = GetComponent<FSM>();
@@ -49,7 +52,9 @@ namespace Enzeun.Runtime
                 _fsm.OnHitAction -= HandleHit;
             }
         }
+        #endregion
 
+        #region Hit
         private void HandleHit(CommonStruct.AttackInfo attackInfo)
         {
             Character character = _player != null ? _player.Character : null;
@@ -91,7 +96,9 @@ namespace Enzeun.Runtime
 
             _bodyFeedback.Play(damage / (float)character.MaxHP);
         }
+        #endregion
 
+        #region EditorTest
 #if UNITY_EDITOR
 
         [Button(ButtonSizes.Large)]
@@ -104,5 +111,6 @@ namespace Enzeun.Runtime
             HandleHit(attack);
         }
 #endif
+        #endregion
     }
 }

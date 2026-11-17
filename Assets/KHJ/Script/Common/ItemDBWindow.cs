@@ -17,6 +17,7 @@ namespace Enzeun.Editor
     /// </summary>
     public class ItemDatabaseWindow : OdinMenuEditorWindow
     {
+        #region Paths
         public static readonly string materialFolderPath = "Assets/Resources/" + PotionDataManager.materialFolderPath;
         public static readonly string potionFolderPath = "Assets/Resources/" + PotionDataManager.potionFolderPath;
         public static readonly string worldObjectFolderPath = "Assets/Resources/" + WorldObjectDataManager.worldObjectFolderPath;
@@ -47,7 +48,9 @@ namespace Enzeun.Editor
         CreateButton<StatusEffectData> createBuffButton;
         CreateButton<StatusEffectData> createDebuffButton;
         CreateButton<TrapPotionKeyword> createTrapKeywordButton;
+        #endregion
 
+        #region Window
         /// <summary>
         /// 창을 엽니다.
         /// </summary>
@@ -116,7 +119,9 @@ namespace Enzeun.Editor
 
             return tree;
         }
+        #endregion
 
+        #region List
         /// <summary>
         /// 상태 효과 SO 중 지정한 종류(버프/디버프)만 골라 메뉴 트리에 추가합니다.
         /// AddAllAssetsAtPath 는 타입으로만 거를 수 있어서, 같은 SO 타입인 버프/디버프를 직접 분리합니다.
@@ -145,8 +150,10 @@ namespace Enzeun.Editor
                 tree.AddAssetAtPath($"{menuName}/{Path.GetFileNameWithoutExtension(path)}", path);
             }
         }
+        #endregion
 
 
+        #region Create
         /// <summary>
         /// SO 를 생성하는 버튼 클래스입니다. IItemData 를 구현한 SO 타입이면 재사용할 수 있습니다.
         /// </summary>
@@ -211,6 +218,7 @@ namespace Enzeun.Editor
 
             return createdID + 1;
         }
+        #endregion
     }
 }
 #endif

@@ -19,13 +19,16 @@ namespace Enzeun.Runtime
     /// </summary>
     public static class PotionExplosion
     {
+        #region Buffers
         // 한 번의 폭발이 동시에 찾을 수 있는 콜라이더 수입니다. 가득 차면 경고합니다.
         private const int MaxColliders = 64;
 
         // 매 폭발마다 새로 할당하지 않도록 재사용하는 버퍼입니다.
         private static readonly Collider[] ColliderBuffer = new Collider[MaxColliders];
         private static readonly HashSet<Object> AppliedTargets = new HashSet<Object>();
+        #endregion
 
+        #region Explode
         /// <summary>
         /// position 에서 폭발을 일으키고, 범위에 닿은 대상 수를 반환합니다.
         /// </summary>
@@ -74,7 +77,9 @@ namespace Enzeun.Runtime
         {
             return ExplodeCore(potion, keyword, position, tickOnly, PotionTargetScope.LocalPlayer, damageMultiplier);
         }
+        #endregion
 
+        #region Core
         private static int ExplodeCore(PotionData potion, TrapPotionKeyword trapKeyword, Vector3 position, bool tickOnly = false, PotionTargetScope scope = PotionTargetScope.All, float damageMultiplier = 1f)
         {
             if (potion == null)
@@ -183,7 +188,9 @@ namespace Enzeun.Runtime
 
             return targetCount;
         }
+        #endregion
 
+        #region RemoteVisual
         /// <summary>
         /// 포션과 함정 키워드의 체력 대미지 효과 수치를 합칩니다. 회복은 제외합니다. (남의 피격 몸 연출 세기용)
         /// </summary>
@@ -224,7 +231,9 @@ namespace Enzeun.Runtime
                 relay.PlayBodyFeedbackApprox(damage);
             }
         }
+        #endregion
 
+        #region Helpers
         /// <summary>
         /// 이 컨테이너가 내 플레이어의 컨테이너인지 확인합니다. 다른 플레이어나 몬스터는 false 입니다.
         /// </summary>
@@ -254,5 +263,6 @@ namespace Enzeun.Runtime
 
             return target.WorldObject;
         }
+        #endregion
     }
 }

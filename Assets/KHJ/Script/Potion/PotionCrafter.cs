@@ -11,6 +11,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public static class PotionCrafter
     {
+        #region Craft
         /// <summary>
         /// 재료 두 개로 제작합니다. 레시피가 없으면 null 입니다. 실패 확률은 내 플레이어의 상태 효과에서 가져옵니다.
         /// </summary>
@@ -81,7 +82,9 @@ namespace Enzeun.Runtime
 
             return new PotionInstance(result);
         }
+        #endregion
 
+        #region TrapRoll
         /// <summary>
         /// 내 플레이어에게 걸린 상태 효과 기준 제조 실패 확률(%)입니다. 플레이어 컨테이너가 없으면 0 입니다.
         /// </summary>
@@ -127,5 +130,6 @@ namespace Enzeun.Runtime
             }
             return 0;
         }
+        #endregion
     }
 }

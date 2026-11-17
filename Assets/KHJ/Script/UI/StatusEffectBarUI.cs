@@ -21,6 +21,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class StatusEffectBarUI : MonoBehaviour
     {
+        #region Config
         [SerializeField, LabelText("버프 칸 (왼쪽부터 보일 순서)"), BoxGroup("버프")]
         private List<StatusEffectIconView> _buffSlots = new List<StatusEffectIconView>();
 
@@ -41,7 +42,9 @@ namespace Enzeun.Runtime
 
         private BuffContainer _container;
         private CancellationTokenSource _cts;
+        #endregion
 
+        #region State
         // 모든 칸(버프 다음 디버프)과 효과 ID → 칸 번호입니다. Awake 에서 한 번만 만듭니다.
         private readonly List<StatusEffectIconView> _slots = new List<StatusEffectIconView>();
         private readonly Dictionary<int, int> _slotIndexById = new Dictionary<int, int>();
@@ -56,7 +59,9 @@ namespace Enzeun.Runtime
 
         // 칸이 없는 효과를 경고한 적 있는지 기록합니다. (같은 경고를 반복하지 않음)
         private readonly HashSet<int> _warnedMissing = new HashSet<int>();
+        #endregion
 
+        #region Lifecycle
         private void Awake()
         {
             RegisterSlots(_buffSlots);
@@ -88,7 +93,9 @@ namespace Enzeun.Runtime
             Unbind();
             HideAll();
         }
+        #endregion
 
+        #region Slots
         // 칸 목록을 등록합니다. 효과가 연결되지 않았거나 같은 효과가 두 칸에 있으면 경고하고 그 칸은 건너뜁니다.
         private void RegisterSlots(List<StatusEffectIconView> slots)
         {
@@ -119,7 +126,9 @@ namespace Enzeun.Runtime
                 _slots.Add(slot);
             }
         }
+        #endregion
 
+        #region Bind
         /// <summary>
         /// 내 플레이어의 컨테이너가 준비될 때까지 기다렸다가 이벤트를 연결하고, 이미 걸려 있는 효과를 한 번 그립니다.
         /// (게임 시작 시 정신력 구간으로 걸린 효과 등은 이벤트로 오지 않으므로 연결할 때 현재 목록으로 그려야 함)
@@ -158,7 +167,9 @@ namespace Enzeun.Runtime
         {
             Refresh();
         }
+        #endregion
 
+        #region Refresh
         /// <summary>
         /// 일정 주기마다 남은 시간을 다시 읽어 표시합니다. 지속시간이 있는 효과가 없으면 아무것도 하지 않습니다.
         /// </summary>
@@ -263,5 +274,6 @@ namespace Enzeun.Runtime
 
             _hasTimed = false;
         }
+        #endregion
     }
 }

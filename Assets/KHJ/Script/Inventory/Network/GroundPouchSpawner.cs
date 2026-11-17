@@ -13,6 +13,7 @@ namespace Enzeun.Runtime
     /// </summary>
     public class GroundPouchSpawner : MonoBehaviour
     {
+        #region Fields
         [SerializeField, LabelText("주머니 프리팹"), Required("GroundPouch 가 붙은 프리팹을 연결해 주세요.")]
         private GroundPouch _pouchPrefab;
 
@@ -21,7 +22,9 @@ namespace Enzeun.Runtime
 
         private readonly Dictionary<int, GroundPouch> _pouches = new Dictionary<int, GroundPouch>();
         private TeamInventoryState _state;
+        #endregion
 
+        #region Lifecycle
         private void Start()
         {
             InventoryNetworkSyncManager manager = InventoryNetworkSyncManager.Instance;
@@ -52,7 +55,9 @@ namespace Enzeun.Runtime
                 _state.OnReloaded -= HandleReloaded;
             }
         }
+        #endregion
 
+        #region Handlers
         private void HandleAdded(int dropId)
         {
             if (_state.GroundDrops.TryGetValue(dropId, out GroundDrop drop))
@@ -104,7 +109,9 @@ namespace Enzeun.Runtime
                 Spawn(entry.Value);
             }
         }
+        #endregion
 
+        #region Spawn
         private void Spawn(GroundDrop drop)
         {
             if (_pouchPrefab == null || _pouches.ContainsKey(drop.Id))
@@ -119,5 +126,6 @@ namespace Enzeun.Runtime
             pouch.Bind(drop);
             _pouches[drop.Id] = pouch;
         }
+        #endregion
     }
 }

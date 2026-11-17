@@ -28,6 +28,7 @@ namespace Enzeun.Runtime
         // 5초당 1% 자연 감소(더위 중에는 2배)는 SurviveStatusManager 가 시간을 재서 DecreaseHydration 으로 처리합니다.
 
 
+        #region Config
         // 수분 초기값
         [SerializeField, LabelText("수분 초기값")]
         private int initialHydration = 50;
@@ -43,7 +44,9 @@ namespace Enzeun.Runtime
         // 탈수 디버프 임계값
         [SerializeField, LabelText("탈수 디버프 임계값")]
         private int dehydratedThreshold = 0;
+        #endregion
 
+        #region State
         // 현재 수분 상태
         [ShowInInspector, ReadOnly, PropertyOrder(-1)]
         public HydrationState currentHydrationState { get; private set; } = HydrationState.Normal;
@@ -67,7 +70,9 @@ namespace Enzeun.Runtime
                 _hydration = Mathf.Clamp(value, 0, 100);
             }
         }
+        #endregion
 
+        #region Change
         /// <summary>
         /// 값을 초기값으로 되돌리고 구간을 다시 판정합니다. 구간이 같으면 이벤트는 발생하지 않습니다.
         /// </summary>
@@ -137,5 +142,6 @@ namespace Enzeun.Runtime
 #endif
             }
         }
+        #endregion
     }
 }

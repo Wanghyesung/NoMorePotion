@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Enzeun.Runtime
 {
+    #region Enums
     /// <summary>
     /// 인벤토리 요청의 종류입니다.
     /// Grant : 개발용으로 아이템을 만들어 넣음 / Transfer : 장소 사이(또는 칸 사이) 이동 / Craft : 조합 /
@@ -52,7 +53,9 @@ namespace Enzeun.Runtime
         VersionGap = 2,     // 중간 메시지를 놓쳤음 (전체 목록을 다시 받아야 함)
         Inconsistent = 3,   // 내 사본이 마스터와 어긋났음 (전체 목록을 다시 받아야 함)
     }
+    #endregion
 
+    #region Container
     /// <summary>
     /// 아이템을 보관하는 장소의 종류입니다.
     /// Pack : 공용 인벤(배낭, 어디서든) / Personal : 플레이어별 개인 인벤(칸) / Storage : 공용 창고(베이스캠프에서만) /
@@ -112,7 +115,9 @@ namespace Enzeun.Runtime
         public int MaterialId;
         public int InstanceId;
     }
+    #endregion
 
+    #region Change
     /// <summary>
     /// 마스터가 확정한 변경 한 건의 종류입니다. 모든 클라이언트가 같은 값을 그대로(절대값) 적용하므로 같은 변경은 같은 결과를 냅니다.
     /// </summary>
@@ -194,7 +199,9 @@ namespace Enzeun.Runtime
             return new InventoryChange { Type = InventoryChangeType.SetGround, Id = dropId, Count = newCount };
         }
     }
+    #endregion
 
+    #region Command
     /// <summary>
     /// 요청(클라이언트 → 마스터)과 적용 메시지(마스터 → 전원)가 함께 쓰는 명령입니다.
     /// 요청에는 요청한 쪽이 아는 의도(From, To, 재료, 개수 등)만 들어 있고,
@@ -271,4 +278,5 @@ namespace Enzeun.Runtime
             return new InventoryResult { Success = true, Reason = InventoryDenyReason.None, Outcome = outcome };
         }
     }
+    #endregion
 }

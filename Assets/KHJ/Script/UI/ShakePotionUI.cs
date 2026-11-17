@@ -21,6 +21,7 @@ using UnityEngine.UI;
 /// </summary>
 public class ShakePotionUI : MonoBehaviour
 {
+    #region LeftSlot
     [SerializeField, LabelText("왼손 칸"), BoxGroup("왼손"), Required("왼손 포션 칸을 연결해 주세요.")]
     private CanvasGroup _leftGroup;
 
@@ -35,10 +36,12 @@ public class ShakePotionUI : MonoBehaviour
 
     [SerializeField, LabelText("왼손 함정 키워드"), BoxGroup("왼손"), Required]
     private TMP_Text _leftTrapText;
+    #endregion
 
 
 
 
+    #region RightSlot
     [SerializeField, LabelText("오른손 칸"), BoxGroup("오른손"), Required("오른손 포션 칸을 연결해 주세요.")]
     private CanvasGroup _rightGroup;
 
@@ -53,8 +56,10 @@ public class ShakePotionUI : MonoBehaviour
 
     [SerializeField, LabelText("오른손 함정 키워드"), BoxGroup("오른손"), Required]
     private TMP_Text _rightTrapText;
+    #endregion
 
 
+    #region HandUI
     [SerializeField, LabelText("왼손 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 이미지의 Image 을 연결해 주세요.")]
     private Image _leftHandImage;
     [SerializeField, LabelText("왼손 활성 이미지"), BoxGroup("현재 플레이어 손"), Required("왼손 활성 이미지 스프라이트를 연결해주세요.")]
@@ -80,9 +85,11 @@ public class ShakePotionUI : MonoBehaviour
 
     [SerializeField, LabelText("크기 곡선"), BoxGroup("현재 플레이어 손")]
     private Ease _handScaleEase = Ease.OutBack;
+    #endregion
 
 
 
+    #region Fade
     [SerializeField, LabelText("나타나는 시간 (초)"), BoxGroup("페이드"), MinValue(0f)]
     private float _showDuration = 0.12f;
 
@@ -94,7 +101,9 @@ public class ShakePotionUI : MonoBehaviour
 
     [SerializeField, LabelText("사라질 때 곡선"), BoxGroup("페이드")]
     private Ease _hideEase = Ease.InOutSine;
+    #endregion
 
+    #region Settings
     // 함정 키워드를 보여 주는 형식입니다. {0} = 키워드 이름 (예: "(달팽이)"). 정상 포션은 이 칸을 비웁니다.
     [SerializeField, LabelText("함정 키워드 형식 ({0} = 키워드 이름)"), BoxGroup("형식")]
     private string _trapFormat = "({0})";
@@ -108,7 +117,9 @@ public class ShakePotionUI : MonoBehaviour
 
     private Slot leftSlot;
     private Slot rightSlot;
+    #endregion
 
+    #region Slot
     /// <summary>
     /// 한 손의 포션 칸입니다. 칸이 지금 "보이려는" 상태인지 기억해서, 이미 같은 방향이면 페이드를 다시 시작하지 않습니다.
     /// 페이드는 항상 지금 알파에서 이어서 시작하고, 새 페이드를 시작하기 전에 이전 페이드를 끝냅니다(Kill).
@@ -246,7 +257,9 @@ public class ShakePotionUI : MonoBehaviour
             }
         }
     }
+    #endregion
 
+    #region Lifecycle
     private void Awake()
     {
         leftSlot = new Slot(_leftGroup, _leftIcon, _leftNameText, _leftTrapImage, _leftTrapText, _trapFormat, _showDuration, _showEase, _hideDuration, _hideEase);
@@ -285,7 +298,9 @@ public class ShakePotionUI : MonoBehaviour
         leftSlot?.HideImmediate();
         rightSlot?.HideImmediate();
     }
+    #endregion
 
+    #region Bind
     /// <summary>
     /// 내 플레이어의 Hand 를 찾을 때까지 기다렸다가 이벤트를 연결합니다.
     /// </summary>
@@ -370,7 +385,9 @@ public class ShakePotionUI : MonoBehaviour
         isBound = false;
         ResetHandIndicator();
     }
+    #endregion
 
+    #region Show
     /// <summary>
     /// 흔들기를 시작할 때 양손의 포션을 확인해서 보여 줍니다. 포션이 있는 손의 칸만 나타나고, 비어 있는 손(null)의 칸은 그대로 숨어 있습니다.
     /// (두 손 모두 비어 있으면 흔들기 자체가 시작되지 않지만, 혹시 오면 아무것도 보여 주지 않습니다.)
@@ -406,7 +423,9 @@ public class ShakePotionUI : MonoBehaviour
 
         slot.Show(potion);
     }
+    #endregion
 
+    #region HandIndicator
     // 지금 선택된 손입니다. 0 = 왼손, 1 = 오른손, -1 = 아직 반영하지 않음
     private int _currentHandSide = -1;
     private Tween _leftHandTween;
@@ -473,4 +492,5 @@ public class ShakePotionUI : MonoBehaviour
 
         _currentHandSide = -1;
     }
+    #endregion
 }
