@@ -2,6 +2,7 @@ using Enzeun.SO;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 
@@ -15,7 +16,7 @@ namespace Enzeun.Runtime
     /// - 지속시간이 있는 효과는 아이콘 밑에 남은 시간(초)을 작게 보여 줍니다.
     /// 값이 그대로면 글자를 다시 쓰지 않아서 불필요한 갱신이 없습니다.
     /// </summary>
-    public class StatusEffectIconView : MonoBehaviour
+    public class StatusEffectIconView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField, LabelText("이 칸이 보여 줄 상태 효과"), Required("버프/디버프 SO 를 연결해 주세요. 같은 ID 의 효과가 이 칸에 묶입니다.")]
         private StatusEffectData _data;
@@ -159,6 +160,24 @@ namespace Enzeun.Runtime
             {
                 _shownSeconds = -1;
             }
+        }
+        #endregion
+
+        #region 툴팁용
+        private RectTransform rect;
+
+        private void Awake()
+        {
+            rect = GetComponent<RectTransform>();
+        }
+        public void OnPointerEnter(PointerEventData e)
+        {
+            if (Data != null) StatusTooltip.Instance.Show(Data, rect);
+        }
+
+        public void OnPointerExit(PointerEventData e)
+        {
+            if (Data != null) StatusTooltip.Instance.Hide();
         }
         #endregion
     }

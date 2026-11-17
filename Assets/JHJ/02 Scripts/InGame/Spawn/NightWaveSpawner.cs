@@ -83,7 +83,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         // 생성 예약은 방장만 (다른 클라이언트는 포톤 생성 이벤트로 받음)
         if (!GameAuthority.HasAuthority)
             return;
-
+        // 룸에 있을 경우 룸에 현재 웨이브 데이터 저장 1차
         if (PhotonNetwork.InRoom)
         {
             Hashtable data = new()
@@ -120,6 +120,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
             aliveCount++;
         }
 
+        // 룸에 있을 경우 룸에 현재 웨이브 데이터 저장 2차
         if (PhotonNetwork.InRoom)
         {
             Hashtable data = new()
@@ -151,7 +152,6 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
     /// <summary>
     /// 방장 이탈 시 살아 있는 웨이브 몬스터를 다시 세고 사망을 구독시키는 함수
     /// </summary>
-
     private void RecountAliveWaveMonsters()
     {
         aliveCount = 0;
@@ -160,7 +160,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         {
             if (!m.IsAlive) continue;   // 가라앉는 중인 시체 제외
 
-            m.Combat.Died -= OnMonsterDied;   // 혹시 모를 중복 구독 방지
+            m.Combat.Died -= OnMonsterDied;
             m.Combat.Died += OnMonsterDied;
             aliveCount++;
         }
