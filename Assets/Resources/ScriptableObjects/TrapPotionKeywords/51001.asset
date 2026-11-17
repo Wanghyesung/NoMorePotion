@@ -30,21 +30,21 @@ MonoBehaviour:
           _healthChange:
             _changeType: 1
             _damageType: 5
-            _amount: 400
+            _amount: 500
             _intervalSeconds: 0
           _durationSeconds: 0
         _tickHit:
           _healthChange:
             _changeType: 1
             _damageType: 5
-            _amount: 200
+            _amount: 250
             _intervalSeconds: 0.5
           _durationSeconds: 0
         _finalHit:
           _healthChange:
             _changeType: 1
             _damageType: 5
-            _amount: 1000
+            _amount: 800
             _intervalSeconds: 0
           _durationSeconds: 0
         _statusEffects:
