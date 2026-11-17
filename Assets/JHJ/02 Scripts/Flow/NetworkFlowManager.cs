@@ -494,13 +494,20 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
             return;
         }
 
-        StartGameInternal();
+        StartGameInternal().Forget();
 
     }
 
     public void RequestSendChat(string text)
     {
-        if(!RequireInRoom()) return;
+        bool canChat = (CurrentState == FlowState.Room || CurrentState == FlowState.InGame) && PhotonNetwork.InRoom;
+        
+        if(!canChat)
+        {
+            Debug.Log($"[NetworkFlowManager] RequestSendChat 무시됨: 상태 = {CurrentState}");
+            return;
+        }
+
         chat.Send(text);
     }
 
