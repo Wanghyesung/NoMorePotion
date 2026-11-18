@@ -61,6 +61,7 @@ public class MonsterAnimationBridge : MonoBehaviour
 
     private void CounterOn() => combat.CounterOn();
     private void CounterOff() => combat.CounterOff();
+    private void CounterSuccessEnd() => combat.CounterSuccessEnd();
 
     // 사망
     private void DeathAnimationEnd() => combat.DeathAnimationEnd();

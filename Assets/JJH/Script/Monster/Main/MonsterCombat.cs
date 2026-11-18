@@ -46,6 +46,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] private float counterGrace = 0.2f;
     [SF] private Material counterOverlay;          // CounterMat
     [SF] private float counterStunTime = 1f;     // 경직 시간 (AI 정지)
+    [SF] private GameObject counterEffect;
 
     private bool counterOpen;
     private float counterClosedAt = -999f;
@@ -64,7 +65,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     public bool IsSkillCanceled => skillCanceled;
 
     private Material[][] originalMaterials;
-    private CancellationTokenSource counterCts;
+    private GameObject counterEffectObj;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
@@ -143,7 +144,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     protected virtual void OnDisable()
     {
         SetCounterOverlay(false);
-        CancelCounterReaction();
+        if (counterEffectObj != null)
+            PoolManager.Instance.Release(counterEffectObj);
+        counterEffectObj = null;
         CancelDeathSink();
         if (data != null)
             data.OnDead -= MonsterDead;
@@ -338,31 +341,12 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     #region 카운터 연출
     private void StartCounterReaction()
     {
-        CancelCounterReaction();
-        counterCts = new CancellationTokenSource();
-        CounterReaction(counterCts.Token).Forget();
-    }
+        counterEffectObj = 
+            PoolManager.Instance
+            .Get(counterEffect, transform.position, Quaternion.identity);
 
-    private void CancelCounterReaction()
-    {
-        if (counterCts == null) return;
-        counterCts.Cancel();
-        counterCts.Dispose();
-        counterCts = null;
-    }
-
-    /// <summary>
-    /// 오버레이 깜빡임 + 경직 (끝나면 다음 틱부터 행동)
-    /// </summary>
-    private async UniTaskVoid CounterReaction(CancellationToken token)
-    {
-        mover.IsAnimation = true;   // 경직 동안 AI 판단 정지
-
-        if (await UniTask.Delay(TimeSpan.FromSeconds(counterStunTime),
-            cancellationToken: token).SuppressCancellationThrow())
-            return;
-        anim.IsCountered(false);
-        mover.IsAnimation = false;
+        anim.IsCountered();
+        mover.IsAnimation = true;
     }
 
     /// <summary>
@@ -386,6 +370,14 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             mats[^1] = counterOverlay;
             bodyRenderers[i].sharedMaterials = mats;
         }
+    }
+    public void CounterSuccessEnd()
+    {
+        anim.IsCountered(false);
+        mover.IsAnimation = false;
+        if (counterEffectObj != null)
+            PoolManager.Instance.Release(counterEffectObj);
+        counterEffectObj = null;
     }
     #endregion
 
@@ -527,8 +519,11 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private void MonsterDead()
     {
+        if (counterEffectObj != null)
+            PoolManager.Instance.Release(counterEffectObj);
+        counterEffectObj = null;
+
         SetCounterOverlay(false);
-        CancelCounterReaction();
         anim.IsDead();
         mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
 
@@ -628,10 +623,13 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// </summary>
     public void OnReleaseToPool()
     {
+        if (counterEffectObj != null) 
+            PoolManager.Instance.Release(counterEffectObj);
+        counterEffectObj = null;
+
         Died = null;
         CancelDeathSink();
         SetCounterOverlay(false);
-        CancelCounterReaction();
         mover.StopAI();
     }
     #endregion
