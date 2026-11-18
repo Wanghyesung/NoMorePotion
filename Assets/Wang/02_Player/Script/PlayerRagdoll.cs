@@ -13,10 +13,12 @@ public sealed class PlayerRagdoll : MonoBehaviour
     private Rigidbody[] boneBodies;
     private Collider[] boneColliders;
     private PhotonView photonView;
+    private AttackTarget attackTarget;
 
     private void Awake()
     {
         photonView = GetComponent<PhotonView>();
+        attackTarget = GetComponent<AttackTarget>();
         rootBody = GetComponent<Rigidbody>();
         rootColliders = GetComponents<Collider>();
         rootColliderEnabled = new bool[rootColliders.Length];
@@ -77,6 +79,10 @@ public sealed class PlayerRagdoll : MonoBehaviour
 
     private void PlayLocal(Vector3 attackPosition)
     {
+        // The existing ragdoll RPC also removes the remote player from targeting.
+        if (attackTarget != null)
+            attackTarget.SetTargetable(false);
+
         Vector3 direction = transform.position - attackPosition;
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f)

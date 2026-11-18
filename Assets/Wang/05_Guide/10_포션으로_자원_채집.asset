@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f126dadac6ede0b4eaa85f1bcc61045b, type: 3}
+  m_Name: "10_\uD3EC\uC158\uC73C\uB85C_\uC790\uC6D0_\uCC44\uC9D1"
+  m_EditorClassIdentifier: Assembly-CSharp::SOEventText
+  texts:
+  - text: "\uC791\uC740 \uC7AC\uB8CC\uB294 \uC8FC\uC6B8 \uC218 \uC788\uC9C0\uB9CC
+      \uD070 \uC790\uC6D0\uC740 \uBD80\uC234\uC57C \uC5BB\uC744 \uC218 \uC788\uC5B4\uC694."
+    speed: 0.03
+  - text: "\uC774\uB7F4 \uB54C\uB3C4 \uD3EC\uC158\uC744 \uC0AC\uC6A9\uD558\uBA74
+      \uB3FC\uC694."
+    speed: 0.03
+  - text: "\uC5F0\uC2B5\uC6A9 \uCC44\uC9D1 \uD3EC\uC158\uC744 \uAEBC\uB0B4 \uD45C\uC2DC\uB41C
+      \uB098\uBB34\uC5D0 \uB358\uC838\uBCF4\uC138\uC694."
+    speed: 0.03
+  - text: "\uB098\uBB34\uAC00 \uBD80\uC11C\uC9C0\uBA74 \uB098\uC628 \uC7AC\uB8CC\uB97C
+      E\uB85C \uC8FC\uC6CC\uC8FC\uC138\uC694."
+    speed: 0.03
+  - text: "\uBAA8\uC740 \uC7AC\uB8CC\uB294 \uB2E4\uC74C \uD3EC\uC158\uC744 \uB9CC\uB4DC\uB294
+      \uB370 \uC0AC\uC6A9\uD560 \uC218 \uC788\uC5B4\uC694."
+    speed: 0.03

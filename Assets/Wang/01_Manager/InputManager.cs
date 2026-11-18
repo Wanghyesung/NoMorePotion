@@ -15,7 +15,26 @@ public struct PlayerInputInfo
 [DisallowMultipleComponent]
 public sealed class InputManager : MonoBehaviour
 {
+    [System.Flags]
+    public enum GameplayKeys
+    {
+        None = 0,
+        Move = 1 << 0,
+        Look = 1 << 1,
+        Jump = 1 << 2,
+        Roll = 1 << 3,
+        UsePotion = 1 << 4,
+        Aim = 1 << 5,
+        SwitchHand = 1 << 6,
+        Interact = 1 << 7,
+        TakePotion = 1 << 8,
+        Shake = 1 << 9,
+        QuickSlot = 1 << 10,
+        All = (1 << 11) - 1
+    }
+
     public static InputManager Instance { get; private set; }
+    public GameplayKeys GuideAllowedKeys { get; private set; } = GameplayKeys.All;
 
     [Header("Input Actions")]
     #region InputActions
@@ -257,27 +276,52 @@ public sealed class InputManager : MonoBehaviour
 
     private void EnableActions()
     {
-        Skill0Action.Enable();
-        MoveAction.Enable();
-        DeltaAction.Enable();
-        JumpAction.Enable();
-        RollAction.Enable();
-        AimAction.Enable();
-        SwitchHandAction.Enable();
-        InteractAction.Enable();
-        TakeOutPotionAction.Enable();
-        ShakeAction.Enable();
-        Number0Action.Enable();
-        Number1Action.Enable();
-        Number2Action.Enable();
-        Number3Action.Enable();
-        Number4Action.Enable();
-        Number5Action.Enable();
-        Number6Action.Enable();
-        Number7Action.Enable();
-        Number8Action.Enable();
-        Number9Action.Enable();
+        ApplyGuideKey(Skill0Action, GameplayKeys.UsePotion);
+        ApplyGuideKey(MoveAction, GameplayKeys.Move);
+        ApplyGuideKey(DeltaAction, GameplayKeys.Look);
+        ApplyGuideKey(JumpAction, GameplayKeys.Jump);
+        ApplyGuideKey(RollAction, GameplayKeys.Roll);
+        ApplyGuideKey(AimAction, GameplayKeys.Aim);
+        ApplyGuideKey(SwitchHandAction, GameplayKeys.SwitchHand);
+        ApplyGuideKey(InteractAction, GameplayKeys.Interact);
+        ApplyGuideKey(TakeOutPotionAction, GameplayKeys.TakePotion);
+        ApplyGuideKey(ShakeAction, GameplayKeys.Shake);
+        ApplyGuideKey(Number0Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number1Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number2Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number3Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number4Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number5Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number6Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number7Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number8Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number9Action, GameplayKeys.QuickSlot);
     }
+
+    private void ApplyGuideKey(InputAction action, GameplayKeys key)
+    {
+        if ((GuideAllowedKeys & key) != 0)
+            action.Enable();
+        else
+            action.Disable();
+    }
+
+    public void SetGuideAllowedKeys(GameplayKeys keys)
+    {
+        GuideAllowedKeys = keys;
+        if (gameplayInputEnabled && isActiveAndEnabled)
+            EnableActions();
+        else
+            DisableActions();
+        CancelInput();
+    }
+
+    public void LockKeys(GameplayKeys keys) => SetGuideAllowedKeys(GuideAllowedKeys & ~keys);
+    public void UnLockKeys(GameplayKeys keys) => SetGuideAllowedKeys(GuideAllowedKeys | keys);
+    public void LockAllKeys() => SetGuideAllowedKeys(GameplayKeys.None);
+    public void UnLockAllKeys() => SetGuideAllowedKeys(GameplayKeys.All);
+    public void LockMoveKey() => LockKeys(GameplayKeys.Move);
+    public void UnLockMoveKey() => UnLockKeys(GameplayKeys.Move);
 
     private void DisableActions()
     {
