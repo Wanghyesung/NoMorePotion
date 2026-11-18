@@ -34,7 +34,6 @@ public class MonsterPatrolState : IMonsterState
         Vector3 newRandomPos =
             GetRandomNavMeshPosition(mover.transform.position, mover.nextMoveDist);
 
-        // 유효한 좌표를 찾았다면 이동 명령 수행
         if (newRandomPos != Vector3.zero)
         {
             moverAI.SetDestination(newRandomPos);
