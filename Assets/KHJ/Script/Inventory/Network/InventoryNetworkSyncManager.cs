@@ -86,6 +86,13 @@ namespace Enzeun.Runtime
         // 상태의 공용 인벤토리 변화를 그대로 매니저의 이벤트로 넘겨 줍니다.
         private void HandlePackItemChanged(int kind, int itemId, int delta)
         {
+#if UNITY_EDITOR
+            // 구독자 수가 0 이면 이벤트는 나가지만 받는 쪽이 아직 없는 것입니다. (알림창 코드가 머지되기 전 확인용)
+            int subscribers = OnPackItemChanged != null ? OnPackItemChanged.GetInvocationList().Length : 0;
+            string kindName = kind == TeamInventoryState.ItemKindMaterial ? "재료" : "포션";
+            Debug.Log($"[InventoryNetworkSyncManager] : 공용 인벤 변화 - {kindName} {itemId} {delta:+#;-#;0} (구독자 {subscribers}명)");
+#endif
+
             OnPackItemChanged?.Invoke(kind, itemId, delta);
         }
 
