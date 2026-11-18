@@ -45,8 +45,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [Header("카운터")]
     // 카운터 서버 지연 보정 길이
     [SF] private float counterGrace = 0.2f;
-    [SF] private Material counterOverlay;          // CounterMat
-    [SF] private float counterStunTime = 1f;     // 경직 시간 (AI 정지)
+    // CounterMat
+    [SF] private Material counterOverlay;
     [SF] private GameObject counterEffect;
     [SF] private MMF_Player counterFeedback;
 
