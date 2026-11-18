@@ -82,8 +82,18 @@ public sealed class PlayerTakeState : PlayerState
         if (HasPotionInQuickSlot(slot) == false)
             return;
 
+        TryEnterTake(slot);
+    }
+
+    // 현준 수정 : Enter 가 칸 번호를 읽으므로 먼저 넣고, 들어가지 못하면(이미 꺼내는 중 등) 원래 값으로 되돌립니다.
+    // 되돌리지 않으면 꺼내는 도중의 입력이 진행 중인 꺼내기의 칸 번호를 바꿔 버립니다.
+    private void TryEnterTake(int slot)
+    {
+        int previous = quickSlot;
         quickSlot = slot;
-        owner.ChangeActionState(FSM.StateType.Take);
+
+        if (owner.ChangeActionState(FSM.StateType.Take) == false)
+            quickSlot = previous;
     }
 
     private static bool HasPotionInQuickSlot(int slot)
@@ -124,9 +134,8 @@ public sealed class PlayerTakeState : PlayerState
 
     private void RequestTake(InputAction.CallbackContext context)
     {
-        // F 키는 무작위로 꺼냅니다. (남아 있을 수 있는 퀵슬롯 지정을 지움)
-        quickSlot = NoQuickSlot;
-        owner.ChangeActionState(FSM.StateType.Take);
+        // F 키는 무작위로 꺼냅니다.
+        TryEnterTake(NoQuickSlot);
     }
 
     public override bool CanEnter()
