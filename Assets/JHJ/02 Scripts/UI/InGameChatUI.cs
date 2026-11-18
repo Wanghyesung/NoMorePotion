@@ -5,19 +5,21 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using R3;
+using SF = UnityEngine.SerializeField;
 
 public class InGameChatUI : MonoBehaviour
 {
     private const int MAX_LINES = 50;
 
-    [SerializeField] private TMP_InputField input;
-    [SerializeField] private GameObject inputRoot;  //평소엔 숨겨지도록
-    [SerializeField] private ScrollRect scrollRect;
-    [SerializeField] private Transform content;
-    [SerializeField] private ChatLineUI linePrefab;
-    [SerializeField] private CanvasGroup canvasGroup;
-    [SerializeField] private float fadeDelay = 5f;    //마지막 메세지 후 페이드아웃 될 시간
-    [SerializeField] private float idleAlpha = 0.3f;
+    [SF] private TMP_InputField input;
+    [SF] private GameObject inputRoot;  //평소엔 숨겨지도록
+    [SF] private ScrollRect scrollRect;
+    [SF] private Transform content;
+    [SF] private ChatLineUI linePrefab;
+    [SF] private CanvasGroup canvasGroup;
+    [SF] private float fadeDelay = 5f;    //마지막 메세지 후 페이드아웃 될 시간
+    [SF] private float idleAlpha = 0.3f;
+    [SF] private float hideDelay = 30f;     // 완전히 숨겨지는 시간
 
 
     private readonly Queue<ChatLineUI> lines = new Queue<ChatLineUI>();
@@ -81,9 +83,20 @@ public class InGameChatUI : MonoBehaviour
         else if (isTyping && keyboard.escapeKey.wasPressedThisFrame)
             Close();
 
-        float target = isTyping || Time.time - lastActiveTime < fadeDelay ? 1f : idleAlpha;
-        canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, target, Time.deltaTime);
+        float idleTime = Time.time - lastActiveTime;
+        float target;
 
+        if (isTyping || idleTime < fadeDelay)
+            target = 1f;
+
+        else if (idleTime < hideDelay)
+            target = idleAlpha;
+
+        else
+            target = 0f;
+
+        canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, target, Time.deltaTime);
+        canvasGroup.blocksRaycasts = canvasGroup.alpha > 0f;
     }
 
     #endregion
