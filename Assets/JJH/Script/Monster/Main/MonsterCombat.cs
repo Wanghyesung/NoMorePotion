@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 
@@ -47,6 +48,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] private Material counterOverlay;          // CounterMat
     [SF] private float counterStunTime = 1f;     // 경직 시간 (AI 정지)
     [SF] private GameObject counterEffect;
+    [SF] private MMF_Player counterFeedback;
 
     private bool counterOpen;
     private float counterClosedAt = -999f;
@@ -144,9 +146,13 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     protected virtual void OnDisable()
     {
         SetCounterOverlay(false);
+
         if (counterEffectObj != null)
             PoolManager.Instance.Release(counterEffectObj);
+        if (counterFeedback != null)
+            counterFeedback.StopFeedbacks();
         counterEffectObj = null;
+
         CancelDeathSink();
         if (data != null)
             data.OnDead -= MonsterDead;
@@ -207,6 +213,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         skillCanceled = false;    // 새 스킬마다 초기화
         mover.IsAnimation = true;
+        if (vfx != null) vfx.ResetWarningPositions();
         if (aim != null) aim.Aim();
     }
     public void SkillHitOn(int skillNum)
@@ -521,6 +528,10 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         if (counterEffectObj != null)
             PoolManager.Instance.Release(counterEffectObj);
+
+        if (counterFeedback != null)
+            counterFeedback.StopFeedbacks();
+
         counterEffectObj = null;
 
         SetCounterOverlay(false);
@@ -625,6 +636,10 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         if (counterEffectObj != null) 
             PoolManager.Instance.Release(counterEffectObj);
+
+        if (counterFeedback != null)
+            counterFeedback.StopFeedbacks();
+
         counterEffectObj = null;
 
         Died = null;
@@ -695,6 +710,10 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         anim.IsCountered();
         StartCounterReaction();
+
+        if (counterFeedback != null)
+            counterFeedback.PlayFeedbacks(transform.position);
+
     }
     #endregion
 }

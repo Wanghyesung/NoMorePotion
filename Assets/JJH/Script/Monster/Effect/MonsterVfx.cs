@@ -51,6 +51,7 @@ public class MonsterVfx : MonoBehaviour
     private MonsterMove mover;
     private readonly GameObject[] activeWarnings = new GameObject[5];
     private readonly Vector3[] lastWarningPos = new Vector3[5];
+    private readonly bool[] hasWarningPos = new bool[5];
 
     private void Awake()
     {
@@ -62,7 +63,15 @@ public class MonsterVfx : MonoBehaviour
     /// </summary>
     /// <param name="slot">지정한 스킬</param>
     /// <returns>지정된 위치 (Vector3)</returns>
-    public Vector3 GetLastWarningPosition(int slot) => lastWarningPos[slot];
+    public Vector3 GetLastWarningPosition(int slot)
+    {
+        if (hasWarningPos[slot]) return lastWarningPos[slot];
+
+        AttackVfx vfx = GetSlot(slot);
+        return vfx != null ? GetWarningPosition(vfx) : transform.position;
+    }
+
+    public void ResetWarningPositions() => Array.Clear(hasWarningPos, 0, hasWarningPos.Length);
 
     /// <summary>
     /// 지정된 슬롯에 배정된 스킬 이펙트 획득
@@ -92,7 +101,7 @@ public class MonsterVfx : MonoBehaviour
         // 타겟인 경우
         if (vfx.Place == WarningPlace.Target && vfx.Warning != null)
         {
-            pos = lastWarningPos[slot];
+            pos = GetLastWarningPosition(slot);
             rot = Quaternion.identity;
         }
         // 지정형인 경우
@@ -122,7 +131,10 @@ public class MonsterVfx : MonoBehaviour
         HideWarning(slot);
 
         Vector3 pos = GetWarningPosition(vfx);
+
         lastWarningPos[slot] = pos;
+        hasWarningPos[slot] = true;
+
         Quaternion rot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
         GameObject warning = PoolManager.Instance.Get(vfx.Warning, pos, rot);
@@ -159,14 +171,12 @@ public class MonsterVfx : MonoBehaviour
     /// <returns>지정 위치 값 (Vector3)</returns>
     private Vector3 GetWarningPosition(AttackVfx vfx)
     {
-        WarningPlace placeType = vfx.Place;
-        if (mover != null && mover.nowTarget != null)
-            placeType = WarningPlace.Front;
         switch (vfx.Place)
         {
-            case WarningPlace.Target:
+            case WarningPlace.Target when mover != null && mover.nowTarget != null:
                 return mover.nowTarget.transform.position;
 
+            case WarningPlace.Target:
             case WarningPlace.Front:
                 Vector3 forward = transform.forward;
                 forward.y = 0f;
