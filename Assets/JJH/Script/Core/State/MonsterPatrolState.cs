@@ -29,24 +29,19 @@ public class MonsterPatrolState : IMonsterState
     {
         NavMeshAgent moverAI = mover.agent;
         moverAI.isStopped = false;
-        
-        if (!moverAI.pathPending && moverAI.remainingDistance <= moverAI.stoppingDistance)
+        moverAI.ResetPath();
+        moverAI.speed = mover.walkSpeed;
+        Vector3 newRandomPos =
+            GetRandomNavMeshPosition(mover.transform.position, mover.nextMoveDist);
+
+        // 유효한 좌표를 찾았다면 이동 명령 수행
+        if (newRandomPos != Vector3.zero)
         {
-            Vector3 newRandomPos = 
-                GetRandomNavMeshPosition(mover.transform.position, mover.nextMoveDist);
-
-            // 유효한 좌표를 찾았다면 이동 명령 수행
-            if (newRandomPos != Vector3.zero)
-            {
-                moverAI.speed = mover.walkSpeed;
-
-                moverAI.SetDestination(newRandomPos);
-                // OnStart에서 SetPath 직후
-                startTime = Time.time;
-                mover.anim.IsWalk();
-                mover.anim.IsRun(false);
-            }
+            moverAI.SetDestination(newRandomPos);
+            startTime = Time.time;
         }
+        else
+            moverAI.isStopped = true;
     }
 
     public void OnStay()

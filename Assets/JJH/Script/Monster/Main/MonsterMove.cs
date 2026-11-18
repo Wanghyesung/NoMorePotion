@@ -422,10 +422,25 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
                 state.Stay();
+                SyncLocomotion();
             }
 
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
+    }
+
+    /// <summary>
+    /// 이동 애니메이션을 에이전트 상태 기준으로 한 곳에서 맞추는 함수
+    /// <para>상태는 이동 명령만 내리고, 걷기·달리기 표시는 여기서 매 틱 결정</para>
+    /// </summary>
+    protected virtual void SyncLocomotion()
+    {
+        bool moving = agent.enabled && !agent.isStopped && agent.hasPath &&
+                      agent.desiredVelocity.sqrMagnitude > 0.01f;
+        bool run = moving && agent.speed > walkSpeed + 0.01f;
+
+        anim.IsRun(run);
+        anim.IsWalk(moving && !run);
     }
 
     public void SetMoveSpeed(float speed)
