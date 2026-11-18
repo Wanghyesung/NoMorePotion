@@ -5,7 +5,7 @@ using static CommonStruct;
 using static JJH_Constants;
 using SF = UnityEngine.SerializeField;
 
-[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(Collider))]
 public class MonsterAttackTrigger : MonoBehaviour
 {
     [SF] protected MonsterCombat combat;

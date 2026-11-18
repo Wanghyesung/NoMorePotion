@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 
@@ -27,6 +28,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] protected MonsterMove mover;
     [SF] protected MonsterHPHud hud;
     [SF] protected MonsterVfx vfx;
+    [SF] protected AttackAim aim;
     [SF] protected BuffContainer statusEffect;
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
@@ -93,7 +95,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             hud = GetComponentInChildren<MonsterHPHud>();
         if (vfx == null && TryGetComponent(out MonsterVfx vfxVal))
             vfx = vfxVal;
-        
+        if (aim == null && TryGetComponent(out AttackAim aimVal))
+            aim = aimVal;
+
         CacheRenderers();
     }
 
@@ -191,6 +195,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         skillCanceled = false;    // 새 스킬마다 초기화
         mover.IsAnimation = true;
+        if (aim != null) aim.Aim();
     }
     public void SkillHitOn(string skillName)
     {
@@ -204,6 +209,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         SetSkillHitbox(skillName, false);
         mover.IsAnimation = false;
         anim.SetSkill(skillName, false);
+        if (aim != null) aim.ResetAim();
     }
 
     private void SetSkillHitbox(string skillName, bool on)
@@ -281,6 +287,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     public void NormalAttackAnimationStart()
     {
         mover.IsAnimation = true;
+        if (aim != null) aim.Aim();
     }
 
     public void NormalAttackOn()
@@ -299,6 +306,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         mover.IsAnimation = false;
         anim.IsNormalAttack(false);
+        if (aim != null) aim.ResetAim();
     }
 
     /// <summary>
@@ -544,6 +552,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (biteHitbox != null) biteHitbox.gameObject.SetActive(false);
         foreach (SkillHitbox h in skillHitboxes)
             h.Hitbox.gameObject.SetActive(false);
+        if (aim != null) aim.ResetAim();
         mover.SetDefaultTarget(null);
 
         InitData(prefabId);
@@ -612,6 +621,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         if(vfx != null) 
             vfx.HideAllWarnings();
+        if (aim != null) aim.ResetAim();
         mover.IsAnimation = false;   // 방장은 다음 판단 틱에 바로 다음 행동
     }
     #endregion

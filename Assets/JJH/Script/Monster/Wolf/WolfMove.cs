@@ -50,7 +50,7 @@ public class WolfMove : MonsterMove
 
             default:
                 if (nowTarget == null) return base.UpdateState();
-                float dist = Vector3.Distance(transform.position, nowTarget.transform.position);
+                float dist = FlatDistance(transform.position, nowTarget.transform.position);
 
                 // 이미 공격 중이면 여유 거리를 줘서 경계에서 멈췄다 쫓았다 반복하지 않게
                 if (state.GetStateType() == MonsterState.Attack)

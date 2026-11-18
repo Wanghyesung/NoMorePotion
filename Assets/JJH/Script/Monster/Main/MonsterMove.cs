@@ -30,6 +30,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [Header("본체 관련")]
     public float nextMoveDist;
     [SF] private float attackRange = 1f;
+    [SF] private float maxAttackHeight = 1.5f;
     public SphereCollider chaseCollider;
     public float attackSpeed = 2;
     public float patrolDelay = 4;
@@ -457,16 +458,38 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         return center + dir.normalized * radius;
     }
 
-
-    public bool IsInAttackRange(float distance) =>
-    distance <= attackRange || attackSelector.AnyReadyInRange(distance);
-    
     /// <summary>
-    /// 기본 대상 지정 함수
-    /// <para>기본 대상이 있을 경우 목표를 잃으면 기본 대상을 추적함</para>
+    /// 기본 공격은 높이 제한까지 확인, 스킬은 사거리만 확인 (원거리·지정형 스킬은 높이 무관)
     /// </summary>
-    /// <param name="target"></param>
-    public void SetDefaultTarget(GameObject target) => defaultTarget = target;
+    public bool IsInAttackRange(float distance) =>
+    (distance <= attackRange && IsWithinAttackHeight()) || 
+        attackSelector.AnyReadyInRange(distance);
+
+     /// <summary>
+     /// 대상과의 높이 차이가 기본 공격 가능 범위 안인지 확인하는 함수
+     /// </summary>
+     public bool IsWithinAttackHeight()
+     {
+         if (nowTarget == null) return false;
+         return Mathf.Abs(nowTarget.transform.position.y - transform.position.y) <= maxAttackHeight;
+    }
+
+    /// <summary>
+    /// 높이를 뺀 수평 거리 (고저차가 사거리에 더해지지 않게)
+    /// </summary>
+    public static float FlatDistance(Vector3 a, Vector3 b)
+    {
+        a.y = 0f;
+        b.y = 0f;
+        return Vector3.Distance(a, b);
+    }
+
+/// <summary>
+/// 기본 대상 지정 함수
+/// <para>기본 대상이 있을 경우 목표를 잃으면 기본 대상을 추적함</para>
+/// </summary>
+/// <param name="target"></param>
+public void SetDefaultTarget(GameObject target) => defaultTarget = target;
 
     /// <summary>
     /// 대상의 몸 반지름을 뺀 실제 거리 (큰 대상도 표면 기준으로 판정)
@@ -475,7 +498,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     {
         if (nowTarget == null) return float.MaxValue;
 
-        float dist = Vector3.Distance(transform.position, nowTarget.transform.position);
+        float dist = FlatDistance(transform.position, nowTarget.transform.position);
         return targetInfo != null ? Mathf.Max(0f, dist - targetInfo.BodyRadius) : dist;
     }
     /// <summary>

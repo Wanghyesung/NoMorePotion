@@ -47,7 +47,7 @@ public class MonsterAttackState : IMonsterState
             mover.anim.PlayAttack(pattern);
         }
         // 2순위: 기본 공격 (사거리 안일 때만)
-        else if (distance <= mover.AttackRange)
+        else if (distance <= mover.AttackRange && mover.IsWithinAttackHeight())
         {
             mover.anim.IsNormalAttack();
         }

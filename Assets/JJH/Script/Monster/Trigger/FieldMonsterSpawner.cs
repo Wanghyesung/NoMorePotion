@@ -40,12 +40,6 @@ public class FieldMonsterSpawner : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        foreach (FieldSpawnSlot slot in slots)
-        {
-            if (slot == null || slot.Prefab == null) continue;
-            PhotonPoolAdapter.RegisterPooled(slot.Prefab);
-        }
-
         TrySpawnAll();
     }
 
