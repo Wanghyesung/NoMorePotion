@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using static JJH_Constants;
 public class MonsterAnimationBridge : MonoBehaviour
 {
     protected MonsterCombat combat;
@@ -20,9 +20,25 @@ public class MonsterAnimationBridge : MonoBehaviour
 
     // 스킬
     private void SkillAnimationStart() => combat.SkillAnimationStart();
-    private void SkillHitOn(string skillName) => combat.SkillHitOn(skillName);
-    private void SkillHitOff(string skillName) => combat.SkillHitOff(skillName);
-    private void SkillAnimationEnd(string skillName) => combat.SkillAnimationEnd(skillName);
+    private void SkillHitOn(AnimationEvent e) => combat.SkillHitOn(GetSkillNum(e));
+    private void SkillHitOff(AnimationEvent e) => combat.SkillHitOff(GetSkillNum(e));
+    private void SkillAnimationEnd(AnimationEvent e) => combat.SkillAnimationEnd(GetSkillNum(e));
+
+    /// <summary>
+    /// 이벤트 Int 칸 번호 우선, 비어 있으면 String("Skill2")에서 숫자 추출 (기존 클립 호환)
+    /// </summary>
+    private static int GetSkillNum(AnimationEvent e)
+    {
+        if (e.intParameter > 0) return e.intParameter;
+
+        string s = e.stringParameter;
+        if (!string.IsNullOrEmpty(s) && s.StartsWith(SKILL_PARAM_PREFIX) &&
+            int.TryParse(s[SKILL_PARAM_PREFIX.Length..], out int num))
+            return num;
+
+        return 0;
+    }
+
     private void WarningOn(AnimationEvent e)
     {
         if (combat.IsSkillCanceled) return;

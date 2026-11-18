@@ -6,12 +6,14 @@ using SF = UnityEngine.SerializeField;
 
 public class MonsterAnimationController : MonoBehaviour
 {
+    private static readonly int CounteredHash = Animator.StringToHash(COUNTERED);
     private static readonly int MoveSpeedHash = Animator.StringToHash(ANIMATOR_MOVE_SPEED);
     private static readonly int IsDeadHash = Animator.StringToHash(IS_DEAD);
     private static readonly int IsNomalAttackHash = Animator.StringToHash(IS_NORMAL);
     private static readonly int IsRunHash = Animator.StringToHash(IS_RUN);
     private static readonly int IsWalkHash = Animator.StringToHash(IS_WALK);
 
+    private static readonly int[] SkillHashes = CreateSkillHashes();
     [SF] protected Animator animator;
 
     private int activeSkillHash;
@@ -21,6 +23,20 @@ public class MonsterAnimationController : MonoBehaviour
         if(animator == null)
             animator = GetComponentInChildren<Animator>();
     }
+
+    private static int[] CreateSkillHashes()
+    {
+        var hashes = new int[MAX_SKILL_SLOT];
+        for (int i = 0; i < MAX_SKILL_SLOT; i++)
+            hashes[i] = Animator.StringToHash($"{SKILL_PARAM_PREFIX}{i + 1}");
+        return hashes;
+    }
+
+    /// <summary>
+    /// 칸 번호 → Animator Bool 해시 (범위 밖이면 0)
+    /// </summary>
+    public static int GetSkillHash(int skillNum) =>
+        skillNum >= 1 && skillNum <= MAX_SKILL_SLOT ? SkillHashes[skillNum - 1] : 0;
 
     public void AnimatorRebind()
     {
@@ -65,6 +81,14 @@ public class MonsterAnimationController : MonoBehaviour
     }
 
     /// <summary>
+    /// 카운터 피격 모션
+    /// </summary>
+    public void IsCountered(bool type = true)
+    {
+        animator.SetBool(CounteredHash, type);
+    }
+
+    /// <summary>
     /// 이동 관련 애니메이션(run / walk) 속도 변경 함수
     /// </summary>
     /// <param name="val"> 요청 배율, 기본값 1</param>
@@ -79,18 +103,21 @@ public class MonsterAnimationController : MonoBehaviour
     /// <param name="pattern"></param>
     public void PlayAttack(AttackPattern pattern)
     {
-        activeSkillHash = pattern.NameHash;
+        if (pattern.AnimHash == 0) return;
+        activeSkillHash = pattern.AnimHash;
         animator.SetBool(activeSkillHash, true);
     }
+
 
     /// <summary>
     /// 스킬 종료 제어
     /// </summary>
     /// <param name="skillName"></param>
     /// <param name="value"></param>
-    public void SetSkill(string skillName, bool value)
+    public void SetSkill(int skillNum, bool value)
     {
-        animator.SetBool(skillName, value);
+        int hash = GetSkillHash(skillNum);
+        if (hash != 0) animator.SetBool(hash, value);
     }
 
     /// <summary>

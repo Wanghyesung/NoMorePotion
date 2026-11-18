@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 
@@ -44,7 +43,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     [Header("카운터")]
     // 카운터 서버 지연 보정 길이
-    [SF] private float counterGrace = 0.2f;  
+    [SF] private float counterGrace = 0.2f;
+    [SF] private Material counterOverlay;          // CounterMat
+    [SF] private float counterStunTime = 1f;     // 경직 시간 (AI 정지)
 
     private bool counterOpen;
     private float counterClosedAt = -999f;
@@ -61,6 +62,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     public event Action<MonsterCombat> Damaged;
 
     public bool IsSkillCanceled => skillCanceled;
+
+    private Material[][] originalMaterials;
+    private CancellationTokenSource counterCts;
 
     [Button(ButtonSizes.Large), GUIColor(0, 1, 0)]
     public void DamageTest()
@@ -138,6 +142,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     protected virtual void OnDisable()
     {
+        SetCounterOverlay(false);
+        CancelCounterReaction();
         CancelDeathSink();
         if (data != null)
             data.OnDead -= MonsterDead;
@@ -182,13 +188,16 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     public void CounterOn()
     {
-        if (!skillCanceled) counterOpen = true;
+        if (skillCanceled) return;
+        counterOpen = true;
+        SetCounterOverlay(true);
     }
 
     public void CounterOff()
     {
         counterOpen = false;
         counterClosedAt = Time.time;
+        SetCounterOverlay(false);
     }
 
     public void SkillAnimationStart()
@@ -197,35 +206,36 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         mover.IsAnimation = true;
         if (aim != null) aim.Aim();
     }
-    public void SkillHitOn(string skillName)
+    public void SkillHitOn(int skillNum)
     {
         if (skillCanceled) return;   // 끊긴 스킬의 판정은 무시
-        SetSkillHitbox(skillName, true);
+        SetSkillHitbox(skillNum, true);
     }
-    public void SkillHitOff(string skillName) => SetSkillHitbox(skillName, false);
+    public void SkillHitOff(int skillNum) => SetSkillHitbox(skillNum, false);
 
-    public void SkillAnimationEnd(string skillName)
+    public void SkillAnimationEnd(int skillNum)
     {
-        SetSkillHitbox(skillName, false);
+        SetSkillHitbox(skillNum, false);
+        SetCounterOverlay(false);
         mover.IsAnimation = false;
-        anim.SetSkill(skillName, false);
+        anim.SetSkill(skillNum, false);
         if (aim != null) aim.ResetAim();
     }
 
-    private void SetSkillHitbox(string skillName, bool on)
+    private void SetSkillHitbox(int skillNum, bool on)
     {
         foreach (SkillHitbox hitbox in skillHitboxes)
         {
-            if (hitbox.Name != skillName) continue;
+            if (hitbox.SkillNum != skillNum) continue;
             if (on && hitbox.FollowWarningSlot >= 0 && vfx != null)
-                hitbox.Hitbox.transform.position = 
+                hitbox.Hitbox.transform.position =
                     vfx.GetLastWarningPosition(hitbox.FollowWarningSlot);
 
             hitbox.Hitbox.gameObject.SetActive(on);
             return;
         }
 
-        Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillName}", this);
+        Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillNum}", this);
     }
 
 
@@ -246,9 +256,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// <summary>
     /// 보스 데이터일 때만 스킬 반환, 일반 몬스터는 null
     /// </summary>
-    public BossSkill GetBossSkill(string animationName)
+    public BossSkill GetBossSkill(int skillNum)
     {
-        return (data as BossMonster)?.BossSkill?.Find(x => x.AnimationName == animationName);
+        return (data as BossMonster)?.BossSkill?.Find(x => x.SkillNum == skillNum);
     }
     #endregion
 
@@ -325,6 +335,60 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         StartDeathSink();
     }
 
+    #region 카운터 연출
+    private void StartCounterReaction()
+    {
+        CancelCounterReaction();
+        counterCts = new CancellationTokenSource();
+        CounterReaction(counterCts.Token).Forget();
+    }
+
+    private void CancelCounterReaction()
+    {
+        if (counterCts == null) return;
+        counterCts.Cancel();
+        counterCts.Dispose();
+        counterCts = null;
+    }
+
+    /// <summary>
+    /// 오버레이 깜빡임 + 경직 (끝나면 다음 틱부터 행동)
+    /// </summary>
+    private async UniTaskVoid CounterReaction(CancellationToken token)
+    {
+        mover.IsAnimation = true;   // 경직 동안 AI 판단 정지
+
+        if (await UniTask.Delay(TimeSpan.FromSeconds(counterStunTime),
+            cancellationToken: token).SuppressCancellationThrow())
+            return;
+        anim.IsCountered(false);
+        mover.IsAnimation = false;
+    }
+
+    /// <summary>
+    /// 몸체 렌더러에 카운터 머티리얼을 한 칸 덧씌우거나 원래대로 복구
+    /// </summary>
+    private void SetCounterOverlay(bool on)
+    {
+        if (counterOverlay == null || originalMaterials == null) return;
+
+        for (int i = 0; i < bodyRenderers.Length; i++)
+        {
+            Material[] src = originalMaterials[i];
+            if (!on)
+            {
+                bodyRenderers[i].sharedMaterials = src;
+                continue;
+            }
+
+            var mats = new Material[src.Length + 1];
+            src.CopyTo(mats, 0);
+            mats[^1] = counterOverlay;
+            bodyRenderers[i].sharedMaterials = mats;
+        }
+    }
+    #endregion
+
     /// <summary>
     /// 속도 제어 반응 함수(속도가 감소했을 때)
     /// </summary>
@@ -351,37 +415,35 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     #region 인터페이스
     public void TakeDamage(AttackInfo attackInfo)
     {
-        if (!GameAuthority.HasAuthority)
-        {
-            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, attackInfo.Damage, -1);
-            return;
-        }
-
-        RpcTakeDamage(attackInfo.Damage, -1);
+        SendDamage(attackInfo.Damage, -1);
     }
 
     public void TakeDamage(AttackInfo attackInfo, IAttacker attacker)
     {
         int type = attacker != null ? (int)attacker.DamageType : -1;
 
-        if (!GameAuthority.HasAuthority)
-        {
-            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, attackInfo.Damage, type);
-            return;
-        }
-
-        RpcTakeDamage(attackInfo.Damage, type);
+        SendDamage(attackInfo.Damage, type);
     }
 
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
+        SendDamage(attackInfo.Damage, -1);
+    }
+
+    /// <summary>
+    /// 방장에게 피해 전달 (한 번의 타격만 카운터로 인정, 지속 피해 틱은 제외)
+    /// </summary>
+    private void SendDamage(int damage, int type)
+    {
+        bool counterHit = !HealthChangeModule.IsApplyingPeriodic;
+
         if (!GameAuthority.HasAuthority)
         {
-            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, attackInfo.Damage, -1);
+            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, damage, type, counterHit);
             return;
         }
 
-        RpcTakeDamage(attackInfo.Damage, -1);
+        RpcTakeDamage(damage, type, counterHit);
     }
 
     public void Heal(int amount)
@@ -449,6 +511,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         bodyRenderers = GetComponentsInChildren<Renderer>()
             .Where(r => r is SkinnedMeshRenderer || r is MeshRenderer)
             .ToArray();
+        originalMaterials = bodyRenderers.Select(r => r.sharedMaterials).ToArray();
     }
 
     private float GetBodyHeight()
@@ -464,6 +527,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private void MonsterDead()
     {
+        SetCounterOverlay(false);
+        CancelCounterReaction();
         anim.IsDead();
         mover.state.ChangeState(mover.stateGroup[MonsterState.Death]);
 
@@ -565,6 +630,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         Died = null;
         CancelDeathSink();
+        SetCounterOverlay(false);
+        CancelCounterReaction();
         mover.StopAI();
     }
     #endregion
@@ -572,10 +639,14 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     #region RPC
 
     [PunRPC]
-    protected void RpcTakeDamage(int damage, int typeNum)
+    protected void RpcTakeDamage(int damage, int typeNum, bool counterHit)
     {
         DamageType? type = typeNum >= 0 ? (DamageType)typeNum : null;
         HPChange(CalcFinalDamage(damage, type));
+
+        if (counterHit)
+            RpcRequestCounter();   // 카운터 창이 아니면 내부에서 무시
+
         TryProvoke();
     }
 
@@ -615,6 +686,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         skillCanceled = true;
         counterOpen = false;
+        SetCounterOverlay(false);
 
         foreach (SkillHitbox h in skillHitboxes)
             h.Hitbox.gameObject.SetActive(false);
@@ -622,7 +694,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if(vfx != null) 
             vfx.HideAllWarnings();
         if (aim != null) aim.ResetAim();
-        mover.IsAnimation = false;   // 방장은 다음 판단 틱에 바로 다음 행동
+
+        anim.IsCountered();
+        StartCounterReaction();
     }
     #endregion
 }

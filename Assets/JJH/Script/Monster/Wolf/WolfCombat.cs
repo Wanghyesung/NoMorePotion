@@ -63,34 +63,21 @@ public class WolfCombat : MonsterCombat
 
         // 알파: 보스 데이터
         MonsterTextData textData = EnemyDataLoader.Instance.LoadTextData(alphaId);
+        List<BossSkill> skills = EnemyDataLoader.Instance.LoadSkills(alphaId);
+
         if (textData == null) return;
 
         Dictionary<DamageType, int> immuneVal = bossData.Immune
             .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
             .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
 
-        Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint, 
+        Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint,
             bossData.AttackPower, immuneVal, bossData.Speed, bossData.Id, 0,
-            bossData.SpawnArea, textData.Description, bossData.BossSkills, 
+            bossData.SpawnArea, textData.Description, skills,
             normalWolfHp, bossData.DamageType);
 
         // 선택기가 사용할 스킬 주입
-        var patterns = new List<AttackPattern>();
-        foreach (BossSkill s in bossData.BossSkills)
-        {
-            if (s.Scripted) continue;
-            patterns.Add(new AttackPattern
-            {
-                Name = s.AnimationName,
-                Kind = AttackKind.Skill,
-                MinRange = s.MinRange,
-                MaxRange = s.MaxRange,
-                Cooldown = s.Cooldown,
-                Weight = s.Weight,
-            });
-        }
-
-        mover.AttackSelector.SetPatterns(patterns);
+        mover.AttackSelector.SetPatterns(AttackSelector.BuildSkillPatterns(skills));
     }
 
     private void Update()

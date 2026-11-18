@@ -84,7 +84,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1367392981364913750
 Transform:
   m_ObjectHideFlags: 0
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
-  skillName: Skill1
+  skillNum: 1
 --- !u!1 &5914418018961746880
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,7 +152,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7001056860643184726
 Transform:
   m_ObjectHideFlags: 0
@@ -162,11 +162,11 @@ Transform:
   m_GameObject: {fileID: 5914418018961746880}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 3.2}
+  m_LocalPosition: {x: 0, y: -0.049999952, z: 2.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8169910763685850028}
+  m_Father: {fileID: 9117947606149261704}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &7875655251101329595
 BoxCollider:
@@ -230,7 +230,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1.05, z: 1.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7001056860643184726}
   m_Father: {fileID: 8169910763685850028}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &3918636443401983306
@@ -344,9 +345,6 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7001056860643184726}
-    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 978325322115409470}
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
@@ -364,6 +362,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6306254642428671883}
+    - targetCorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1750015697700799668}
   m_SourcePrefab: {fileID: 100100000, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
 --- !u!4 &4030876004834558943 stripped
 Transform:
@@ -391,10 +392,14 @@ MonoBehaviour:
   mover: {fileID: 0}
   hud: {fileID: 0}
   vfx: {fileID: 0}
+  aim: {fileID: 0}
   statusEffect: {fileID: 0}
   biteHitbox: {fileID: 7875655251101329595}
   prefabId: 41002
-  skillHitboxes: []
+  skillHitboxes:
+  - SkillNum: 1
+    Hitbox: {fileID: 60963685221715389}
+    FollowWarningSlot: 1
   sinkDuration: 2
   sinkMargin: 0.3
   damageNumberPrefab: {fileID: 0}
@@ -444,6 +449,23 @@ MonoBehaviour:
     Place: 1
     WarningSize: 3
     FrontOffset: 2
+--- !u!114 &1750015697700799668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7469139849173040859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f01df729715572244895dc6bd6323f74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackAim
+  mover: {fileID: 0}
+  pivot: {fileID: 9117947606149261704}
+  maxUpAngle: 45
+  maxDownAngle: 30
+  heightDeadzone: 0.1
 --- !u!4 &8169910763685850028 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
@@ -509,6 +531,18 @@ PrefabInstance:
       propertyPath: m_ApplyRootMotion
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 137556000314967370, guid: c6817eb5530563147aad2cfd830512b9, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 137556000314967370, guid: c6817eb5530563147aad2cfd830512b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: caf01dd5152f3934d8079e6160aa3b1e, type: 2}
+    - target: {fileID: 137556000314967370, guid: c6817eb5530563147aad2cfd830512b9, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 69d0f491ebe442d4babf50ccb8bf7488, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 1937043352066368, guid: c6817eb5530563147aad2cfd830512b9, type: 3}

@@ -5,7 +5,7 @@ using SF = UnityEngine.SerializeField;
 public class AttackAim : MonoBehaviour
 {
     [SF] private MonsterMove mover;
-    //"몸통 중앙 높이의 빈 오브젝트
+    //몸통 중앙 높이의 빈 오브젝트
     [SF] private Transform pivot;
     [SF] private float maxUpAngle = 45f;
     [SF] private float maxDownAngle = 30f;

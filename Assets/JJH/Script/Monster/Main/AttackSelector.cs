@@ -17,9 +17,13 @@ public enum AttackKind
 [Serializable]
 public class AttackPattern
 {
-    [Tooltip("Skill이면 Animator Bool 이름 겸 BossSkill.AnimationName")]
+    [Tooltip("Normal일 때 Animator Bool 이름 (Skill은 확인용 이름)")]
     public string Name;
     public AttackKind Kind = AttackKind.Normal;
+
+    [Tooltip("Skill일 때 칸 번호 1~4 (Animator Bool Skill1~4)")]
+    public int SkillNum;
+
 
     [Tooltip("Normal일 때 블렌드 트리 임계값(인덱스)")]
     public int AnimIndex;
@@ -30,11 +34,13 @@ public class AttackPattern
     public float Weight = 1f;
 
     [NonSerialized] public float NextUseTime;
-    [NonSerialized] private int nameHash;
-
+    [NonSerialized] private int animHash;
     public bool IsReady => Time.time >= NextUseTime;
     public bool InRange(float distance) => distance >= MinRange && distance <= MaxRange;
-    public int NameHash => nameHash != 0 ? nameHash : (nameHash = Animator.StringToHash(Name));
+    public int AnimHash => animHash != 0 ? animHash :
+        (animHash = Kind == AttackKind.Skill
+            ? MonsterAnimationController.GetSkillHash(SkillNum)
+            : Animator.StringToHash(Name));
 }
 
 /// <summary>
@@ -143,4 +149,30 @@ public class AttackSelector
     /// <returns></returns>
     private float GetWeight(AttackPattern p) => 
         p == last ? p.Weight * repeatPenalty : p.Weight;
+
+    /// <summary>
+    /// 스킬 데이터 → 선택기 패턴 (Scripted 스킬은 전용 로직이 발동시키므로 제외)
+    /// </summary>
+    public static List<AttackPattern> BuildSkillPatterns(IEnumerable<BossSkill> skills)
+    {
+        var patterns = new List<AttackPattern>();
+        if (skills == null) return patterns;
+
+        foreach (BossSkill s in skills)
+        {
+            if (s.Scripted) continue;
+
+            patterns.Add(new AttackPattern
+            {
+                Name = s.Name,
+                Kind = AttackKind.Skill,
+                SkillNum = s.SkillNum,
+                MinRange = s.MinRange,
+                MaxRange = s.MaxRange,
+                Cooldown = s.Cooldown,
+                Weight = s.Weight,
+            });
+        }
+        return patterns;
+    }
 }

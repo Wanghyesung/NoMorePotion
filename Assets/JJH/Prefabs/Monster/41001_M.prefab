@@ -58,11 +58,11 @@ Transform:
   m_GameObject: {fileID: 493996128918771752}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 1.52}
+  m_LocalPosition: {x: 0, y: -0.089999974, z: 0.62}
   m_LocalScale: {x: 1.25, y: 1.25, z: 1.25}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2687133219966239099}
+  m_Father: {fileID: 9125195995428111718}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &23729173819972596
 BoxCollider:
@@ -734,6 +734,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7702472445712662088}
   m_LocalEulerAnglesHint: {x: 29.930336, y: -64.73274, z: -23.466812}
+--- !u!1 &3890294671440659154
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9125195995428111718}
+  m_Layer: 0
+  m_Name: AttackAim
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9125195995428111718
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3890294671440659154}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.59, z: 0.9}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1579083301059513720}
+  m_Father: {fileID: 2687133219966239099}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3899431934761809552
 GameObject:
   m_ObjectHideFlags: 0
@@ -1022,7 +1054,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
-  skillName: Pound
+  skillNum: 1
 --- !u!1 &4724446118270268942
 GameObject:
   m_ObjectHideFlags: 0
@@ -2550,6 +2582,7 @@ GameObject:
   - component: {fileID: 4220276771707967172}
   - component: {fileID: 3177527198250361639}
   - component: {fileID: 8791191975954953588}
+  - component: {fileID: 1777632854529755912}
   m_Layer: 0
   m_Name: 41001_M
   m_TagString: Untagged
@@ -2573,7 +2606,7 @@ Transform:
   - {fileID: 3974719265563159832}
   - {fileID: 8847993848003024842}
   - {fileID: 1495301619896965177}
-  - {fileID: 1579083301059513720}
+  - {fileID: 9125195995428111718}
   - {fileID: 8706068834357386596}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2695,6 +2728,8 @@ MonoBehaviour:
   anim: {fileID: 789076002571954576}
   mover: {fileID: 3177527198250361639}
   hud: {fileID: 0}
+  vfx: {fileID: 0}
+  aim: {fileID: 0}
   statusEffect: {fileID: 8791191975954953588}
   biteHitbox: {fileID: 23729173819972596}
   prefabId: 41001
@@ -2703,6 +2738,7 @@ MonoBehaviour:
   sinkMargin: 0.3
   damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
   healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
+  counterGrace: 0.2
   poundHitbox: {fileID: 458971461546945755}
   crouchClipTime: 0.17
   windupDuration: 0.2
@@ -2732,6 +2768,7 @@ MonoBehaviour:
   agent: {fileID: 9099992271117678229}
   nextMoveDist: 10
   attackRange: 1.5
+  maxAttackHeight: 1.5
   chaseCollider: {fileID: 7501179914349987990}
   attackSpeed: 1
   patrolDelay: 5
@@ -2768,6 +2805,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.BuffContainer
   _assignOwnerOnAwake: 1
+--- !u!114 &1777632854529755912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9198116484777040148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f01df729715572244895dc6bd6323f74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackAim
+  mover: {fileID: 0}
+  pivot: {fileID: 9125195995428111718}
+  maxUpAngle: 45
+  maxDownAngle: 30
+  heightDeadzone: 0.1
 --- !u!1001 &5658699697394455437
 PrefabInstance:
   m_ObjectHideFlags: 0

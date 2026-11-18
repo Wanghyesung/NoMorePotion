@@ -43,4 +43,10 @@ public static class JJH_Constants
     public const float MIL_SEC_F = 1000f;
 
     public const int NetNone = -1;
+
+    public const string SKILL_TEXT = "Skill";
+    // Animator Bool 이름 접두어 (Skill1 ~ Skill4)
+    public const string SKILL_PARAM_PREFIX = "Skill";
+    public const int MAX_SKILL_SLOT = 4;
+    public const string COUNTERED = "Countered";
 }

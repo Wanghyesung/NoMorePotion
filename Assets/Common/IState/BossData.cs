@@ -28,8 +28,6 @@ public class BossData
 
     [JsonConverter(typeof(StringEnumConverter))]
     public SpawnAreaType SpawnArea;
-    [JsonProperty("BossSkill")]
-    public List<BossSkill> BossSkills;
 
     public Dictionary<string, JToken> BossSubData;
 }

@@ -1500,12 +1500,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8964467687236686386}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.52, z: 1.12}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.181, z: 0.717}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6659254016539390850}
+  m_Father: {fileID: 6022536936072935961}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &4245615418997441943
 BoxCollider:
@@ -1541,6 +1541,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAttackTrigger
   combat: {fileID: 0}
+--- !u!1 &8997438186195702250
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6022536936072935961}
+  m_Layer: 0
+  m_Name: AttackAim
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6022536936072935961
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8997438186195702250}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.339, z: 0.403}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3746201742778344776}
+  m_Father: {fileID: 6659254016539390850}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9027767167273825117
 GameObject:
   m_ObjectHideFlags: 0
@@ -1721,20 +1753,45 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3746201742778344776}
+      addedObject: {fileID: 4614374813499950226}
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4614374813499950226}
+      addedObject: {fileID: 6022536936072935961}
     - targetCorrespondingSourceObject: {fileID: 112949857088394901, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6474291267263207625}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8993177135648064471}
   m_SourcePrefab: {fileID: 100100000, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
 --- !u!4 &1944353195119713265 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 112949857088394901, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
   m_PrefabInstance: {fileID: 1975670276031958372}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &5380818238175356661 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+  m_PrefabInstance: {fileID: 1975670276031958372}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8993177135648064471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5380818238175356661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f01df729715572244895dc6bd6323f74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackAim
+  mover: {fileID: 0}
+  pivot: {fileID: 6022536936072935961}
+  maxUpAngle: 45
+  maxDownAngle: 30
+  heightDeadzone: 0.1
 --- !u!4 &6659254016539390850 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}

@@ -6,14 +6,14 @@ using static JJH_Constants;
 using SF = UnityEngine.SerializeField;
 public class SkillAttackTrigger : MonsterAttackTrigger
 {
-    [SF] private string skillName;
+    [SF] private int skillNum;
 
     protected override AttackInfo GetAttackInfo()
     {
-        BossSkill skill = combat.GetBossSkill(skillName);
+        BossSkill skill = combat.GetBossSkill(skillNum);
         if (skill == null)
         {
-            Debug.LogWarning($"[{name}] 스킬 데이터 없음: {skillName}", this);
+            Debug.LogWarning($"[{name}] 스킬 데이터 없음: {skillNum}", this);
             return new AttackInfo();
         }
 

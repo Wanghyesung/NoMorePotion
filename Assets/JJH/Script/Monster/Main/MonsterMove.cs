@@ -468,10 +468,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
      /// <summary>
      /// 대상과의 높이 차이가 기본 공격 가능 범위 안인지 확인하는 함수
      /// </summary>
-     public bool IsWithinAttackHeight()
-     {
-         if (nowTarget == null) return false;
-         return Mathf.Abs(nowTarget.transform.position.y - transform.position.y) <= maxAttackHeight;
+    public bool IsWithinAttackHeight()
+    {
+        if (nowTarget == null) return false;
+        return Mathf.Abs(nowTarget.transform.position.y - transform.position.y) <= maxAttackHeight;
     }
 
     /// <summary>
@@ -484,12 +484,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         return Vector3.Distance(a, b);
     }
 
-/// <summary>
+    /// <summary>
 /// 기본 대상 지정 함수
 /// <para>기본 대상이 있을 경우 목표를 잃으면 기본 대상을 추적함</para>
 /// </summary>
 /// <param name="target"></param>
-public void SetDefaultTarget(GameObject target) => defaultTarget = target;
+    public void SetDefaultTarget(GameObject target) => defaultTarget = target;
 
     /// <summary>
     /// 대상의 몸 반지름을 뺀 실제 거리 (큰 대상도 표면 기준으로 판정)
