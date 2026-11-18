@@ -1,4 +1,4 @@
-
+using static JJH_Enums;
 using Photon.Realtime;
 
 /// <summary>
@@ -15,7 +15,7 @@ using Photon.Realtime;
 public static class RoomProps 
 {
     public const string DISPLAY_NAME = "dn";
-
+    public const string AREA_BOSS_PREFIX = "ab_";   // 지역보스 처치 여부, 예: "ab_Forest" 
 
     public static string GetDisplayName(RoomInfo room)
     {
@@ -25,5 +25,17 @@ public static class RoomProps
         }
 
         return room.Name;
+    }
+
+    public static string AreaBossKey(SpawnAreaType area)
+    {
+        return AREA_BOSS_PREFIX + area;
+    }
+
+    public static bool IsAreaBossCleared(Room room, SpawnAreaType area)
+    {
+        return room != null && room.CustomProperties.TryGetValue(AreaBossKey(area), out object value)
+            && value is bool b
+            && b;
     }
 }
