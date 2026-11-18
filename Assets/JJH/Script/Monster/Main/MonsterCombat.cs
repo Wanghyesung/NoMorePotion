@@ -354,6 +354,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         anim.IsCountered();
         mover.IsAnimation = true;
+        mover.agent.isStopped = true;
     }
 
     /// <summary>
@@ -385,6 +386,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (counterEffectObj != null)
             PoolManager.Instance.Release(counterEffectObj);
         counterEffectObj = null;
+        mover.agent.isStopped = false;
     }
     #endregion
 

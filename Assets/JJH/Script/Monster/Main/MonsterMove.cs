@@ -83,6 +83,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public float ProvokeDuration => provokeDuration;
     public bool IsTargetObjective => targetInfo != null && targetInfo.IsObjective;
     private bool HasSlot => useAttackSlot && targetInfo != null && targetInfo.Holds(this);
+
+    private float decisionLockUntil;
     #endregion
 
 
@@ -276,6 +278,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         state = new();
         SetTarget(null);
         IsAnimation = false;
+        decisionLockUntil = 0f;
         patrolTimer = attackTimer = 0;
         patrolTimerActive = false;
         provokedUntil = 0;
@@ -400,11 +403,15 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         return result;
     }
 
+    public void LockDecision(float seconds) => decisionLockUntil = Time.time + seconds;
+
     private async UniTaskVoid StartAILoop(CancellationToken token)
     {
         while (!token.IsCancellationRequested)
         {
-            if (!IsAnimation)
+            attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
+
+            if (!IsAnimation && Time.time >= decisionLockUntil)
             {
                 IMonsterState data = UpdateState();
                 
@@ -414,12 +421,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
                 if (patrolTimerActive)
                     patrolTimer += FSM_TIMER / MIL_SEC_F;
 
-                attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
-                
                 state.Stay();
             }
 
-            
             await UniTask.Delay(FSM_TIMER, cancellationToken: token);
         }
     }

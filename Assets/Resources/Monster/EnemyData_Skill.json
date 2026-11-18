@@ -18,6 +18,17 @@
     "MinRange": 0,
     "MaxRange": 10,
     "Cooldown": 10,
+    "Weight": 2,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41002,
+    "SkillNum": 2,
+    "Name": "PunishAttack",
+    "SkillDamage": 600,
+    "MinRange": 5,
+    "MaxRange": 15,
+    "Cooldown": 60,
     "Weight": 1,
     "Scripted": false
   }

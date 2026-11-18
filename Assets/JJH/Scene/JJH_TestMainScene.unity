@@ -18074,6 +18074,10 @@ PrefabInstance:
       propertyPath: counterEffect
       value: 
       objectReference: {fileID: 643597903100466925, guid: 9643d9cd4290e48448f95626dc216723, type: 3}
+    - target: {fileID: 423136512668565773, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
+      propertyPath: m_Radius
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 1305361545106826030, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
       propertyPath: FeedbacksList.Array.size
       value: 2
@@ -18090,6 +18094,18 @@ PrefabInstance:
       propertyPath: managedReferences[7250889269702296382].SfxAudioMixerGroup
       value: 
       objectReference: {fileID: -3165942800488051908, guid: 7e984f512e89b60468e829489e8883e3, type: 2}
+    - target: {fileID: 3304479449894728856, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4659343850272387524, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
+      propertyPath: m_Radius
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 6306254642428671883, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
+      propertyPath: skills.Array.data[1].WarningSize
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 6852315246159276145, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
       propertyPath: sceneViewId
       value: 10
