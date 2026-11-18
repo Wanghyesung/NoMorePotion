@@ -59,6 +59,9 @@ namespace Enzeun.Runtime
         private readonly HashSet<int> _changedCorpses = new HashSet<int>();
         private readonly HashSet<int> _createdDrops = new HashSet<int>();
         private readonly HashSet<int> _changedDrops = new HashSet<int>();
+
+        // 공용 인벤토리의 수량 변화(종류, 아이템 ID, 변화량)입니다. 한 번의 적용이 끝나면 순서대로 이벤트로 알리고 비웁니다.
+        private readonly List<(int kind, int itemId, int delta)> _packDeltas = new List<(int kind, int itemId, int delta)>();
         #endregion
 
         #region Init
@@ -178,6 +181,21 @@ namespace Enzeun.Runtime
         /// 스냅샷으로 전체 상태가 통째로 바뀌었을 때 발생합니다. (보여 주는 쪽이 처음부터 다시 그려야 함)
         /// </summary>
         public event Action OnReloaded;
+
+        /// <summary>종류 값 : 재료</summary>
+        public const int ItemKindMaterial = 0;
+
+        /// <summary>종류 값 : 포션</summary>
+        public const int ItemKindPotion = 1;
+
+        /// <summary>
+        /// 공용 인벤토리의 수량이 바뀌었을 때 (종류, 아이템 ID, 변화량)으로 발생합니다. 알림창 등이 구독합니다.
+        /// 종류는 ItemKindMaterial(0) 또는 ItemKindPotion(1), 아이템 ID 는 재료 ID 또는 포션 ID, 변화량은 늘면 +, 줄면 - 입니다.
+        /// 공용 인벤토리에 들어오고 나간 모든 변화(재료 획득, 제작, 꺼냄, 다른 보관 장소와의 이동)를 알립니다. 변화가 0 이면 발생하지 않습니다.
+        /// 마스터를 포함한 모든 클라이언트에서 변경이 적용될 때 한 번씩만 발생하며, 한 번의 적용 안의 변화를 모두 적용한 뒤에 순서대로 발생합니다.
+        /// 스냅샷으로 전체 상태가 바뀔 때(OnReloaded)는 발생하지 않습니다.
+        /// </summary>
+        public event Action<int, int, int> OnPackItemChanged;
         #endregion
 
         #region MasterValidate
@@ -1381,10 +1399,13 @@ namespace Enzeun.Runtime
 
             if (!consistent)
             {
+                // 반쯤 적용된 변화는 알리지 않습니다. (전체 목록을 다시 받게 됨)
+                _packDeltas.Clear();
                 return InventoryApplyStatus.Inconsistent;
             }
 
             Version = apply.Version;
+            FirePackDeltas();
 
             outcome.Value = apply.Count;
             outcome.CorpseId = apply.CorpseId;
@@ -1404,14 +1425,49 @@ namespace Enzeun.Runtime
                         return false;
                     }
 
-                    GetStore(change.Target.Kind).Materials.SetCount(change.MaterialId, change.Count);
+                    MaterialInventory materials = GetStore(change.Target.Kind).Materials;
+                    int before = materials.GetCount(change.MaterialId);
+                    materials.SetCount(change.MaterialId, change.Count);
+
+                    // 한도로 잘릴 수 있으므로 실제로 바뀐 만큼을 변화량으로 씁니다.
+                    if (change.Target.Kind == ContainerKind.Pack)
+                    {
+                        RecordPackDelta(ItemKindMaterial, change.MaterialId, materials.GetCount(change.MaterialId) - before);
+                    }
+
                     return true;
 
                 case InventoryChangeType.AddPotion:
-                    return change.Target.IsStore && change.Potion != null && GetStore(change.Target.Kind).Potions.Add(change.Potion);
+                    if (!change.Target.IsStore || change.Potion == null || !GetStore(change.Target.Kind).Potions.Add(change.Potion))
+                    {
+                        return false;
+                    }
+
+                    if (change.Target.Kind == ContainerKind.Pack)
+                    {
+                        RecordPackPotion(change.Potion, 1);
+                    }
+
+                    return true;
 
                 case InventoryChangeType.RemovePotion:
-                    return change.Target.IsStore && GetStore(change.Target.Kind).Potions.Take(change.InstanceId) != null;
+                    if (!change.Target.IsStore)
+                    {
+                        return false;
+                    }
+
+                    PotionInstance removed = GetStore(change.Target.Kind).Potions.Take(change.InstanceId);
+                    if (removed == null)
+                    {
+                        return false;
+                    }
+
+                    if (change.Target.Kind == ContainerKind.Pack)
+                    {
+                        RecordPackPotion(removed, -1);
+                    }
+
+                    return true;
 
                 case InventoryChangeType.SetSlot:
                     return ApplySetSlot(change);
@@ -1516,6 +1572,39 @@ namespace Enzeun.Runtime
             }
 
             return inventory;
+        }
+
+        private void RecordPackDelta(int kind, int itemId, int delta)
+        {
+            if (delta != 0)
+            {
+                _packDeltas.Add((kind, itemId, delta));
+            }
+        }
+
+        private void RecordPackPotion(PotionInstance potion, int delta)
+        {
+            if (potion != null && potion.Data != null)
+            {
+                RecordPackDelta(ItemKindPotion, potion.Data.potionID, delta);
+            }
+        }
+
+        // 모아 둔 공용 인벤토리 변화를 순서대로 알립니다. (구독자가 상태를 읽어도 모두 적용된 뒤의 값)
+        private void FirePackDeltas()
+        {
+            if (_packDeltas.Count == 0)
+            {
+                return;
+            }
+
+            var deltas = _packDeltas.ToArray();
+            _packDeltas.Clear();
+
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                OnPackItemChanged?.Invoke(deltas[i].kind, deltas[i].itemId, deltas[i].delta);
+            }
         }
 
         private void FireDeferredEvents()

@@ -156,6 +156,19 @@ namespace Enzeun.Runtime
             _objects.Add(worldObject.NetworkId, worldObject);
             return true;
         }
+
+        /// <summary>
+        /// 마스터에게 전체 목록(남은 횟수)을 다시 요청합니다. 오브젝트를 늦게 등록한 클라이언트가 부릅니다. (마스터는 요청하지 않음)
+        /// </summary>
+        public void RequestFullSync()
+        {
+            if (!PhotonNetwork.InRoom || PhotonNetwork.IsMasterClient)
+            {
+                return;
+            }
+
+            SendReady();
+        }
         #endregion
 
         #region Requests
