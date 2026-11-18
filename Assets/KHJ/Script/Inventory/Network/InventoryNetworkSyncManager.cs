@@ -49,6 +49,14 @@ namespace Enzeun.Runtime
         public Func<int, Vector3> PlayerPositionResolver { get; set; }
 
         /// <summary>
+        /// 공용 인벤토리의 수량이 바뀔 때 (종류, 아이템 ID, 변화량)으로 발생합니다. 알림창이 구독합니다.
+        /// 종류 : TeamInventoryState.ItemKindMaterial(0, 재료) / ItemKindPotion(1, 포션). 변화량 : 늘면 +, 줄면 -.
+        /// 재료 획득, 제작, 포션을 꺼내거나 넣는 것 등 공용 인벤토리에 생긴 모든 변화를 알립니다.
+        /// 모든 클라이언트에서 변경이 적용될 때 한 번씩만 발생합니다. (스냅샷으로 통째로 바뀔 때는 발생하지 않음)
+        /// </summary>
+        public event Action<int, int, int> OnPackItemChanged;
+
+        /// <summary>
         /// 내 플레이어 번호(ActorNumber)입니다. 방에 없으면 0 입니다.
         /// </summary>
         public int LocalActor => PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer != null ? PhotonNetwork.LocalPlayer.ActorNumber : 0;
@@ -72,6 +80,13 @@ namespace Enzeun.Runtime
 
             Instance = this;
             _state = new TeamInventoryState();
+            _state.OnPackItemChanged += HandlePackItemChanged;
+        }
+
+        // 상태의 공용 인벤토리 변화를 그대로 매니저의 이벤트로 넘겨 줍니다.
+        private void HandlePackItemChanged(int kind, int itemId, int delta)
+        {
+            OnPackItemChanged?.Invoke(kind, itemId, delta);
         }
 
         private void Start()
@@ -124,6 +139,11 @@ namespace Enzeun.Runtime
             if (Instance == this)
             {
                 Instance = null;
+
+                if (_state != null)
+                {
+                    _state.OnPackItemChanged -= HandlePackItemChanged;
+                }
             }
 
             // 기다리던 요청이 영원히 끝나지 않지 않도록 실패로 마무리합니다.

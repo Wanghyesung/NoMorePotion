@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Enzeun.Runtime;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 /*///////////////////////////////////////////
@@ -24,6 +25,11 @@ public sealed class PlayerTakeState : PlayerState
     private AnimationEvent[] bothClipEvents;
     private bool takeBoth;
     private bool hasTaken;
+
+    // 현준 수정 : 이번 꺼내기에서 정확히 꺼낼 퀵슬롯 칸입니다. NoQuickSlot 이면 무작위(F 키)
+    private const int NoQuickSlot = -1;
+    private int quickSlot = NoQuickSlot;
+    private System.Action<InputAction.CallbackContext>[] quickSlotHandlers;
     #endregion
 
     public PlayerTakeState(FSM owner, SOTakeState data) : base(owner, data)
@@ -46,7 +52,53 @@ public sealed class PlayerTakeState : PlayerState
         animEvent.RegisterFrame(bothClip, bothClipEvents[1], FinishTake);
 
         InputManager.Instance.TakeOutPotionAction.performed += RequestTake;
+
+        // 현준 수정 : 숫자 키 1~0 으로 퀵슬롯(개인 인벤 칸 0~9)의 포션을 꺼냅니다.
+        InputAction[] numberActions = GetQuickSlotActions();
+        quickSlotHandlers = new System.Action<InputAction.CallbackContext>[numberActions.Length];
+        for (int i = 0; i < numberActions.Length; i++)
+        {
+            int slot = i;
+            quickSlotHandlers[i] = context => RequestQuickSlot(slot);
+            numberActions[i].performed += quickSlotHandlers[i];
+        }
     }
+
+    #region QuickSlot
+    // 현준 수정 : 퀵슬롯 칸 번호(0~9) 순서의 입력입니다. 칸 0 = 키 1 ... 칸 8 = 키 9, 칸 9 = 키 0
+    private static InputAction[] GetQuickSlotActions()
+    {
+        InputManager input = InputManager.Instance;
+        return new[]
+        {
+            input.Number1Action, input.Number2Action, input.Number3Action, input.Number4Action, input.Number5Action,
+            input.Number6Action, input.Number7Action, input.Number8Action, input.Number9Action, input.Number0Action,
+        };
+    }
+
+    private void RequestQuickSlot(int slot)
+    {
+        // 그 칸에 포션이 없으면 꺼내는 동작을 시작하지 않습니다. (애니메이션만 재생되고 아무것도 안 나오는 것을 막음)
+        if (HasPotionInQuickSlot(slot) == false)
+            return;
+
+        quickSlot = slot;
+        owner.ChangeActionState(FSM.StateType.Take);
+    }
+
+    private static bool HasPotionInQuickSlot(int slot)
+    {
+        InventoryNetworkSyncManager manager = InventoryNetworkSyncManager.Instance;
+        if (manager == null || manager.State == null || manager.LocalActor <= 0)
+            return false;
+
+        PersonalInventory inventory = manager.State.GetPersonal(manager.LocalActor);
+        if (inventory == null || slot < 0 || slot >= inventory.Capacity)
+            return false;
+
+        return inventory.Slots[slot].Kind == InventorySlotKind.Potion && inventory.Slots[slot].IsEmpty == false;
+    }
+    #endregion
 
     public override void Dispose()
     {
@@ -58,11 +110,24 @@ public sealed class PlayerTakeState : PlayerState
         animEvent.UnregisterFrame(bothClip, bothClipEvents[0], TakePotion);
         animEvent.UnregisterFrame(bothClip, bothClipEvents[1], FinishTake);
         if (InputManager.Instance != null)
+        {
             InputManager.Instance.TakeOutPotionAction.performed -= RequestTake;
+
+            if (quickSlotHandlers != null)
+            {
+                InputAction[] numberActions = GetQuickSlotActions();
+                for (int i = 0; i < numberActions.Length; i++)
+                    numberActions[i].performed -= quickSlotHandlers[i];
+            }
+        }
     }
 
     private void RequestTake(InputAction.CallbackContext context)
-        => owner.ChangeActionState(FSM.StateType.Take);
+    {
+        // F 키는 무작위로 꺼냅니다. (남아 있을 수 있는 퀵슬롯 지정을 지움)
+        quickSlot = NoQuickSlot;
+        owner.ChangeActionState(FSM.StateType.Take);
+    }
 
     public override bool CanEnter()
     {
@@ -79,7 +144,8 @@ public sealed class PlayerTakeState : PlayerState
     {
         base.Enter();
         hasTaken = false;
-        takeBoth = hand.IsBothHandsEmpty;
+        // 현준 수정 : 퀵슬롯은 포션 한 개만 꺼내므로 양손이 비어도 한 손 동작을 씁니다. (F 키만 양손)
+        takeBoth = quickSlot == NoQuickSlot && hand.IsBothHandsEmpty;
         owner.Animator.SetTrigger(takeBoth == true ? takeBothHash
             : hand.TakeSide == Hand.Side.Left ? takeLeftHash : takeRightHash);
     }
@@ -92,7 +158,10 @@ public sealed class PlayerTakeState : PlayerState
         hasTaken = true;
 
         // 빈 손의 수만큼 한 번에 요청합니다. (양손이 비었으면 2개, 한 손만 비었으면 1개)
-        hand.TakeOutPotion();
+        if (quickSlot != NoQuickSlot)
+            hand.TakeOutQuickSlot(quickSlot);
+        else
+            hand.TakeOutPotion();
     }
 
     private void FinishTake(AnimationEvent animationEvent) => owner.ClearActionState();
@@ -100,6 +169,7 @@ public sealed class PlayerTakeState : PlayerState
     public override void Exit()
     {
         base.Exit();
+        quickSlot = NoQuickSlot;
         owner.Animator.ResetTrigger(takeLeftHash);
         owner.Animator.ResetTrigger(takeRightHash);
         owner.Animator.ResetTrigger(takeBothHash);
