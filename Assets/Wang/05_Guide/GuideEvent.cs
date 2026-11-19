@@ -55,13 +55,16 @@ public sealed class GuideEvent
 
     public void Exit()
     {
-        StopConditions();
-        pendingEvents.Clear();
-        SetObjectsActive(false);
+        Cancel();
         endEvent.Invoke();
     }
 
-    public void Cancel() => Exit();
+    public void Cancel()
+    {
+        StopConditions();
+        pendingEvents.Clear();
+        SetObjectsActive(false);
+    }
 
     internal void SetObjectsActive(bool active)
     {

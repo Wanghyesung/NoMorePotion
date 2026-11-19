@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 /*///////////////////////////////////////////
              PlayerInputInfo / InputManager
@@ -140,6 +141,7 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         EscapeAction.Enable();
+        SceneManager.sceneLoaded += OnSceneLoaded;
         // 인벤토리에서 플레이어 조작이 꺼져도 Alt 해제 이벤트는 받는다.
         AltAction.performed += OnAltPressed;
         AltAction.canceled += OnAltReleased;
@@ -150,7 +152,7 @@ public sealed class InputManager : MonoBehaviour
         focused = true;
         CancelInput();
 
-        RefreshCursorState(cursorLocked || AltAction.IsPressed());
+        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
     }
 
     private void Update()
@@ -168,6 +170,7 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         focused = false;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
         EscapeAction.Disable();
         AltAction.performed -= OnAltPressed;
         AltAction.canceled -= OnAltReleased;
@@ -184,6 +187,27 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         Instance = null;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode != LoadSceneMode.Single)
+            return;
+
+        bool isLobby = scene.name == SceneNames.OUT_GAME;
+        cursorLocked = false;
+        SetInputEnabled(!isLobby);
+        if (isLobby)
+        {
+            AltAction.Disable();
+            UnLockAllKeys();
+        }
+        else
+        {
+            AltAction.Enable();
+        }
+
+        RefreshCursorState(isLobby || AltAction.IsPressed());
     }
 
     private void OnApplicationFocus(bool hasFocus)
@@ -243,6 +267,7 @@ public sealed class InputManager : MonoBehaviour
 
     private void RefreshCursorState(bool bState)
     {
+        bState |= SceneManager.GetActiveScene().name == SceneNames.OUT_GAME;
         Cursor.lockState = bState ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = bState;
 

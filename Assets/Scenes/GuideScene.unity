@@ -2355,109 +2355,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21415d2fa70bf324e92678b1a8a57405, type: 3}
---- !u!1001 &137881073
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 3547573532011547983}
-    m_Modifications:
-    - target: {fileID: 472675799912919251, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_Name
-      value: ArrivalPortal
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919261, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: scalingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919261, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: InitialModule.maxNumParticles
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.1875
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -2.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 90
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 695677839034170599, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: scalingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 695677839034170599, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: InitialModule.maxNumParticles
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 1225352069563975137, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_Materials.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4440001749892883989, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: scalingMode
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5255036158912362384, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4440001749892883995, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
---- !u!4 &137881074 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 472675799912919262, guid: cd24f4a69dc5b2143a40967a4bfe1453, type: 3}
-  m_PrefabInstance: {fileID: 137881073}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &139499596
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7215,6 +7112,57 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8655914174681757461, guid: a128d9352616fe247892a6a819c3d6bd, type: 3}
   m_PrefabInstance: {fileID: 1110290940}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &358773426
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 358773428}
+  - component: {fileID: 358773427}
+  m_Layer: 0
+  m_Name: ChangeHandEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &358773427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 358773426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 032bd8c960a334441a5009ae1b6c2cb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChangeHandEndEvent
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &358773428
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 358773426}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &361189400 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8140694566672776290, guid: 7a0ac6f72e36fe4409c77de06825c1e3, type: 3}
@@ -10630,6 +10578,57 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3127734990722079282, guid: 98894a70690f80a47a1473a67f7f2186, type: 3}
   m_PrefabInstance: {fileID: 1027244795}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &551020277
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 551020279}
+  - component: {fileID: 551020278}
+  m_Layer: 0
+  m_Name: ShakePotionEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &551020278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551020277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43535bab6e6818d4496e6c237b3dce85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShakePotionEndEvent
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &551020279
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 551020277}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &553425195
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11758,6 +11757,103 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b60edf1981aa1ff489b52770a58716aa, type: 3}
+--- !u!1001 &606325813
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1001719269}
+    m_Modifications:
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1001719268}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: HideGuideArrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GuideManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 2947045540964591543, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_Name
+      value: GuideTree
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -34
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -29
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5518083825658187898, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: _networkId
+      value: 60
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+--- !u!114 &606325814 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+  m_PrefabInstance: {fileID: 606325813}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5a5b2a0edb97c349839dadf0b25e1ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DepletedEndEvent
+--- !u!4 &606325815 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+  m_PrefabInstance: {fileID: 606325813}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &607485264
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13679,6 +13775,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4262456326521289956, guid: 718539d174b5cf04ebbb5b241ad05855, type: 3}
       insertIndex: -1
       addedObject: {fileID: 715630219}
+    - targetCorrespondingSourceObject: {fileID: 4262456326521289956, guid: 718539d174b5cf04ebbb5b241ad05855, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 715630222}
   m_SourcePrefab: {fileID: 100100000, guid: 718539d174b5cf04ebbb5b241ad05855, type: 3}
 --- !u!224 &715630216 stripped
 RectTransform:
@@ -13715,6 +13814,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GuideDescriptionPanel
   descriptionText: {fileID: 715630217}
   soEventText: {fileID: 0}
+--- !u!223 &715630222
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715630218}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 20
+  m_TargetDisplay: 0
 --- !u!4 &716420612 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4014754942320031197, guid: 9513d10644e932849b51f7fbd43a268c, type: 3}
@@ -18808,6 +18930,57 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bbc8d79099d9c3742b6309fdf09fe820, type: 3}
+--- !u!1 &986131217
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 986131219}
+  - component: {fileID: 986131218}
+  m_Layer: 0
+  m_Name: ThrowPotionEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &986131218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986131217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be4832cf8385c4b48a955b606e464935, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThrowPotionEndEvent
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &986131219
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986131217}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &988069434
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19299,6 +19472,8 @@ MonoBehaviour:
           m_CallState: 2
   - eventText: {fileID: 11400000, guid: 074a567cf4db8714e8e8157e3e9dd7f8, type: 2}
     events:
+    - {fileID: 2140117390}
+    - {fileID: 986131218}
     - {fileID: 4843208166430796771}
     startEvent:
       m_PersistentCalls:
@@ -19508,6 +19683,555 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - eventText: {fileID: 11400000, guid: 0b54ec98d9453f24886a6817af7b3ec0, type: 2}
+    events:
+    - {fileID: 1381123807}
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockMoveKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockLookKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockQuickSlotKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockUsePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockAimKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventText: {fileID: 11400000, guid: ebe7a1d309ad3364f97188862c9d97c7, type: 2}
+    events:
+    - {fileID: 2011884315}
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventText: {fileID: 11400000, guid: a1e9c34a77e25754f8ff35b72ee4e470, type: 2}
+    events:
+    - {fileID: 358773427}
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockLookKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockTakePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockQuickSlotKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockSwitchHandKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockUsePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockAimKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventText: {fileID: 11400000, guid: b4d94f23b0abdd54eb8635c77a2df9c9, type: 2}
+    events:
+    - {fileID: 606325814}
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockLookKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockTakePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockQuickSlotKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockSwitchHandKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockUsePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockAimKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockMoveKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockJumpKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockInteractKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - eventText: {fileID: 11400000, guid: b64047f8cf96ca54d9a74f0de191e9a3, type: 2}
+    events:
+    - {fileID: 551020278}
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockLookKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockTakePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockQuickSlotKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockSwitchHandKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockUsePotionKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockAimKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockShakeKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   descriptionPanel: {fileID: 715630219}
   guideArrow: {fileID: 699692922}
   startEvent:
@@ -19607,6 +20331,13 @@ Transform:
   - {fileID: 4843208166430796772}
   - {fileID: 2618523412913129952}
   - {fileID: 6477269177428686162}
+  - {fileID: 2140117391}
+  - {fileID: 986131219}
+  - {fileID: 1381123808}
+  - {fileID: 2011884316}
+  - {fileID: 606325815}
+  - {fileID: 358773428}
+  - {fileID: 551020279}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1001719270
@@ -24435,7 +25166,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 7864473841410981400, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 2636631114372374743, guid: a1931e6b92be4dc4da259086d81cb2bc, type: 3}
       insertIndex: 0
@@ -29576,6 +30308,58 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d53107d4bfb09b34d910e7c3902030a8, type: 3}
+--- !u!1 &1381123806
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1381123808}
+  - component: {fileID: 1381123807}
+  m_Layer: 0
+  m_Name: HealEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1381123807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381123806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 305cb22ff3dbe2c419043815667f1035, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealEndEvent
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  missingHealth: 600
+--- !u!4 &1381123808
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381123806}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1381366586 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1423522405217819759, guid: b4f1c7988605378489dfe9e711f364f9, type: 3}
@@ -33238,8 +34022,14 @@ MonoBehaviour:
     Count: 5
     KeywordId: 0
   _personalPotions:
+  - PotionId: 10004
+    Count: 1
+    KeywordId: 0
   - PotionId: 12008
-    Count: 3
+    Count: 2
+    KeywordId: 0
+  - PotionId: 11001
+    Count: 1
     KeywordId: 0
   _packMaterials:
   - MaterialId: 20000
@@ -42393,7 +43183,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1982708043
 Transform:
   m_ObjectHideFlags: 0
@@ -42980,6 +43770,57 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af833383126e9ab459267f2bf8d0f663, type: 3}
+--- !u!1 &2011884314
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2011884316}
+  - component: {fileID: 2011884315}
+  m_Layer: 0
+  m_Name: CraftEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &2011884315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2011884314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 201208cce7932cb40a627b4e87dc8e5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CraftEndEvent
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &2011884316
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2011884314}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2013008414 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8579428207023098036, guid: a3f7112da0d12024ba721cfb932588bd, type: 3}
@@ -44962,6 +45803,57 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6408257995585935153, guid: 450cadea99ff89049a9cb8ea98d50eda, type: 3}
   m_PrefabInstance: {fileID: 607485264}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2140117389
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2140117391}
+  - component: {fileID: 2140117390}
+  m_Layer: 0
+  m_Name: DrinkPotionEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &2140117390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2140117389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18a3ab6dea962f542b583f09a9835ff1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DrinkPotionEndEvent
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &2140117391
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2140117389}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2141721664
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47111,10 +48003,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 606785866391472889, guid: 0b633d3b8a57b9f4aa6e117a5f62ead0, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 137881074}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0b633d3b8a57b9f4aa6e117a5f62ead0, type: 3}
 --- !u!4 &3547573532011547983 stripped
@@ -47146,6 +48035,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1001719269}
     m_Modifications:
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 1001719268}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: HideGuideArrow
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: GuideManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 5067281245688191972, guid: 9212057ad849494438a8b8d60300947c, type: 3}
       propertyPath: m_Name
       value: GuideThrowTarget

@@ -79,6 +79,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
    
     
     public event Action<Vector3> OnDead;
+    public event Action OnHealed;
     public void SetLookPitch(float pitch)
     {
         lookPitch = Mathf.Clamp(pitch, MinLookPitch, MaxLookPitch);
@@ -95,14 +96,17 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         if (character.HP <= 0)
             return;
 
-        character.HP += Mathf.Min(amount, Mathf.Max(0, character.MaxHP - character.HP));
+        int healed = Mathf.Min(amount, Mathf.Max(0, character.MaxHP - character.HP));
+        character.HP += healed;
+        if (healed > 0)
+            OnHealed?.Invoke();
     }
 
     public void TakeDamage(CommonStruct.AttackInfo attackInfo)
     {
         if (IsLocalPlayer == false)
             return;
-        if (character.HP <= 0)
+        if (character.HP <= 0 || fsm.CurrentState.Type == FSM.StateType.Roll)
             return;
 
         // 피해 / 방어력 배율: +20%(1.2배)이면 피해 100 → 83. 0.01은 0 나눗셈 방지용 하한이다.

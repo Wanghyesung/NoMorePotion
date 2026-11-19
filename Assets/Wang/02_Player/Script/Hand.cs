@@ -55,6 +55,8 @@ public sealed class Hand : MonoBehaviour
     /// </summary>
     public event Action<int> OnFocusChanged;
     public event Action OnPotionHeld;
+    public event Action OnPotionDrunk;
+    public event Action OnPotionThrown;
 
     /// <summary>
     /// 흔들기 시작 시 알림. 첫 번째 인자는 왼손, 두 번째 인자는 오른손의 포션입니다.
@@ -242,6 +244,7 @@ public sealed class Hand : MonoBehaviour
         playerView.RPC(nameof(RpcThrowPotion), RpcTarget.Others,
             potion.GetComponent<PhotonView>().ViewID, (int)side,
             throwData.Origin, throwData.Target, throwData.Gravity, throwData.ArcHeight);
+        OnPotionThrown?.Invoke();
     }
 
 
@@ -254,6 +257,7 @@ public sealed class Hand : MonoBehaviour
         SetPotion(side, null);
         OnDrink.Invoke(potion);
         potion.Drink(transform.position);
+        OnPotionDrunk?.Invoke();
     }
 
     public void Drink() => Drink(focusedSide);

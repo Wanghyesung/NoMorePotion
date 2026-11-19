@@ -118,7 +118,8 @@ public sealed class GuideManager : MonoBehaviour
 
     public void HideGuideArrow()
     {
-        guideArrow.gameObject.SetActive(false);
+        if (guideArrow != null)
+            guideArrow.gameObject.SetActive(false);
     }
 
     private void CancelPendingEnter()
