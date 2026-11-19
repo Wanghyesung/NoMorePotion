@@ -581,6 +581,9 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         if (canceled || !PhotonNetwork.InRoom)
             return;
 
+        // 판마다 월드 오브젝트 배치를 새로 정함 (다른 사람이 게임 씬을 불러오기 전에 방 정보에 올림)
+        Enzeun.Runtime.WorldSeed.Roll();
+
         PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
     }
 
