@@ -154,7 +154,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         SetLookPitch(Mathf.DeltaAngle(0f, lookPivot.localEulerAngles.x));
         Dictionary<DamageType, int> immune = new();
         // 현재 플레이어의 기본 최대 HP / 시작 HP. 버프 컨테이너는 HP 자체를 보관하지 않는다.
-        character = new PlayerCharacter("Player", 10000, 10000, immune, 1,10);
+        character = new PlayerCharacter("Player", 3000, 3000, immune, 1,10);
 
         fsm = GetComponent<FSM>();
         fsm.Init(this);
