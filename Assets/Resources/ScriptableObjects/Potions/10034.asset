@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 026a58e7b23002145b8e52f31e777c28, type: 3}
+  m_Name: 10034
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.PotionData
+  _potionIcon: {fileID: 21300000, guid: be94f6795e7d9684b9ded28ce0c44511, type: 3}
+  _potionID: 10034
+  _potionName: "\uC2DC\uC6D0 \uD3EC\uC158 (\uC18C)"
+  _potionDesc: "\uBAB8\uC744 \uC2DC\uC6D0\uD558\uAC8C \uD574\uC8FC\uB294 \uD3EC\uC158."
+  _potionEffect: "\uCCB4\uC628 - 15%\n\uC218\uBD84 + 10%\n\uD3EC\uB9CC\uAC10 - 5%"
+  _potionType: 1
+  _potionSize: 0
+  _potionColor: {r: 0.3529412, g: 0.80784315, b: 0.9490196, a: 1}
+  _potionExplosionRange: 1
+  _potionCombinationType: 1
+  _maxHoldCount: 1
+  _explosionPrefab: {fileID: 1745905483756109270, guid: 19f6d238496ec094aab050a5d8a4471e, type: 3}
+  _recipeMaterials:
+  - {fileID: 11400000, guid: ec080e273fb781a419f337fd0512be71, type: 2}
+  - {fileID: 11400000, guid: 61b0a944398197042b924926a8a69f4d, type: 2}
+  _effects:
+  - rid: 4119466663539376448
+  - rid: 4119466663539376449
+  - rid: 4119466663539376450
+  references:
+    version: 2
+    RefIds:
+    - rid: 4119466663539376448
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 1
+        _percent: -15
+    - rid: 4119466663539376449
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 3
+        _percent: 10
+    - rid: 4119466663539376450
+      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
+      data:
+        _gauge: 4
+        _percent: -5
