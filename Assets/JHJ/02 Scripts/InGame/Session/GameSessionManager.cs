@@ -41,6 +41,8 @@ public class GameSessionManager : MonoBehaviour
     [SerializeField] private Transform spawnPoint;
     private GameObject spawnedPlayer;
 
+    public GameObject LocalPlayer => spawnedPlayer;
+
     [SerializeField] private float loadTimeout = 30f;   // 로드 대기 최대 시간
 
     private PhotonView view;
