@@ -21,6 +21,7 @@ namespace Enzeun.Runtime
     ///
     /// 위치 판정 : 박스 윗면에서 아래로 쏴서 지면 레이어에 맞고, 경사가 한도 이하이고, NavMesh 위이고, 배치 금지 구역이 아니고, 이미 놓은 것과 반경 합 이상 떨어져 있어야 합니다.
     /// 판정에 실패해서 최대 시도 횟수를 넘으면 그 자리는 건너뜁니다. (모든 클라이언트가 같은 자리에서 건너뜀)
+    /// (진희진추가)NavMesh 검사는 지역에 허용 Area 가 지정되어 있으면 그 Area 로, 없으면 스포너의 NavMesh 영역 이름으로 합니다.
     ///
     /// 시드는 방장이 새 판을 시작할 때 WorldSeed.Roll() 로 정합니다. 시드가 아직 없으면 이 컴포넌트가 방장일 때 대신 정합니다. (테스트용)
     /// 오브젝트는 Start 에서 만들어(실행 순서를 앞당겨 둠) WorldObjectNetworkSyncManager 의 Start 등록에 포함됩니다. 방에 늦게 들어와 그 뒤에 만들게 되면 직접 등록하고 전체 목록을 다시 요청합니다.
@@ -238,7 +239,7 @@ namespace Enzeun.Runtime
             var result = new List<Placement>();
             var placed = new List<(Vector3 position, float radius)>();
             WorldObjectSpawnBlocker[] blockers = FindObjectsByType<WorldObjectSpawnBlocker>(FindObjectsSortMode.None);
-            int areaMask = ResolveAreaMask();
+            int defaultAreaMask = ResolveAreaMask();        // 진희진 (변경전) int areaMask -> (변경후) int defaultAreaMask
 
             for (int r = 0; r < _regions.Count; r++)
             {
@@ -249,6 +250,9 @@ namespace Enzeun.Runtime
                     Debug.LogWarning($"[WorldObjectAutoSpawner]: 지역 목록 {r}번이 비었거나 배치 테이블이 없어 건너뜁니다.", this);
                     continue;
                 }
+
+                // 지역에 허용 Area 가 있으면 그것으로, 없으면 스포너 설정으로 NavMesh 를 검사
+                int areaMask = region.ResolveAreaMask(defaultAreaMask); // 진희진 추가
 
                 int count = region.Count;
                 if (count >= _networkIdStride)

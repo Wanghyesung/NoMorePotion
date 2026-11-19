@@ -17,7 +17,7 @@ MonoBehaviour:
   _potionName: "\uD638\uB85C\uB85D \uD3EC\uC158 (\uC911)"
   _potionDesc: "\uC218\uBD84\uC744 \uCC44\uC6CC\uC8FC\uB294 \uD3EC\uC158.\n\uC6A9\uB7C9\uC744
     \uD0A4\uC6CC \uD6A8\uACFC\uAC00 \uC99D\uD3ED\uB418\uC5C8\uB2E4."
-  _potionEffect: "\uC218\uBD84 + 25%\n\uD3EC\uB9CC\uAC10 - 5%\n\uCCB4\uC628 - 5%"
+  _potionEffect: "\uC218\uBD84 + 25%\n\uCCB4\uC628 - 2%"
   _potionType: 1
   _potionSize: 1
   _potionColor: {r: 0.3, g: 0.7, b: 1, a: 1}
@@ -28,7 +28,6 @@ MonoBehaviour:
   _recipeMaterials: []
   _effects:
   - rid: 4119466663539376306
-  - rid: 4119466663539376307
   - rid: 4119466663539376308
   references:
     version: 2
@@ -38,13 +37,8 @@ MonoBehaviour:
       data:
         _gauge: 3
         _percent: 25
-    - rid: 4119466663539376307
-      type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
-      data:
-        _gauge: 4
-        _percent: -5
     - rid: 4119466663539376308
       type: {class: GaugeChangePotionEffect, ns: Enzeun.SO, asm: Assembly-CSharp}
       data:
         _gauge: 1
-        _percent: -5
+        _percent: -2
