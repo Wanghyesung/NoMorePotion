@@ -20,8 +20,16 @@ public class MonsterAnimationBridge : MonoBehaviour
 
     // 스킬
     private void SkillAnimationStart() => combat.SkillAnimationStart();
-    private void SkillHitOn(AnimationEvent e) => combat.SkillHitOn(GetSkillNum(e));
-    private void SkillHitOff(AnimationEvent e) => combat.SkillHitOff(GetSkillNum(e));
+    private void SkillHitOn(AnimationEvent e) 
+    {
+        (float dist, float duration) = GetSkillDistAndDuration(e);
+        combat.SkillHitOn(GetSkillNum(e), dist, duration);
+    }
+    private void SkillHitOff(AnimationEvent e)
+    {
+        float dist = GetSkillDist(e);
+        combat.SkillHitOff(GetSkillNum(e), dist);
+    }
     private void SkillAnimationEnd(AnimationEvent e) => combat.SkillAnimationEnd(GetSkillNum(e));
 
     /// <summary>
@@ -37,6 +45,33 @@ public class MonsterAnimationBridge : MonoBehaviour
             return num;
 
         return 0;
+    }
+
+    /// <summary>
+    /// 이벤트 float 칸 리턴
+    /// </summary>
+    private static float GetSkillDist(AnimationEvent e)
+    {
+        if (e.floatParameter > 0)
+            return e.floatParameter;
+        
+        return 0;
+    }
+
+    /// <summary>
+    /// 이벤트 float 칸 리턴
+    /// </summary>
+    private static (float, float) GetSkillDistAndDuration(AnimationEvent e)
+    {
+        if (e.floatParameter > 0)
+        {
+            if (float.TryParse(e.stringParameter, out float result))
+                return (e.floatParameter, result);
+            else
+                return (0, 0);
+        }
+
+        return (0, 0);
     }
 
     private void WarningOn(AnimationEvent e)

@@ -3,6 +3,7 @@ using Photon.Pun;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using static JJH_Constants;
@@ -85,6 +86,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private bool HasSlot => useAttackSlot && targetInfo != null && targetInfo.Holds(this);
 
     private float decisionLockUntil;
+
+    private float savedSpeed;
+    private float savedAccel;
+    private bool savedRotation;
+    private bool isManualMoving;
     #endregion
 
 
@@ -248,6 +254,51 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         {
             transform.rotation = targetRotation;
         }
+    }
+
+    /// <summary>
+    /// 돌진용 네비 매쉬 이동 호출 함수
+    /// </summary>
+    /// <param name="dist"></param>
+    public void SetManualMove(float dist, float duration)
+    {
+        Vector3 dir = transform.forward;
+        dir.y = 0f;
+        dir.Normalize();
+
+        Vector3 pos = transform.position + dir * dist;
+        NavMesh.Raycast(transform.position, pos, out NavMeshHit hit, agent.areaMask);
+        float actual = Vector3.Distance(transform.position, hit.position);
+
+        if (!isManualMoving)
+        {
+            savedSpeed = agent.speed;
+            savedAccel = agent.acceleration;
+            savedRotation = agent.updateRotation;
+        }
+
+        isManualMoving = true;
+
+        agent.speed = actual / Mathf.Max(duration, 0.01f);
+        agent.acceleration = 999f;
+        agent.updateRotation = false;
+        agent.isStopped = false;
+        agent.SetDestination(hit.position);
+    }
+
+    /// <summary>
+    /// 돌진 종료 함수
+    /// </summary>
+    public void EndManualMove()
+    {
+        if (!isManualMoving) return;
+        isManualMoving = false;
+
+        agent.ResetPath();
+        agent.isStopped = true;
+        agent.speed = savedSpeed;
+        agent.acceleration = savedAccel;
+        agent.updateRotation = savedRotation;
     }
 
     /// <summary>

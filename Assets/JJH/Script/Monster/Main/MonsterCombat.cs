@@ -216,17 +216,29 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (vfx != null) vfx.ResetWarningPositions();
         if (aim != null) aim.Aim();
     }
-    public void SkillHitOn(int skillNum)
+    public void SkillHitOn(int skillNum, float skillDist, float duration)
     {
-        if (skillCanceled) return;   // 끊긴 스킬의 판정은 무시
+        if (skillCanceled) return;   // 끊긴 스킬의 판정은 무시)
+        if (skillDist > 0f && GameAuthority.HasAuthority)
+            mover.SetManualMove(skillDist, duration);
+        
         SetSkillHitbox(skillNum, true);
     }
-    public void SkillHitOff(int skillNum) => SetSkillHitbox(skillNum, false);
+    public void SkillHitOff(int skillNum, float skillDist)
+    {
+        if (skillDist > 0f && GameAuthority.HasAuthority)
+            mover.EndManualMove();
+
+        SetSkillHitbox(skillNum, false);
+    }
 
     public void SkillAnimationEnd(int skillNum)
     {
+        mover.EndManualMove();
+
         SetSkillHitbox(skillNum, false);
         SetCounterOverlay(false);
+
         mover.IsAnimation = false;
         anim.SetSkill(skillNum, false);
         if (aim != null) aim.ResetAim();
@@ -245,7 +257,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             return;
         }
 
-        Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillNum}", this);
+        if (on)
+            Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillNum}", this);
     }
 
 
@@ -526,13 +539,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private void MonsterDead()
     {
-        if (counterEffectObj != null)
-            PoolManager.Instance.Release(counterEffectObj);
-
-        if (counterFeedback != null)
-            counterFeedback.StopFeedbacks();
-
-        counterEffectObj = null;
+        ResetState();
 
         SetCounterOverlay(false);
         anim.IsDead();
@@ -634,13 +641,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// </summary>
     public void OnReleaseToPool()
     {
-        if (counterEffectObj != null) 
-            PoolManager.Instance.Release(counterEffectObj);
-
-        if (counterFeedback != null)
-            counterFeedback.StopFeedbacks();
-
-        counterEffectObj = null;
+        ResetState();
 
         Died = null;
         CancelDeathSink();
@@ -700,6 +701,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         skillCanceled = true;
         counterOpen = false;
         SetCounterOverlay(false);
+        mover.EndManualMove();
 
         foreach (SkillHitbox h in skillHitboxes)
             h.Hitbox.gameObject.SetActive(false);
@@ -714,6 +716,21 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (counterFeedback != null)
             counterFeedback.PlayFeedbacks(transform.position);
 
+    }
+    #endregion
+
+    #region 기타
+    public void ResetState()
+    {
+        if (counterEffectObj != null)
+            PoolManager.Instance.Release(counterEffectObj);
+
+        if (counterFeedback != null)
+            counterFeedback.StopFeedbacks();
+
+        counterEffectObj = null;
+
+        mover.EndManualMove();
     }
     #endregion
 }

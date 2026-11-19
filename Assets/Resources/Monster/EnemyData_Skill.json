@@ -38,9 +38,31 @@
     "Name": "Stomp",
     "SkillDamage": 200,
     "MinRange": 0,
-    "MaxRange": 5,
+    "MaxRange": 8,
     "Cooldown": 15,
-    "Weight": 3,
+    "Weight": 2,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41006,
+    "SkillNum": 2,
+    "Name": "Teleport",
+    "SkillDamage": 30,
+    "MinRange": 12,
+    "MaxRange": 25,
+    "Cooldown": 12,
+    "Weight": 4,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41006,
+    "SkillNum": 3,
+    "Name": "AirStrike",
+    "SkillDamage": 150,
+    "MinRange": 10,
+    "MaxRange": 20,
+    "Cooldown": 20,
+    "Weight": 4,
     "Scripted": false
   }
 ]
