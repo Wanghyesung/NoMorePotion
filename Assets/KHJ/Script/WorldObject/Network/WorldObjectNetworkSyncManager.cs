@@ -29,7 +29,26 @@ namespace Enzeun.Runtime
         [SerializeField, LabelText("주머니를 흩어 놓는 거리 (m)"), MinValue(0f)]
         private float _pouchScatterRadius = 0.7f;
 
+        // 리스폰은 방장만 시간을 재고, 되살릴 오브젝트를 묶어서 전원에게 한 번에 알립니다. (클라이언트에는 타이머가 없음)
+        [SerializeField, LabelText("리스폰 시간 (초, 0 = 리스폰 안 함)"), BoxGroup("리스폰"), MinValue(0f)]
+        private float _respawnSeconds = 180f;
+
+        [SerializeField, LabelText("리스폰 확인 간격 (초)"), BoxGroup("리스폰"), MinValue(0.1f)]
+        private float _respawnCheckInterval = 1f;
+
+        // 플레이어가 이 거리 안에 있으면 그 오브젝트의 리스폰을 다음 확인 때로 미룹니다. (몸에 겹쳐 나타나지 않게)
+        [SerializeField, LabelText("플레이어가 가까우면 미루는 거리 (m)"), BoxGroup("리스폰"), MinValue(0f)]
+        private float _respawnBlockRadius = 2f;
+
+        // 한 번에 너무 많이 켜져 프레임이 튀지 않도록 한 번에 되살리는 개수를 제한합니다. (나머지는 다음 확인 때)
+        [SerializeField, LabelText("한 번에 되살리는 최대 개수"), BoxGroup("리스폰"), MinValue(1)]
+        private int _respawnMaxPerBatch = 100;
+
         private readonly WorldObjectNetState _state = new WorldObjectNetState();
+        private readonly Dictionary<int, float> _respawnDue = new Dictionary<int, float>();
+        private readonly List<int> _respawnReady = new List<int>();
+        private readonly List<Vector3> _playerPositions = new List<Vector3>();
+        private float _respawnTimer;
         private readonly Dictionary<int, WorldObject> _objects = new Dictionary<int, WorldObject>();
         private readonly Dictionary<int, UniTaskCompletionSource<WorldObjectResult>> _pending = new Dictionary<int, UniTaskCompletionSource<WorldObjectResult>>();
         private int _nextRequestId = 1;
@@ -51,6 +70,9 @@ namespace Enzeun.Runtime
 
         [ShowInInspector, ReadOnly, LabelText("응답 대기 중인 요청"), PropertyOrder(-1)]
         private int DebugPendingCount => _pending.Count;
+
+        [ShowInInspector, ReadOnly, LabelText("리스폰 대기 수 (방장)"), BoxGroup("리스폰")]
+        private int DebugRespawnPendingCount => _respawnDue.Count;
 
         /// <summary>
         /// 멀티플레이 중이라 요청을 보낼 수 있는 상태인지 여부입니다. WorldObject 가 로컬로 처리할지 요청할지 정하는 데 씁니다.
@@ -262,7 +284,143 @@ namespace Enzeun.Runtime
             {
                 worldObject.ApplyNetworkCount(remaining);
             }
+
+            if (PhotonNetwork.IsMasterClient)
+            {
+                TrackRespawn(networkId, remaining);
+            }
         }
+        #endregion
+
+        #region Respawn
+        // ==================== [방장] 리스폰 ============================
+
+        // 소진되면 되살아날 시각을 기록하고, 다시 채워지면 지웁니다.
+        private void TrackRespawn(int networkId, int remaining)
+        {
+            if (remaining > 0)
+            {
+                _respawnDue.Remove(networkId);
+                return;
+            }
+
+            if (_respawnSeconds > 0f && !_respawnDue.ContainsKey(networkId))
+            {
+                _respawnDue.Add(networkId, Time.time + _respawnSeconds);
+            }
+        }
+
+        // 확인 간격마다 한 번만 검사합니다. (오브젝트마다 타이머를 두지 않음)
+        private void Update()
+        {
+            if (_respawnDue.Count == 0 || !PhotonNetwork.InRoom || !PhotonNetwork.IsMasterClient)
+            {
+                return;
+            }
+
+            _respawnTimer += Time.deltaTime;
+            if (_respawnTimer < _respawnCheckInterval)
+            {
+                return;
+            }
+
+            _respawnTimer = 0f;
+            ProcessRespawns();
+        }
+
+        /// <summary>
+        /// 시간이 된 오브젝트 중 플레이어가 가까이 없는 것을 모아 전원에게 한 번에 되살리라고 알립니다.
+        /// 플레이어가 가까이 있으면 그 오브젝트만 다음 확인 때로 미룹니다.
+        /// </summary>
+        private void ProcessRespawns()
+        {
+            float now = Time.time;
+            _respawnReady.Clear();
+            CollectPlayerPositions();
+
+            foreach (KeyValuePair<int, float> pair in _respawnDue)
+            {
+                if (pair.Value > now)
+                {
+                    continue;
+                }
+
+                if (_objects.TryGetValue(pair.Key, out WorldObject worldObject) && worldObject != null
+                    && IsPlayerNear(worldObject.transform.position))
+                {
+                    continue;
+                }
+
+                _respawnReady.Add(pair.Key);
+
+                if (_respawnReady.Count >= _respawnMaxPerBatch)
+                {
+                    break;
+                }
+            }
+
+            if (_respawnReady.Count == 0)
+            {
+                return;
+            }
+
+            // 이미 소진 상태가 아닌 번호는 기다릴 이유가 없으니 지웁니다. (만들 적용에도 들어가지 않음)
+            for (int i = _respawnReady.Count - 1; i >= 0; i--)
+            {
+                if (_state.GetRemaining(_respawnReady[i]) != 0)
+                {
+                    _respawnDue.Remove(_respawnReady[i]);
+                    _respawnReady.RemoveAt(i);
+                }
+            }
+
+            if (!_state.TryCreateRespawn(_respawnReady, out WorldObjectRespawn respawn))
+            {
+                return;
+            }
+
+#if UNITY_EDITOR
+            Debug.Log($"[WorldObjectNetworkSyncManager] : 월드 오브젝트 {respawn.NetworkIds.Length}개를 리스폰합니다. (남은 대기 {_respawnDue.Count - respawn.NetworkIds.Length}개)");
+#endif
+
+            // 방장 자신도 같은 RPC 로 반영하며, 반영되는 순간 HandleChanged 가 대기 목록에서 지웁니다.
+            photonView.RPC(nameof(RpcRespawn), RpcTarget.All, WorldObjectMessages.PackRespawn(respawn));
+        }
+
+        // 확인할 때마다 플레이어 위치를 한 번만 모읍니다. (플레이어는 많아야 5명)
+        private void CollectPlayerPositions()
+        {
+            _playerPositions.Clear();
+
+            if (_respawnBlockRadius <= 0f)
+            {
+                return;
+            }
+
+            global::Player[] players = FindObjectsByType<global::Player>(FindObjectsSortMode.None);
+            for (int i = 0; i < players.Length; i++)
+            {
+                _playerPositions.Add(players[i].transform.position);
+            }
+        }
+
+        private bool IsPlayerNear(Vector3 position)
+        {
+            float limit = _respawnBlockRadius * _respawnBlockRadius;
+
+            for (int i = 0; i < _playerPositions.Count; i++)
+            {
+                if ((_playerPositions[i] - position).sqrMagnitude < limit)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region ReplicaDrop
 
         /// <summary>
         /// 사본에서 드롭이 확정되면 해당 씬 오브젝트와 함께 OnDropped 로 알립니다.
@@ -404,6 +562,32 @@ namespace Enzeun.Runtime
                         RequestResync();
                     }
                     break;
+            }
+        }
+
+        /// <summary>
+        /// [전원] 방장이 정한 리스폰을 사본에 반영합니다. 반영되면 오브젝트마다 HandleChanged 로 다시 나타납니다.
+        /// </summary>
+        [PunRPC]
+        public void RpcRespawn(byte[] data, PhotonMessageInfo info)
+        {
+            if (!IsFromMaster(info))
+            {
+                return;
+            }
+
+            if (!WorldObjectMessages.TryUnpackRespawn(data, out WorldObjectRespawn respawn))
+            {
+                Debug.LogWarning("[WorldObjectNetworkSyncManager]: 깨진 리스폰 메시지를 받아 전체 목록을 다시 요청합니다.");
+                RequestResync();
+                return;
+            }
+
+            WorldObjectApplyStatus status = _state.ApplyRespawn(respawn);
+
+            if (status == WorldObjectApplyStatus.VersionGap || status == WorldObjectApplyStatus.Inconsistent)
+            {
+                RequestResync();
             }
         }
 

@@ -209,6 +209,84 @@ namespace Enzeun.Runtime
         }
         #endregion
 
+        #region Respawn
+        // ==================== 리스폰 (마스터가 만들고 전원이 반영) ============================
+
+        /// <summary>
+        /// [마스터] 소진된 오브젝트들을 최대 횟수로 되살리는 적용을 만듭니다. 상태는 바꾸지 않습니다. (적용은 ApplyRespawn 으로 전원이 같이)
+        /// 등록되지 않았거나 소진되지 않은 번호, 중복 번호는 빼고 담습니다. 담을 것이 없으면 false 입니다.
+        /// </summary>
+        public bool TryCreateRespawn(IReadOnlyList<int> networkIds, out WorldObjectRespawn respawn)
+        {
+            respawn = default;
+
+            if (networkIds == null || networkIds.Count == 0)
+            {
+                return false;
+            }
+
+            var ids = new List<int>(networkIds.Count);
+
+            for (int i = 0; i < networkIds.Count; i++)
+            {
+                int id = networkIds[i];
+
+                if (_entries.TryGetValue(id, out Entry entry) && entry.Remaining <= 0 && !ids.Contains(id))
+                {
+                    ids.Add(id);
+                }
+            }
+
+            if (ids.Count == 0)
+            {
+                return false;
+            }
+
+            respawn = new WorldObjectRespawn { Version = _version + 1, NetworkIds = ids.ToArray() };
+            return true;
+        }
+
+        /// <summary>
+        /// [전원] 리스폰을 사본에 반영합니다. 담긴 오브젝트를 모두 최대 횟수로 되돌리고, 하나씩 OnChanged 를 발생시킵니다.
+        /// 버전 규칙은 Apply 와 같고, 담긴 오브젝트 중 하나라도 모르는 번호이거나 소진 상태가 아니면 아무것도 바꾸지 않고 Inconsistent 입니다.
+        /// </summary>
+        public WorldObjectApplyStatus ApplyRespawn(WorldObjectRespawn respawn)
+        {
+            if (respawn.Version <= _version)
+            {
+                return WorldObjectApplyStatus.Ignored;
+            }
+
+            if (respawn.Version != _version + 1)
+            {
+                return WorldObjectApplyStatus.VersionGap;
+            }
+
+            int[] ids = respawn.NetworkIds ?? Array.Empty<int>();
+
+            // 먼저 전부 확인합니다. (반쯤 되살린 사본을 만들지 않기 위함)
+            for (int i = 0; i < ids.Length; i++)
+            {
+                if (!_entries.TryGetValue(ids[i], out Entry entry) || entry.Remaining > 0)
+                {
+                    return WorldObjectApplyStatus.Inconsistent;
+                }
+            }
+
+            _version = respawn.Version;
+
+            for (int i = 0; i < ids.Length; i++)
+            {
+                Entry entry = _entries[ids[i]];
+                int previous = entry.Remaining;
+                entry.Remaining = entry.Max;
+                OnChanged?.Invoke(ids[i], previous, entry.Max);
+            }
+
+            return WorldObjectApplyStatus.Applied;
+        }
+        #endregion
+
         #region Snapshot
         // ==================== 전체 목록 ============================
 
