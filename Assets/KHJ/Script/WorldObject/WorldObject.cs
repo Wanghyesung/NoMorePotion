@@ -56,6 +56,11 @@ namespace Enzeun.Runtime
         /// 횟수가 0 이 되어 소진되었을 때 한 번만 발생합니다.
         /// </summary>
         public event Action<WorldObject> OnDepleted;
+
+        /// <summary>
+        /// 소진되었던 오브젝트가 리스폰(횟수가 다시 채워짐)되어 월드에 다시 나타날 때 한 번 발생합니다. (네트워크 적용 경로)
+        /// </summary>
+        public event Action<WorldObject> OnRespawned;
         #endregion
 
 
@@ -76,7 +81,7 @@ namespace Enzeun.Runtime
 
         /// <summary>
         /// 남은 횟수를 SO 에 설정된 최대 횟수로 되돌리고 소진 상태를 다시 판정합니다. 로컬 전용입니다.
-        /// 멀티플레이에는 "횟수 되돌리기" 메시지가 없어서, 방 안에서 호출하면 마스터 사본과 어긋나므로 경고만 하고 무시합니다.
+        /// 방 안에서 호출하면 마스터 사본과 어긋나므로 경고만 하고 무시합니다. (멀티플레이의 리스폰은 방장이 WorldObjectNetworkSyncManager 에서 정해 전원에게 알림)
         /// </summary>
         public void ResetCount()
         {
@@ -209,6 +214,16 @@ namespace Enzeun.Runtime
             {
                 OnDepleted?.Invoke(this);
                 HideAfterDepleted();
+            }
+            else if (!isDepleted && wasDepleted)
+            {
+                // 리스폰 : 숨겼던 오브젝트를 다시 보이게 합니다. (숨기기 대기 중이었다면 HideAsync 가 isDepleted 를 보고 숨기지 않음)
+                if (_hideOnDepleted)
+                {
+                    GetHideTarget().SetActive(true);
+                }
+
+                OnRespawned?.Invoke(this);
             }
         }
 

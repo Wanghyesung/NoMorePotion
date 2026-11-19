@@ -54,6 +54,16 @@ namespace Enzeun.Runtime
     }
 
     /// <summary>
+    /// 마스터가 소진된 오브젝트들을 한꺼번에 최대 횟수로 되살리는 적용 메시지입니다. (요청 없이 마스터가 시간이 되면 만듦)
+    /// 사본 버전은 일반 적용과 같은 번호를 이어 씁니다.
+    /// </summary>
+    public struct WorldObjectRespawn
+    {
+        public int Version;             // 적용 후 사본 버전
+        public int[] NetworkIds;        // 되살릴 오브젝트 번호들
+    }
+
+    /// <summary>
     /// 요청한 사람이 돌려받는 결과입니다.
     /// </summary>
     public readonly struct WorldObjectResult

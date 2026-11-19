@@ -11,6 +11,7 @@ namespace Enzeun.Runtime
     /// - 요청 : 버전, 요청 번호(int), 종류(byte), 오브젝트 번호(int), 대미지(ushort), 대상 종류 마스크(byte)
     /// - 적용 : 버전, 요청 번호(int), 요청한 사람(int), 사본 버전(int), 오브젝트 번호(int), 타격 종류(byte), 이전 횟수(ushort), 남은 횟수(ushort), 드롭 수(byte), 드롭들(번호 int, 재료 ushort, 개수 ushort)
     ///   (타격 종류는 상호작용으로 얻은 재료가 공용 인벤으로 바로 들어갈지, 바닥 주머니가 될지 가르는 데 쓰므로 모든 사본이 같은 값을 받아야 합니다)
+    /// - 리스폰 : 버전, 사본 버전(int), 개수(ushort), 오브젝트 번호(int) 들
     /// - 거부 : 버전, 요청 번호(int), 이유(byte)
     /// 형식이 어긋나면(모자람, 남음, 모르는 값) 예외 없이 false 를 반환합니다.
     /// </summary>
@@ -201,6 +202,67 @@ namespace Enzeun.Runtime
                 command = c;
                 return true;
             }
+        }
+        #endregion
+
+        #region Respawn
+        // ==================== 리스폰 (마스터 -> 전원) ============================
+
+        private const int RespawnHeaderLength = 1 + 4 + 2;
+
+        /// <summary>
+        /// 리스폰 메시지를 byte 배열로 묶습니다. 형식 : 버전, 사본 버전(int), 개수(ushort), 오브젝트 번호(int) 들.
+        /// </summary>
+        public static byte[] PackRespawn(WorldObjectRespawn respawn)
+        {
+            int[] ids = respawn.NetworkIds ?? Array.Empty<int>();
+
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream))
+            {
+                writer.Write(Version);
+                writer.Write(respawn.Version);
+                writer.Write(checked((ushort)ids.Length));
+
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    writer.Write(ids[i]);
+                }
+
+                writer.Flush();
+                return stream.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// 리스폰 메시지를 풉니다. 길이(개수 포함)나 버전이 맞지 않거나 담긴 번호가 없으면 false 를 반환합니다.
+        /// </summary>
+        public static bool TryUnpackRespawn(byte[] data, out WorldObjectRespawn respawn)
+        {
+            respawn = default;
+
+            if (data == null || data.Length < RespawnHeaderLength || data[0] != Version)
+            {
+                return false;
+            }
+
+            int version = BitConverter.ToInt32(data, 1);
+            int count = BitConverter.ToUInt16(data, 5);
+
+            if (count == 0 || data.Length != RespawnHeaderLength + count * 4)
+            {
+                return false;
+            }
+
+            var ids = new int[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                ids[i] = BitConverter.ToInt32(data, RespawnHeaderLength + i * 4);
+            }
+
+            respawn = new WorldObjectRespawn { Version = version, NetworkIds = ids };
+            return true;
         }
         #endregion
 
