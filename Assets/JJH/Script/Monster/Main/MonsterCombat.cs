@@ -216,12 +216,21 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (vfx != null) vfx.ResetWarningPositions();
         if (aim != null) aim.Aim();
     }
-    public void SkillHitOn(int skillNum)
+    public void SkillHitOn(int skillNum, float skillDist, float duration)
     {
-        if (skillCanceled) return;   // 끊긴 스킬의 판정은 무시
+        if (skillCanceled) return;   // 끊긴 스킬의 판정은 무시)
+        if(skillDist > 0)
+            mover.SetManualMove(skillDist, duration);
+        
         SetSkillHitbox(skillNum, true);
     }
-    public void SkillHitOff(int skillNum) => SetSkillHitbox(skillNum, false);
+    public void SkillHitOff(int skillNum, float skillDist)
+    {
+        if (skillDist > 0)
+            mover.EndManualMove();
+
+        SetSkillHitbox(skillNum, false);
+    }
 
     public void SkillAnimationEnd(int skillNum)
     {
