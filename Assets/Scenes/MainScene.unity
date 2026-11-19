@@ -34471,9 +34471,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e625c1694f2f734aa075396c5110652, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.EnvironmentManager
-  _defaultTemperature: 0
-  _defaultBrightness: 3
-  _checkInterval: 0.5
 --- !u!4 &1682425346
 Transform:
   m_ObjectHideFlags: 0
@@ -44223,6 +44220,10 @@ PrefabInstance:
     - target: {fileID: -4784378923853167810, guid: aea94c7a23048e0409def6a058870597, type: 3}
       propertyPath: sceneViewId
       value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1442054061579140289, guid: aea94c7a23048e0409def6a058870597, type: 3}
+      propertyPath: dayDuration
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1678381782994216967, guid: aea94c7a23048e0409def6a058870597, type: 3}
       propertyPath: sun

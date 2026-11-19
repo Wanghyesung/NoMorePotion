@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using R3;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -19,6 +20,7 @@ public sealed class GuideManager : MonoBehaviour
 
     private int currentIndex;
     private CancellationTokenSource enterCancellation;
+    private IDisposable clockStartSubscription;
 
     public GuideEvent CurrentEvent { get; private set; }
     public bool IsRunning { get; private set; }
@@ -68,6 +70,29 @@ public sealed class GuideManager : MonoBehaviour
 
     public void NotifyCompleted(GuideEvent step) => Exit(step);
 
+    public void StopClock()
+    {
+        clockStartSubscription?.Dispose();
+        clockStartSubscription = null;
+        if (!GameAuthority.HasAuthority)
+            return;
+
+        TimeManager.Instance.StopClock();
+        // 세션이 뒤늦게 시계를 시작해도 튜토리얼에서는 정지를 유지한다.
+        clockStartSubscription = GameSessionManager.Instance.Phase
+            .Where(phase => phase == SessionPhase.Playing)
+            .Take(1)
+            .Subscribe(_ => TimeManager.Instance.StopClock());
+    }
+
+    public void StartClock()
+    {
+        clockStartSubscription?.Dispose();
+        clockStartSubscription = null;
+        if (GameAuthority.HasAuthority)
+            TimeManager.Instance.StartClock();
+    }
+
     private void Exit(GuideEvent step)
     {
         if (!IsRunning || step != CurrentEvent)
@@ -93,6 +118,8 @@ public sealed class GuideManager : MonoBehaviour
 
     public void StopGuide()
     {
+        clockStartSubscription?.Dispose();
+        clockStartSubscription = null;
         if (!IsRunning)
             return;
         IsRunning = false;

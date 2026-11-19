@@ -106,7 +106,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     {
         if (IsLocalPlayer == false)
             return;
-        if (character.HP <= 0 || fsm.CurrentState.Type == FSM.StateType.Roll)
+        if (character.HP <= 0)
             return;
 
         // 피해 / 방어력 배율: +20%(1.2배)이면 피해 100 → 83. 0.01은 0 나눗셈 방지용 하한이다.
@@ -140,7 +140,18 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     }
 
     public void TakeDamage(CommonStruct.AttackInfo attackInfo, IAttacker attacker)
-        => TakeDamage(attackInfo);
+    {
+        if(attacker.DamageType == DamageType.None)//상태 이상
+        {
+            TakeDamage(attackInfo);
+        }
+        else //일반 공격들
+        {
+            if (fsm.CurrentState.Type == FSM.StateType.Roll)
+                return;
+            TakeDamage(attackInfo);
+        }
+    }
 
     public void TakeDamage(CommonStruct.AttackInfo attackInfo, Character attacker)
         => TakeDamage(attackInfo);

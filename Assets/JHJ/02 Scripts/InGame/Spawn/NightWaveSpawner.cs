@@ -14,6 +14,10 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
     private CompositeDisposable pendingSpawns = new CompositeDisposable(); // 예약 중 묶음
     private TimeManager time;
     private int aliveCount;
+    private int pendingSpawnCount;
+    private bool waitingForWaveClear;
+
+    public event Action OnAllMonstersDead;
     private void Start()
     {
         time = TimeManager.Instance;
@@ -139,6 +143,7 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
     private void CancelPendingSpawns()
     {
         pendingSpawns.Clear();
+        pendingSpawnCount = 0;
     }
 
     private void OnMonsterDied(MonsterCombat combat)
@@ -146,6 +151,17 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         combat.Died -= OnMonsterDied;
         aliveCount--;
         // aliveCount == 0이면 전멸 알림
+        CheckWaveCleared();
+    }
+
+    private void CheckWaveCleared()
+    {
+        // 소환 간격 사이에 살아 있는 몬스터가 0이 되어도 웨이브는 끝나지 않는다.
+        if (!waitingForWaveClear || aliveCount != 0 || pendingSpawnCount != 0)
+            return;
+
+        waitingForWaveClear = false;
+        OnAllMonstersDead?.Invoke();
     }
 
 
@@ -236,12 +252,18 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
 
                 float delay = Mathf.Max(0f, spawnOrder * wave.SpawnInterval - elapsed);
                 GameObject prefab = entry.Prefab;
-                pendingSpawns.Add(time.Schedule(delay, () => SpawnOne(prefab, spawnOrder)));
+                pendingSpawnCount++;
+                pendingSpawns.Add(time.Schedule(delay, () =>
+                {
+                    pendingSpawnCount--;
+                    SpawnOne(prefab, spawnOrder);
+                    CheckWaveCleared();
+                }));
                 scheduled++;
             }
         }
+        waitingForWaveClear = scheduled > 0 || aliveCount > 0;
         return scheduled;
     }
 
 }
- 

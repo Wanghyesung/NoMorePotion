@@ -38,6 +38,7 @@ public class InventoryController : MonoBehaviour
     [SF] private RectTransform rootBoxSideRect;
     
     private bool isOpen = false;
+    public bool IsOpen => isOpen;
     private bool flag = false;
     private InputAction closeAction;
 
