@@ -31,7 +31,7 @@ namespace Enzeun.SO
         private HealthChangeType _changeType = HealthChangeType.None;
         public HealthChangeType changeType => _changeType;
 
-        // None = 고정 대미지(공격자 없이 전달), Normal = 무속성 대미지, 그 외는 해당 속성 대미지입니다.
+        // None = 고정 대미지(속성 저항 없음), Normal = 무속성 대미지, 그 외는 해당 속성 대미지입니다. 모두 IAttacker 로 속성을 함께 전달합니다.
         [SerializeField, LabelText("대미지 속성 (None = 고정 대미지)"), ShowIf("_changeType", HealthChangeType.Damage)]
         private DamageType _damageType = DamageType.Normal;
         public DamageType damageType => _damageType;
@@ -91,13 +91,6 @@ namespace Enzeun.SO
 
                     try
                     {
-                        // 속성이 None 이면 고정 대미지입니다. 공격자(IAttacker) 없이 TakeDamage(AttackInfo) 로 전달합니다.
-                        if (_damageType == DamageType.None)
-                        {
-                            target.TakeDamage(attackInfo);
-                            break;
-                        }
-
                         if (_elementAttacker == null)
                         {
                             _elementAttacker = new ElementAttacker { DamageType = _damageType };
