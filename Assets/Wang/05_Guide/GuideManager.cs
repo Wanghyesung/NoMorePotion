@@ -10,9 +10,10 @@ public sealed class GuideManager : MonoBehaviour
 {
     [Tooltip("각 단계 시작 전 대기 시간(초). 0이면 즉시 시작하며, 대기는 Time.timeScale과 무관합니다.")]
     [SerializeField, Min(0f)] private float enterDelaySeconds;
-    [Tooltip("각 항목이 하나의 가이드 단계입니다. 설명, 생성할 오브젝트와 종료 조건을 항목 안에서 설정합니다.")]
+    [Tooltip("각 항목이 하나의 가이드 단계입니다. 설명과 종료 조건을 설정하며 조건 오브젝트는 자동으로 켜고 끕니다.")]
     [SerializeField] private List<GuideEvent> events = new();
     [SerializeField] private GuideDescriptionPanel descriptionPanel;
+    [SerializeField] private GuideArrow guideArrow;
     [SerializeField] private UnityEvent startEvent = new();
     [SerializeField] private UnityEvent completedEvent = new();
 
@@ -34,6 +35,9 @@ public sealed class GuideManager : MonoBehaviour
 
         IsRunning = true;
         currentIndex = 0;
+        HideGuideArrow();
+        foreach (GuideEvent step in events)
+            step.SetObjectsActive(false);
         startEvent.Invoke();
         if (IsRunning)
             Enter().Forget();
@@ -59,16 +63,17 @@ public sealed class GuideManager : MonoBehaviour
     private void StartCurrentEvent()
     {
         descriptionPanel.Completed -= StartCurrentEvent;
-        CurrentEvent.Completed += Exit;
-        CurrentEvent.Enter();
+        CurrentEvent.Enter(this);
     }
+
+    public void NotifyCompleted(GuideEvent step) => Exit(step);
 
     private void Exit(GuideEvent step)
     {
         if (!IsRunning || step != CurrentEvent)
             return;
 
-        step.Completed -= Exit;
+        HideGuideArrow();
         step.Exit();
         if (!IsRunning)
             return;
@@ -91,15 +96,29 @@ public sealed class GuideManager : MonoBehaviour
         if (!IsRunning)
             return;
         IsRunning = false;
+        HideGuideArrow();
         CancelPendingEnter();
         descriptionPanel.Completed -= StartCurrentEvent;
         descriptionPanel.Stop();
         if (CurrentEvent != null)
         {
-            CurrentEvent.Completed -= Exit;
             CurrentEvent.Cancel();
             CurrentEvent = null;
         }
+    }
+
+    public void ShowGuideArrow(Transform target)
+    {
+        Transform playerView = GameSessionManager.Instance.LocalPlayer.GetComponent<FSM>().PlayerView;
+        guideArrow.transform.SetParent(playerView, false);
+        guideArrow.transform.localPosition = new Vector3(0f, 0.1f, 0f);
+        guideArrow.SetTargetRotate(target);
+        guideArrow.gameObject.SetActive(true);
+    }
+
+    public void HideGuideArrow()
+    {
+        guideArrow.gameObject.SetActive(false);
     }
 
     private void CancelPendingEnter()

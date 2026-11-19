@@ -18,6 +18,7 @@ public sealed class ParabolicMovement : MonoBehaviour
     private RaycastHit[] castHits = new RaycastHit[16];
     private bool checkCollisions;
     public event System.Action<Vector3> OnHitAction;
+    public static event System.Action<Collider> OnPotionHit;
     public bool IsFlying { get; private set; }
 
     [SerializeField] private float speedMultiplier = 1f;
@@ -74,6 +75,7 @@ public sealed class ParabolicMovement : MonoBehaviour
         {
             body.MovePosition(Vector3.MoveTowards(body.position, nextPosition, hit.distance));
             IsFlying = false;
+            OnPotionHit?.Invoke(hit.collider);
             OnHitAction?.Invoke(hit.point);
             return;
         }

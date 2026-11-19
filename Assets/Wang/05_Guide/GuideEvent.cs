@@ -2,93 +2,77 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 [Serializable]
 public sealed class GuideEvent
 {
     [SerializeField] private SOEventText eventText;
-    [Tooltip("이 단계를 완료하는 조건입니다. 오브젝트 활성화는 Start Event와 End Event에 연결합니다.")]
-    [SerializeField] private List<GuideEndEvent> endEvents = new();
+    [Tooltip("이 단계를 완료하는 조건입니다. 시작 시 오브젝트를 켜고 종료 시 끕니다.")]
+    [FormerlySerializedAs("endEvents")]
+    [SerializeField] private List<GuideEndEvent> events = new();
     [SerializeField] private UnityEvent startEvent = new();
     [SerializeField] private UnityEvent endEvent = new();
 
-    private readonly HashSet<GuideEndEvent> completedConditions = new();
-    private bool entering;
+    private readonly HashSet<GuideEndEvent> pendingEvents = new();
+    private GuideManager manager;
 
-    public event Action<GuideEvent> Completed;
     public SOEventText EventText => eventText;
-    public bool IsActive { get; private set; }
-    public bool IsCompleted { get; private set; }
-    public int ClearCount => completedConditions.Count;
-    public int RequiredCount => endEvents.Count;
+    public IReadOnlyList<GuideEndEvent> Events => events;
+    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
+    public int RemainingCount => pendingEvents.Count;
 
-    public void Enter()
+    public void Enter(GuideManager guideManager)
     {
-        if (IsActive)
-            return;
+        manager = guideManager;
+        pendingEvents.Clear();
+        foreach (GuideEndEvent condition in events)
+            pendingEvents.Add(condition);
 
-        IsActive = true;
-        IsCompleted = false;
-        entering = true;
-        completedConditions.Clear();
+        foreach (GuideEndEvent condition in events)
+            condition.Prepare(this, manager);
 
-        // 모든 조건을 초기화한 다음 구독해야 즉시 완료되는 조건도 안전하게 집계됩니다.
-        foreach (GuideEndEvent condition in endEvents)
-            condition.Prepare(this);
-        foreach (GuideEndEvent condition in endEvents)
+        SetObjectsActive(true);
+        startEvent.Invoke();
+        if (pendingEvents.Count == 0)
         {
-            if (!IsActive)
-                break;
-            condition.Begin();
+            manager.NotifyCompleted(this);
+            return;
         }
 
-        if (!IsActive)
-            return;
-
-        startEvent.Invoke();
-        entering = false;
-        CheckCompleted();
+        foreach (GuideEndEvent condition in events)
+            condition.Begin();
     }
 
     public void NotifyCompleted(GuideEndEvent condition)
     {
-        if (!IsActive || !endEvents.Contains(condition) || !condition.IsCompleted)
-            return;
-        if (completedConditions.Add(condition))
-            CheckCompleted();
-    }
-
-    private void CheckCompleted()
-    {
-        if (!IsActive || IsCompleted || entering || ClearCount != RequiredCount)
+        if (!pendingEvents.Remove(condition))
             return;
 
-        IsCompleted = true;
-        Completed?.Invoke(this);
+        if (pendingEvents.Count == 0)
+            manager.NotifyCompleted(this);
     }
 
     public void Exit()
     {
-        if (!IsActive || !IsCompleted)
-            return;
-
-        IsActive = false;
         StopConditions();
+        pendingEvents.Clear();
+        SetObjectsActive(false);
         endEvent.Invoke();
     }
 
-    public void Cancel()
+    public void Cancel() => Exit();
+
+    internal void SetObjectsActive(bool active)
     {
-        if (!IsActive)
-            return;
-        IsActive = false;
-        StopConditions();
-        endEvent.Invoke();
+        foreach (GuideEndEvent condition in events)
+            if (condition != null)
+                condition.gameObject.SetActive(active);
     }
 
     private void StopConditions()
     {
-        foreach (GuideEndEvent condition in endEvents)
+        foreach (GuideEndEvent condition in events)
             if (condition != null)
                 condition.Stop();
     }

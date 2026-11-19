@@ -3,26 +3,32 @@ using UnityEngine.Events;
 
 public abstract class GuideEndEvent : MonoBehaviour
 {
+    [Tooltip("조건이 시작되면 가이드 화살표가 이 오브젝트를 가리킵니다.")]
+    [SerializeField] private bool guideArrow;
     [SerializeField] private UnityEvent startEvent = new();
     [SerializeField] private UnityEvent endEvent = new();
 
     private GuideEvent owner;
+    private GuideManager manager;
     public bool IsListening { get; private set; }
     public bool IsCompleted { get; private set; }
 
-    internal void Prepare(GuideEvent guideEvent)
+    internal void Prepare(GuideEvent guideEvent, GuideManager guideManager)
     {
         Stop();
         owner = guideEvent;
+        manager = guideManager;
         IsCompleted = false;
     }
 
     public void Begin()
     {
-        if (!owner.IsActive || IsListening || IsCompleted)
+        if (IsListening || IsCompleted)
             return;
 
         IsListening = true;
+        if (guideArrow)
+            manager.ShowGuideArrow(transform);
         OnBegin();
         if (IsListening)
             startEvent.Invoke();
