@@ -260,6 +260,11 @@ namespace Enzeun.Runtime
             SubscribePlayerHit();
         }
 
+        /// <summary>
+        /// 연결된 내 플레이어의 Transform 입니다. 연결 전이거나 플레이어가 사라졌으면 null 입니다. (환경 판정 등에서 위치를 읽음)
+        /// </summary>
+        public Transform BoundPlayerTransform => _boundFsm != null ? _boundFsm.transform : null;
+
         private void SubscribePlayerHit()
         {
             if (_boundFsm != null)

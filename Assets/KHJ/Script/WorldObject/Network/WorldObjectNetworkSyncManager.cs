@@ -92,7 +92,14 @@ namespace Enzeun.Runtime
 
             for (int i = 0; i < sceneObjects.Length; i++)
             {
-                Register(sceneObjects[i]);
+                // 이 Start 전에 직접 등록된 오브젝트(자동 배치가 방 입장 콜백에서 먼저 만든 경우)는 건너뜁니다. (번호 겹침 경고 방지)
+                WorldObject sceneObject = sceneObjects[i];
+                if (sceneObject != null && _objects.TryGetValue(sceneObject.NetworkId, out WorldObject registered) && registered == sceneObject)
+                {
+                    continue;
+                }
+
+                Register(sceneObject);
             }
 
             if (PhotonNetwork.InRoom)

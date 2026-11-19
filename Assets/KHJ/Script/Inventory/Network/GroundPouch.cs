@@ -26,6 +26,9 @@ namespace Enzeun.Runtime
         [ShowInInspector, ReadOnly, LabelText("남은 개수")]
         public int Count { get; private set; }
 
+        [SerializeField, LabelText("아이콘")]
+        private SpriteRenderer Icon;
+
         /// <summary>
         /// 남은 개수가 바뀔 때(일부만 주움) 새 개수와 함께 발생합니다. 개수 표시를 갱신하는 쪽이 구독합니다.
         /// </summary>
@@ -45,6 +48,11 @@ namespace Enzeun.Runtime
             Count = drop.Count;
             transform.position = drop.Position;
             gameObject.name = $"GroundPouch_{drop.Id}";
+            if (Icon != null)
+            {
+                PotionDataManager.Instance.TryGetMaterialData(MaterialId, out var data);
+                Icon.sprite = data.materialIcon;
+            }
         }
 
         /// <summary>

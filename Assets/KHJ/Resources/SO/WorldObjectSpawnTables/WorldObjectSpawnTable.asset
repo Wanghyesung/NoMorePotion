@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f521e392fe1353c4e93c30e596505ecc, type: 3}
+  m_Name: WorldObjectSpawnTable
+  m_EditorClassIdentifier: Assembly-CSharp::Enzeun.SO.WorldObjectSpawnTable
+  _entries:
+  - _prefab: {fileID: 3459637195579716744, guid: 8f0e567e801f736409d7107a29e8a2ce, type: 3}
+    _weight: 1
+    _radius: 0.5
+  - _prefab: {fileID: 4092575201282730036, guid: 76a4ee4fe2c6cb040a7fb914228a73d4, type: 3}
+    _weight: 1
+    _radius: 0.5
+  - _prefab: {fileID: 3807730137532991710, guid: 73237e52b12b9a6469e91bfa43f44a3e, type: 3}
+    _weight: 1
+    _radius: 0.5
+  - _prefab: {fileID: 4509592585724984813, guid: 12e5c36c8cd227548aca074c2cfc5d51, type: 3}
+    _weight: 1
+    _radius: 1.5
+  - _prefab: {fileID: 6138645962423363947, guid: 3c675dbe13cf209488af23645b60a3b2, type: 3}
+    _weight: 1
+    _radius: 1.5

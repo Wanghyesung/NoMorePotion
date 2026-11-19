@@ -46,6 +46,15 @@ namespace Enzeun.Runtime
             return (closest - point).sqrMagnitude <= margin * margin;
         }
 
+        /// <summary>
+        /// 배치 계산이 끝나면 콜라이더를 끕니다. 트리거라도 켜 두면 줍기 탐지(RangeDetector 등)에 걸려 근처 대상을 가립니다.
+        /// 끈 뒤에는 Blocks 가 항상 false 이므로, 배치가 끝난 뒤의 미리보기는 금지 구역을 반영하지 않습니다.
+        /// </summary>
+        public void DisableCollider()
+        {
+            Collider.enabled = false;
+        }
+
         private void OnDrawGizmos()
         {
             Collider collider = Collider;
