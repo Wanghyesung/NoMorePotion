@@ -34,6 +34,7 @@ public class UISlider : MonoBehaviour
 
     public void SetRange(int maxValue, int curValue)
     {
+        CancelLerp();
         this.maxValue = maxValue;
         Range.Value = curValue;
 
@@ -47,12 +48,7 @@ public class UISlider : MonoBehaviour
     // 외부에서 새로운 현재값을 받아 슬라이더를 업데이트하는 함수
     public void UpdateSlider(int newValue)
     {
-
-        if (ctsLerp != null)
-        {
-            ctsLerp.Cancel();
-            ctsLerp.Dispose();
-        }
+        CancelLerp();
 
         // 데이터 갱신
         Range.Value = newValue;
@@ -86,7 +82,7 @@ public class UISlider : MonoBehaviour
         ctsLerp = null;
     }
 
-    private void OnDestroy()
+    private void CancelLerp()
     {
         if (ctsLerp != null)
         {
@@ -94,7 +90,11 @@ public class UISlider : MonoBehaviour
             ctsLerp.Dispose();
             ctsLerp = null;
         }
+    }
 
+    private void OnDestroy()
+    {
+        CancelLerp();
         Range.Dispose();
     }
 
