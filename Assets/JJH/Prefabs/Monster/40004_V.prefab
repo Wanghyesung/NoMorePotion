@@ -80,6 +80,10 @@ PrefabInstance:
       propertyPath: poundHitbox
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4547543115401431219, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      propertyPath: m_SynchronizeParameters.Array.data[3].SynchronizeType
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9072288863858740342, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       propertyPath: ObservedComponents.Array.size
       value: 2

@@ -1017,7 +1017,6 @@ MonoBehaviour:
   healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
   counterGrace: 0.2
   counterOverlay: {fileID: 2100000, guid: 69d0f491ebe442d4babf50ccb8bf7488, type: 2}
-  counterStunTime: 1
   counterEffect: {fileID: 643597903100466925, guid: 9643d9cd4290e48448f95626dc216723, type: 3}
   counterFeedback: {fileID: 1305361545106826030}
   engageHoldTime: 5
@@ -1435,8 +1434,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonAnimatorView
   ShowLayerWeightsInspector: 1
   ShowParameterInspector: 1
-  m_SynchronizeParameters: []
-  m_SynchronizeLayers: []
+  m_SynchronizeParameters:
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsWalk
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsRun
+  - Type: 4
+    SynchronizeType: 1
+    Name: IsNormalAttack
+  - Type: 4
+    SynchronizeType: 0
+    Name: IsDead
+  - Type: 1
+    SynchronizeType: 1
+    Name: MoveSpeed
+  - Type: 4
+    SynchronizeType: 1
+    Name: Skill1
+  - Type: 4
+    SynchronizeType: 1
+    Name: Skill2
+  - Type: 4
+    SynchronizeType: 1
+    Name: Skill3
+  - Type: 4
+    SynchronizeType: 1
+    Name: Skill4
+  - Type: 4
+    SynchronizeType: 0
+    Name: Countered
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
 --- !u!114 &2873100263720004717
 MonoBehaviour:
   m_ObjectHideFlags: 0
