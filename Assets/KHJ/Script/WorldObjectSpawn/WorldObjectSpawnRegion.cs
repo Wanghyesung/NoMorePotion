@@ -1,6 +1,8 @@
 using Enzeun.SO;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine.AI;
 
 
 namespace Enzeun.Runtime
@@ -20,8 +22,42 @@ namespace Enzeun.Runtime
         [SerializeField, LabelText("배치할 개수"), MinValue(0)]
         private int _count = 10;
 
+        #region 진희진
+        [SerializeField, LabelText("허용 NavMesh Area"), ValueDropdown(nameof(AreaNames))]
+        private List<string> _allowedAreas = new List<string>();
+
+        private static IEnumerable<string> AreaNames => NavMesh.GetAreaNames();
+        #endregion
+
         public WorldObjectSpawnTable Table => _table;
         public int Count => _count;
+
+        #region 진희진
+        public int ResolveAreaMask(int fallback)
+        {
+            if (_allowedAreas == null || _allowedAreas.Count == 0)
+                return fallback;
+
+            int mask = 0;
+
+            for(int i =0 ; i < _allowedAreas.Count; i++)
+            {
+                int area = NavMesh.GetAreaFromName(_allowedAreas[i]);
+
+                if (area < 0 )
+                {
+                    Debug.LogWarning($"[WorldObjectSpawnRegion] {name} 의 NavMesh Area '{_allowedAreas[i]}' 를 찾을 수 없어 건너뜀", this);
+                    continue;
+                }
+
+                // 이 Area 번호의 칸을 켬
+                mask |= 1 << area;
+            }
+
+            return mask != 0 ? mask : fallback;
+        }
+
+        #endregion
         #endregion
 
         #region Box
