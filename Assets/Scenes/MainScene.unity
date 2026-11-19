@@ -14074,6 +14074,91 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 72b3d2985752cf447abbf26b0a2dec89, type: 3}
+--- !u!1001 &778823508
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -16.241167
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -7.8999896
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -26.425783
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7086949
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.7055152
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -89.742
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 504059213747298855, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3859142694971401939, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      propertyPath: m_Name
+      value: EnvironmentZoneTest
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7871243944610755851, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8123432080006089639, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8120918143701644443, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 350761507280623575, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+  m_SourcePrefab: {fileID: 100100000, guid: b06c66947f9bae5449bdda2f07ffbfbf, type: 3}
 --- !u!1001 &779130373
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -34388,7 +34473,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Enzeun.Runtime.EnvironmentManager
   _defaultTemperature: 0
   _defaultBrightness: 3
-  _checkInterval: 0.1
+  _checkInterval: 0.5
 --- !u!4 &1682425346
 Transform:
   m_ObjectHideFlags: 0
@@ -44248,3 +44333,4 @@ SceneRoots:
   - {fileID: 34407293}
   - {fileID: 989241682}
   - {fileID: 726275754}
+  - {fileID: 778823508}
