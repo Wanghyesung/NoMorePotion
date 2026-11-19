@@ -10,6 +10,6 @@ public static class JJH_Enums
         Wait, Attack, Death, None }
     public enum SpawnAreaType
     {
-        Plain, Forest, Desert, Glacier, Volcano, Cave
+        Plain, Forest, Desert, Glacier, Volcano, Castle
     }
 }

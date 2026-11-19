@@ -23,8 +23,9 @@ namespace Enzeun.Runtime
     /// 판정에 실패해서 최대 시도 횟수를 넘으면 그 자리는 건너뜁니다. (모든 클라이언트가 같은 자리에서 건너뜀)
     ///
     /// 시드는 방장이 새 판을 시작할 때 WorldSeed.Roll() 로 정합니다. 시드가 아직 없으면 이 컴포넌트가 방장일 때 대신 정합니다. (테스트용)
-    /// 오브젝트는 Awake 에서 만들어 WorldObjectNetworkSyncManager 의 Start 등록에 포함됩니다. 방에 늦게 들어와 그 뒤에 만들게 되면 직접 등록하고 전체 목록을 다시 요청합니다.
+    /// 오브젝트는 Start 에서 만들어(실행 순서를 앞당겨 둠) WorldObjectNetworkSyncManager 의 Start 등록에 포함됩니다. 방에 늦게 들어와 그 뒤에 만들게 되면 직접 등록하고 전체 목록을 다시 요청합니다.
     /// </summary>
+    [DefaultExecutionOrder(-100)]
     public class WorldObjectAutoSpawner : MonoBehaviourPunCallbacks
     {
         #region Types
@@ -84,6 +85,7 @@ namespace Enzeun.Runtime
 
         #region State
         private readonly List<WorldObject> _spawned = new List<WorldObject>();
+        private bool _started;
         private bool _hasSpawned;
 
         [ShowInInspector, ReadOnly, LabelText("사용한 시드"), BoxGroup("개발용")]
@@ -102,9 +104,13 @@ namespace Enzeun.Runtime
             _groundMask = LayerMask.GetMask("Ground");
         }
 
-        // WorldObjectNetworkSyncManager 의 Start 보다 먼저 끝내야 해서 Awake 에서 시도합니다.
-        private void Awake()
+        // Awake 가 아니라 Start 에서 시도합니다. NavMeshSurface 는 OnEnable 에서 NavMesh 를 등록하는데,
+        // 씬 로딩 중 오브젝트끼리의 Awake/OnEnable 순서는 정해져 있지 않아 Awake 에서는 NavMesh 가 아직 없을 수 있습니다.
+        // (그러면 판정이 모두 실패하고, 나중에 배치하는 클라이언트와 결과가 달라짐) 모든 OnEnable 은 어떤 Start 보다도 먼저 끝납니다.
+        // WorldObjectNetworkSyncManager 의 Start 등록보다 먼저 만들어야 하므로 DefaultExecutionOrder 로 앞당겨 둡니다.
+        private void Start()
         {
+            _started = true;
             TryBegin(false);
         }
 
@@ -127,29 +133,35 @@ namespace Enzeun.Runtime
         #region Begin
         private void TryBegin(bool late)
         {
-            if (_hasSpawned || !PhotonNetwork.InRoom)
+            // Start 전에 온 콜백은 무시합니다. (Start 에서 다시 시도하며, 그때는 매니저 등록 전이라 정상 경로로 처리됨)
+            if (!_started || _hasSpawned || !PhotonNetwork.InRoom)
             {
                 return;
             }
 
-            int seed;
+            bool isMaster = PhotonNetwork.IsMasterClient;
+            bool useFixedSeed = isMaster && _debugFixedSeed != 0;
+            bool hasSeed = WorldSeed.TryGet(out int seed);
 
-            if (PhotonNetwork.IsMasterClient && _debugFixedSeed != 0)
+            // 방장이 아니면 방장이 시드를 정하길 기다립니다. (OnRoomPropertiesUpdate)
+            if (!useFixedSeed && !hasSeed && !isMaster)
+            {
+                return;
+            }
+
+            // Roll 보다 먼저 표시해야 합니다. 오프라인 모드에서는 Roll 안의 SetCustomProperties 가
+            // OnRoomPropertiesUpdate 를 그 자리에서 바로 불러 TryBegin 에 다시 들어오므로, 늦게 표시하면 두 번 배치됩니다.
+            _hasSpawned = true;
+
+            if (useFixedSeed)
             {
                 seed = WorldSeed.Roll(_debugFixedSeed);
             }
-            else if (!WorldSeed.TryGet(out seed))
+            else if (!hasSeed)
             {
-                // 방장이 아니면 방장이 시드를 정하길 기다립니다. (OnRoomPropertiesUpdate)
-                if (!PhotonNetwork.IsMasterClient)
-                {
-                    return;
-                }
-
                 seed = WorldSeed.Roll();
             }
 
-            _hasSpawned = true;
             UsedSeed = seed;
             SpawnAll(seed, late);
         }
@@ -157,6 +169,7 @@ namespace Enzeun.Runtime
         private void SpawnAll(int seed, bool registerNow)
         {
             List<Placement> layout = BuildLayout(seed);
+            DisableLayoutColliders();
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -174,6 +187,24 @@ namespace Enzeun.Runtime
             if (registerNow)
             {
                 RegisterLate();
+            }
+        }
+
+        // 지역과 배치 금지 구역의 콜라이더는 배치 계산에만 쓰므로 끝나면 끕니다. (켜 두면 줍기 탐지가 트리거를 잡아 대상을 가림)
+        private void DisableLayoutColliders()
+        {
+            for (int i = 0; i < _regions.Count; i++)
+            {
+                if (_regions[i] != null)
+                {
+                    _regions[i].DisableCollider();
+                }
+            }
+
+            WorldObjectSpawnBlocker[] blockers = FindObjectsByType<WorldObjectSpawnBlocker>(FindObjectsSortMode.None);
+            for (int i = 0; i < blockers.Length; i++)
+            {
+                blockers[i].DisableCollider();
             }
         }
 

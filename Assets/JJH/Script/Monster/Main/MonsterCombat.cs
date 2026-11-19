@@ -394,22 +394,20 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// 속도 제어 반응 함수(속도가 감소했을 때)
     /// </summary>
     /// <param name="_"></param>
-    private void ClipSpeedSet(ActiveStatusEffect _)
+    private void ClipSpeedSet(ActiveStatusEffect _) => ApplySpeedMultiplier();
+    private void ClipSpeedReset(ActiveStatusEffect _) => ApplySpeedMultiplier();
+
+    /// <summary>
+    /// 현재 걸려 있는 효과 기준으로 이동속도 배율 재계산, 추가/제거 공용
+    /// </summary>
+    private void ApplySpeedMultiplier()
     {
         if (data == null) return;
+
         float speedMultiplier = statusEffect.GetStatMultiplier(StatType.MoveSpeed);
         data.NowSpeed = data.Speed * speedMultiplier;
         anim.SetMoveAnimationSpeed(speedMultiplier);
         mover.SetMoveSpeed(data.NowSpeed);
-    }
-
-    private void ClipSpeedReset(ActiveStatusEffect _)
-    {
-        if (data == null) return;
-
-        anim.SetMoveAnimationSpeed();
-        data.NowSpeed = data.Speed;
-        mover.SetMoveSpeed(data.Speed);
     }
     #endregion
 
