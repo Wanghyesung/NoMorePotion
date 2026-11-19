@@ -57,6 +57,12 @@ namespace Enzeun.Runtime
         public event Action<int, int, int> OnPackItemChanged;
 
         /// <summary>
+        /// 내가 요청한 포션 제작이 적용됐을 때 만든 포션으로 발생합니다. 내 기기에서만, 제작 한 번에 한 번 발생합니다.
+        /// (다른 사람의 제작이나 스냅샷으로 통째로 바뀔 때는 발생하지 않음)
+        /// </summary>
+        public event Action<PotionInstance> OnPotionCrafted;
+
+        /// <summary>
         /// 내 플레이어 번호(ActorNumber)입니다. 방에 없으면 0 입니다.
         /// </summary>
         public int LocalActor => PhotonNetwork.InRoom && PhotonNetwork.LocalPlayer != null ? PhotonNetwork.LocalPlayer.ActorNumber : 0;
@@ -507,7 +513,13 @@ namespace Enzeun.Runtime
                     if (IsLocalActor(apply.RequesterActor))
                     {
                         Complete(apply.RequestId, InventoryResult.Ok(outcome));
+
+                        if (apply.Op == InventoryOp.Craft && outcome.Potion != null)
+                        {
+                            OnPotionCrafted?.Invoke(outcome.Potion);
+                        }
                     }
+
                     break;
 
                 case InventoryApplyStatus.Ignored:
