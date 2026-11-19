@@ -39767,16 +39767,20 @@ PrefabInstance:
       value: 12.505942
       objectReference: {fileID: 0}
     - target: {fileID: 6773988010321444275, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
+      propertyPath: skills.Array.data[2].Place
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6773988010321444275, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: skills.Array.data[2].HitEffect
       value: 
       objectReference: {fileID: 847165575720026351, guid: 19faca9680972a94ca9ec9566638034a, type: 3}
     - target: {fileID: 6773988010321444275, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: skills.Array.data[2].FrontOffset
-      value: 12.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6773988010321444275, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: skills.Array.data[2].WarningSize
-      value: 12.5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 7282619207940490556, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

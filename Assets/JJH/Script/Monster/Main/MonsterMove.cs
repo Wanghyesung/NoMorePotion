@@ -90,7 +90,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private float savedSpeed;
     private float savedAccel;
     private bool savedRotation;
-
+    private bool isManualMoving;
     #endregion
 
 
@@ -262,14 +262,22 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <param name="dist"></param>
     public void SetManualMove(float dist, float duration)
     {
-        Vector3 dir = (targetInfo.transform.position- transform.position).normalized;
-        Vector3 pos = transform.position + dir * dist;
+        Vector3 dir = transform.forward;
+        dir.y = 0f;
+        dir.Normalize();
 
+        Vector3 pos = transform.position + dir * dist;
         NavMesh.Raycast(transform.position, pos, out NavMeshHit hit, agent.areaMask);
         float actual = Vector3.Distance(transform.position, hit.position);
-        savedSpeed = agent.speed;
-        savedAccel = agent.acceleration;
-        savedRotation = agent.updateRotation;
+
+        if (!isManualMoving)
+        {
+            savedSpeed = agent.speed;
+            savedAccel = agent.acceleration;
+            savedRotation = agent.updateRotation;
+        }
+
+        isManualMoving = true;
 
         agent.speed = actual / Mathf.Max(duration, 0.01f);
         agent.acceleration = 999f;
@@ -283,6 +291,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// </summary>
     public void EndManualMove()
     {
+        if (!isManualMoving) return;
+        isManualMoving = false;
+
         agent.ResetPath();
         agent.isStopped = true;
         agent.speed = savedSpeed;

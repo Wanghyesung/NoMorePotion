@@ -1448,7 +1448,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 9
+  m_Radius: 10
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &7624236104222958679
 MonoBehaviour:
@@ -3510,7 +3510,7 @@ MonoBehaviour:
     HitPoint: {fileID: 8131073696445476148}
     Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
     Place: 0
-    WarningSize: 9
+    WarningSize: 10
     FrontOffset: 0
     Impact: {fileID: 176450095722085047}
   - HitEffect: {fileID: 0}
@@ -3523,9 +3523,9 @@ MonoBehaviour:
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 8022393817194585883}
     Warning: {fileID: 2891420028085579237, guid: 83af32817ae5a1a4d99cc253f1a254b4, type: 3}
-    Place: 1
-    WarningSize: 5
-    FrontOffset: 5
+    Place: 0
+    WarningSize: 4
+    FrontOffset: 0
     Impact: {fileID: 7884917828977633834}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
