@@ -63,7 +63,18 @@ namespace Enzeun.Runtime
         /// <summary>
         /// 박스 윗면에서 아래로 쏠 거리입니다.
         /// </summary>
-        public float RayDistance => Box.bounds.size.y;
+        /// (bounds 는 콜라이더를 끄면 0 이 되므로 박스 크기와 스케일로 직접 계산합니다)
+        public float RayDistance => transform.TransformVector(0f, Box.size.y, 0f).magnitude;
+
+        /// <summary>
+        /// 배치 계산이 끝나면 콜라이더를 끕니다. (박스 크기와 위치는 꺼져도 그대로 읽을 수 있음)
+        /// 트리거라도 켜 두면 트리거를 포함하는 탐지(줍기 RangeDetector 등)에 걸리고, 플레이어가 박스 안에 있으면
+        /// 거리가 0 이라 항상 가장 가까운 대상으로 잡혀 월드 오브젝트와 재료 주머니를 가립니다.
+        /// </summary>
+        public void DisableCollider()
+        {
+            Box.enabled = false;
+        }
         #endregion
 
         #region Gizmos

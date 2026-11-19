@@ -169,6 +169,7 @@ namespace Enzeun.Runtime
         private void SpawnAll(int seed, bool registerNow)
         {
             List<Placement> layout = BuildLayout(seed);
+            DisableLayoutColliders();
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -186,6 +187,24 @@ namespace Enzeun.Runtime
             if (registerNow)
             {
                 RegisterLate();
+            }
+        }
+
+        // 지역과 배치 금지 구역의 콜라이더는 배치 계산에만 쓰므로 끝나면 끕니다. (켜 두면 줍기 탐지가 트리거를 잡아 대상을 가림)
+        private void DisableLayoutColliders()
+        {
+            for (int i = 0; i < _regions.Count; i++)
+            {
+                if (_regions[i] != null)
+                {
+                    _regions[i].DisableCollider();
+                }
+            }
+
+            WorldObjectSpawnBlocker[] blockers = FindObjectsByType<WorldObjectSpawnBlocker>(FindObjectsSortMode.None);
+            for (int i = 0; i < blockers.Length; i++)
+            {
+                blockers[i].DisableCollider();
             }
         }
 
