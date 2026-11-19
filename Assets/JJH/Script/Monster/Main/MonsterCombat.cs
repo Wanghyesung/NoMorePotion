@@ -245,7 +245,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             return;
         }
 
-        Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillNum}", this);
+        if (on)
+            Debug.LogWarning($"[{name}] 스킬 히트박스 없음: {skillNum}", this);
     }
 
 

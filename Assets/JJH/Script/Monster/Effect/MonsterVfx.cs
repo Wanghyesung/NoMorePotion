@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using MoreMountains.Feedbacks;
 
 using SF = UnityEngine.SerializeField;
 
@@ -32,6 +33,10 @@ public class AttackVfx
     public float WarningSize = 3f;
     // WarningPlace.Front 전용
     public float FrontOffset = 2f;
+
+    // 비워도 됨
+    [Header("충격 흔들림")]
+    public MMF_Player Impact;
 }
 
 public interface IWarningIndicator
@@ -57,6 +62,9 @@ public class MonsterVfx : MonoBehaviour
     {
         mover = GetComponent<MonsterMove>();
     }
+
+
+
 
     /// <summary>
     /// 타겟이 지정된 최종 위치
@@ -113,6 +121,7 @@ public class MonsterVfx : MonoBehaviour
         }
 
         PoolManager.Instance.Get(vfx.HitEffect, pos, rot);
+        PlayImpact(slot, pos);
     }
     #endregion
 
@@ -123,14 +132,28 @@ public class MonsterVfx : MonoBehaviour
     /// <param name="slot">지정 슬롯 Num</param>
     /// <param name="duration">경고 유지 시간 (애니메이션 이벤트의 float 값, 0이면 채우기 연출 없음)</param>
 
+    /// <summary>
+    /// 단순 스킬 지정형 경고 표시
+    /// </summary>
+    /// <param name="slot"></param>
+    /// <param name="duration"></param>
     public void ShowWarning(int slot, float duration)
     {
         AttackVfx vfx = GetSlot(slot);
         if (vfx == null || vfx.Warning == null) return;
 
-        HideWarning(slot);
+        ShowWarningAt(slot, GetWarningPosition(vfx), duration);
+    }
 
-        Vector3 pos = GetWarningPosition(vfx);
+    /// <summary>
+    /// 위치를 직접 지정해 경고 표시
+    /// </summary>
+    public void ShowWarningAt(int slot, Vector3 pos, float duration)
+    {
+        AttackVfx vfx = GetSlot(slot);
+        if (vfx == null || vfx.Warning == null) return;
+
+        HideWarning(slot);
 
         lastWarningPos[slot] = pos;
         hasWarningPos[slot] = true;
@@ -187,6 +210,17 @@ public class MonsterVfx : MonoBehaviour
         }
     }
     #endregion
+
+    /// <summary>
+    /// 칸의 충격 연출을 지정 위치에서 재생
+    /// </summary>
+    public void PlayImpact(int slot, Vector3 pos)
+    {
+        AttackVfx vfx = GetSlot(slot);
+        if (vfx == null || vfx.Impact == null) return;
+
+        vfx.Impact.PlayFeedbacks(pos);
+    }
 
     private void OnDisable()
     {

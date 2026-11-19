@@ -40,7 +40,18 @@
     "MinRange": 0,
     "MaxRange": 6,
     "Cooldown": 15,
-    "Weight": 3,
+    "Weight": 2,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41006,
+    "SkillNum": 2,
+    "Name": "Teleport",
+    "SkillDamage": 30,
+    "MinRange": 8,
+    "MaxRange": 25,
+    "Cooldown": 12,
+    "Weight": 4,
     "Scripted": false
   }
 ]
