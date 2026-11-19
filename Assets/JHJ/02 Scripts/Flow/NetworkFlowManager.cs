@@ -17,7 +17,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 {
     public static NetworkFlowManager Instance { get; private set; }
 
-    private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(15);
     private const int LOADED_DELAY_MS = 300;
 
 
@@ -232,7 +232,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             await authService.SignInAsync()
                 .AttachExternalCancellation(destroyToken)
-                .Timeout(LoginTimeout);
+                .Timeout(LoginTimeout, DelayType.Realtime);
         }
         catch (OperationCanceledException)
         {
