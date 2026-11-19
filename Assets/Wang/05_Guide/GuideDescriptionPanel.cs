@@ -33,8 +33,7 @@ public sealed class GuideDescriptionPanel : MonoBehaviour
         textIndex = 0;
         isShowing = true;
         gameObject.SetActive(true);
-        InputManager.Instance.SetInputEnabled(false);
-        InputManager.Instance.FocusCursor();
+       
         nextTextAction.Enable();
         ShowText();
     }
@@ -98,8 +97,7 @@ public sealed class GuideDescriptionPanel : MonoBehaviour
 
         isShowing = false;
         nextTextAction.Disable();
-        InputManager.Instance.SetInputEnabled(true);
-        InputManager.Instance.UnfocusCursor();
+        gameObject.SetActive(false);
     }
 
     private void CancelReveal()

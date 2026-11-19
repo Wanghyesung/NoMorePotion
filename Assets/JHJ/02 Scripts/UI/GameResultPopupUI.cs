@@ -73,7 +73,7 @@ public class GameResultPopupUI : MonoBehaviour
         if (InputManager.Instance != null)
         {
             InputManager.Instance.SetInputEnabled(false);
-            InputManager.Instance.SetCursorLocked(false);
+            InputManager.Instance.FocusCursor();
         }
     }
 

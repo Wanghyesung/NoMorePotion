@@ -4,7 +4,6 @@ using UnityEngine;
 public sealed class TriggerEndEvent : GuideEndEvent
 {
     [SerializeField] private LayerMask targetLayers = ~0;
-    [SerializeField] private bool localPlayerOnly = true;
 
     private void Reset() => GetComponent<BoxCollider>().isTrigger = true;
 
@@ -12,12 +11,11 @@ public sealed class TriggerEndEvent : GuideEndEvent
     {
         if (!IsListening || (targetLayers.value & (1 << other.gameObject.layer)) == 0)
             return;
-        if (localPlayerOnly)
-        {
-            Player player = other.GetComponentInParent<Player>();
-            if (player == null || !player.IsLocalPlayer)
-                return;
-        }
+        
+        Player player = other.GetComponentInParent<Player>();
+        if (player == null || !player.IsLocalPlayer)
+            return;
+
         Complete();
     }
 }

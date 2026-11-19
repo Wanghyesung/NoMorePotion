@@ -167,6 +167,12 @@ public sealed class PlayerThrowState : PlayerState
 
     private void ThrowPotion(AnimationEvent animationEvent)
     {
+        if (Cursor.visible)
+        {
+            owner.ClearActionState();
+            return;
+        }
+
         if (hasThrown == true || throwingPotion == null || hand.GetPotion(throwingSide) != throwingPotion)
             return;
 

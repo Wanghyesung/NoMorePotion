@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -87,9 +88,7 @@ public sealed class InputManager : MonoBehaviour
 
     private PlayerInputInfo inputInfo;
     private bool focused = true;
-    private bool cursorLocked = true;
-    private bool cursorCaptured;
-    private bool altCursorActive;
+    private bool cursorLocked;
     private bool gameplayInputEnabled = true;
     public PlayerInputInfo InputInfo => inputInfo;
 
@@ -140,7 +139,6 @@ public sealed class InputManager : MonoBehaviour
         if (Instance != this)
             return;
 
-        EscapeAction.performed += ReleaseCursor;
         EscapeAction.Enable();
         // 인벤토리에서 플레이어 조작이 꺼져도 Alt 해제 이벤트는 받는다.
         AltAction.performed += OnAltPressed;
@@ -151,7 +149,8 @@ public sealed class InputManager : MonoBehaviour
             EnableActions();
         focused = true;
         CancelInput();
-        SetCursorLocked(cursorLocked);
+
+        RefreshCursorState(cursorLocked || AltAction.IsPressed());
     }
 
     private void Update()
@@ -160,7 +159,7 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         inputInfo.MoveDir = MoveAction.ReadValue<Vector2>();
-        inputInfo.Delta = cursorCaptured == true ? DeltaAction.ReadValue<Vector2>() : Vector2.zero;
+        inputInfo.Delta = DeltaAction.ReadValue<Vector2>();
     }
 
     private void OnDisable()
@@ -169,13 +168,6 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         focused = false;
-        if (altCursorActive == true)
-        {
-            altCursorActive = false;
-            cursorLocked = true;
-        }
-
-        EscapeAction.performed -= ReleaseCursor;
         EscapeAction.Disable();
         AltAction.performed -= OnAltPressed;
         AltAction.canceled -= OnAltReleased;
@@ -200,36 +192,34 @@ public sealed class InputManager : MonoBehaviour
             return;
 
         focused = hasFocus;
-        // 창 밖에서 Alt를 떼어 해제 입력을 놓쳐도 커서 상태가 남지 않게 한다.
-        if (hasFocus == false && altCursorActive)
-        {
-            altCursorActive = false;
-            cursorLocked = true;
-        }
         CancelInput();
 
-        SetCursorLocked(cursorLocked);
+        RefreshCursorState(!hasFocus || cursorLocked || AltAction.IsPressed());
     }
-
-    private void ReleaseCursor(InputAction.CallbackContext context) => SetCursorLocked(false);
 
     private void OnAltPressed(InputAction.CallbackContext context)
     {
-        altCursorActive = true;
-        FocusCursor();
+        ShowCursor(true);
     }
 
     private void OnAltReleased(InputAction.CallbackContext context)
     {
-        altCursorActive = false;
-        UnfocusCursor();
+        ShowCursor(false);
     }
 
-    /// <summary>커서를 표시하고 마우스 시점 입력을 멈춥니다.</summary>
-    public void FocusCursor() => SetCursorLocked(false);
+    /// <summary>커서 잠금이 해제되어 있으면 커서를 표시합니다.</summary>
+    public void FocusCursor() => ShowCursor(true);
 
-    /// <summary>커서를 숨깁니다. 인벤토리 등으로 조작이 꺼져 있으면 표시는 유지합니다.</summary>
-    public void UnfocusCursor() => SetCursorLocked(true);
+    /// <summary>커서 잠금 상태를 바꾸지 않고 Alt 입력에 따른 표시로 돌아갑니다.</summary>
+    public void UnfocusCursor() => ShowCursor(AltAction.IsPressed());
+
+    public void ShowCursor(bool show)
+    {
+        if (cursorLocked == true)
+            return;
+
+        RefreshCursorState(show);
+    }
 
     /// <summary>플레이어 조작만 켜거나 끕니다. UI와 Escape 입력은 유지합니다.</summary>
     public void SetInputEnabled(bool inputEnabled)
@@ -242,31 +232,25 @@ public sealed class InputManager : MonoBehaviour
             DisableActions();
 
         CancelInput();
-        RefreshCursorState();
     }
 
-    /// <summary>커서 잠금과 표시를 변경합니다. false면 마우스 시점 입력도 멈춥니다.</summary>
+    /// <summary>인벤토리에서 커서 표시를 고정합니다. 해제하면 Alt 입력에 따른 표시로 돌아갑니다.</summary>
     public void SetCursorLocked(bool locked)
     {
         cursorLocked = locked;
-        inputInfo.Delta = Vector2.zero;
-        RefreshCursorState();
+        RefreshCursorState(locked || AltAction.IsPressed());
     }
 
-    private void RefreshCursorState()
+    private void RefreshCursorState(bool bState)
     {
-        // UI를 닫아도 Alt 해제 입력 전까지는 표시하고, UI가 열려 있으면 항상 표시한다.
-        bool capture = focused == true && cursorLocked == true  && altCursorActive == false;
+        Cursor.lockState = bState ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = bState;
 
-        if (cursorCaptured != capture)
-            inputInfo.Delta = Vector2.zero;
-        cursorCaptured = capture;
-
-        CursorLockMode lockMode = capture ? CursorLockMode.Locked : CursorLockMode.None;
-        if (Cursor.lockState != lockMode)
-            Cursor.lockState = lockMode;
-        if (Cursor.visible != !capture)
-            Cursor.visible = !capture;
+        if (gameplayInputEnabled && isActiveAndEnabled)
+        {
+            ApplyGuideKey(Skill0Action, GameplayKeys.UsePotion);
+            ApplyGuideKey(AimAction, GameplayKeys.Aim);
+        }
     }
 
     private void CancelInput()
@@ -300,7 +284,8 @@ public sealed class InputManager : MonoBehaviour
 
     private void ApplyGuideKey(InputAction action, GameplayKeys key)
     {
-        if ((GuideAllowedKeys & key) != 0)
+        bool cursorBlocksPotion = Cursor.visible && (key == GameplayKeys.UsePotion || key == GameplayKeys.Aim);
+        if ((GuideAllowedKeys & key) != 0 && !cursorBlocksPotion)
             action.Enable();
         else
             action.Disable();

@@ -326,7 +326,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private bool CanStartUse()
     {
         // 액션 잠금도 canceled 콜백을 발생시키므로 키를 뗀 것으로 처리하지 않습니다.
-        if (!Instance.HasGameplayInput || (Instance.GuideAllowedKeys & GameplayKeys.UsePotion) == 0)
+        if (Cursor.visible || !Instance.HasGameplayInput || (Instance.GuideAllowedKeys & GameplayKeys.UsePotion) == 0)
             return false;
 
         if (CheckState() == false)
@@ -347,7 +347,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private void OnPressed(InputAction.CallbackContext context)
     {
         CancelPending();
-        if (CheckState() == false)
+        if (Cursor.visible || CheckState() == false)
             return;
 
         if (fsm.CurrentActionState is PlayerThrowState throwing && throwing.IsAiming == true)
