@@ -119,7 +119,7 @@ public class InGameChatUI : MonoBehaviour
         input.text = string.Empty;
         input.ActivateInputField();
         InputManager.Instance?.SetInputEnabled(false);
-        InputManager.Instance?.SetCursorLocked(false);
+        InputManager.Instance?.FocusCursor();
         WakeUp();
     }
 
@@ -130,7 +130,7 @@ public class InGameChatUI : MonoBehaviour
         input.DeactivateInputField();
         inputRoot.SetActive(false);
         InputManager.Instance?.SetInputEnabled(true);
-        InputManager.Instance?.SetCursorLocked(true);
+        InputManager.Instance?.UnfocusCursor();
         WakeUp();
     }
 

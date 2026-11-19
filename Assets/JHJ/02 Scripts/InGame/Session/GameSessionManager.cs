@@ -220,7 +220,7 @@ public class GameSessionManager : MonoBehaviour
         if (InputManager.Instance != null)
         {
             InputManager.Instance.SetInputEnabled(true);
-            InputManager.Instance.SetCursorLocked(true);
+            InputManager.Instance.UnfocusCursor();
         }
     }
     

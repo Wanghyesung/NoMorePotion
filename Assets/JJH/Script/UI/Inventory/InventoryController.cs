@@ -138,14 +138,14 @@ public class InventoryController : MonoBehaviour
             combineController.ChangeQuickCombinedEnable();
             invenCanvas.enabled = true;
             invenCanvasGroup.blocksRaycasts = true;
-            InputManager.Instance.SetCursorLocked(false);
+            InputManager.Instance.SetCursorLocked(true);
             InputManager.Instance.SetInputEnabled(false);
         }
         else
         {
             combineController.ChangeQuickCombinedDisable();
             invenCanvasGroup.blocksRaycasts = false;
-            InputManager.Instance.SetCursorLocked(true);
+            InputManager.Instance.SetCursorLocked(false);
             InputManager.Instance.SetInputEnabled(true);
         }
 
