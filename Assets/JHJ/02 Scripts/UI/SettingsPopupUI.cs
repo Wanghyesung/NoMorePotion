@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using SF = UnityEngine.SerializeField;
 using MoreMountains.Tools;
 using TMPro;
+using Photon.Pun;
 
 public class SettingsPopupUI : MonoBehaviour
 {
@@ -24,11 +25,17 @@ public class SettingsPopupUI : MonoBehaviour
     [SF] private TMP_Text bgmText;
     [SF] private TMP_Text sfxText;
 
+    [Header("게임")]
+    [SF] private TMP_Text toTitleText;  // 버튼라벨
 
     private float savedMaster;
     private float savedBgm;
     private float savedSfx;
-    private const float VOLUME_TOLERANCE = 0.0001f;
+    private const float VOLUME_TOLERANCE = 0.001f;
+    private bool isInGame;
+
+
+    public bool IsOpen => gameObject.activeSelf;
 
 
     private void Awake()
@@ -47,8 +54,19 @@ public class SettingsPopupUI : MonoBehaviour
     #region 열기/닫기
     public void Open()
     {
-        bool canReturnToTitle = NetworkFlowManager.Instance != null && NetworkFlowManager.Instance.CurrentState == FlowState.Lobby;
-        toTitleBtn.gameObject.SetActive(canReturnToTitle);
+        if (gameObject.activeSelf)
+            return;
+
+        NetworkFlowManager manager = NetworkFlowManager.Instance;
+
+        FlowState state = manager != null ? manager.CurrentState : FlowState.Title;
+        isInGame = state == FlowState.InGame;
+
+        // 로비 : 타이틀로 /  인게임 : 게임 나가기
+        toTitleBtn.gameObject.SetActive(state == FlowState.Lobby || isInGame);
+
+        if (toTitleText != null)
+            toTitleText.text = isInGame ? "게임 나가기" : "타이틀로 돌아가기";
 
         CacheCurrentVolumes();
 
@@ -61,11 +79,21 @@ public class SettingsPopupUI : MonoBehaviour
             soundTab.isOn = true;
 
         RefreshSaveButton();
+
+        if (isInGame)
+            LockGameplay(true);
+
         gameObject.SetActive(true);
     }
 
     public void Close()
     {
+        if (!gameObject.activeSelf)
+            return;
+
+        if (isInGame)
+            LockGameplay(false);
+
         gameObject.SetActive(false);
     }
 
@@ -77,6 +105,16 @@ public class SettingsPopupUI : MonoBehaviour
         sm.SetVolumeMusic(savedBgm);
         sm.SetVolumeSfx(savedSfx);
         Close();
+    }
+
+    private void LockGameplay(bool locked)
+    {
+        InputManager input = InputManager.Instance;
+        if (input == null)
+            return;
+
+        input.SetCursorLocked(locked);
+        input.SetInputEnabled(!locked);
     }
 
     #endregion
@@ -159,11 +197,28 @@ public class SettingsPopupUI : MonoBehaviour
             return;
         }
 
-        if (!await Confirm("타이틀로 돌아가시겠습니까?"))
+        string message = !isInGame ? "타이틀로 돌아가시겠습니까?"
+                : PhotonNetwork.OfflineMode ? "게임을 종료하고 타이틀로 돌아가시겠습니까?"
+                : "게임을 나가 로비로 돌아가시겠습니까?";
+
+        if (!await Confirm(message))
             return;
 
         Cancel();
-        manager.RequestReturnToTitle();
+
+        if (isInGame)
+        {
+            InputManager input = InputManager.Instance;
+            if (input != null)
+            {
+                input.FocusCursor();
+            }
+            manager.RequestLeaveGame();
+        }
+        else
+        {
+            manager.RequestReturnToTitle();
+        }
     }
 
     private async UniTaskVoid QuitFlow()
