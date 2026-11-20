@@ -36,7 +36,10 @@ public class InventoryController : MonoBehaviour
 
     [Header("시체 상자")]
     [SF] private RectTransform rootBoxSideRect;
-    
+
+    [Header("설정창")]
+    [SF] private SettingsPopupUI settingsPopup;
+
     private bool isOpen = false;
     public bool IsOpen => isOpen;
     private bool flag = false;
@@ -107,6 +110,11 @@ public class InventoryController : MonoBehaviour
 
     private void OnTabPressed(CallbackContext context)
     {
+
+        // 설정창이 떠 있으면 인벤 토글 무시 (닫힐 때 입력 잠금이 풀리는 문제 방지)
+        if (settingsPopup != null && settingsPopup.IsOpen)
+            return;
+
         invenToken?.Cancel();
         invenToken = new();
 

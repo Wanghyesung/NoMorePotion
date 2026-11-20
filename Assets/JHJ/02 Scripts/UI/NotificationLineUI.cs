@@ -72,11 +72,12 @@ public class NotificationLineUI : MonoBehaviour
         fade?.Kill();
         fade = group.DOFade(0, fadeOutSeconds).SetUpdate(true).SetLink(gameObject);
 
-        canceled = await fade.ToUniTask(cancellationToken: token).SuppressCancellationThrow();
+        canceled = await fade.ToUniTask(TweenCancelBehaviour.KillAndCancelAwait, cancellationToken: token).SuppressCancellationThrow();
 
         if (canceled)
             return;
 
+        fade = null;   // 이미 끝난 트윈. 이후 OnDisable → Stop()에서 다시 Kill하지 않게
         OnFinished?.Invoke(this);
     }
 
@@ -92,7 +93,9 @@ public class NotificationLineUI : MonoBehaviour
         cts?.Dispose();
         cts = null;
 
-        fade?.Kill();
+        Tween t = fade;
+        fade = null;        // 먼저 비워서 재진입 시 같은 트윈을 또 Kill하지 않게
+        t?.Kill();
     }
 
     /// <summary>

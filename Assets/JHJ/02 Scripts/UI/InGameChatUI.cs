@@ -29,6 +29,9 @@ public class InGameChatUI : MonoBehaviour
     private float lastActiveTime;
     private int closedFrame = -1;
 
+
+    public bool IsTyping => isTyping;
+
     #region 생명주기
     private void Awake()
     {

@@ -9,9 +9,13 @@ public class TitlePanelUI : MonoBehaviour
     [SerializeField] private Button multiBtn;
     [SerializeField] private Button singleBtn;
     [SerializeField] private Button quitBtn;
+    [SerializeField] private Button settingsBtn;
+    [SerializeField] private SettingsPopupUI settingsPopup;
     [SerializeField] private ConfirmPopupUI confirmPopup;
+    [SerializeField] private PopupUI infoPopup;
 
     private NetworkFlowManager manager;
+    private readonly TutorialStore tutorialStore = new TutorialStore();
 
     private void Start()
     {
@@ -23,6 +27,7 @@ public class TitlePanelUI : MonoBehaviour
             return;
         }
 
+        settingsBtn.onClick.AddListener(settingsPopup.Open);
         multiBtn.onClick.AddListener(manager.RequestConnectOnline);
         singleBtn.onClick.AddListener(manager.RequestEnterOffline);
         quitBtn.onClick.AddListener( () => QuitFlow().Forget() );
@@ -36,6 +41,21 @@ public class TitlePanelUI : MonoBehaviour
 
             })   //해당 값을 받아서 interactable에 대입
             .AddTo(this);
+
+        if(!tutorialStore.HasPrompted && manager.CurrentState == FlowState.Title)
+            AskTutorialFlow().Forget();
+    }
+
+    private async UniTaskVoid AskTutorialFlow()
+    {
+        bool start = await Confirm("튜토리얼을 진행하시겠습니까?");
+
+        tutorialStore.MarkPrompted();
+
+        if (start)
+            manager.RequestStartTutorial();
+        else if (infoPopup != null)
+            infoPopup.Show("튜토리얼은 설정 > 게임 탭에서 언제든 진행할 수 있습니다.");
     }
 
     private async UniTaskVoid QuitFlow()

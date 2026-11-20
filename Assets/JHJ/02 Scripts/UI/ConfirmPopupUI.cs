@@ -11,6 +11,8 @@ public class ConfirmPopupUI : MonoBehaviour
 
     private UniTaskCompletionSource<bool> pending;
 
+    public bool IsOpen => pending != null;
+
     private void Awake()
     {
         yesBtn.onClick.AddListener(() => Finish(true));
@@ -30,6 +32,12 @@ public class ConfirmPopupUI : MonoBehaviour
 
         return pending.Task;
 
+    }
+
+    // ESC 등 외부에서 "아니오"로 닫기
+    public void Cancel()
+    {
+        Finish(false);
     }
 
     private void Finish(bool result)
