@@ -97,6 +97,7 @@ public sealed class ParabolicMovement : MonoBehaviour
         Vector3 delta = to - from;
         float distance = delta.magnitude;
         hit = default;
+
         if (distance <= 0.0001f)
             return false;
 
@@ -134,6 +135,9 @@ public sealed class ParabolicMovement : MonoBehaviour
                 hit = candidate;
                 found = true;
             }
+            //이미 겹쳐있는 상태
+            if (found && hit.distance <= 0.0f)
+                hit.point = from;
         }
         return found;
     }

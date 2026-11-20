@@ -77,6 +77,9 @@ public sealed class RangeDetector : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Collider hit = hits[i];
+            if (hit == null || hit.enabled == false)
+                continue;
+
             if (hit.transform.IsChildOf(transform) == true)
                 continue;
 
@@ -133,8 +136,18 @@ public sealed class RangeDetector : MonoBehaviour
         var cancellationToken = this.GetCancellationTokenOnDestroy();
         while (cancellationToken.IsCancellationRequested == false)
         {
-            if (isActiveAndEnabled)
-                Get<Transform>();
+            try
+            {
+                if (isActiveAndEnabled)
+                    Get<Transform>();
+            }
+            catch (System.Exception exception)
+            {
+                // 한 번의 탐지 오류로 루프 전체가 종료되지 않도록 정리 후 다시 시도한다.
+                System.Array.Clear(hits, 0, hits.Length);
+                SetTarget(null);
+            }
+
             bool canceled = await UniTask.WaitForSeconds(waitTime, cancellationToken: cancellationToken)
                 .SuppressCancellationThrow();
 

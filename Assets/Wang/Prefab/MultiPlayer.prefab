@@ -1432,6 +1432,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7e54c30c0f18104eac3c3f49b2d13ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FSM
+  jumpGravityMultiplier: 1.5
+  fallGravityMultiplier: 2.5
   stateData:
   - {fileID: 11400000, guid: f84c5b15f7635b34eab9ac3cd7ffe7f3, type: 2}
   - {fileID: 11400000, guid: 48b077db732be9b4b9d4088b75b85f8c, type: 2}
@@ -1450,6 +1452,8 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 9664
+  maxGroundAngle: 50
+  groundContactTolerance: 0.03
 --- !u!114 &1679380589598682981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1504,7 +1508,7 @@ MonoBehaviour:
   radius: 2
   targetLayers:
     serializedVersion: 2
-    m_Bits: 24576
+    m_Bits: 24577
   triggerInteraction: 2
   waitTime: 0.1
 --- !u!114 &4666196079994858082
