@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEngine.Animations.Rigging.BoneRenderer;
 using SF = UnityEngine.SerializeField;
 
 public class InGameEscapeRouter : MonoBehaviour
