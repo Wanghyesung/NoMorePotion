@@ -1121,6 +1121,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   drinkHoldSeconds: 0.3
+  skinMeshRenderer: {fileID: 0}
+  playerBlink: {fileID: 0}
+  damageNumberPrefab: {fileID: 0}
+  damageNumberOffset: {x: 0, y: 1.8, z: 0}
   cameraPosition: {fileID: 5871699718036848010}
   lookPivot: {fileID: 0}
   pitchSensitivity: 0.15
@@ -1158,8 +1162,9 @@ MonoBehaviour:
   radius: 2
   targetLayers:
     serializedVersion: 2
-    m_Bits: 1025
+    m_Bits: 16385
   triggerInteraction: 2
+  waitTime: 0.1
 --- !u!1 &5611542940910520703
 GameObject:
   m_ObjectHideFlags: 0
@@ -1209,9 +1214,10 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 64
+  maxAimDistance: 40
+  groundProbeDistance: 100
   minArcHeight: 0.2
   maxArcHeight: 0.5
-  forwardSpeed: 8
   pointCount: 40
   fadePointCount: 20
   positions: []

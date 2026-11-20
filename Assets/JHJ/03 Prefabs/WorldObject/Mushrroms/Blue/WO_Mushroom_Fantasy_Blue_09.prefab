@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3833826996139873875, guid: d06077531e3cbf340b40ff27a9e96085, type: 3}
       propertyPath: m_Layer
-      value: 10
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 4503509448920665321, guid: d06077531e3cbf340b40ff27a9e96085, type: 3}
       propertyPath: m_LocalPosition.x
@@ -67,6 +67,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4503509448920665321, guid: d06077531e3cbf340b40ff27a9e96085, type: 3}
   m_PrefabInstance: {fileID: 1848125212986361040}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &4004084012936672086 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3329428029533845382, guid: d06077531e3cbf340b40ff27a9e96085, type: 3}
+  m_PrefabInstance: {fileID: 1848125212986361040}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8587975241440029886
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75,9 +80,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2386152343606378672, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_Name
       value: WO_Mushroom_Fantasy_Blue_09
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -127,6 +140,14 @@ PrefabInstance:
       propertyPath: _networkId
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000031, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7310000000000000023, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
     m_RemovedGameObjects:
@@ -139,6 +160,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7021811181715428987}
+    - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9136836467930083653}
   m_SourcePrefab: {fileID: 100100000, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
 --- !u!1 &1323156408417053867 stripped
 GameObject:
@@ -167,6 +191,22 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 230210920154532225, guid: 39c35a76a82085942a039f8802ecf369, type: 3}
+--- !u!114 &9136836467930083653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1323156408417053867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4909b43245720a44fa76f98b57117edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionOutlineTarget
+  outlineRenderers:
+  - {fileID: 4004084012936672086}
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineWidth: 4
 --- !u!4 &8348964685635508520 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 356882639811261846, guid: 3f07a68906860a1479165fc5778500bd, type: 3}

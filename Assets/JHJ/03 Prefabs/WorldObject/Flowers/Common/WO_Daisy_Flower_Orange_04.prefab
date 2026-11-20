@@ -8,9 +8,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2386152343606378672, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_Name
       value: WO_Daisy_Flower_Orange_04
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -60,6 +68,14 @@ PrefabInstance:
       propertyPath: _networkId
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000031, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7310000000000000023, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
     m_RemovedGameObjects:
@@ -72,6 +88,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1146676156527284335}
+    - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5575169966425201920}
   m_SourcePrefab: {fileID: 100100000, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
 --- !u!4 &2894718744297209828 stripped
 Transform:
@@ -105,6 +124,22 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 946481998427531346, guid: 8b21b545772f7264bb6d4dc24e742053, type: 3}
+--- !u!114 &5575169966425201920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5309088410383731303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4909b43245720a44fa76f98b57117edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionOutlineTarget
+  outlineRenderers:
+  - {fileID: 8683556032328783089}
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineWidth: 4
 --- !u!1001 &5777683983192394025
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -119,7 +154,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3723554112242088973, guid: e0121bad83c467a40b73ddaccff581aa, type: 3}
       propertyPath: m_Layer
-      value: 10
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 4100360404621993655, guid: e0121bad83c467a40b73ddaccff581aa, type: 3}
       propertyPath: m_LocalPosition.x
@@ -170,5 +205,10 @@ PrefabInstance:
 --- !u!4 &7550598035608678302 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4100360404621993655, guid: e0121bad83c467a40b73ddaccff581aa, type: 3}
+  m_PrefabInstance: {fileID: 5777683983192394025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &8683556032328783089 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2930793102967692760, guid: e0121bad83c467a40b73ddaccff581aa, type: 3}
   m_PrefabInstance: {fileID: 5777683983192394025}
   m_PrefabAsset: {fileID: 0}

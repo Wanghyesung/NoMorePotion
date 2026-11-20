@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 199861930148575535, guid: 369dd5ac7985ed047a43412314685f50, type: 3}
       propertyPath: m_Layer
-      value: 10
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 688450346490618773, guid: 369dd5ac7985ed047a43412314685f50, type: 3}
       propertyPath: m_LocalPosition.x
@@ -67,6 +67,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 688450346490618773, guid: 369dd5ac7985ed047a43412314685f50, type: 3}
   m_PrefabInstance: {fileID: 2490972768761531692}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &4275965144992667094 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1857437075671783674, guid: 369dd5ac7985ed047a43412314685f50, type: 3}
+  m_PrefabInstance: {fileID: 2490972768761531692}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2593428725415711860
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75,9 +80,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2386152343606378672, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_Name
       value: WO_Cemetery_Stone_06
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -127,6 +140,14 @@ PrefabInstance:
       propertyPath: _networkId
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000031, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7310000000000000023, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
     m_RemovedGameObjects:
@@ -139,6 +160,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3925514476816760769}
+    - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3150659156150021568}
   m_SourcePrefab: {fileID: 100100000, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
 --- !u!4 &2814278565519335906 stripped
 Transform:
@@ -172,3 +196,19 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 2121016515143748794, guid: 02e910d9e620fdb4b88b7debc1657fc2, type: 3}
+--- !u!114 &3150659156150021568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5084533100443702369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4909b43245720a44fa76f98b57117edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionOutlineTarget
+  outlineRenderers:
+  - {fileID: 4275965144992667094}
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineWidth: 4
