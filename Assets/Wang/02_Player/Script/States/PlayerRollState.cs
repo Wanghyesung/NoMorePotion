@@ -69,7 +69,8 @@ public sealed class PlayerRollState : PlayerState
     {
         rollVelocity = Vector3.MoveTowards(
             rollVelocity, Vector3.zero, rollDeceleration * Time.fixedDeltaTime);
-        owner.AddVel(rollVelocity);
+        if (owner.IsGrounded)
+            owner.AddVel(rollVelocity);
 
     }
 

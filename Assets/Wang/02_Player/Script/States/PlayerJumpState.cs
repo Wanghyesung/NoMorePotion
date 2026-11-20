@@ -6,9 +6,7 @@ public sealed class PlayerJumpState : PlayerState
 {
     private static readonly int jumpHash = Animator.StringToHash("Jump");
     private readonly float jumpSpeed;
-    private Vector3 airVelocity;
     private bool applyJump;
-    public override Vector3 Velocity => airVelocity;
    
     public PlayerJumpState(FSM owner, SOState data, float jumpSpeed)
         : base(owner, data)
@@ -49,7 +47,6 @@ public sealed class PlayerJumpState : PlayerState
         base.Enter();
         owner.Animator.SetTrigger(jumpHash);
 
-        airVelocity = owner.PreviousState.Velocity;
         applyJump = true;
 
         owner.ClearGroundContact();
@@ -63,9 +60,9 @@ public sealed class PlayerJumpState : PlayerState
 
     public override void FixedUpdateState()
     {
-        owner.AddVel(airVelocity);
         if (applyJump)
         {
+            // 최초 한 번만 점프 속도를 주고, 이후 중력은 FSM/Rigidbody에 맡긴다.
             owner.AddVel(Vector3.up * (jumpSpeed - owner.Rigidbody.linearVelocity.y));
             applyJump = false;
         }
@@ -73,7 +70,7 @@ public sealed class PlayerJumpState : PlayerState
 
     public override void UpdateState()
     {
-        if (owner.IsGrounded == true)
+        if (applyJump == false && owner.IsGrounded == true)
             owner.ChangeState(FSM.StateType.Idle);
     }
 

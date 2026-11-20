@@ -13,6 +13,7 @@ public sealed class PlayerHitState : PlayerState
     private float knockbackPower;
     private Vector3 direction;
     private Vector3 knockbackVelocity;
+    private bool applyAirKnockback;
     private readonly float knockbackDeceleration;
     private readonly Quaternion defaultViewRotation;
 
@@ -64,13 +65,17 @@ public sealed class PlayerHitState : PlayerState
        
 
         knockbackVelocity = -direction * (knockbackPower / owner.Rigidbody.mass);
+        applyAirKnockback = true;
         owner.Animator.SetTrigger(hitHash);
     }
 
 
     public override void FixedUpdateState()
     {
-        owner.AddVel(knockbackVelocity);
+        // 공중 속도는 FSM이 유지하므로 같은 넉백을 매번 더하지 않는다.
+        if (owner.IsGrounded || applyAirKnockback)
+            owner.AddVel(knockbackVelocity);
+        applyAirKnockback = false;
         knockbackVelocity = Vector3.MoveTowards(knockbackVelocity, Vector3.zero, knockbackDeceleration * Time.fixedDeltaTime);
     }
 

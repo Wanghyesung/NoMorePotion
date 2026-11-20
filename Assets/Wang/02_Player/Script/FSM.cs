@@ -58,11 +58,14 @@ public sealed class FSM : MonoBehaviour
     private static readonly int upperBodyAnimationSpeedHash = Animator.StringToHash("UpperBodyAnimationSpeed");
     public Animator Animator { get; private set; }
     public Rigidbody Rigidbody { get; private set; }
+    private CapsuleCollider bodyCollider;
     #endregion
 
     #region Velocity
     public Vector3 Vel { get; private set; }
     private bool hasStateVelocity;
+    [SerializeField, Min(0.1f)] private float jumpGravityMultiplier = 1.5f;
+    [SerializeField, Min(0.1f)] private float fallGravityMultiplier = 2.5f;
     #endregion
 
     #region PlayerState
@@ -95,7 +98,22 @@ public sealed class FSM : MonoBehaviour
     #region GroundCheck
     private readonly HashSet<Collider> groundContacts = new HashSet<Collider>();
     [SerializeField] private LayerMask groundLayers = ~0;
-    public bool IsGrounded => groundContacts.Count > 0 && Rigidbody.linearVelocity.y <= 0.1f;
+    [SerializeField, Range(0f, 89f)] private float maxGroundAngle = 50f;
+    [SerializeField, Min(0f)] private float groundContactTolerance = 0.03f;
+    public bool IsGrounded
+    {
+        get
+        {
+            // 점프 상승 중의 접촉은 착지로 처리하지 않는다.
+            if (CurrentState?.Type == StateType.Jump && Rigidbody.linearVelocity.y > 0.1f)
+                return false;
+
+            if (groundContacts.Count <= 0)
+                return false;
+
+            return true;
+        }
+    }
     public void ClearGroundContact()
     {
         groundContacts.Clear();
@@ -111,6 +129,7 @@ public sealed class FSM : MonoBehaviour
         Animator = playerView.GetComponent<Animator>();
         upperBodyLayer = Animator.GetLayerIndex("UpperBody");
         Rigidbody = GetComponent<Rigidbody>();
+        bodyCollider = GetComponent<CapsuleCollider>();
 
         rotateY = transform.eulerAngles.y;
 
@@ -183,18 +202,20 @@ public sealed class FSM : MonoBehaviour
 
     public void FixedUpdateState()
     {
-        if (IsFrozen == true || Rigidbody.isKinematic == true)
-        {
-            Rigidbody.useGravity = true;
+        Rigidbody.useGravity = true;
+        if (Rigidbody.isKinematic == true)
             return;
-        }
+
+      
+        if (IsFrozen == true)
+            return;
 
         // Delta가 0이어도 남아 있는 물리 각속도 때문에 루트와 카메라가 돌아갈 수 있다.
         Rigidbody.angularVelocity = Vector3.zero;
         Rigidbody.MoveRotation(ViewRotation);
 
-        // 기존 수직 속도는 유지하고, 이번 물리 프레임의 이동·넉백 속도를 새로 합산한다.
-        Vel = Vector3.up * Rigidbody.linearVelocity.y;
+        // 공중에서는 충돌로 줄거나 꺾인 수평 속도도 그대로 이어받는다.
+        Vel = IsGrounded ? Vector3.up * Rigidbody.linearVelocity.y : Rigidbody.linearVelocity;
         hasStateVelocity = false;
 
         CurrentState?.FixedUpdateState();
@@ -202,6 +223,7 @@ public sealed class FSM : MonoBehaviour
 
         HoldGroundWhenIdle();
         Rigidbody.linearVelocity = Vel;
+        ApplyGravity();
     }
 
     // FixedUpdateState에서 이번 물리 프레임에 적용할 속도를 누적한다.
@@ -215,12 +237,22 @@ public sealed class FSM : MonoBehaviour
     private void HoldGroundWhenIdle()
     {
         bool hold = CurrentState?.Type != StateType.Jump
-            && groundContacts.Count > 0 && hasStateVelocity == false
+            && IsGrounded && hasStateVelocity == false
             && (HasGameplayInput == false || MoveInput.sqrMagnitude <= 0.001f);
 
-        Rigidbody.useGravity = hold == false;
         if (hold == true)
             Vel = new Vector3(Vel.x, 0f, Vel.z);
+    }
+
+    private void ApplyGravity()
+    {
+        bool jumping = CurrentState?.Type == StateType.Jump;
+        if (jumping == false && IsGrounded)
+            return;
+
+        float multiplier = jumping ? jumpGravityMultiplier : fallGravityMultiplier;
+        // 기본 중력 1배는 Rigidbody가 적용하므로 배율의 나머지만 더한다.
+        Rigidbody.AddForce(Physics.gravity * (multiplier - 1f), ForceMode.Acceleration);
     }
 
     // source: 현재 기본/액션 상태. StateType(0~15)에 해당하는 비트만 변경
@@ -507,7 +539,7 @@ public sealed class FSM : MonoBehaviour
         {
             for (int i = 0; i < collision.contactCount; i++)
             {
-                if (collision.GetContact(i).normal.y >= 0.3f)
+                if (IsGroundContact(collision.GetContact(i)))
                 {
                     groundContacts.Add(collision.collider);
                     return;
@@ -516,5 +548,20 @@ public sealed class FSM : MonoBehaviour
         }
 
         groundContacts.Remove(collision.collider);
+    }
+
+    private bool IsGroundContact(ContactPoint contact)
+    {
+        if (bodyCollider == null || contact.thisCollider != bodyCollider)
+            return false;
+
+        // 루트 캡슐의 아래쪽 반구만 발로 취급한다. 몸통/머리 접촉은 제외한다.
+        Bounds bounds = bodyCollider.bounds;
+        //발로 인정할 영역의 높이
+        float footTop = bounds.min.y + bounds.extents.x + groundContactTolerance;
+
+        //// 발 영역에 닿았고, 표면 경사가 50도 이하이면 지면이다.
+        return contact.point.y <= footTop
+            && contact.normal.y >= Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
     }
 }

@@ -42,7 +42,8 @@ public sealed class PlayerMoveState : PlayerState
 
     public override void FixedUpdateState()
     {
-        owner.AddVel(Velocity);
+        if (owner.IsGrounded)
+            owner.AddVel(Velocity);
     }
 
     private void UpdateMovement()
