@@ -31,6 +31,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
     private PhotonPlayer pendingNewMaster;  // 방장 변경 안내를 퇴장 안내 뒤에 띄우려고 잠시 보관
     private string pendingReturnError;      // 인게임에서 아웃게임으로 복귀한 뒤 띄울 에러
     private bool isLeavingToLobby;          // 멀티 인게임에서 나가는 중 (방 나가기 → 로비 입장까지)
+    private bool isTutorial;
     private readonly Subject<Unit> gameStarting = new Subject<Unit>();
 
 
@@ -50,6 +51,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
     public Observable<string> Error => error;
     public FlowState CurrentState => state.Value;
     public Observable<Unit> GameStarting => gameStarting;
+    public bool IsTutorial => isTutorial;
 
     //===============================================================
 
@@ -161,9 +163,12 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == SceneNames.IN_GAME)
+        // 아웃게임으로 돌아오면 튜토리얼 표시 해제 (나가기·끊김 어느 경로든)
+        if (scene.name == SceneNames.OUT_GAME)
+            isTutorial = false;
+        
+        if (scene.name == SceneNames.IN_GAME || scene.name == SceneNames.GUIDE)
             SetState(FlowState.InGame);
-
         else if (scene.name == SceneNames.OUT_GAME && CurrentState == FlowState.LeavingGame)
         {
             // 멀티 나가기: 씬이 먼저 바뀌고 로비 입장은 아직 → 접속 중 화면으로 대기, OnJoinedLobby에서 Lobby
@@ -584,7 +589,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         // 판마다 월드 오브젝트 배치를 새로 정함 (다른 사람이 게임 씬을 불러오기 전에 방 정보에 올림)
         Enzeun.Runtime.WorldSeed.Roll();
 
-        PhotonNetwork.LoadLevel(SceneNames.IN_GAME);
+        PhotonNetwork.LoadLevel(isTutorial ? SceneNames.GUIDE : SceneNames.IN_GAME);
     }
 
     public bool IsColorTaken(int index)
@@ -652,6 +657,21 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
 
         // OnConnectedToMaster 즉시 호출됨
+        PhotonNetwork.OfflineMode = true;
+    }
+
+    public void RequestStartTutorial()
+    {
+        if (!Require(FlowState.Title))
+            return;
+
+        if(PhotonNetwork.OfflineMode || PhotonNetwork.IsConnected)
+        {
+            Debug.Log("[NetworkFlowManager] 튜토리얼 시작 무시됨: 이미 접속 중");
+            return;
+        }
+
+        isTutorial = true;
         PhotonNetwork.OfflineMode = true;
     }
 
