@@ -116,6 +116,10 @@ InitTestScene*.unity*
 /[Aa]ssets/[Pp]lugins.meta
 # Visual Studio Solution
 
+# MMSoundManager 로컬 음량 저장 폴더 제외 (에디터에서 저장 시 생성, 개인 설정)
+/[Aa]ssets/MMData
+/[Aa]ssets/MMData.meta
+
 # Generated Firebase desktop metadata
 /[Aa]ssets/StreamingAssets/google-services-desktop.json.meta
 
