@@ -58,7 +58,10 @@ public sealed class RangeDetector : MonoBehaviour
         }
 
         if (nearest == null)
+        {
+            nearestObj = null;
             return null;
+        }
         
         
         System.Array.Clear(hits, 0, count);
