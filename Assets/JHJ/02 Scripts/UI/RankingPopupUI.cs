@@ -31,7 +31,6 @@ public class RankingPopupUI : MonoBehaviour
     private void Awake()
     {
         closeBtn.onClick.AddListener(Close);
-        root.SetActive(false);
     }
 
     private void OnDestroy()
