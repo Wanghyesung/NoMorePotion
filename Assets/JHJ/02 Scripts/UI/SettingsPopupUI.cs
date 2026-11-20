@@ -47,6 +47,9 @@ public class SettingsPopupUI : MonoBehaviour
     #region 열기/닫기
     public void Open()
     {
+        bool canReturnToTitle = NetworkFlowManager.Instance != null && NetworkFlowManager.Instance.CurrentState == FlowState.Lobby;
+        toTitleBtn.gameObject.SetActive(canReturnToTitle);
+
         CacheCurrentVolumes();
 
         InitSlider(masterSlider, masterText, MMSoundManager.MMSoundManagerTracks.Master);

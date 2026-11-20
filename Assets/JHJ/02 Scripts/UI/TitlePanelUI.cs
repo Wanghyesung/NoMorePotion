@@ -9,6 +9,8 @@ public class TitlePanelUI : MonoBehaviour
     [SerializeField] private Button multiBtn;
     [SerializeField] private Button singleBtn;
     [SerializeField] private Button quitBtn;
+    [SerializeField] private Button settingsBtn;
+    [SerializeField] private SettingsPopupUI settingsPopup;
     [SerializeField] private ConfirmPopupUI confirmPopup;
 
     private NetworkFlowManager manager;
@@ -23,6 +25,7 @@ public class TitlePanelUI : MonoBehaviour
             return;
         }
 
+        settingsBtn.onClick.AddListener(settingsPopup.Open);
         multiBtn.onClick.AddListener(manager.RequestConnectOnline);
         singleBtn.onClick.AddListener(manager.RequestEnterOffline);
         quitBtn.onClick.AddListener( () => QuitFlow().Forget() );

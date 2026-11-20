@@ -2203,6 +2203,7 @@ RectTransform:
   - {fileID: 1802073788}
   - {fileID: 1224419180}
   - {fileID: 5999266904226913550}
+  - {fileID: 1045494530}
   - {fileID: 373966582}
   - {fileID: 943354048}
   - {fileID: 1349907773}
@@ -10404,13 +10405,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1045494528}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1212339094}
-  m_Father: {fileID: 1714558458}
+  m_Father: {fileID: 196607106}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -20842,7 +20843,6 @@ RectTransform:
   m_Children:
   - {fileID: 1482923459}
   - {fileID: 1017491667}
-  - {fileID: 1045494530}
   - {fileID: 975407133}
   m_Father: {fileID: 1802073788}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -27495,6 +27495,8 @@ MonoBehaviour:
   multiBtn: {fileID: 1638204958069470294}
   singleBtn: {fileID: 1638204957755008185}
   quitBtn: {fileID: 1638204957202822379}
+  settingsBtn: {fileID: 1638204956723356020}
+  settingsPopup: {fileID: 1045494529}
   confirmPopup: {fileID: 373966585}
 --- !u!1 &2055966293
 GameObject:
@@ -29624,6 +29626,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1638204957713420002, guid: bb1fe2d489694e2389855d6c8739b9f8, type: 3}
   m_PrefabInstance: {fileID: 1057845138}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1638204956723356020 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1638204957713420005, guid: bb1fe2d489694e2389855d6c8739b9f8, type: 3}
+  m_PrefabInstance: {fileID: 1057845138}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &1638204957202822379 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1638204957713420005, guid: 6f74fefff1b344baa507ef33721f2647, type: 3}
