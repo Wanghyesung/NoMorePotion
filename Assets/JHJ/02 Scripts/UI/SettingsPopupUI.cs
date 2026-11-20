@@ -10,6 +10,7 @@ public class SettingsPopupUI : MonoBehaviour
 {
     [SF] private Button toTitleBtn;
     [SF] private Button quitBtn;
+    [SF] private Button tutorialBtn;
     [SF] private Button closeBtn;
     [SF] private ConfirmPopupUI confirmPopup;
     [SF] private Button saveBtn;
@@ -44,6 +45,7 @@ public class SettingsPopupUI : MonoBehaviour
         saveBtn.onClick.AddListener(Save);
         toTitleBtn.onClick.AddListener(() => ToTitleFlow().Forget());
         quitBtn.onClick.AddListener(() => QuitFlow().Forget());
+        tutorialBtn.onClick.AddListener(() => TutorialFlow().Forget());
 
         masterSlider.onValueChanged.AddListener(OnMasterChanged);
         bgmSlider.onValueChanged.AddListener(OnBgmChanged);
@@ -64,6 +66,8 @@ public class SettingsPopupUI : MonoBehaviour
 
         // 로비 : 타이틀로 /  인게임 : 게임 나가기
         toTitleBtn.gameObject.SetActive(state == FlowState.Lobby || isInGame);
+        // 튜토리얼은 타이틀에서만 시작 가능
+        tutorialBtn.gameObject.SetActive(state == FlowState.Title);
 
         if (toTitleText != null)
             toTitleText.text = isInGame ? "게임 나가기" : "타이틀로 돌아가기";
@@ -219,6 +223,23 @@ public class SettingsPopupUI : MonoBehaviour
         {
             manager.RequestReturnToTitle();
         }
+    }
+
+    private async UniTaskVoid TutorialFlow()
+    {
+        NetworkFlowManager manager = NetworkFlowManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError("[SettingsPopupUI] NetworkFlowManager 없음");
+            return;
+        }
+
+        if (!await Confirm("튜토리얼을 진행하시겠습니까?"))
+            return;
+
+        Cancel();
+        manager.RequestStartTutorial();
     }
 
     private async UniTaskVoid QuitFlow()
