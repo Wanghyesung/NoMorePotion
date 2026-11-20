@@ -1,5 +1,19 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6797549666716099573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81b5834dee8a393459b7142313cdaabb, type: 3}
+  m_Name: InteractionOutlineFeature
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionOutlineFeature
+  m_Active: 1
+  outlineShader: {fileID: 4800000, guid: 354a9b3dee1eec748ad3acc06ff391b5, type: 3}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27,7 +41,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
   - {fileID: 8455851573497257218}
-  m_RendererFeatureMap: ad6b866f10d7b46c025dbb7f34385975
+  - {fileID: -6797549666716099573}
+  m_RendererFeatureMap: ad6b866f10d7b46c025dbb7f343859750bdc4fd49740aaa1
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -94,7 +109,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b00045f12942b46c698459096c89274e, type: 3}
   m_Name: World Distance Vignette
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.FullScreenPassRendererFeature
-  m_Active: 1
+  m_Active: 0
   injectionPoint: 600
   fetchColorBuffer: 0
   requirements: 1

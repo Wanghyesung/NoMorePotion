@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using System.Threading.Tasks;
 using UnityEngine;
 
 /*///////////////////////////////////////////
@@ -19,6 +18,9 @@ public sealed class RangeDetector : MonoBehaviour
 
     private Collider[] hits = new Collider[32];
     private GameObject nearestObj = null;
+    private bool canSelectOutline;
+    private Camera outlineCamera;
+    private InteractionOutlineTarget outlineTarget;
 
     [SerializeField] private float waitTime = 0.1f;
     public GameObject Get()
@@ -28,7 +30,40 @@ public sealed class RangeDetector : MonoBehaviour
 
     private void Start()
     {
+        // Player.Awake에서 PhotonView가 준비된 후 로컬 여부를 확인한다.
+        canSelectOutline = TryGetComponent(out Player player) && player.IsLocalPlayer;
+        if (canSelectOutline)
+            outlineCamera = Camera.main;
+
         UpdateDetectorAsync().Forget();
+    }
+
+    private void OnDisable()
+    {
+        nearestObj = null;
+        if (canSelectOutline && InteractionOutlineTarget.Instance == outlineTarget &&
+            InteractionOutlineTarget.SelectedCamera == outlineCamera)
+        {
+            InteractionOutlineTarget.Select(null, null);
+        }
+        outlineTarget = null;
+    }
+
+    private void SetTarget(GameObject target)
+    {
+        if (ReferenceEquals(nearestObj, target))
+            return;
+
+        nearestObj = target;
+        if (!canSelectOutline)
+            return;
+
+        // 아웃라인 컴포넌트는 감지되는 콜라이더와 같은 오브젝트에 붙인다.
+        outlineTarget = null;
+        if (target != null)
+            target.TryGetComponent(out outlineTarget);
+
+        InteractionOutlineTarget.Select(outlineTarget, outlineCamera);
     }
 
     // T: 콜라이더 또는 부모에서 찾을 컴포넌트. 일치하는 대상이 없으면 null 반환
@@ -59,14 +94,15 @@ public sealed class RangeDetector : MonoBehaviour
 
         if (nearest == null)
         {
-            nearestObj = null;
+            System.Array.Clear(hits, 0, count);
+            SetTarget(null);
             return null;
         }
         
         
         System.Array.Clear(hits, 0, count);
         // 이전 탐지 대상이 버퍼에 참조로 남지 않도록 사용 구간만 비움
-        nearestObj = nearest.gameObject;
+        SetTarget(nearest.gameObject);
         return nearest;
     }
 
@@ -97,7 +133,8 @@ public sealed class RangeDetector : MonoBehaviour
         var cancellationToken = this.GetCancellationTokenOnDestroy();
         while (cancellationToken.IsCancellationRequested == false)
         {
-            Get<Transform>();
+            if (isActiveAndEnabled)
+                Get<Transform>();
             bool canceled = await UniTask.WaitForSeconds(waitTime, cancellationToken: cancellationToken)
                 .SuppressCancellationThrow();
 

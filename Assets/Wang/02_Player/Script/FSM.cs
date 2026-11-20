@@ -507,7 +507,7 @@ public sealed class FSM : MonoBehaviour
         {
             for (int i = 0; i < collision.contactCount; i++)
             {
-                if (collision.GetContact(i).normal.y >= 0.5f)
+                if (collision.GetContact(i).normal.y >= 0.3f)
                 {
                     groundContacts.Add(collision.collider);
                     return;
