@@ -129,7 +129,7 @@ public class MeteorRain : MonoBehaviourPun
     }
 
     /// <summary>
-    /// 메테오 착륙 이펙트 함수
+    /// 메테오 착탄 이펙트 함수
     /// </summary>
     /// <param name="point"></param>
     /// <param name="token"></param>

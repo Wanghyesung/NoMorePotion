@@ -12,7 +12,7 @@ public enum WarningPlace
     Self,    // 보스 발밑
     Front,   // 보스 앞쪽
     Target,  // 타겟 위치
-    Random   // 범위 내 랜덤
+    SelfAndTarget   // 이펙트는 사용자의 발 아래이나, 경고는 타겟에게 나타나야할 때
 
 }
 
@@ -198,9 +198,11 @@ public class MonsterVfx : MonoBehaviour
     {
         switch (vfx.Place)
         {
+            case WarningPlace.SelfAndTarget when mover != null && mover.nowTarget != null:
+                return mover.nowTarget.transform.position;
             case WarningPlace.Target when mover != null && mover.nowTarget != null:
                 return mover.nowTarget.transform.position;
-
+            case WarningPlace.SelfAndTarget:
             case WarningPlace.Target:
             case WarningPlace.Front:
                 Vector3 forward = transform.forward;

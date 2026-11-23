@@ -71,6 +71,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1004754979633453233}
+  - component: {fileID: 1430907914591682914}
   m_Layer: 8
   m_Name: RootPos
   m_TagString: Untagged
@@ -93,6 +94,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8006941092951305778}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1430907914591682914
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 722996475929627358}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4286125724965450545
 GameObject:
   m_ObjectHideFlags: 0
@@ -859,7 +881,7 @@ Transform:
   m_GameObject: {fileID: 7943642596347507674}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.33691, y: 0.46061, z: 1.02771}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3562,8 +3584,8 @@ MonoBehaviour:
     Hitbox: {fileID: 2593740148867829656}
     FollowWarningSlot: -1
   - SkillNum: 4
-    Hitbox: {fileID: 1320928091039100121}
-    FollowWarningSlot: 4
+    Hitbox: {fileID: 1430907914591682914}
+    FollowWarningSlot: -1
   sinkDuration: 4
   sinkMargin: 0.5
   damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
@@ -3639,7 +3661,7 @@ MonoBehaviour:
     FrontOffset: -8
     Impact: {fileID: 7884917828977633834}
   - HitEffect: {fileID: 8169770510992332957, guid: d64bf75328bb04b4b8d430e7929c45f7, type: 3}
-    HitPoint: {fileID: 0}
+    HitPoint: {fileID: 1004754979633453233}
     Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
     Place: 2
     WarningSize: 10
@@ -3703,10 +3725,10 @@ MonoBehaviour:
   skillNum: 4
   count: 12
   radius: 10
-  warningTime: 1.2
-  interval: 0.2
-  hitRadius: 2
-  warningPrefab: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
-  warningSize: 2
-  fallEffect: {fileID: 0}
-  impactEffect: {fileID: 0}
+  warningTime: 1.15
+  interval: 0.3
+  hitRadius: 1.5
+  warningPrefab: {fileID: 4337120880848930166, guid: 16ad5275be79c1d4b816becb89dfaf07, type: 3}
+  warningSize: 1.5
+  fallEffect: {fileID: 1593574840045950, guid: 7a1a26c0d7dc1194286f6f9965ca11ba, type: 3}
+  impactEffect: {fileID: 2847744822435589759, guid: 3e9b0f77d51d05c429b19e9bb103b21f, type: 3}

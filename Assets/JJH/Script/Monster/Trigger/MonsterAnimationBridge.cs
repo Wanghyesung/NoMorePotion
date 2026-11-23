@@ -91,7 +91,8 @@ public class MonsterAnimationBridge : MonoBehaviour
     private void HitEffect(AnimationEvent e)
     {
         if (combat.IsSkillCanceled) return;
-        vfx?.PlayHit(e.intParameter);
+        if(vfx != null)
+            vfx.PlayHit(e.intParameter);
     }
 
     private void CounterOn() => combat.CounterOn();

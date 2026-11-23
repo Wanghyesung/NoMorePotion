@@ -39772,6 +39772,10 @@ PrefabInstance:
       value: 12.505942
       objectReference: {fileID: 0}
     - target: {fileID: 6773988010321444275, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
+      propertyPath: skills.Array.data[3].Place
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6773988010321444275, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: skills.Array.data[3].HitPoint
       value: 
       objectReference: {fileID: 157718510}
@@ -39946,6 +39950,10 @@ PrefabInstance:
     - target: {fileID: 8147226398994137692, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: -4.020393
+      objectReference: {fileID: 0}
+    - target: {fileID: 8324157976663627173, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
+      propertyPath: warningTime
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 8335492742055782973, guid: 9e841ddff2903f940bd1aea7af360aa4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
