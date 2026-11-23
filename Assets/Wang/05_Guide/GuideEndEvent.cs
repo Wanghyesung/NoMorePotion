@@ -69,6 +69,8 @@ public abstract class GuideEndEvent : MonoBehaviour
         OnStop();
     }
 
+    protected void HideGuideKey() => manager.HideGuideKey(this);
+
     protected virtual void OnBegin() { }
     protected virtual void OnStop() { }
     protected virtual void OnDisable() => Stop();

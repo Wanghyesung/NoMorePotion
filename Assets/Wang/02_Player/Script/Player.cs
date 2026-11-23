@@ -343,7 +343,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private bool CanStartUse()
     {
         // 액션 잠금도 canceled 콜백을 발생시키므로 키를 뗀 것으로 처리하지 않습니다.
-        if (Cursor.visible || !Instance.HasGameplayInput || (Instance.GuideAllowedKeys & GameplayKeys.UsePotion) == 0)
+        if (Cursor.visible || !Instance.HasGameplayInput || (!Instance.CanThrowPotion && !Instance.CanDrinkPotion))
             return false;
 
         if (CheckState() == false)
@@ -412,6 +412,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     private void RequestPotionUse(FSM.StateType requestedType)
     {
+        if (requestedType == FSM.StateType.Throw ? !Instance.CanThrowPotion : !Instance.CanDrinkPotion)
+            return;
+
         if (CanStartUse() == false)
             return;
 
@@ -421,8 +424,9 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     private FSM.StateType ResolvePotionUse(FSM.StateType requestedType)
     {
         // 사용 의도가 확정될 때 한 번만 판정한다. 조준 중 발사 확정은 이 경로를 거치지 않는다.
-        // 테스트용 50%: 정수 0~99 중 0~49에서 교체한다. 기획 확률은 5%다.
-        if (ConfusePotionUse == true && UnityEngine.Random.Range(0, 100) < 5)
+        // 튜토리얼에서 잠긴 행동으로는 혼란 효과가 사용 의도를 바꾸지 않는다.
+        if (ConfusePotionUse == true && Instance.CanThrowPotion && Instance.CanDrinkPotion
+            && UnityEngine.Random.Range(0, 100) < 5)
             return requestedType == FSM.StateType.Throw ? FSM.StateType.Drink : FSM.StateType.Throw;
 
         return requestedType;

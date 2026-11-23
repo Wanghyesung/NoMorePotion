@@ -59,6 +59,9 @@ public sealed class PlayerDrinkState : PlayerState
 
     public override bool CanEnter()
     {
+        if (!InputManager.Instance.CanDrinkPotion)
+            return false;
+
         if (owner.CurrentState == null)
             return false;
 

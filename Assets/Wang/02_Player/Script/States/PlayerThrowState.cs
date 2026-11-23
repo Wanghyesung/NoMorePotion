@@ -84,6 +84,9 @@ public sealed class PlayerThrowState : PlayerState
 
     public void RequestThrow()
     {
+        if (!Instance.CanThrowPotion || !Instance.HasGameplayInput || Cursor.visible)
+            return;
+
         if (owner.CurrentActionState == this)
         {
             if (isAiming == true)
@@ -106,6 +109,9 @@ public sealed class PlayerThrowState : PlayerState
 
     private void RequestAim(InputAction.CallbackContext context)
     {
+        if (!Instance.CanThrowPotion || !Instance.HasGameplayInput || Cursor.visible)
+            return;
+
         if (owner.CurrentActionState == this)
             return;
 
@@ -138,6 +144,9 @@ public sealed class PlayerThrowState : PlayerState
 
     public override bool CanEnter()
     {
+        if (!Instance.CanThrowPotion)
+            return false;
+
         var currentType = owner.CurrentState.Type;
         if (currentType != FSM.StateType.Idle && currentType != FSM.StateType.Walk)
             return false;

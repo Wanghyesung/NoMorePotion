@@ -8,6 +8,8 @@ public enum KeyGuide
     Space, Shift, Tab, Alt, Alpha1, Alpha4, Enter, Esc, MouseLeft, MouseRight,
     WASD,
     MouseLeftHold,
+    ThrowOptions,
+    ReverseWASD,
     None = -1
 }
 
@@ -103,6 +105,8 @@ public sealed class KeyCanvas : MonoBehaviour
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, 0.75f, 0f);
     [SerializeField] private Vector2 playerKeySize = new Vector2(80f, 80f);
     [SerializeField] private Vector2 wasdKeySize = new Vector2(256f, 256f);
+    [SerializeField] private Vector2 throwKeySize = new Vector2(480f, 160f);
+    [SerializeField] private Vector2 reverseKeySize = new Vector2(384f, 256f);
     [SerializeField] private RectTransform playerKeyAnchor;
 
     private Transform interactionTarget;
@@ -161,7 +165,9 @@ public sealed class KeyCanvas : MonoBehaviour
         }
 
         hasPlayerGuide = true;
-        Vector2 size = key == KeyGuide.WASD ? wasdKeySize : playerKeySize;
+        Vector2 size = key == KeyGuide.WASD ? wasdKeySize :
+            key == KeyGuide.ReverseWASD ? reverseKeySize :
+            key == KeyGuide.ThrowOptions ? throwKeySize : playerKeySize;
         interactionView.Show(key, playerKeyAnchor, null, Vector3.zero, size, step);
     }
 
