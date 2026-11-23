@@ -97,6 +97,7 @@ MonoBehaviour:
   itemCountText: {fileID: 661098807208924448}
   itemSlotNum: {fileID: 3991718823325509332}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 6
   emptyAlpha: 0.3
@@ -2287,6 +2288,7 @@ MonoBehaviour:
   itemCountText: {fileID: 7303268141678492630}
   itemSlotNum: {fileID: 7223885145974401329}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 4
   emptyAlpha: 0.3
@@ -2696,7 +2698,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2295776299164210108}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 2
   m_Camera: {fileID: 0}
@@ -3312,6 +3314,7 @@ MonoBehaviour:
   itemCountText: {fileID: 6735888317917304109}
   itemSlotNum: {fileID: 3256239960461785310}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 5
   emptyAlpha: 0.3
@@ -3959,6 +3962,7 @@ MonoBehaviour:
   itemCountText: {fileID: 6114516205719696397}
   itemSlotNum: {fileID: 1458299953879339617}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 7
   emptyAlpha: 0.3
@@ -4323,6 +4327,7 @@ MonoBehaviour:
   itemCountText: {fileID: 5612671431108553714}
   itemSlotNum: {fileID: 7618733468299434156}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 3
   emptyAlpha: 0.3
@@ -5195,6 +5200,7 @@ MonoBehaviour:
   itemCountText: {fileID: 760443422858329211}
   itemSlotNum: {fileID: 6490567367831071251}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 9
   emptyAlpha: 0.3
@@ -5371,6 +5377,7 @@ MonoBehaviour:
   itemCountText: {fileID: 1857984056017008585}
   itemSlotNum: {fileID: 5505826775631881306}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 2
   emptyAlpha: 0.3
@@ -5566,6 +5573,7 @@ MonoBehaviour:
   itemCountText: {fileID: 8142136972103527940}
   itemSlotNum: {fileID: 6965400689340350403}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 1
   emptyAlpha: 0.3
@@ -7846,6 +7854,7 @@ MonoBehaviour:
   itemCountText: {fileID: 8110837679714341986}
   itemSlotNum: {fileID: 439344922807801587}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 8
   emptyAlpha: 0.3
@@ -12113,6 +12122,7 @@ MonoBehaviour:
   itemCountText: {fileID: 8382138229383958291}
   itemSlotNum: {fileID: 2752072746487630428}
   button: {fileID: 0}
+  checkImage: {fileID: 0}
   isCombinedSlot: 0
   slotNum: 0
   emptyAlpha: 0.3
@@ -13186,7 +13196,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8367844271797886003}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
