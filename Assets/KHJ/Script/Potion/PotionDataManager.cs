@@ -190,6 +190,10 @@ namespace Enzeun.Runtime
             PotionRecipeSet recipe = new PotionRecipeSet(first, second);
 
             potionDataDictionary[recipe] = potionData;
+
+            // 역방향 짝 목록도 함께 등록합니다. (같은 재료 2개 레시피면 자기 자신이 짝)
+            AddRecipePartner(first, second);
+            AddRecipePartner(second, first);
         }
 
         /// <summary>
@@ -265,6 +269,51 @@ namespace Enzeun.Runtime
             Debug.LogWarning($"[PotionDataManager]: 더 이상 업그레이드할 수 없는 포션입니다. 포션 ID: {firstPotionID}");
             return null;
         }
+
+        #endregion
+
+        #region RecipePartners
+
+        // 재료 ID → 그 재료와 레시피를 이루는 재료 ID 들입니다. (조합 칸에 재료를 올렸을 때 짝 재료 강조용)
+        // AddPotionRecipe 에서 양방향으로 함께 채웁니다.
+        private readonly Dictionary<int, HashSet<int>> recipePartners = new Dictionary<int, HashSet<int>>();
+
+        // 짝이 없는 재료에 돌려줄 빈 집합입니다. 매번 새로 만들지 않도록 하나를 공유합니다.
+        private static readonly HashSet<int> NoPartners = new HashSet<int>();
+
+        private void AddRecipePartner(int materialID, int partnerID)
+        {
+            if (!recipePartners.TryGetValue(materialID, out HashSet<int> partners))
+            {
+                partners = new HashSet<int>();
+                recipePartners[materialID] = partners;
+            }
+
+            partners.Add(partnerID);
+        }
+
+        /// <summary>
+        /// 이 재료와 레시피를 이루는 재료 ID 들을 돌려줍니다. 짝이 없으면 빈 집합입니다.
+        /// 같은 재료 2개짜리 레시피면 자기 자신도 들어 있으니, 실제 조합 가능 여부는 호출하는 쪽에서 개수(2개 이상)를 함께 확인해야 합니다.
+        /// </summary>
+        public IReadOnlyCollection<int> GetRecipePartners(int materialID)
+            => recipePartners.TryGetValue(materialID, out HashSet<int> partners) ? partners : NoPartners;
+
+        /// <summary>
+        /// 두 재료가 레시피를 이루는지 확인합니다. (개수는 보지 않음, 같은 재료면 호출하는 쪽에서 2개 이상인지 확인)
+        /// </summary>
+        public bool IsRecipePartner(int materialID, int partnerID)
+            => recipePartners.TryGetValue(materialID, out HashSet<int> partners) && partners.Contains(partnerID);
+
+#if UNITY_EDITOR
+        /// <summary> 재료 하나의 짝 목록을 로그로 확인합니다. (Play 모드에서 실행) </summary>
+        [Button("레시피 짝 재료 확인", ButtonSizes.Medium)]
+        private void LogRecipePartners(int materialID)
+        {
+            IReadOnlyCollection<int> partners = GetRecipePartners(materialID);
+            Debug.Log($"[PotionDataManager] : 재료 {materialID} 의 짝 {partners.Count}개 = {string.Join(", ", partners)}");
+        }
+#endif
 
         #endregion
 
