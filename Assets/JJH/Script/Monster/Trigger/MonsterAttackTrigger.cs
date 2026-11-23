@@ -44,7 +44,7 @@ public class MonsterAttackTrigger : MonoBehaviour
     /// </summary>
     /// <param name="target">판정 대상</param>
     /// <returns>판정할 경우 : true</returns>
-    private static bool IsHitTrigger(GameObject target)
+    public static bool IsHitTrigger(GameObject target)
     {
         // 오프라인은 전부 판정
         if (!PhotonNetwork.InRoom) 

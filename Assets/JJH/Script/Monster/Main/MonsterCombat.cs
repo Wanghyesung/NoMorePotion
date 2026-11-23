@@ -442,6 +442,22 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         SendDamage(attackInfo.Damage, -1);
     }
 
+    public AttackInfo CreateSkillAttackInfo(int skillNum)
+    {
+        BossSkill skill = GetBossSkill(skillNum);
+        if (skill == null) return new AttackInfo();
+
+        BuffContainer buff = GetStatusEffect();
+        float atkRate = buff != null ? buff.GetStatMultiplier(StatType.AttackPower) : 1f;
+        float damage = MultiplierCalc(GetDamage(), atkRate);
+
+        return new AttackInfo
+        {
+            Damage = Mathf.RoundToInt(damage * skill.SkillDamage / 100f),
+            Position = transform.position
+        };
+    }
+
     /// <summary>
     /// 방장에게 피해 전달 (한 번의 타격만 카운터로 인정, 지속 피해 틱은 제외)
     /// </summary>

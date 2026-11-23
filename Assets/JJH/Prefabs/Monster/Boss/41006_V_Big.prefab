@@ -114,7 +114,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 30
+  m_Radius: 45
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8561570257365286135
 MonoBehaviour:
@@ -181,7 +181,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4.4, y: 3, z: 3}
+  m_Size: {x: 13.2, y: 3, z: 9}
   m_Center: {x: 0, y: 1.5, z: 0}
 --- !u!114 &8755208402746571090
 MonoBehaviour:
@@ -249,7 +249,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4
+  m_Radius: 12
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3530608954605388919
 MonoBehaviour:
@@ -1057,10 +1057,10 @@ MonoBehaviour:
             DecayTime: 0.3
             ScaleWithImpact: 1
             HoldForever: 0
-          ImpactRadius: 12
+          ImpactRadius: 36
           DirectionMode: 0
           DissipationMode: 2
-          DissipationDistance: 20
+          DissipationDistance: 60
           PropagationSpeed: 343
         Velocity: {x: 0, y: 10, z: 0}
         ClearImpulseOnStop: 1
@@ -1092,7 +1092,7 @@ Transform:
   m_GameObject: {fileID: 8523476123961560598}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.78, y: 1.15, z: 2.64}
+  m_LocalPosition: {x: 0.78, y: 3.45, z: 3.96}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1117,7 +1117,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4.59, y: 2.22, z: 2.59}
+  m_Size: {x: 13.77, y: 6.66, z: 3.885}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2106253948600921763
 MonoBehaviour:
@@ -1388,10 +1388,10 @@ MonoBehaviour:
             DecayTime: 0.3
             ScaleWithImpact: 1
             HoldForever: 0
-          ImpactRadius: 12
+          ImpactRadius: 36
           DirectionMode: 0
           DissipationMode: 2
-          DissipationDistance: 20
+          DissipationDistance: 60
           PropagationSpeed: 343
         Velocity: {x: 0, y: 5, z: 0}
         ClearImpulseOnStop: 1
@@ -1448,7 +1448,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 10
+  m_Radius: 27
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &7624236104222958679
 MonoBehaviour:
@@ -2010,15 +2010,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2590750456536154451, guid: f182938fe5aae5649bb7e8df286e38e0, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.5
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 2590750456536154451, guid: f182938fe5aae5649bb7e8df286e38e0, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 2590750456536154451, guid: f182938fe5aae5649bb7e8df286e38e0, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.5
+      value: 4.5
       objectReference: {fileID: 0}
     - target: {fileID: 2590750456536154451, guid: f182938fe5aae5649bb7e8df286e38e0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3301,7 +3301,7 @@ PrefabInstance:
       objectReference: {fileID: 1702832698915099750}
     - target: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_Name
-      value: 41006_V_Save
+      value: 41006_V
       objectReference: {fileID: 0}
     - target: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_Layer
@@ -3313,7 +3313,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: attackRange
-      value: 3
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: attackSpeed
@@ -3325,7 +3325,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: nextMoveDist
-      value: 10
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: chaseCollider
@@ -3337,7 +3337,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: maxAttackHeight
-      value: 4
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: provokeDuration
@@ -3384,13 +3384,13 @@ PrefabInstance:
       addedObject: {fileID: 8489888088230637197}
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 8022393817194585883}
+    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 9062358389167064564}
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5481124344189591443}
-    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8022393817194585883}
     - targetCorrespondingSourceObject: {fileID: 112949857088394901, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 337196555559030828}
@@ -3459,7 +3459,7 @@ MonoBehaviour:
   healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
   counterGrace: 0.1
   counterOverlay: {fileID: 2100000, guid: 69d0f491ebe442d4babf50ccb8bf7488, type: 2}
-  counterEffect: {fileID: 643597903100466925, guid: 9643d9cd4290e48448f95626dc216723, type: 3}
+  counterEffect: {fileID: 643597903100466925, guid: 82ae892356c9ec947ae973819d2e956c, type: 3}
   counterFeedback: {fileID: 9105986501564483994}
   engageHoldTime: 15
 --- !u!136 &8702791768231880215
@@ -3481,10 +3481,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.5
-  m_Height: 4
+  m_Radius: 3
+  m_Height: 9
   m_Direction: 1
-  m_Center: {x: 0, y: 2, z: 0}
+  m_Center: {x: 0, y: 4.5, z: 0}
 --- !u!114 &6773988010321444275
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3498,7 +3498,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterVfx
   normalAttack:
-    HitEffect: {fileID: 1158854600828228, guid: 02e92e6e2a7d37a4a93160dd4b991d11, type: 3}
+    HitEffect: {fileID: 1158854600828228, guid: 5aed21c01932eb14296246d140b874ca, type: 3}
     HitPoint: {fileID: 8475612254799695136}
     Warning: {fileID: 0}
     Place: 1
@@ -3506,26 +3506,26 @@ MonoBehaviour:
     FrontOffset: 2
     Impact: {fileID: 0}
   skills:
-  - HitEffect: {fileID: 677578095636083966, guid: bc1b8b55177f53343aaf5d2f099b5e4c, type: 3}
+  - HitEffect: {fileID: 677578095636083966, guid: 30f26b5b7dcbeb042b058c03b972ae49, type: 3}
     HitPoint: {fileID: 8131073696445476148}
     Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
     Place: 0
-    WarningSize: 10
+    WarningSize: 27
     FrontOffset: 0
     Impact: {fileID: 176450095722085047}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 8489888088230637197}
     Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
     Place: 0
-    WarningSize: 4
+    WarningSize: 12
     FrontOffset: 0
     Impact: {fileID: 176450095722085047}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 8022393817194585883}
     Warning: {fileID: 2891420028085579237, guid: 83af32817ae5a1a4d99cc253f1a254b4, type: 3}
-    Place: 0
-    WarningSize: 4
-    FrontOffset: 0
+    Place: 1
+    WarningSize: 15
+    FrontOffset: 15
     Impact: {fileID: 7884917828977633834}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
@@ -3567,11 +3567,11 @@ MonoBehaviour:
   combat: {fileID: 0}
   vfx: {fileID: 0}
   transformView: {fileID: 0}
-  arriveDistance: 2.5
-  sampleRadius: 1.5
+  arriveDistance: 7.5
+  sampleRadius: 4.5
   warningSlot: 2
   modelRoot: {fileID: 337196555559030828}
-  vanishEffect: {fileID: 4275290558304579315, guid: de95b22e479ed414291be8c93e3c8102, type: 3}
-  appearEffect: {fileID: 948173124597725933, guid: a35cd6ba49d7fa54fb877e0cd7b09d70, type: 3}
+  vanishEffect: {fileID: 4275290558304579315, guid: 38d8b6d2f3b0667409746c4f0669bbd9, type: 3}
+  appearEffect: {fileID: 948173124597725933, guid: 2e1a24208baf9694cb91019b5efe0438, type: 3}
   arriveHitbox: {fileID: 5150227094651942723}
   arriveHitTime: 0.15

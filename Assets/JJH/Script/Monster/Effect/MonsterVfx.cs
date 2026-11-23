@@ -11,7 +11,9 @@ public enum WarningPlace
 {
     Self,    // 보스 발밑
     Front,   // 보스 앞쪽
-    Target   // 타겟 위치
+    Target,  // 타겟 위치
+    Random   // 범위 내 랜덤
+
 }
 
 /// <summary>
