@@ -156,6 +156,7 @@ namespace Enzeun.Editor
                 TestTakeOut();
                 TestConsume();
                 TestDisassemble();
+                TestReroll();
                 TestWorldGrant();
                 TestWorldObjectApplyKind();
                 TestDeathAndLeave();
@@ -570,6 +571,56 @@ namespace Enzeun.Editor
             byte[] packed = InventoryMessages.PackRequest(new InventoryCommand { Op = InventoryOp.Disassemble, RequestId = 9, MaterialId = MatOther, Count = 3 });
             Expect("분해 요청 메시지 왕복", InventoryMessages.TryUnpackRequest(packed, out InventoryCommand unpacked)
                 && unpacked.Op == InventoryOp.Disassemble && unpacked.RequestId == 9 && unpacked.MaterialId == MatOther && unpacked.Count == 3);
+        }
+
+        private static void TestReroll()
+        {
+            // 다시뽑기: 양손의 포션 두 개를 공용 인벤에 되돌리고 다른 두 개를 꺼낸다. 되돌린 두 개는 다시 나오지 않는다.
+            for (int i = 0; i < 4; i++)
+            {
+                Send(ActorA, GrantPotion(ContainerRef.PackRef, PotionBase));
+            }
+
+            Res take = Send(ActorA, new InventoryCommand { Op = InventoryOp.TakeOut, Count = 2, From = new ContainerRef { Slot = -1 } });
+            Expect("다시뽑기 준비(양손에 2개)", take.Ok && take.Outcome.Potions != null && take.Outcome.Potions.Count == 2);
+
+            PotionInstance heldA = take.Outcome.Potions[0];
+            PotionInstance heldB = take.Outcome.Potions[1];
+            int packBefore = _master.Pack.Potions.Count;
+
+            Res reroll = Send(ActorA, Reroll(heldA, heldB));
+            Expect("다시뽑기 성공(2개)", reroll.Ok && reroll.Outcome.Potions != null && reroll.Outcome.Potions.Count == 2);
+            Expect("되돌린 두 개가 공용 인벤에 있음", _master.Pack.Potions.IndexOf(heldA.InstanceId) >= 0 && _master.Pack.Potions.IndexOf(heldB.InstanceId) >= 0);
+
+            bool excluded = reroll.Ok;
+            for (int i = 0; reroll.Ok && i < reroll.Outcome.Potions.Count; i++)
+            {
+                int id = reroll.Outcome.Potions[i].InstanceId;
+                excluded &= id != heldA.InstanceId && id != heldB.InstanceId && _master.Pack.Potions.IndexOf(id) < 0;
+            }
+
+            Expect("새로 꺼낸 두 개는 되돌린 것과 다르고 인벤토리에 없음", excluded);
+            Expect("공용 인벤 포션 수는 그대로(2개 나가고 2개 들어옴)", _master.Pack.Potions.Count == packBefore);
+            ExpectSynced("다시뽑기 후");
+
+            // 인벤토리에 이미 있는 포션을 들고 있다고 하면 복제이므로 거부한다.
+            Res duplicate = Send(ActorA, Reroll(heldA, reroll.Outcome.Potions[0]));
+            Expect("인벤토리에 있는 포션은 Invalid", !duplicate.Ok && duplicate.Reason == InventoryDenyReason.Invalid);
+
+            Res same = Send(ActorA, Reroll(reroll.Outcome.Potions[0], reroll.Outcome.Potions[0]));
+            Expect("같은 포션 두 번은 Invalid", !same.Ok && same.Reason == InventoryDenyReason.Invalid);
+            ExpectSynced("다시뽑기 거부 후");
+
+            // 메시지 왕복
+            byte[] packed = InventoryMessages.PackRequest(new InventoryCommand { Op = InventoryOp.Reroll, RequestId = 11, HeldA = heldA, HeldB = heldB });
+            Expect("다시뽑기 요청 메시지 왕복", InventoryMessages.TryUnpackRequest(packed, out InventoryCommand unpacked)
+                && unpacked.Op == InventoryOp.Reroll && unpacked.HeldA.InstanceId == heldA.InstanceId && unpacked.HeldB.InstanceId == heldB.InstanceId
+                && unpacked.HeldA.Data == heldA.Data);
+        }
+
+        private static InventoryCommand Reroll(PotionInstance a, PotionInstance b)
+        {
+            return new InventoryCommand { Op = InventoryOp.Reroll, HeldA = a, HeldB = b };
         }
 
         private static InventoryCommand Disassemble(int materialId, int count)
