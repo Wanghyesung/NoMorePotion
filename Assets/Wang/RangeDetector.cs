@@ -39,21 +39,6 @@ public sealed class RangeDetector : MonoBehaviour
         UpdateDetectorAsync().Forget();
     }
 
-    private void LateUpdate()
-    {
-        if (!canSelectOutline || KeyCanvas.Instance == null)
-            return;
-
-        if (nearestObj == null)
-        {
-            ClearInteractionPosition();
-            return;
-        }
-
-        hasInteractionPosition = true;
-        KeyCanvas.Instance.PlayAnimationKey(KeyGuide.E, nearestObj.transform.position);
-    }
-
     private void ClearInteractionPosition()
     {
         if (!hasInteractionPosition)
@@ -87,6 +72,12 @@ public sealed class RangeDetector : MonoBehaviour
             ClearInteractionPosition();
         if (!canSelectOutline)
             return;
+
+        if (target != null && KeyCanvas.Instance != null)
+        {
+            hasInteractionPosition = true;
+            KeyCanvas.Instance.PlayAnimationKey(KeyGuide.E, target.transform);
+        }
 
         // 아웃라인 컴포넌트는 감지되는 콜라이더와 같은 오브젝트에 붙인다.
         outlineTarget = null;

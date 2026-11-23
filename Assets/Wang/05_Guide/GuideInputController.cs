@@ -3,6 +3,8 @@ using UnityEngine;
 /// <summary>씬의 UnityEvent에서 런타임 InputManager를 호출하기 위한 연결 컴포넌트입니다.</summary>
 public sealed class GuideInputController : MonoBehaviour
 {
+    public void ClearPotion() => GameSessionManager.Instance.LocalPlayer.GetComponent<Hand>().ClearPotion();
+
     public void LockAllKeys() => InputManager.Instance.LockAllKeys();
     public void UnLockAllKeys() => InputManager.Instance.UnLockAllKeys();
     public void LockMoveKey() => InputManager.Instance.LockMoveKey();
