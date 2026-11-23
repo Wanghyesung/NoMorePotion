@@ -64,7 +64,11 @@ public class PublicInventory : ItemInventory
 
     private void OnEnable() => potionsUpdate = true;
 
-    private void Start() => BindWhenReady().Forget();
+    private void Start()
+    {
+        SubscribeCombineHighlight(); // 현준 수정
+        BindWhenReady().Forget();
+    }
 
     private async UniTaskVoid BindWhenReady()
     {
@@ -107,6 +111,7 @@ public class PublicInventory : ItemInventory
     private void OnDestroy()
     {
         Unbind();
+        UnsubscribeCombineHighlight(); // 현준 수정
         btnAnimeToken?.Cancel();
         btnAnimeToken?.Dispose();
     }
@@ -161,6 +166,7 @@ public class PublicInventory : ItemInventory
             view.Init(item);
             view.gameObject.SetActive(count > 0);
             materialViews[id] = view;
+            view.ShowCheckImage(IsCombinePartner(id)); // 현준 수정 : 새로 만든 아이콘도 현재 강조 상태로
         }
     }
 
@@ -175,8 +181,69 @@ public class PublicInventory : ItemInventory
         if (materialViews.TryGetValue(materialId, out InventoryIcon view)
         && view.gameObject.activeSelf != (count > 0))
             view.gameObject.SetActive(count > 0);
+
+        // 현준 수정 : 강조 중에 개수가 바뀌면 그 재료만 다시 판정 (같은 재료 짝은 개수 2개 기준이라 바뀔 수 있음)
+        if (view != null && highlightMaterialId != 0)
+            view.ShowCheckImage(IsCombinePartner(materialId));
     }
 
+    #endregion
+
+    #region CombineHighlight
+    // ========================= 현준 수정 =============================
+    // 조합 칸 왼쪽에 재료를 올리면, 그 재료와 조합할 수 있는 재료 아이콘에 체크 이미지를 띄웁니다.
+    // 재료는 공용 인벤에만 들어가므로 개인 인벤 칸은 보지 않습니다. (규칙이 바뀌어 개인 칸에 재료가 들어가면 그쪽도 추가해야 함)
+
+    // 창고 패널처럼 조합에 쓸 수 없는 목록은 StoragePanel 이 꺼 둡니다.
+    private bool combineHighlightEnabled = true;
+    private int highlightMaterialId;
+    private CombinationController subscribedCombiner;
+
+    private void SubscribeCombineHighlight()
+    {
+        if (potionCombined == null || subscribedCombiner != null) return;
+
+        subscribedCombiner = potionCombined;
+        subscribedCombiner.OnHighlightMaterialChanged += ApplyCombineHighlight;
+    }
+
+    private void UnsubscribeCombineHighlight()
+    {
+        if (subscribedCombiner == null) return;
+
+        subscribedCombiner.OnHighlightMaterialChanged -= ApplyCombineHighlight;
+        subscribedCombiner = null;
+    }
+
+    /// <summary>
+    /// 조합 짝 강조를 켜거나 끕니다. 끄면 지금 떠 있는 체크도 모두 지웁니다. (창고 패널용)
+    /// </summary>
+    public void SetCombineHighlightEnabled(bool enable)
+    {
+        combineHighlightEnabled = enable;
+
+        if (!enable)
+            ApplyCombineHighlight(0);
+    }
+
+    // 기준 재료가 바뀔 때마다 재료 아이콘 전체를 다시 표시합니다. 0 이면 모두 끕니다.
+    private void ApplyCombineHighlight(int materialId)
+    {
+        highlightMaterialId = combineHighlightEnabled ? materialId : 0;
+
+        foreach (KeyValuePair<int, InventoryIcon> pair in materialViews)
+            pair.Value.ShowCheckImage(IsCombinePartner(pair.Key));
+    }
+
+    // 지금 기준 재료와 실제로 조합할 수 있는 재료인지 판정합니다. 같은 재료끼리는 2개 이상 있어야 합니다.
+    private bool IsCombinePartner(int materialId)
+    {
+        if (highlightMaterialId == 0 || materials == null || PotionDataManager.Instance == null) return false;
+        if (!PotionDataManager.Instance.IsRecipePartner(highlightMaterialId, materialId)) return false;
+
+        return materialId != highlightMaterialId || materials.GetCount(materialId) >= 2;
+    }
+    // =================================================================
     #endregion
 
     #region 포션 갱신 및 전환

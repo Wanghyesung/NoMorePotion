@@ -18,6 +18,7 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
     [SF] private TextMeshProUGUI itemCountText;
     [SF] private TextMeshProUGUI itemSlotNum;
     [SF] private Button button;
+    [SF] private Image checkImage;
     public bool isCombinedSlot = false;
     public int slotNum = -1;
 
@@ -202,6 +203,12 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
     public void RestoreAlpha()
     {
         SetAlpha(isPersonalSlot || (Item != null && Item.ItemCount > 0));
+    }
+
+
+    public void ShowCheckImage(bool show = true)
+    {
+        checkImage.gameObject.SetActive(show);
     }
 
 

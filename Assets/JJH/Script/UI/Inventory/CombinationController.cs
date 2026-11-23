@@ -138,6 +138,7 @@ public class CombinationController : ItemInventory
             leftSlot.Init(icon, id, instanceId, slot, this);
             leftFull = true;
             slot.SetAlpha();
+            SetHighlightMaterial(isMaterial ? id : 0); // 현준 수정 : 짝 재료 강조 (재료일 때만)
             return;
         }
         if (rightFull) return;
@@ -174,6 +175,7 @@ public class CombinationController : ItemInventory
         rightSlot.Init(icon, id, instanceId, slot, this);
         rightFull = true;
         slot.SetAlpha();
+        SetHighlightMaterial(0); // 현준 수정 : 두 칸이 다 찼으니 강조 끄기
         PotionData result = isMaterial
             ? dm.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id)
             : dm.GetUpgradedPotion(leftSlot.id, rightSlot.id);
@@ -207,7 +209,29 @@ public class CombinationController : ItemInventory
         leftSlot.Clear(defaultImage);
         rightSlot.Clear(defaultImage);
         resultSlot.Clear(defaultImage);
+        SetHighlightMaterial(0); // 현준 수정 : 닫기, 조합 완료, 모드 전환 모두 여기를 거치므로 강조도 여기서 끕니다.
     }
+
+    // ========================= 현준 수정 =============================
+
+    /// <summary>
+    /// 짝 재료를 강조할 기준 재료가 바뀌었을 때 알립니다. 0 이면 강조를 끕니다.
+    /// 왼쪽 칸에 재료가 올라가면 그 재료 ID, 오른쪽까지 차거나 Clear 되면 0 입니다. (값이 바뀔 때만 발생)
+    /// </summary>
+    public event Action<int> OnHighlightMaterialChanged;
+
+    /// <summary> 지금 짝 재료를 강조하는 기준 재료 ID 입니다. 0 이면 강조 없음입니다. </summary>
+    public int HighlightMaterialId { get; private set; }
+
+    private void SetHighlightMaterial(int materialId)
+    {
+        if (HighlightMaterialId == materialId) return;
+
+        HighlightMaterialId = materialId;
+        OnHighlightMaterialChanged?.Invoke(materialId);
+    }
+
+    // =================================================================
 
     public void PotionCraftBtnCallback(CallbackContext ev)
     {

@@ -23,6 +23,12 @@ namespace Enzeun.Runtime
         // 패널이 처음 켜질 때 시작됩니다. (꺼진 채로 시작하는 패널은 처음 열릴 때 묶임)
         private void Start()
         {
+            // 창고 재료는 조합에 쓸 수 없으므로 조합 짝 강조를 끕니다.
+            if (_inventory != null)
+            {
+                _inventory.SetCombineHighlightEnabled(false);
+            }
+
             BindAsync().Forget();
         }
 
