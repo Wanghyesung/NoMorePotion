@@ -78,6 +78,12 @@ namespace Enzeun.Runtime
                     // Consume 은 종류와 요청 번호만 보냅니다. (어느 칸을 소모할지는 마스터가 정함)
                     case InventoryOp.Consume:
                         break;
+
+                    // 분해 : 공용 인벤에서 분해할 재료와 개수입니다.
+                    case InventoryOp.Disassemble:
+                        writer.Write(checked((ushort)command.MaterialId));
+                        writer.Write(checked((ushort)command.Count));
+                        break;
                 }
 
                 writer.Flush();
@@ -160,6 +166,11 @@ namespace Enzeun.Runtime
                         }
 
                         case InventoryOp.Consume:
+                            break;
+
+                        case InventoryOp.Disassemble:
+                            c.MaterialId = reader.ReadUInt16();
+                            c.Count = reader.ReadUInt16();
                             break;
 
                         default:

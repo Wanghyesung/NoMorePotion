@@ -283,6 +283,26 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 공용 인벤의 재료를 미지의 가루로 분해합니다. 재료 1개당 가루 1개가 공용 인벤에 들어갑니다. (포션, 미지의 가루 자신은 분해 불가)
+        /// 재료가 모자라면 NotEnough, 가루를 더 넣을 자리(공용 인벤 한도)가 모자라면 Full 로 실패하고 아무것도 바뀌지 않습니다.
+        /// 성공하면 Outcome.Value 가 분해한 개수이고, 공용 인벤 변화는 OnPackItemChanged 로 (재료 -count, 가루 +count) 두 번 알려집니다.
+        /// </summary>
+        public UniTask<InventoryResult> DisassembleAsync(int materialId, int count)
+        {
+            if (materialId <= 0 || count <= 0 || count > ushort.MaxValue || materialId > ushort.MaxValue)
+            {
+                return UniTask.FromResult(InventoryResult.Fail(InventoryDenyReason.Invalid));
+            }
+
+            return SendRequestAsync(new InventoryCommand
+            {
+                Op = InventoryOp.Disassemble,
+                MaterialId = materialId,
+                Count = count,
+            });
+        }
+
+        /// <summary>
         /// 포션을 무작위로 꺼내 손에 들 준비를 합니다. (F 키 꺼내기)
         /// 공용 인벤에서 count 개(1~2)를 무작위로 꺼내고, 공용 인벤에 포션이 모자라면 모자란 만큼 내 개인 인벤토리에서 꺼냅니다.
         /// 꺼낸 포션은 인벤토리에서 사라지고 Outcome.Potions 로 돌아오니, 받은 포션으로 손에 들 오브젝트를 만드세요.

@@ -234,6 +234,9 @@ namespace Enzeun.Runtime
                 case InventoryOp.Consume:
                     return ValidateConsume(requesterActor, ref apply, out reason);
 
+                case InventoryOp.Disassemble:
+                    return ValidateDisassemble(request, ref apply, out reason);
+
                 default:
                     // SpawnGround, Leave 는 클라이언트가 요청할 수 없는 마스터 전용 변경입니다.
                     reason = InventoryDenyReason.Invalid;
@@ -937,6 +940,48 @@ namespace Enzeun.Runtime
 
             reason = InventoryDenyReason.NotFound;   // 소모할 아이템이 없음
             return false;
+        }
+
+        /// <summary>
+        /// 분해를 검증합니다. 공용 인벤의 재료 count 개를 없애고 같은 개수의 미지의 가루를 공용 인벤에 넣습니다. (재료 1개 → 가루 1개)
+        /// 미지의 가루 자신은 분해할 수 없습니다. 재료가 모자라면 NotEnough, 가루를 넣을 자리(공용 인벤 한도)가 모자라면 Full 로 거부하며, 이때는 아무것도 바뀌지 않습니다.
+        /// 공용 인벤은 모두가 쓰는 곳이라 누구나 분해할 수 있습니다.
+        /// </summary>
+        private bool ValidateDisassemble(InventoryCommand request, ref InventoryCommand apply, out InventoryDenyReason reason)
+        {
+            int materialId = request.MaterialId;
+            int count = request.Count;
+            const int powderId = InventoryRules.UnknownPowderMaterialId;
+
+            if (count <= 0 || materialId <= 0 || materialId == powderId
+                || !_data.IsKnownMaterial(materialId) || !_data.IsKnownMaterial(powderId))
+            {
+                reason = InventoryDenyReason.Invalid;
+                return false;
+            }
+
+            MaterialInventory pack = Pack.Materials;
+
+            if (pack.GetCount(materialId) < count)
+            {
+                reason = InventoryDenyReason.NotEnough;
+                return false;
+            }
+
+            if (pack.GetRoom(powderId) < count)
+            {
+                reason = InventoryDenyReason.Full;
+                return false;
+            }
+
+            var ctx = new Context(this);
+            ctx.AddMaterialDelta(ContainerKind.Pack, materialId, -count);
+            ctx.AddMaterialDelta(ContainerKind.Pack, powderId, count);
+
+            reason = InventoryDenyReason.None;
+            apply.Count = count;
+            apply.Changes = ctx.Flush();
+            return true;
         }
 
         /// <summary>
