@@ -23,6 +23,8 @@ namespace Enzeun.Runtime
         Leave = 6,
         TakeOut = 7,
         Consume = 8,
+        Disassemble = 9,
+        Reroll = 10,
     }
 
     /// <summary>
@@ -239,6 +241,10 @@ namespace Enzeun.Runtime
         // Craft : 조합 재료 두 개
         public Ingredient IngredientA;
         public Ingredient IngredientB;
+
+        // Reroll : 양손에 들고 있던 포션 두 개 (공용 인벤으로 되돌릴 것)
+        public PotionInstance HeldA;
+        public PotionInstance HeldB;
 
         // 적용 : 시체 상자를 만들었으면 그 ID
         public int CorpseId;

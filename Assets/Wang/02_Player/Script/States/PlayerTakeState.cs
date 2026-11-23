@@ -30,6 +30,9 @@ public sealed class PlayerTakeState : PlayerState
     private const int NoQuickSlot = -1;
     private int quickSlot = NoQuickSlot;
     private System.Action<InputAction.CallbackContext>[] quickSlotHandlers;
+
+    // 현준 수정 : 이번 꺼내기가 다시뽑기(양손이 차 있을 때 F 키)인지 여부입니다.
+    private bool reroll;
     #endregion
 
     public PlayerTakeState(FSM owner, SOTakeState data) : base(owner, data)
@@ -146,6 +149,10 @@ public sealed class PlayerTakeState : PlayerState
         if (owner.CurrentState.Type != FSM.StateType.Idle && owner.CurrentState.Type != FSM.StateType.Walk)
             return false;
 
+        // 현준 수정 : 양손이 모두 차 있어도 F 키는 다시뽑기로 들어갑니다. (퀵슬롯은 빈 손이 있어야 함)
+        if (quickSlot == NoQuickSlot && hand.EmptyHandCount == 0)
+            return true;
+
         return hand.FocusedPotion == null || hand.OtherPotion == null;
     }
 
@@ -153,8 +160,10 @@ public sealed class PlayerTakeState : PlayerState
     {
         base.Enter();
         hasTaken = false;
-        // 현준 수정 : 퀵슬롯은 포션 한 개만 꺼내므로 양손이 비어도 한 손 동작을 씁니다. (F 키만 양손)
-        takeBoth = quickSlot == NoQuickSlot && hand.IsBothHandsEmpty;
+        // 현준 수정 : 양손이 차 있을 때 F 키는 다시뽑기입니다. (Enter 시점에 정해 두고 TakePotion 에서 씀)
+        reroll = quickSlot == NoQuickSlot && hand.EmptyHandCount == 0;
+        // 현준 수정 : 퀵슬롯은 포션 한 개만 꺼내므로 양손이 비어도 한 손 동작을 씁니다. (F 키 꺼내기와 다시뽑기는 양손)
+        takeBoth = quickSlot == NoQuickSlot && (hand.IsBothHandsEmpty || reroll);
         owner.Animator.SetTrigger(takeBoth == true ? takeBothHash
             : hand.TakeSide == Hand.Side.Left ? takeLeftHash : takeRightHash);
     }
@@ -166,9 +175,11 @@ public sealed class PlayerTakeState : PlayerState
 
         hasTaken = true;
 
-        // 빈 손의 수만큼 한 번에 요청합니다. (양손이 비었으면 2개, 한 손만 비었으면 1개)
+        // 빈 손의 수만큼 한 번에 요청합니다. (양손이 비었으면 2개, 한 손만 비었으면 1개, 양손이 차 있으면 다시뽑기)
         if (quickSlot != NoQuickSlot)
             hand.TakeOutQuickSlot(quickSlot);
+        else if (reroll)
+            hand.RerollPotions();
         else
             hand.TakeOutPotion();
     }
@@ -179,6 +190,7 @@ public sealed class PlayerTakeState : PlayerState
     {
         base.Exit();
         quickSlot = NoQuickSlot;
+        reroll = false;
         owner.Animator.ResetTrigger(takeLeftHash);
         owner.Animator.ResetTrigger(takeRightHash);
         owner.Animator.ResetTrigger(takeBothHash);

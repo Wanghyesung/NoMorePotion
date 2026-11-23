@@ -234,6 +234,12 @@ namespace Enzeun.Runtime
                 case InventoryOp.Consume:
                     return ValidateConsume(requesterActor, ref apply, out reason);
 
+                case InventoryOp.Disassemble:
+                    return ValidateDisassemble(request, ref apply, out reason);
+
+                case InventoryOp.Reroll:
+                    return ValidateReroll(request, requesterActor, ref apply, out reason);
+
                 default:
                     // SpawnGround, Leave 는 클라이언트가 요청할 수 없는 마스터 전용 변경입니다.
                     reason = InventoryDenyReason.Invalid;
@@ -853,6 +859,27 @@ namespace Enzeun.Runtime
                 return false;
             }
 
+            int taken = PickRandomPotions(ctx, personal, request.Count, out _);
+
+            if (taken == 0)
+            {
+                reason = InventoryDenyReason.NotFound;   // 꺼낼 포션이 없음
+                return false;
+            }
+
+            apply.Count = taken;
+            apply.Changes = ctx.Flush();
+            return true;
+        }
+
+        /// <summary>
+        /// 포션을 무작위로 count 개까지 고릅니다. 공용 인벤에서 먼저 고르고, 모자라면 개인 인벤토리(personal, ctx 의 사본)에서 고릅니다.
+        /// 고른 공용 인벤 포션은 ctx 에 제거로, 개인 칸 포션은 사본에서 비운 것으로 기록합니다. (실제 상태는 바꾸지 않음)
+        /// </summary>
+        /// <param name="fromPack">공용 인벤에서 고른 개수 (공용 인벤 자리 계산용)</param>
+        /// <returns>고른 개수 (포션이 모자라면 count 보다 적음)</returns>
+        private int PickRandomPotions(Context ctx, PersonalInventory personal, int count, out int fromPack)
+        {
             var packCandidates = new List<int>();
             IReadOnlyList<PotionInstance> packPotions = Pack.Potions.Items;
             for (int i = 0; i < packPotions.Count; i++)
@@ -870,13 +897,16 @@ namespace Enzeun.Runtime
             }
 
             int taken = 0;
-            while (taken < request.Count)
+            fromPack = 0;
+
+            while (taken < count)
             {
                 if (packCandidates.Count > 0)
                 {
                     int pick = _random.Next(packCandidates.Count);
                     ctx.RemovePotion(ContainerKind.Pack, packCandidates[pick]);
                     packCandidates.RemoveAt(pick);
+                    fromPack++;
                 }
                 else if (personalCandidates.Count > 0)
                 {
@@ -892,15 +922,93 @@ namespace Enzeun.Runtime
                 taken++;
             }
 
-            if (taken == 0)
+            return taken;
+        }
+
+        /// <summary>
+        /// 다시뽑기를 검증합니다. 양손의 포션 두 개를 공용 인벤에 되돌리고, 다른 포션 두 개를 무작위로 꺼냅니다. (꺼내기 규칙과 같이 공용 인벤 우선, 모자라면 개인 칸)
+        /// 후보는 되돌리기 전의 인벤토리에서 고르므로 방금 되돌린 두 개는 다시 나오지 않습니다. (손에 든 포션은 인벤토리에 없음)
+        /// 두 개를 다 꺼낼 수 없으면 NotFound, 되돌릴 자리가 없으면 Full 로 거부하고 아무것도 바뀌지 않습니다. (손은 그대로)
+        /// 되돌릴 포션이 이미 인벤토리 어딘가에 있으면(같은 인스턴스 ID) 복제를 막기 위해 Invalid 로 거부합니다.
+        /// </summary>
+        private bool ValidateReroll(InventoryCommand request, int actor, ref InventoryCommand apply, out InventoryDenyReason reason)
+        {
+            PotionInstance heldA = request.HeldA;
+            PotionInstance heldB = request.HeldB;
+
+            if (heldA == null || heldB == null || heldA.InstanceId == heldB.InstanceId
+                || IsPotionInInventory(heldA.InstanceId) || IsPotionInInventory(heldB.InstanceId))
             {
-                reason = InventoryDenyReason.NotFound;   // 꺼낼 포션이 없음
+                reason = InventoryDenyReason.Invalid;
                 return false;
             }
 
+            var ctx = new Context(this);
+            PersonalInventory personal = ctx.Slots(ContainerRef.Personal(actor));
+
+            int taken = PickRandomPotions(ctx, personal, MaxTakeOutCount, out int fromPack);
+
+            if (taken < MaxTakeOutCount)
+            {
+                reason = InventoryDenyReason.NotFound;   // 바꿔 줄 다른 포션이 모자람
+                return false;
+            }
+
+            // 꺼낸 만큼 비고 두 개가 들어옵니다. (적용은 제거가 먼저라 이 계산으로 충분)
+            if (Pack.Potions.Count - fromPack + 2 > Pack.Potions.Capacity)
+            {
+                reason = InventoryDenyReason.Full;
+                return false;
+            }
+
+            ctx.AddPotion(ContainerKind.Pack, heldA);
+            ctx.AddPotion(ContainerKind.Pack, heldB);
+
+            reason = InventoryDenyReason.None;
             apply.Count = taken;
             apply.Changes = ctx.Flush();
             return true;
+        }
+
+        // 이 인스턴스 ID 의 포션이 인벤토리(공용 인벤, 창고, 개인 인벤, 시체 상자) 어딘가에 있는지 확인합니다.
+        private bool IsPotionInInventory(int instanceId)
+        {
+            if (Pack.Potions.IndexOf(instanceId) >= 0 || Storage.Potions.IndexOf(instanceId) >= 0)
+            {
+                return true;
+            }
+
+            foreach (PersonalInventory inventory in _personals.Values)
+            {
+                if (HasPotionSlot(inventory, instanceId))
+                {
+                    return true;
+                }
+            }
+
+            foreach (CorpseBox corpse in _corpses.Values)
+            {
+                if (HasPotionSlot(corpse.Slots, instanceId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasPotionSlot(PersonalInventory inventory, int instanceId)
+        {
+            for (int i = 0; i < inventory.Capacity; i++)
+            {
+                if (inventory.Slots[i].Kind == InventorySlotKind.Potion && inventory.Slots[i].Potion != null
+                    && inventory.Slots[i].Potion.InstanceId == instanceId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -937,6 +1045,48 @@ namespace Enzeun.Runtime
 
             reason = InventoryDenyReason.NotFound;   // 소모할 아이템이 없음
             return false;
+        }
+
+        /// <summary>
+        /// 분해를 검증합니다. 공용 인벤의 재료 count 개를 없애고 같은 개수의 미지의 가루를 공용 인벤에 넣습니다. (재료 1개 → 가루 1개)
+        /// 미지의 가루 자신은 분해할 수 없습니다. 재료가 모자라면 NotEnough, 가루를 넣을 자리(공용 인벤 한도)가 모자라면 Full 로 거부하며, 이때는 아무것도 바뀌지 않습니다.
+        /// 공용 인벤은 모두가 쓰는 곳이라 누구나 분해할 수 있습니다.
+        /// </summary>
+        private bool ValidateDisassemble(InventoryCommand request, ref InventoryCommand apply, out InventoryDenyReason reason)
+        {
+            int materialId = request.MaterialId;
+            int count = request.Count;
+            const int powderId = InventoryRules.UnknownPowderMaterialId;
+
+            if (count <= 0 || materialId <= 0 || materialId == powderId
+                || !_data.IsKnownMaterial(materialId) || !_data.IsKnownMaterial(powderId))
+            {
+                reason = InventoryDenyReason.Invalid;
+                return false;
+            }
+
+            MaterialInventory pack = Pack.Materials;
+
+            if (pack.GetCount(materialId) < count)
+            {
+                reason = InventoryDenyReason.NotEnough;
+                return false;
+            }
+
+            if (pack.GetRoom(powderId) < count)
+            {
+                reason = InventoryDenyReason.Full;
+                return false;
+            }
+
+            var ctx = new Context(this);
+            ctx.AddMaterialDelta(ContainerKind.Pack, materialId, -count);
+            ctx.AddMaterialDelta(ContainerKind.Pack, powderId, count);
+
+            reason = InventoryDenyReason.None;
+            apply.Count = count;
+            apply.Changes = ctx.Flush();
+            return true;
         }
 
         /// <summary>
@@ -1381,7 +1531,9 @@ namespace Enzeun.Runtime
             bool consistent = true;
 
             // 꺼내기는 빠질 포션을 적용하기 전에 모아 둡니다.
-            List<PotionInstance> takenPotions = apply.Op == InventoryOp.TakeOut ? CollectTakenPotions(changes) : null;
+            // 다시뽑기도 꺼낸 포션을 돌려줍니다. (되돌린 포션은 AddPotion 이라 꺼낸 목록에 들어가지 않음)
+            List<PotionInstance> takenPotions = apply.Op == InventoryOp.TakeOut || apply.Op == InventoryOp.Reroll
+                ? CollectTakenPotions(changes) : null;
 
             if (changes != null)
             {

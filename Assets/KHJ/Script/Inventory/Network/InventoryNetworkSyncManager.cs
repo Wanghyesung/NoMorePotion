@@ -283,6 +283,46 @@ namespace Enzeun.Runtime
         }
 
         /// <summary>
+        /// 포션 다시뽑기입니다. 양손에 든 포션 두 개를 공용 인벤에 되돌리고, 다른 포션 두 개를 무작위로 꺼냅니다. (공용 인벤 우선, 모자라면 개인 칸)
+        /// 방금 되돌린 두 개는 다시 나오지 않습니다. 두 개를 다 꺼낼 수 없으면 NotFound, 공용 인벤이 가득 차면 Full 로 실패하고 아무것도 바뀌지 않습니다. (손은 그대로 두면 됨)
+        /// 성공하면 Outcome.Potions 가 새로 꺼낸 두 개입니다. 손의 포션 오브젝트를 없애고 이 포션으로 새로 만드세요.
+        /// </summary>
+        public UniTask<InventoryResult> RerollAsync(PotionInstance left, PotionInstance right)
+        {
+            if (left == null || right == null || left.Data == null || right.Data == null || left.InstanceId <= 0 || right.InstanceId <= 0)
+            {
+                return UniTask.FromResult(InventoryResult.Fail(InventoryDenyReason.Invalid));
+            }
+
+            return SendRequestAsync(new InventoryCommand
+            {
+                Op = InventoryOp.Reroll,
+                HeldA = left,
+                HeldB = right,
+            });
+        }
+
+        /// <summary>
+        /// 공용 인벤의 재료를 미지의 가루로 분해합니다. 재료 1개당 가루 1개가 공용 인벤에 들어갑니다. (포션, 미지의 가루 자신은 분해 불가)
+        /// 재료가 모자라면 NotEnough, 가루를 더 넣을 자리(공용 인벤 한도)가 모자라면 Full 로 실패하고 아무것도 바뀌지 않습니다.
+        /// 성공하면 Outcome.Value 가 분해한 개수이고, 공용 인벤 변화는 OnPackItemChanged 로 (재료 -count, 가루 +count) 두 번 알려집니다.
+        /// </summary>
+        public UniTask<InventoryResult> DisassembleAsync(int materialId, int count)
+        {
+            if (materialId <= 0 || count <= 0 || count > ushort.MaxValue || materialId > ushort.MaxValue)
+            {
+                return UniTask.FromResult(InventoryResult.Fail(InventoryDenyReason.Invalid));
+            }
+
+            return SendRequestAsync(new InventoryCommand
+            {
+                Op = InventoryOp.Disassemble,
+                MaterialId = materialId,
+                Count = count,
+            });
+        }
+
+        /// <summary>
         /// 포션을 무작위로 꺼내 손에 들 준비를 합니다. (F 키 꺼내기)
         /// 공용 인벤에서 count 개(1~2)를 무작위로 꺼내고, 공용 인벤에 포션이 모자라면 모자란 만큼 내 개인 인벤토리에서 꺼냅니다.
         /// 꺼낸 포션은 인벤토리에서 사라지고 Outcome.Potions 로 돌아오니, 받은 포션으로 손에 들 오브젝트를 만드세요.

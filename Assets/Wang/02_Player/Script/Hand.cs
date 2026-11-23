@@ -187,30 +187,111 @@ public sealed class Hand : MonoBehaviour
             if (this == null || result.Success == false || result.Outcome.Potions == null)
                 return;
 
-            foreach (PotionInstance instance in result.Outcome.Potions)
-            {
-                // 이미 인벤토리에서 빠진 포션이라 들 손이 없으면 사라집니다. (요청 중에는 새로 꺼낼 수 없어 보통 생기지 않음)
-                if (TryGetEmptySide(out Side side) == false)
-                {
-                    Debug.LogWarning("[Hand] : 포션을 들 빈 손이 없어 꺼낸 포션이 사라졌습니다.");
-                    break;
-                }
-
-                GameObject potionObj = PhotonNetwork.Instantiate(itemPrefab.name, transform.position, Quaternion.identity);
-                Potion potion = potionObj.GetComponent<Potion>();
-
-                potion.Initialize(instance);
-                Hold(side, potion.potionMover);
-
-                playerView.RPC(nameof(RpcTakeOutPotion), RpcTarget.Others,
-                    potionObj.GetComponent<PhotonView>().ViewID, (int)side, instance.Data.potionID);
-            }
+            HoldTakenPotions(result.Outcome.Potions);
         }
         finally
         {
             isTakingOut = false;
         }
     }
+
+    // 인벤토리에서 꺼낸 포션들로 손에 들 오브젝트를 만들어 빈 손에 듭니다. (꺼내기와 다시뽑기 공용)
+    private void HoldTakenPotions(System.Collections.Generic.IReadOnlyList<PotionInstance> potions)
+    {
+        foreach (PotionInstance instance in potions)
+        {
+            // 이미 인벤토리에서 빠진 포션이라 들 손이 없으면 사라집니다. (요청 중에는 새로 꺼낼 수 없어 보통 생기지 않음)
+            if (TryGetEmptySide(out Side side) == false)
+            {
+                Debug.LogWarning("[Hand] : 포션을 들 빈 손이 없어 꺼낸 포션이 사라졌습니다.");
+                break;
+            }
+
+            GameObject potionObj = PhotonNetwork.Instantiate(itemPrefab.name, transform.position, Quaternion.identity);
+            Potion potion = potionObj.GetComponent<Potion>();
+
+            potion.Initialize(instance);
+            Hold(side, potion.potionMover);
+
+            playerView.RPC(nameof(RpcTakeOutPotion), RpcTarget.Others,
+                potionObj.GetComponent<PhotonView>().ViewID, (int)side, instance.Data.potionID);
+        }
+    }
+
+    #region Reroll
+    // 현준 수정 : 다시뽑기 요청 중에는 손의 포션을 던지거나 마시지 못하게 합니다. (마스터가 이미 공용 인벤에 되돌린 포션을 또 쓰는 복제를 막음)
+    private bool isRerolling;
+
+    /// <summary>
+    /// 현준 수정 : 포션 다시뽑기. 양손에 든 포션 두 개를 공용 인벤에 되돌리고 다른 포션 두 개를 무작위로 꺼내 듭니다.
+    /// 양손이 모두 차 있을 때만 요청하며, 요청을 보냈으면 true 입니다. 마스터가 거부하면(바꿀 포션이 모자람 등) 손은 그대로입니다.
+    /// </summary>
+    public bool RerollPotions()
+    {
+        if (leftPotion == null || rightPotion == null || isTakingOut == true)
+            return false;
+
+        PotionInstance left = leftPotion.PotionInstance;
+        PotionInstance right = rightPotion.PotionInstance;
+        InventoryNetworkSyncManager manager = InventoryNetworkSyncManager.Instance;
+        if (left == null || right == null || manager == null)
+            return false;
+
+        RerollAsync(manager, left, right).Forget();
+        return true;
+    }
+
+    private async UniTaskVoid RerollAsync(InventoryNetworkSyncManager manager, PotionInstance left, PotionInstance right)
+    {
+        isTakingOut = true;
+        isRerolling = true;
+
+        try
+        {
+            InventoryResult result = await manager.RerollAsync(left, right);
+
+            if (this == null || result.Success == false || result.Outcome.Potions == null)
+                return;
+
+            // 되돌린 포션은 이제 공용 인벤에 있으므로 손의 오브젝트를 없앱니다.
+            ReleaseHeld(Side.Left);
+            ReleaseHeld(Side.Right);
+            HoldTakenPotions(result.Outcome.Potions);
+        }
+        finally
+        {
+            isRerolling = false;
+            isTakingOut = false;
+        }
+    }
+
+    // 손의 포션 오브젝트를 없앱니다. 다른 기기에도 먼저 손을 비우라고 알린 뒤 삭제합니다. (삭제는 프레임 끝에 일어나 새 포션을 같은 손에 들지 못하는 것을 막음)
+    private void ReleaseHeld(Side side)
+    {
+        PotionMover potion = GetPotion(side);
+        if (potion == null)
+            return;
+
+        SetPotion(side, null);
+        playerView.RPC(nameof(RpcReleasePotion), RpcTarget.Others, (int)side);
+
+        PhotonView potionView = potion.GetComponent<PhotonView>();
+        if (potionView != null && potionView.ViewID != 0)
+            PhotonNetwork.Destroy(potion.gameObject);
+        else
+            Destroy(potion.gameObject);
+    }
+
+    [PunRPC]
+    private void RpcReleasePotion(int sideValue, PhotonMessageInfo info)
+    {
+        if (info.Sender != playerView.Owner || playerView.IsMine
+            || (sideValue != (int)Side.Left && sideValue != (int)Side.Right))
+            return;
+
+        SetPotion((Side)sideValue, null);
+    }
+    #endregion
 
     // 포커스한 손이 비어 있으면 그 손, 아니면 반대 손을 돌려줍니다. 둘 다 차 있으면 false 입니다.
     private bool TryGetEmptySide(out Side side)
@@ -229,7 +310,8 @@ public sealed class Hand : MonoBehaviour
 
     public void Throw(Side side, ThrowData throwData)
     {
-        if (player.IsLocalPlayer == false)
+        // 현준 수정 : 다시뽑기 요청 중에는 던지지 않습니다. (복제 방지)
+        if (player.IsLocalPlayer == false || isRerolling == true)
             return;
 
         PotionMover potion = GetPotion(side);
@@ -250,6 +332,10 @@ public sealed class Hand : MonoBehaviour
 
     public void Drink(Side side)
     {
+        // 현준 수정 : 다시뽑기 요청 중에는 마시지 않습니다. (복제 방지)
+        if (isRerolling == true)
+            return;
+
         PotionMover potion = GetPotion(side);
         if (potion == null)
             return;
