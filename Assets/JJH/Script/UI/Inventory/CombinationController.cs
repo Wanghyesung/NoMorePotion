@@ -9,6 +9,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using static JJH_Constants;
+
 using static UnityEngine.InputSystem.InputAction;
 using SF = UnityEngine.SerializeField;
 public class CombinationController : ItemInventory
@@ -22,6 +24,17 @@ public class CombinationController : ItemInventory
     [SF] private TextMeshProUGUI WarningText;
     [SF] private TextMeshProUGUI successPerText;
 
+    [Header("분해")]
+    [SF] private GameObject combineArrow;
+    [SF] private GameObject compositionArrow;
+    [SF] private Button compositionBtn;
+    [SF] private Sprite btnNormal;
+    [SF] private Sprite btnPressed;
+    [SF] private TextMeshProUGUI combineAndCompositBtnText;
+
+    [SF] private GameObject combineSuccessText;
+    [SF] private Toggle continuousToggle;
+
     [Header("기타")]
     [SF] private Sprite defaultImage;
     [SF] private Color highColor = new Color32(0xF2, 0xE8, 0xD5, 0xFF);
@@ -30,6 +43,10 @@ public class CombinationController : ItemInventory
     private bool leftFull;
     private bool rightFull;
     private bool? isLow;
+    private bool isCompositionMode;
+    private bool isContinuous => continuousToggle.isOn;
+
+
     private readonly ContainerRef publicInvenCRef = new()
     {
         Id = -1,
@@ -70,6 +87,45 @@ public class CombinationController : ItemInventory
     public void BoundSlot(int id, int instanceId, InventoryIcon slot)
     {
         var dm = PotionDataManager.Instance;
+
+        if (isCompositionMode)
+        {
+            bool compositionCk = dm.TryGetMaterialData(id, out var mat);
+
+            if (!compositionCk)
+            {
+                warningTextToken?.Cancel();
+                warningTextToken = new();
+
+                PotionWarningTextPopup("포션은 분해할 수 없습니다.",
+                    warningTextToken.Token).Forget();
+
+                return;
+            }
+            else if(mat.ID == InventoryRules.UnknownPowderMaterialId)
+            {
+                warningTextToken?.Cancel();
+                warningTextToken = new();
+
+                PotionWarningTextPopup("미지의 가루는 분해할 수 없습니다.",
+                    warningTextToken.Token).Forget();
+
+                return;
+            }
+
+            Sprite compositIcon = mat.materialIcon;
+            resultSlot.Init(compositIcon, id, instanceId, slot, this);
+
+            int compositMatId = InventoryRules.UnknownPowderMaterialId;
+
+            if(dm.TryGetMaterialData(compositMatId,out var unknownPowderData))
+            {
+                leftSlot.image.sprite = unknownPowderData.materialIcon;
+                leftSlot.id = compositMatId;
+            }
+
+            return;
+        }
 
         bool isMaterial = dm.TryGetMaterialData(id, out var material);
         PotionData potionData = null;
@@ -141,6 +197,9 @@ public class CombinationController : ItemInventory
         }
     }
 
+    /// <summary>
+    /// 조합창 상태 초기화 함수
+    /// </summary>
     public void Clear()
     {
         leftFull = false;
@@ -152,7 +211,18 @@ public class CombinationController : ItemInventory
 
     public void PotionCraftBtnCallback(CallbackContext ev)
     {
-        PotionCraft();
+        if (!isCompositionMode)
+            PotionCraft();
+        else
+            MaterialComposit();
+    }
+
+    public void CombineAndCompositBtn()
+    {
+        if (!isCompositionMode)
+            PotionCraft();
+        else
+            MaterialComposit();
     }
 
     public void PotionCraft()
@@ -160,6 +230,12 @@ public class CombinationController : ItemInventory
         if (leftSlot.id == 0 || rightSlot.id == 0) return;
 
         PotionCombination(leftSlot.id, rightSlot.id).Forget();
+    }
+    public void MaterialComposit()
+    {
+        if (resultSlot.id == 0) return;
+
+        MaterialComposition(resultSlot.id).Forget();
     }
 
     public async UniTask PotionWarningTextPopup(string text, CancellationToken token)
@@ -210,7 +286,7 @@ public class CombinationController : ItemInventory
 
     public async UniTask PotionCombination(int leftId, int rightId)
     {
-        // 요청을 보내는 동안 조합창이 비워질 수 있으니 출처는 미리 만들어 둡니다.
+        // 요청을 보내는 동안 조합창이 비워질 수 있으니 출처 생성
         Ingredient left = MakeIngredient(leftSlot, leftId);
         Ingredient right = MakeIngredient(rightSlot, rightId);
 
@@ -221,9 +297,94 @@ public class CombinationController : ItemInventory
         if (result.Success)
             Debug.Log($"[Craft] 포션 제작 성공 - {result.Outcome.Potion.Data.potionName}");
         else
-            Debug.Log($"[Craft] 포션 제작 실패 - {result.Reason}");
+        {
+            warningTextToken?.Cancel();
+            warningTextToken = new();
 
-        Clear();
+            string reasonText = "";
+            switch (result.Reason)
+            {
+                case InventoryDenyReason.Full:
+                    reasonText = "공용 인벤토리 가득 참";
+
+                    PotionWarningTextPopup("공용 인벤토리가 가득 찼습니다.",
+                        warningTextToken.Token).Forget();
+
+                    break;
+                case InventoryDenyReason.Invalid:
+                    reasonText = "조합 오류";
+                    PotionWarningTextPopup("이 조합은 불가능합니다.",
+                        warningTextToken.Token).Forget();
+                    break;
+                case InventoryDenyReason.NotEnough:
+                    reasonText = "재료가 충분치 않음";
+                    PotionWarningTextPopup("조합에 필요한 소재가 부족합니다.",
+                        warningTextToken.Token).Forget();
+                    break;
+                default:
+                    warningTextToken?.Cancel();
+                    break;
+            }
+
+            Debug.Log($"[Craft] 포션 제작 실패 - {reasonText}");
+            Clear();
+        }
+            
+
+        if (!isContinuous)
+            Clear();
+        else
+        {
+            // 유효한 인스턴트를 가진 slot을 가져와 Init으로 대체,
+            // 불가능할 경우 포션은 빠른 제작 불가
+            
+        }
+    }
+
+    public async UniTask MaterialComposition(int materialId)
+    {
+
+        InventoryResult result = 
+            await InventoryNetworkSyncManager.Instance.DisassembleAsync(materialId, 1);
+
+        if (result.Success)
+            Debug.Log($"[Composit] 분해 성공");
+        else
+        {
+            string reasonText = "";
+
+            warningTextToken?.Cancel();
+            warningTextToken = new();
+
+            switch (result.Reason)
+            {
+                case InventoryDenyReason.Full:
+                    reasonText = "공용 인벤토리 가득 참";
+
+                    PotionWarningTextPopup("공용 인벤토리가 가득 찼습니다.",
+                        warningTextToken.Token).Forget();
+
+                    break;
+                case InventoryDenyReason.Invalid: reasonText = "재료가 아님";
+                    PotionWarningTextPopup("재료만 분해할 수 있습니다.",
+                        warningTextToken.Token).Forget();
+                    break;
+                case InventoryDenyReason.NotEnough: reasonText = "재료가 충분치 않음";
+                    PotionWarningTextPopup("분해할 재료가 부족합니다.",
+                        warningTextToken.Token).Forget();
+                    break;
+                default:
+                    warningTextToken?.Cancel();
+                    break;
+            }
+
+            Debug.Log($"[Composit] 분해 실패 - {reasonText}");
+
+            Clear();
+        }
+
+        if (!isContinuous)
+            Clear();
     }
     #endregion
 
@@ -245,6 +406,51 @@ public class CombinationController : ItemInventory
 
         isLow = low;
         successPerText.color = low ? lowColor : highColor;
+    }
+    
+    /// <summary>
+    /// 분해 <> 조합 기능 전환 함수
+    /// </summary>
+    public void DecompositionModeActive()
+    {
+        Clear();
+        if (isCompositionMode)
+        {
+            DecompositionModeReset();
+            return;
+        }
+
+        compositionBtn.image.sprite = btnPressed;
+        combineAndCompositBtnText.SetText(COMPOSIT_TEXT_KR);
+
+        combineArrow.SetActive(false);
+        combineSuccessText.SetActive(false);
+
+        compositionArrow.SetActive(true);
+        isCompositionMode = true;
+    }
+
+    public void DecompositionModeReset()
+    {
+        compositionBtn.image.sprite = btnNormal;
+        combineAndCompositBtnText.SetText(COMBINE_TEXT_KR);
+
+        compositionArrow.SetActive(false);
+
+        combineArrow.SetActive(true);
+        combineSuccessText.SetActive(true);
+
+        isCompositionMode = false;
+    }
+
+    public void DecompositionBtnHover(GameObject obj)
+    {
+        obj.SetActive(true);
+    }
+
+    public void DecompositionBtnExit(GameObject obj)
+    {
+        obj.SetActive(false);
     }
 
     public void ChangeQuickCombinedDisable()

@@ -50,4 +50,8 @@ public static class JJH_Constants
     public const string SKILL_PARAM_PREFIX = "Skill";
     public const int MAX_SKILL_SLOT = 4;
     public const string COUNTERED = "Countered";
+
+    // 로컬라이징 할 경우 그곳으로 이전
+    public const string COMBINE_TEXT_KR = "조합";
+    public const string COMPOSIT_TEXT_KR = "분해";
 }

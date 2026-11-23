@@ -156,6 +156,8 @@ public class InventoryController : MonoBehaviour
             invenCanvasGroup.blocksRaycasts = false;
             InputManager.Instance.SetCursorLocked(false);
             InputManager.Instance.SetInputEnabled(true);
+            combineController.Clear();
+            combineController.DecompositionModeReset();
         }
 
         bool canceled = await invenCanvasGroup.DOFade(open ? 1f : 0f, COMMON_FADE_TIME)

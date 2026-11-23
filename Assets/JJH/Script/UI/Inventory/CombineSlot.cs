@@ -49,7 +49,7 @@ public class CombineSlot : MonoBehaviour, IPointerClickHandler, IPointerEnterHan
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Right)
+        if (combined != null && eventData.button == PointerEventData.InputButton.Right)
         {
             combined.Clear();
             combined.RefreshSuccessPerText(false);
