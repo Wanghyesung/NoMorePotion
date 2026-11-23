@@ -336,6 +336,7 @@ Transform:
   - {fileID: 8676072711610336938}
   - {fileID: 1596838878159191727}
   - {fileID: 2400856529360472411}
+  - {fileID: 6321687788775536878}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &5347553385174070468
@@ -400,6 +401,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7e54c30c0f18104eac3c3f49b2d13ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FSM
+  jumpGravityMultiplier: 1.5
+  fallGravityMultiplier: 2.5
   stateData:
   - {fileID: 11400000, guid: f84c5b15f7635b34eab9ac3cd7ffe7f3, type: 2}
   - {fileID: 11400000, guid: 48b077db732be9b4b9d4088b75b85f8c, type: 2}
@@ -418,6 +421,8 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 64
+  maxGroundAngle: 50
+  groundContactTolerance: 0.03
 --- !u!114 &2303233389847415256
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -435,6 +440,7 @@ MonoBehaviour:
   playerBlink: {fileID: 0}
   damageNumberPrefab: {fileID: 0}
   damageNumberOffset: {x: 0, y: 1.8, z: 0}
+  keyGuideAnchor: {fileID: 6321687788775536878}
   cameraPosition: {fileID: 5464015543718760574}
   lookPivot: {fileID: 2400856529360472411}
   pitchSensitivity: 0.15
@@ -3394,6 +3400,37 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.00058366463, y: 0.008548743, z: 0.00072586106}
     m_Extent: {x: 0.0006407277, y: 0.00074837846, z: 0.0007814079}
   m_DirtyAABB: 0
+--- !u!1 &7845534230800290572
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6321687788775536878}
+  m_Layer: 0
+  m_Name: KeyGuideAnchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6321687788775536878
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7845534230800290572}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.8, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5340863206269235940}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7897832663116592332
 GameObject:
   m_ObjectHideFlags: 0

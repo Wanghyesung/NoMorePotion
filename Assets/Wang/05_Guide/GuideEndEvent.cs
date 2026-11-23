@@ -1,8 +1,17 @@
 using UnityEngine;
 using UnityEngine.Events;
 
+public enum GuideKeyPosition
+{
+    Player,
+    Panel
+}
+
 public abstract class GuideEndEvent : MonoBehaviour
 {
+    [Tooltip("조건이 진행되는 동안 표시할 키입니다. None이면 표시하지 않습니다.")]
+    [SerializeField] private KeyGuide guideKey = KeyGuide.None;
+    [SerializeField] private GuideKeyPosition keyPosition;
     [Tooltip("조건이 시작되면 가이드 화살표가 이 오브젝트를 가리킵니다.")]
     [SerializeField] private bool guideArrow;
     [SerializeField] private UnityEvent startEvent = new();
@@ -12,6 +21,8 @@ public abstract class GuideEndEvent : MonoBehaviour
     private GuideManager manager;
     public bool IsListening { get; private set; }
     public bool IsCompleted { get; private set; }
+    public KeyGuide GuideKey => guideKey;
+    public GuideKeyPosition KeyPosition => keyPosition;
 
     internal void Prepare(GuideEvent guideEvent, GuideManager guideManager)
     {
@@ -27,6 +38,7 @@ public abstract class GuideEndEvent : MonoBehaviour
             return;
 
         IsListening = true;
+        manager.ShowGuideKey(this);
         if (guideArrow)
             manager.ShowGuideArrow(transform);
         OnBegin();
@@ -53,8 +65,11 @@ public abstract class GuideEndEvent : MonoBehaviour
             return;
 
         IsListening = false;
+        manager.HideGuideKey(this);
         OnStop();
     }
+
+    protected void HideGuideKey() => manager.HideGuideKey(this);
 
     protected virtual void OnBegin() { }
     protected virtual void OnStop() { }

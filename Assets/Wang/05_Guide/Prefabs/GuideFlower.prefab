@@ -10334,7 +10334,8 @@ GameObject:
   m_Component:
   - component: {fileID: 82540250042114633}
   - component: {fileID: 2831187769991051631}
-  m_Layer: 10
+  - component: {fileID: 7914929466674286395}
+  m_Layer: 14
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10378,6 +10379,22 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4852333125004684784, guid: 78d55c92e0d43a444836e6e709745bb8, type: 3}
+--- !u!114 &7914929466674286395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2423399767989312387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4909b43245720a44fa76f98b57117edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionOutlineTarget
+  outlineRenderers:
+  - {fileID: 335888433689370328}
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineWidth: 4
 --- !u!1 &2548982937798824040
 GameObject:
   m_ObjectHideFlags: 0
@@ -10498,7 +10515,7 @@ GameObject:
   - component: {fileID: 5890136002742630079}
   - component: {fileID: 7640364476099797770}
   - component: {fileID: 452934398510495831}
-  m_Layer: 10
+  m_Layer: 14
   m_Name: GuideFlower
   m_TagString: Untagged
   m_Icon: {fileID: 0}

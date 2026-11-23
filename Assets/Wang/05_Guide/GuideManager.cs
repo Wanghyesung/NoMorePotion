@@ -15,14 +15,18 @@ public sealed class GuideManager : MonoBehaviour
     [SerializeField] private List<GuideEvent> events = new();
     [SerializeField] private GuideDescriptionPanel descriptionPanel;
     [SerializeField] private GuideArrow guideArrow;
+    [SerializeField] private RectTransform panelKeyAnchor;
     [SerializeField] private UnityEvent startEvent = new();
     [SerializeField] private UnityEvent completedEvent = new();
 
     private int currentIndex;
     private CancellationTokenSource enterCancellation;
     private IDisposable clockStartSubscription;
+    private GuideEndEvent panelKeyEvent;
+    private GuideEndEvent playerKeyEvent;
 
     public GuideEvent CurrentEvent { get; private set; }
+    public RectTransform PanelKeyAnchor => panelKeyAnchor;
     public bool IsRunning { get; private set; }
 
     private void Start()
@@ -59,12 +63,14 @@ public sealed class GuideManager : MonoBehaviour
 
         CurrentEvent = events[currentIndex];
         descriptionPanel.Completed += StartCurrentEvent;
+        KeyCanvas.Instance.ShowPanelKey(KeyGuide.Enter, panelKeyAnchor);
         descriptionPanel.Show(CurrentEvent.EventText);
     }
 
     private void StartCurrentEvent()
     {
         descriptionPanel.Completed -= StartCurrentEvent;
+        KeyCanvas.Instance.HidePanelKey();
         CurrentEvent.Enter(this);
     }
 
@@ -123,6 +129,11 @@ public sealed class GuideManager : MonoBehaviour
         if (!IsRunning)
             return;
         IsRunning = false;
+        if (KeyCanvas.Instance != null)
+        {
+            KeyCanvas.Instance.HidePanelKey();
+            KeyCanvas.Instance.HidePlayerKey();
+        }
         HideGuideArrow();
         CancelPendingEnter();
         descriptionPanel.Completed -= StartCurrentEvent;
@@ -131,6 +142,40 @@ public sealed class GuideManager : MonoBehaviour
         {
             CurrentEvent.Cancel();
             CurrentEvent = null;
+        }
+    }
+
+    internal void ShowGuideKey(GuideEndEvent condition)
+    {
+        if (condition.GuideKey == KeyGuide.None)
+            return;
+
+        if (condition.KeyPosition == GuideKeyPosition.Panel)
+        {
+            panelKeyEvent = condition;
+            KeyCanvas.Instance.ShowPanelKey(condition.GuideKey, panelKeyAnchor);
+        }
+        else
+        {
+            playerKeyEvent = condition;
+            KeyCanvas.Instance.ShowPlayerKey(condition.GuideKey);
+        }
+    }
+
+    internal void HideGuideKey(GuideEndEvent condition)
+    {
+        if (panelKeyEvent == condition)
+        {
+            panelKeyEvent = null;
+            if (KeyCanvas.Instance != null)
+                KeyCanvas.Instance.HidePanelKey();
+        }
+
+        if (playerKeyEvent == condition)
+        {
+            playerKeyEvent = null;
+            if (KeyCanvas.Instance != null)
+                KeyCanvas.Instance.HidePlayerKey();
         }
     }
 

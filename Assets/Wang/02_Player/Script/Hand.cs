@@ -128,6 +128,13 @@ public sealed class Hand : MonoBehaviour
 
     public int EmptyHandCount => (leftPotion == null ? 1 : 0) + (rightPotion == null ? 1 : 0);
 
+    // 인벤토리에 반환하지 않고 양손의 포션을 버립니다.
+    public void ClearPotion()
+    {
+        ReleaseHeld(Side.Left);
+        ReleaseHeld(Side.Right);
+    }
+
     public void Shake()
     {
         PotionInstance left = leftPotion != null ? leftPotion.PotionInstance : null;
@@ -254,8 +261,7 @@ public sealed class Hand : MonoBehaviour
                 return;
 
             // 되돌린 포션은 이제 공용 인벤에 있으므로 손의 오브젝트를 없앱니다.
-            ReleaseHeld(Side.Left);
-            ReleaseHeld(Side.Right);
+            ClearPotion();
             HoldTakenPotions(result.Outcome.Potions);
         }
         finally

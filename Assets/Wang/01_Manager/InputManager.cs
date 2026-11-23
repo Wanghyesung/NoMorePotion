@@ -32,11 +32,17 @@ public sealed class InputManager : MonoBehaviour
         TakePotion = 1 << 8,
         Shake = 1 << 9,
         QuickSlot = 1 << 10,
-        All = (1 << 11) - 1
+        QuickSlot1 = 1 << 11,
+        QuickSlot4 = 1 << 12,
+        ThrowPotion = 1 << 13,
+        DrinkPotion = 1 << 14,
+        All = (1 << 15) - 1
     }
 
     public static InputManager Instance { get; private set; }
-    public GameplayKeys GuideAllowedKeys { get; private set; } = GameplayKeys.All;
+    public GameplayKeys GuideAllowedKeys { get; private set; } = ExpandPotionKeys(GameplayKeys.All);
+    public bool CanThrowPotion => (GuideAllowedKeys & GameplayKeys.ThrowPotion) != 0;
+    public bool CanDrinkPotion => (GuideAllowedKeys & GameplayKeys.DrinkPotion) != 0;
 
     [Header("Input Actions")]
     #region InputActions
@@ -273,7 +279,7 @@ public sealed class InputManager : MonoBehaviour
 
         if (gameplayInputEnabled && isActiveAndEnabled)
         {
-            ApplyGuideKey(Skill0Action, GameplayKeys.UsePotion);
+            ApplyGuideKey(Skill0Action, GameplayKeys.ThrowPotion | GameplayKeys.DrinkPotion);
             ApplyGuideKey(AimAction, GameplayKeys.Aim);
         }
     }
@@ -285,7 +291,7 @@ public sealed class InputManager : MonoBehaviour
 
     private void EnableActions()
     {
-        ApplyGuideKey(Skill0Action, GameplayKeys.UsePotion);
+        ApplyGuideKey(Skill0Action, GameplayKeys.ThrowPotion | GameplayKeys.DrinkPotion);
         ApplyGuideKey(MoveAction, GameplayKeys.Move);
         ApplyGuideKey(DeltaAction, GameplayKeys.Look);
         ApplyGuideKey(JumpAction, GameplayKeys.Jump);
@@ -296,10 +302,12 @@ public sealed class InputManager : MonoBehaviour
         ApplyGuideKey(TakeOutPotionAction, GameplayKeys.TakePotion);
         ApplyGuideKey(ShakeAction, GameplayKeys.Shake);
         ApplyGuideKey(Number0Action, GameplayKeys.QuickSlot);
-        ApplyGuideKey(Number1Action, GameplayKeys.QuickSlot);
+        // 전체 퀵슬롯 또는 이 번호만 허용한 단계에서 활성화한다.
+
+        ApplyGuideKey(Number1Action, GameplayKeys.QuickSlot | GameplayKeys.QuickSlot1);
         ApplyGuideKey(Number2Action, GameplayKeys.QuickSlot);
         ApplyGuideKey(Number3Action, GameplayKeys.QuickSlot);
-        ApplyGuideKey(Number4Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number4Action, GameplayKeys.QuickSlot | GameplayKeys.QuickSlot4);
         ApplyGuideKey(Number5Action, GameplayKeys.QuickSlot);
         ApplyGuideKey(Number6Action, GameplayKeys.QuickSlot);
         ApplyGuideKey(Number7Action, GameplayKeys.QuickSlot);
@@ -309,8 +317,9 @@ public sealed class InputManager : MonoBehaviour
 
     private void ApplyGuideKey(InputAction action, GameplayKeys key)
     {
-        bool cursorBlocksPotion = Cursor.visible && (key == GameplayKeys.UsePotion || key == GameplayKeys.Aim);
-        if ((GuideAllowedKeys & key) != 0 && !cursorBlocksPotion)
+        bool cursorBlocksPotion = Cursor.visible && (key & (GameplayKeys.ThrowPotion | GameplayKeys.DrinkPotion | GameplayKeys.Aim)) != 0;
+        bool aimBlocked = key == GameplayKeys.Aim && !CanThrowPotion;
+        if ((GuideAllowedKeys & key) != 0 && !cursorBlocksPotion && !aimBlocked)
             action.Enable();
         else
             action.Disable();
@@ -318,7 +327,7 @@ public sealed class InputManager : MonoBehaviour
 
     public void SetGuideAllowedKeys(GameplayKeys keys)
     {
-        GuideAllowedKeys = keys;
+        GuideAllowedKeys = ExpandPotionKeys(keys);
         if (gameplayInputEnabled && isActiveAndEnabled)
             EnableActions();
         else
@@ -326,7 +335,15 @@ public sealed class InputManager : MonoBehaviour
         CancelInput();
     }
 
-    public void LockKeys(GameplayKeys keys) => SetGuideAllowedKeys(GuideAllowedKeys & ~keys);
+    // 기존 씬에 저장된 UsePotion 값은 던지기와 마시기를 함께 허용하는 의미로 유지한다.
+    private static GameplayKeys ExpandPotionKeys(GameplayKeys keys)
+    {
+        if ((keys & GameplayKeys.UsePotion) != 0)
+            keys = (keys & ~GameplayKeys.UsePotion) | GameplayKeys.ThrowPotion | GameplayKeys.DrinkPotion;
+        return keys;
+    }
+
+    public void LockKeys(GameplayKeys keys) => SetGuideAllowedKeys(GuideAllowedKeys & ~ExpandPotionKeys(keys));
     public void UnLockKeys(GameplayKeys keys) => SetGuideAllowedKeys(GuideAllowedKeys | keys);
     public void LockAllKeys() => SetGuideAllowedKeys(GameplayKeys.None);
     public void UnLockAllKeys() => SetGuideAllowedKeys(GameplayKeys.All);
