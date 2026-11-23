@@ -28,6 +28,7 @@ public class PublicInventory : ItemInventory
     [Header("버튼 파트")]
     [SF] private Button potionTabBtn;
     [SF] private Button materialTabBtn;
+    [SF] private RectTransform continueGroup;
     [SF] private Image buttonBackgroundAnimationImage;
     [SF] private AnimationCurve btnMoveEase;
     [SF] private AnimationCurve btnSizeEase;
@@ -103,8 +104,8 @@ public class PublicInventory : ItemInventory
         if (potions != null) potions.OnChanged -= OnPotionChanged;
     }
 
-    private void OnDestroy() 
-    { 
+    private void OnDestroy()
+    {
         Unbind();
         btnAnimeToken?.Cancel();
         btnAnimeToken?.Dispose();
@@ -120,12 +121,14 @@ public class PublicInventory : ItemInventory
             inven.publicInventScrollRect.content = potionContent;
             materialContent.gameObject.SetActive(false);
             potionContent.gameObject.SetActive(true);
+            continueGroup.gameObject.SetActive(false);
         }
         else
         {
             inven.publicInventScrollRect.content = materialContent;
             potionContent.gameObject.SetActive(false);
             materialContent.gameObject.SetActive(true);
+            continueGroup.gameObject.SetActive(true);
         }
 
         ButtonAnimation(btnType, btnAnimeToken.Token).Forget();
@@ -178,7 +181,7 @@ public class PublicInventory : ItemInventory
 
     #region 포션 갱신 및 전환
 
-    private void OnPotionChanged() 
+    private void OnPotionChanged()
     {
         potionsUpdate = true;
     }
@@ -267,7 +270,7 @@ public class PublicInventory : ItemInventory
             .SetUpdate(true)
             .SetLink(rect.gameObject);
 
-        bool canceled = 
+        bool canceled =
             await seq.ToUniTask(cancellationToken: token).SuppressCancellationThrow();
         if (canceled) return;
 

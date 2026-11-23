@@ -102,7 +102,7 @@ public class CombinationController : ItemInventory
 
                 return;
             }
-            else if(mat.ID == InventoryRules.UnknownPowderMaterialId)
+            else if (mat.ID == InventoryRules.UnknownPowderMaterialId)
             {
                 warningTextToken?.Cancel();
                 warningTextToken = new();
@@ -118,7 +118,7 @@ public class CombinationController : ItemInventory
 
             int compositMatId = InventoryRules.UnknownPowderMaterialId;
 
-            if(dm.TryGetMaterialData(compositMatId,out var unknownPowderData))
+            if (dm.TryGetMaterialData(compositMatId, out var unknownPowderData))
             {
                 leftSlot.image.sprite = unknownPowderData.materialIcon;
                 leftSlot.id = compositMatId;
@@ -184,7 +184,7 @@ public class CombinationController : ItemInventory
             resultSlot.id = result.potionID;
         }
         else
-        {   
+        {
             warningTextToken?.Cancel();
             warningTextToken = new();
 
@@ -192,8 +192,8 @@ public class CombinationController : ItemInventory
                 warningTextToken.Token).Forget();
 
             Debug.Log("이 조합으로는 만들 수 없습니다.");
-            
-            Clear(); 
+
+            Clear();
         }
     }
 
@@ -291,7 +291,7 @@ public class CombinationController : ItemInventory
         Ingredient right = MakeIngredient(rightSlot, rightId);
 
         int keywordId = PotionCrafter.RollTrapKeywordId();
-        InventoryResult result = 
+        InventoryResult result =
             await InventoryNetworkSyncManager.Instance.CraftAsync(left, right, keywordId);
 
         if (result.Success)
@@ -329,22 +329,19 @@ public class CombinationController : ItemInventory
             Debug.Log($"[Craft] 포션 제작 실패 - {reasonText}");
             Clear();
         }
-            
 
-        if (!isContinuous)
-            Clear();
-        else
+        if (leftId < 20000 || rightId < 20000)
         {
-            // 유효한 인스턴트를 가진 slot을 가져와 Init으로 대체,
-            // 불가능할 경우 포션은 빠른 제작 불가
-            
+            Clear();
         }
+        else if (!isContinuous)
+            Clear();
     }
 
     public async UniTask MaterialComposition(int materialId)
     {
 
-        InventoryResult result = 
+        InventoryResult result =
             await InventoryNetworkSyncManager.Instance.DisassembleAsync(materialId, 1);
 
         if (result.Success)
@@ -365,11 +362,13 @@ public class CombinationController : ItemInventory
                         warningTextToken.Token).Forget();
 
                     break;
-                case InventoryDenyReason.Invalid: reasonText = "재료가 아님";
+                case InventoryDenyReason.Invalid:
+                    reasonText = "재료가 아님";
                     PotionWarningTextPopup("재료만 분해할 수 있습니다.",
                         warningTextToken.Token).Forget();
                     break;
-                case InventoryDenyReason.NotEnough: reasonText = "재료가 충분치 않음";
+                case InventoryDenyReason.NotEnough:
+                    reasonText = "재료가 충분치 않음";
                     PotionWarningTextPopup("분해할 재료가 부족합니다.",
                         warningTextToken.Token).Forget();
                     break;
@@ -395,9 +394,9 @@ public class CombinationController : ItemInventory
     public void RefreshSuccessPerText(bool type = true)
     {
         int successPer = 0;
-        if(type)
+        if (type)
             successPer = 100 - PotionCrafter.GetPlayerCraftFailChance();
-        
+
         successPerText.SetText($"{successPer}%");
 
         bool low = successPer / 100 <= threshold;
@@ -407,7 +406,7 @@ public class CombinationController : ItemInventory
         isLow = low;
         successPerText.color = low ? lowColor : highColor;
     }
-    
+
     /// <summary>
     /// 분해 <> 조합 기능 전환 함수
     /// </summary>
