@@ -84,6 +84,12 @@ namespace Enzeun.Runtime
                         writer.Write(checked((ushort)command.MaterialId));
                         writer.Write(checked((ushort)command.Count));
                         break;
+
+                    // 다시뽑기 : 양손에 들고 있던 포션 두 개 (포션 ID, 함정 키워드, 인스턴스 ID)
+                    case InventoryOp.Reroll:
+                        InventoryPacker.WritePotion(writer, command.HeldA);
+                        InventoryPacker.WritePotion(writer, command.HeldB);
+                        break;
                 }
 
                 writer.Flush();
@@ -171,6 +177,13 @@ namespace Enzeun.Runtime
                         case InventoryOp.Disassemble:
                             c.MaterialId = reader.ReadUInt16();
                             c.Count = reader.ReadUInt16();
+                            break;
+
+                        case InventoryOp.Reroll:
+                            if (!InventoryPacker.TryReadPotion(reader, out c.HeldA) || !InventoryPacker.TryReadPotion(reader, out c.HeldB))
+                            {
+                                return false;
+                            }
                             break;
 
                         default:
