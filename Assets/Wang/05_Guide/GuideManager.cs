@@ -15,6 +15,7 @@ public sealed class GuideManager : MonoBehaviour
     [SerializeField] private List<GuideEvent> events = new();
     [SerializeField] private GuideDescriptionPanel descriptionPanel;
     [SerializeField] private GuideArrow guideArrow;
+    [SerializeField] private RectTransform panelKeyAnchor;
     [SerializeField] private UnityEvent startEvent = new();
     [SerializeField] private UnityEvent completedEvent = new();
 
@@ -23,6 +24,7 @@ public sealed class GuideManager : MonoBehaviour
     private IDisposable clockStartSubscription;
 
     public GuideEvent CurrentEvent { get; private set; }
+    public RectTransform PanelKeyAnchor => panelKeyAnchor;
     public bool IsRunning { get; private set; }
 
     private void Start()

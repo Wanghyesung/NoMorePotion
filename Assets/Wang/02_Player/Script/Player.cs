@@ -57,9 +57,11 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
     [SerializeField] private PlayerBlink playerBlink;
     [SerializeField] private DamageNumber damageNumberPrefab;
     [SerializeField] private Vector3 damageNumberOffset = new Vector3(0f, 1.8f, 0f);
+    [SerializeField] private Transform keyGuideAnchor;
 
     public bool IsLocalPlayer => photonView == null || photonView.IsMine == true;
     public Hand Hand => hand;
+    public Transform KeyGuideAnchor => keyGuideAnchor;
     public PlayerCharacter Character => character;
     public bool ConfusePotionUse { get; set; }
     #endregion

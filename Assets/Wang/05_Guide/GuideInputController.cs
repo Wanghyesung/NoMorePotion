@@ -16,6 +16,8 @@ public sealed class GuideInputController : MonoBehaviour
     public void UnLockUsePotionKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.UsePotion);
     public void UnLockAimKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.Aim);
     public void UnLockQuickSlotKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.QuickSlot);
+    public void UnLockQuickSlot1Key() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.QuickSlot1);
+    public void UnLockQuickSlot4Key() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.QuickSlot4);
     public void UnLockSwitchHandKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.SwitchHand);
     public void UnLockShakeKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.Shake);
     public void LockInteractKey() => InputManager.Instance.LockKeys(InputManager.GameplayKeys.Interact);

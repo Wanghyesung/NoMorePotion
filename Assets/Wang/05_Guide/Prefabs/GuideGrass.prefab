@@ -117,7 +117,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7918464812234728369}
   - component: {fileID: 3725954855553962325}
-  m_Layer: 10
+  - component: {fileID: 5327805048925295924}
+  m_Layer: 14
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -161,6 +162,22 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 2028204697764476264, guid: e5a0d0b5907eaf548a6bb842554c07bb, type: 3}
+--- !u!114 &5327805048925295924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1273163102771707920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4909b43245720a44fa76f98b57117edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionOutlineTarget
+  outlineRenderers:
+  - {fileID: 246555108773944188}
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineWidth: 4
 --- !u!1 &2634391107820303295
 GameObject:
   m_ObjectHideFlags: 0
@@ -10464,7 +10481,7 @@ GameObject:
   - component: {fileID: 2959457209495740541}
   - component: {fileID: 2977366524651311140}
   - component: {fileID: 7675813645568218994}
-  m_Layer: 10
+  m_Layer: 14
   m_Name: GuideGrass
   m_TagString: Untagged
   m_Icon: {fileID: 0}

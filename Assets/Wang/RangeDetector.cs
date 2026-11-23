@@ -21,6 +21,7 @@ public sealed class RangeDetector : MonoBehaviour
     private bool canSelectOutline;
     private Camera outlineCamera;
     private InteractionOutlineTarget outlineTarget;
+    private bool hasInteractionPosition;
 
     [SerializeField] private float waitTime = 0.1f;
     public GameObject Get()
@@ -38,9 +39,36 @@ public sealed class RangeDetector : MonoBehaviour
         UpdateDetectorAsync().Forget();
     }
 
+    private void LateUpdate()
+    {
+        if (!canSelectOutline || KeyCanvas.Instance == null)
+            return;
+
+        if (nearestObj == null)
+        {
+            ClearInteractionPosition();
+            return;
+        }
+
+        hasInteractionPosition = true;
+        KeyCanvas.Instance.PlayAnimationKey(KeyGuide.E, nearestObj.transform.position);
+    }
+
+    private void ClearInteractionPosition()
+    {
+        if (!hasInteractionPosition)
+            return;
+
+        hasInteractionPosition = false;
+
+        if (KeyCanvas.Instance != null)
+            KeyCanvas.Instance.ClearInteractionPosition();
+    }
+
     private void OnDisable()
     {
         nearestObj = null;
+        ClearInteractionPosition();
         if (canSelectOutline && InteractionOutlineTarget.Instance == outlineTarget &&
             InteractionOutlineTarget.SelectedCamera == outlineCamera)
         {
@@ -55,6 +83,8 @@ public sealed class RangeDetector : MonoBehaviour
             return;
 
         nearestObj = target;
+        if (target == null)
+            ClearInteractionPosition();
         if (!canSelectOutline)
             return;
 

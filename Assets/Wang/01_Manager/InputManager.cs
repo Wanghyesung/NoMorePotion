@@ -32,7 +32,9 @@ public sealed class InputManager : MonoBehaviour
         TakePotion = 1 << 8,
         Shake = 1 << 9,
         QuickSlot = 1 << 10,
-        All = (1 << 11) - 1
+        QuickSlot1 = 1 << 11,
+        QuickSlot4 = 1 << 12,
+        All = (1 << 13) - 1
     }
 
     public static InputManager Instance { get; private set; }
@@ -296,10 +298,12 @@ public sealed class InputManager : MonoBehaviour
         ApplyGuideKey(TakeOutPotionAction, GameplayKeys.TakePotion);
         ApplyGuideKey(ShakeAction, GameplayKeys.Shake);
         ApplyGuideKey(Number0Action, GameplayKeys.QuickSlot);
-        ApplyGuideKey(Number1Action, GameplayKeys.QuickSlot);
+        // 전체 퀵슬롯 또는 이 번호만 허용한 단계에서 활성화한다.
+
+        ApplyGuideKey(Number1Action, GameplayKeys.QuickSlot | GameplayKeys.QuickSlot1);
         ApplyGuideKey(Number2Action, GameplayKeys.QuickSlot);
         ApplyGuideKey(Number3Action, GameplayKeys.QuickSlot);
-        ApplyGuideKey(Number4Action, GameplayKeys.QuickSlot);
+        ApplyGuideKey(Number4Action, GameplayKeys.QuickSlot | GameplayKeys.QuickSlot4);
         ApplyGuideKey(Number5Action, GameplayKeys.QuickSlot);
         ApplyGuideKey(Number6Action, GameplayKeys.QuickSlot);
         ApplyGuideKey(Number7Action, GameplayKeys.QuickSlot);
