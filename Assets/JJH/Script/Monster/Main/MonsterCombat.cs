@@ -29,6 +29,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] protected MonsterHPHud hud;
     [SF] protected MonsterVfx vfx;
     [SF] protected AttackAim aim;
+    [SF] private UseProjectile projectileShoter;
     [SF] protected BuffContainer statusEffect;
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
@@ -104,7 +105,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             vfx = vfxVal;
         if (aim == null && TryGetComponent(out AttackAim aimVal))
             aim = aimVal;
-
+        if (aim == null && TryGetComponent(out UseProjectile projectileVal))
+            projectileShoter = projectileVal;
+        
         CacheRenderers();
     }
 
@@ -325,14 +328,16 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     public void NormalAttackOn()
     {
-        biteHitbox.gameObject.SetActive(true);
+        if(biteHitbox != null)
+            biteHitbox.gameObject.SetActive(true);
         if (vfx != null)
             vfx.PlayHit(0);
     }
 
     public void NormalAttackOff()
     {
-        biteHitbox.gameObject.SetActive(false);
+        if (biteHitbox != null)
+            biteHitbox.gameObject.SetActive(false);
     }
 
     public void NormalAttackAnimationEnd()
@@ -440,6 +445,18 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
         SendDamage(attackInfo.Damage, -1);
+    }
+
+    /// <summary>
+    /// 기본 공격 데미지 (근접 히트박스와 동일 기준)
+    /// </summary>
+    public AttackInfo CreateNormalAttackInfo()
+    {
+        return new AttackInfo
+        {
+            Damage = GetDamage(),
+            Position = transform.position
+        };
     }
 
     public AttackInfo CreateSkillAttackInfo(int skillNum)

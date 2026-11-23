@@ -29,7 +29,22 @@
     "SpawnArea": "Forest",
     "BossSubData": {
     }
+  },  {
+    "Id": 41003,
+    "HP": 20000,
+    "Speed": 3.6,
+    "DamageType": "Normal",
+    "AtkPoint": 350,
+    "AttackPower": 1,
+    "Immune": {
+      "1": 35,
+      "2": 40
+    },
+    "SpawnArea": "Desert",
+    "BossSubData": {
+    }
   },
+
 
   {
     "Id": 41006,

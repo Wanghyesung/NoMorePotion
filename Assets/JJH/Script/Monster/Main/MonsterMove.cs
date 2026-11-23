@@ -62,6 +62,14 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     // 도착 판정 거리
     [SF] private float slotTolerance = 1f;
 
+    [Header("원거리 공격 관련(보유시)")]
+    // 공격 보유 여부
+    [SF] private bool requireLineOfSight;
+    // 시야를 가리는 레이어 체크
+    [SF] private LayerMask sightBlockMask;
+    // 시야 높이
+    [SF] private float eyeHeight = 1.5f;
+
     [Header("기본 타겟 (웨이브)")]
     [SF] private GameObject defaultTarget;
 
@@ -537,11 +545,29 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     }
 
     /// <summary>
+    /// 기본 공격 가능 여부 (사거리 + 높이 + 시야)
+    /// </summary>
+    public bool CanNormalAttack(float distance) =>
+        distance <= attackRange && IsWithinAttackHeight() && HasLineOfSight();
+
+    /// <summary>
+    /// 타겟이 벽에 가리지 않았는지 확인
+    /// </summary>
+    public bool HasLineOfSight()
+    {
+        if (!requireLineOfSight) return true;
+        if (nowTarget == null) return false;
+
+        Vector3 from = transform.position + Vector3.up * eyeHeight;
+        Vector3 to = nowTarget.transform.position + Vector3.up;
+        return !Physics.Linecast(from, to, sightBlockMask, QueryTriggerInteraction.Ignore);
+    }
+
+    /// <summary>
     /// 기본 공격은 높이 제한까지 확인, 스킬은 사거리만 확인 (원거리·지정형 스킬은 높이 무관)
     /// </summary>
     public bool IsInAttackRange(float distance) =>
-    (distance <= attackRange && IsWithinAttackHeight()) || 
-        attackSelector.AnyReadyInRange(distance);
+        CanNormalAttack(distance) || attackSelector.AnyReadyInRange(distance);
 
      /// <summary>
      /// 대상과의 높이 차이가 기본 공격 가능 범위 안인지 확인하는 함수

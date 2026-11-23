@@ -40,7 +40,7 @@ public class MonsterAttackTrigger : MonoBehaviour
 
     
     /// <summary>
-    /// 플레이어는 본인 클라이언트가, 소유자 없는 대상은 방장이 판정 (임시 )
+    /// 플레이어는 본인 클라이언트가, 소유자 없는 대상은 방장이 판정
     /// </summary>
     /// <param name="target">판정 대상</param>
     /// <returns>판정할 경우 : true</returns>
