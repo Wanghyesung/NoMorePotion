@@ -91,6 +91,12 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private float savedAccel;
     private bool savedRotation;
     private bool isManualMoving;
+    /// <summary>
+    /// 랜덤하게 어그로가 변경된 뒤 피격으로 인한 도발 무시 시간
+    /// </summary>
+    private float aggroLock;
+
+    public bool IsAggroLocked => Time.time < aggroLock;
     #endregion
 
 
@@ -148,13 +154,15 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <param name="target">타겟 Object</param>
     public void SetTarget(GameObject target)
     {
+        if (PhotonNetwork.InRoom && !GameAuthority.HasAuthority) return;
+
         if (ReferenceEquals(nowTarget, target)) return;
 
         ReleaseSlot();          // 이전 대상의 슬롯 반납
         ApplyTarget(target);
 
         // 방장이 정한 타겟을 다른 클라이언트에 전달 (시선 등 표시용)
-        if (PhotonNetwork.InRoom && GameAuthority.HasAuthority)
+        if (PhotonNetwork.InRoom)
             photonView.RPC(nameof(RpcSetTarget), RpcTarget.Others, NetTarget.ToViewId(target));
     }
 
@@ -560,6 +568,15 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 /// </summary>
 /// <param name="target"></param>
     public void SetDefaultTarget(GameObject target) => defaultTarget = target;
+
+    /// <summary>
+    /// 강제로 타겟을 바꾸고 일정 시간 도발 무시 (랜덤 어그로 등)
+    /// </summary>
+    public void ForceTarget(GameObject target, float lockSeconds)
+    {
+        SetTarget(target);
+        aggroLock = Time.time + lockSeconds;
+    }
 
     /// <summary>
     /// 대상의 몸 반지름을 뺀 실제 거리 (큰 대상도 표면 기준으로 판정)

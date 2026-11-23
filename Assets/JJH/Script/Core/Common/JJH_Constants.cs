@@ -29,6 +29,7 @@ public static class JJH_Constants
     public const string SPAWNER_WAVE_START_TIME = "waveStartTime";
     public const string SPAWNER_ORDER = "order";
 
+    public const int TARGET_CHANGE_TICK = 150;
     public const int FSM_TIMER = 100;
     public const int MIL_SEC = 1000;
 

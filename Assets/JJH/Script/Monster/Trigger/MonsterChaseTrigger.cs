@@ -1,4 +1,6 @@
+using Photon.Pun;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using static JJH_Constants;
 using SF = UnityEngine.SerializeField;
@@ -7,8 +9,13 @@ using SF = UnityEngine.SerializeField;
 public class MonsterChaseTrigger : MonoBehaviour
 {
     [SF] private MonsterMove mover;
+    [SF] private bool randomAggroActive = true;
+    [SF] private float randomAggroLockTime = 10f;
     private readonly List<GameObject> players = new();
     private readonly List<GameObject> candidates = new();
+
+    private float tickTimer;
+    private int targetTickCount;
 
     private void Awake()
     {
@@ -16,16 +23,40 @@ public class MonsterChaseTrigger : MonoBehaviour
             mover = GetComponentInParent<MonsterMove>();
     }
 
+    private void OnEnable()
+    {
+        tickTimer = Random.Range(0f, FSM_TIMER / MIL_SEC_F);
+    }
+
     private void Update()
     {
+        if (PhotonNetwork.InRoom && !GameAuthority.HasAuthority) return;
+        tickTimer += Time.deltaTime;
+        if (tickTimer < FSM_TIMER / MIL_SEC_F) return;
+        tickTimer = 0f;
+        targetTickCount++;
 
         // 타겟이 없거나 수정구슬을 노리는 경우
         if (players.Count == 0) return;
-        if (mover.nowTarget != null && !mover.IsTargetObjective) return;
+        GameObject pick;
+        if (mover.nowTarget != null && !mover.IsTargetObjective)
+        {
+            if (targetTickCount > TARGET_CHANGE_TICK && randomAggroActive)
+            {
+                pick = PickTarget(mover.nowTarget);
+                if (pick != null)
+                    mover.ForceTarget(pick, randomAggroLockTime);
+                targetTickCount = 0;
+                return;
+            }
+            else return;
+        }
 
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
-        GameObject pick = PickTarget();
-        if (pick != null) mover.SetTarget(pick);
+                
+        pick = PickTarget();
+        if (pick != null) 
+            mover.SetTarget(pick);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -52,16 +83,25 @@ public class MonsterChaseTrigger : MonoBehaviour
         mover.SetTarget(PickTarget());
     }
 
-    // 재추적 쿨다운 중인 플레이어는 제외하고 무작위 선택
-    private GameObject PickTarget()
+    /// <summary>
+    /// 재추적 쿨다운 중인 플레이어는 제외하고 무작위 선택
+    /// <para>제외할 타겟이 있으면 목록에서 빼고 뽑고, 다른 후보가 없으면 그 타겟 유지</para>
+    /// </summary>
+    /// <param name="exclude">제외할 타겟</param>
+    /// <returns>지정된 타겟</returns>
+    private GameObject PickTarget(GameObject exclude = null)
     {
         candidates.Clear();
 
         foreach (GameObject p in players)
         {
-            bool can = mover.CanAcquireTarget(p);
-            if (can) candidates.Add(p);
+            if (p == exclude || !mover.CanAcquireTarget(p)) continue;
+            candidates.Add(p);
         }
+
+        // 바꿀 후보가 없으면 기존 타겟 유지
+        if (candidates.Count == 0 && exclude != null && mover.CanAcquireTarget(exclude))
+            return exclude;
 
         return candidates.Count > 0
             ? candidates[Random.Range(0, candidates.Count)]
