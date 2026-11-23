@@ -29,6 +29,7 @@ namespace Enzeun.Editor
         private const int MatSmall = 20001;     // 한도 99
         private const int MatOther = 20002;     // 한도 99
         private const int MatLimited = 20003;   // 한도 5 (가득 참 시험용)
+        private const int MatPowder = InventoryRules.UnknownPowderMaterialId;   // 미지의 가루, 한도 6 (분해 가득 참 시험용)
         private const int PotionBase = 10001;
         private const int PotionUpgraded = 10002;
         #endregion
@@ -79,9 +80,9 @@ namespace Enzeun.Editor
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            public bool IsKnownMaterial(int materialId) => materialId == MatSmall || materialId == MatOther || materialId == MatLimited;
+            public bool IsKnownMaterial(int materialId) => materialId == MatSmall || materialId == MatOther || materialId == MatLimited || materialId == MatPowder;
 
-            public int GetMaterialLimit(int materialId) => materialId == MatLimited ? 5 : 99;
+            public int GetMaterialLimit(int materialId) => materialId == MatLimited ? 5 : materialId == MatPowder ? 6 : 99;
 
             public bool TryGetPotion(int potionId, out PotionData data)
             {
@@ -154,6 +155,7 @@ namespace Enzeun.Editor
                 TestStorageAndAccess();
                 TestTakeOut();
                 TestConsume();
+                TestDisassemble();
                 TestWorldGrant();
                 TestWorldObjectApplyKind();
                 TestDeathAndLeave();
@@ -524,6 +526,55 @@ namespace Enzeun.Editor
 
             // 뒤 시험이 쓰도록 개인 인벤에 포션을 하나 되돌려 둔다.
             Send(ActorA, GrantPotion(ContainerRef.Personal(ActorA), PotionBase));
+        }
+
+        private static void TestDisassemble()
+        {
+            // 분해: 공용 인벤의 재료 1개 → 미지의 가루 1개 (공용 인벤으로)
+            Send(ActorA, GrantMaterial(ContainerRef.PackRef, MatOther, 2));
+            int matBefore = _master.Pack.Materials.GetCount(MatOther);
+            int powderBefore = _master.Pack.Materials.GetCount(MatPowder);
+
+            Res ok = Send(ActorB, Disassemble(MatOther, 2));
+            Expect("분해 성공(2개)", ok.Ok && ok.Outcome.Value == 2);
+            Expect("재료 2개 감소", _master.Pack.Materials.GetCount(MatOther) == matBefore - 2);
+            Expect("미지의 가루 2개 증가", _master.Pack.Materials.GetCount(MatPowder) == powderBefore + 2);
+            ExpectSynced("분해 후");
+
+            // 거부되는 경우에는 아무것도 바뀌지 않는다.
+            int mat = _master.Pack.Materials.GetCount(MatOther);
+            int powder = _master.Pack.Materials.GetCount(MatPowder);
+
+            Res notEnough = Send(ActorA, Disassemble(MatOther, mat + 1));
+            Expect("재료가 모자라면 NotEnough", !notEnough.Ok && notEnough.Reason == InventoryDenyReason.NotEnough);
+
+            Res self = Send(ActorA, Disassemble(MatPowder, 1));
+            Expect("미지의 가루는 분해 불가(Invalid)", !self.Ok && self.Reason == InventoryDenyReason.Invalid);
+
+            Res unknown = Send(ActorA, Disassemble(29999, 1));   // 메시지는 재료 ID 를 ushort 로 보내므로 범위 안의 모르는 ID
+            Expect("모르는 재료는 Invalid", !unknown.Ok && unknown.Reason == InventoryDenyReason.Invalid);
+
+            Res zero = Send(ActorA, Disassemble(MatOther, 0));
+            Expect("0개는 Invalid", !zero.Ok && zero.Reason == InventoryDenyReason.Invalid);
+
+            // 가루 한도(6)를 넘기면 Full
+            int room = _master.Pack.Materials.GetRoom(MatPowder);
+            Send(ActorA, GrantMaterial(ContainerRef.PackRef, MatOther, room + 1));
+            mat = _master.Pack.Materials.GetCount(MatOther);
+            Res full = Send(ActorA, Disassemble(MatOther, room + 1));
+            Expect("가루 자리가 모자라면 Full", !full.Ok && full.Reason == InventoryDenyReason.Full);
+            Expect("거부 시 그대로", _master.Pack.Materials.GetCount(MatOther) == mat && _master.Pack.Materials.GetCount(MatPowder) == powder);
+            ExpectSynced("분해 거부 후");
+
+            // 메시지 왕복
+            byte[] packed = InventoryMessages.PackRequest(new InventoryCommand { Op = InventoryOp.Disassemble, RequestId = 9, MaterialId = MatOther, Count = 3 });
+            Expect("분해 요청 메시지 왕복", InventoryMessages.TryUnpackRequest(packed, out InventoryCommand unpacked)
+                && unpacked.Op == InventoryOp.Disassemble && unpacked.RequestId == 9 && unpacked.MaterialId == MatOther && unpacked.Count == 3);
+        }
+
+        private static InventoryCommand Disassemble(int materialId, int count)
+        {
+            return new InventoryCommand { Op = InventoryOp.Disassemble, MaterialId = materialId, Count = count };
         }
 
         // 마스터 사본에서 해당 플레이어의 개인 인벤토리에 든 아이템 수입니다. (재료는 개수, 포션은 한 개)

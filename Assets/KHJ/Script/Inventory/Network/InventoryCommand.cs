@@ -23,6 +23,7 @@ namespace Enzeun.Runtime
         Leave = 6,
         TakeOut = 7,
         Consume = 8,
+        Disassemble = 9,
     }
 
     /// <summary>

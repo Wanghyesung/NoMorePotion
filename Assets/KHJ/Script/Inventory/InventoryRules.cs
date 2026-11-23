@@ -16,6 +16,11 @@ namespace Enzeun.Runtime
         public const int StorageMaterialMultiplier = 2;
 
         /// <summary>
+        /// 재료를 분해하면 나오는 "미지의 가루" 재료 ID 입니다. (재료 1개 → 가루 1개, 공용 인벤에서만)
+        /// </summary>
+        public const int UnknownPowderMaterialId = 20000;
+
+        /// <summary>
         /// 공용 창고에 보관할 수 있는 포션 최대 개수입니다.
         /// </summary>
         public const int StoragePotionCapacity = 300;

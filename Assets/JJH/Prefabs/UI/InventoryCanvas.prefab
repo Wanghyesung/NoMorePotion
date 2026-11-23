@@ -2559,7 +2559,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2295776299164210108}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
   m_Camera: {fileID: 0}
@@ -12120,7 +12120,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8367844271797886003}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
@@ -12146,6 +12146,7 @@ MonoBehaviour:
   combineController: {fileID: 8808581820877125490}
   storageSideRect: {fileID: 3976687448138570195}
   rootBoxSideRect: {fileID: 8601913816713105809}
+  settingsPopup: {fileID: 0}
   publicList: []
 --- !u!114 &6096021460105450786
 MonoBehaviour:
