@@ -36,7 +36,7 @@ public class MinimapUI : MonoBehaviour
     {
         Vector3 pos = player.transform.position;
 
-        Vector2 center = new Vector2((pos.x - worldMin.x) / worldSize, (pos.z - worldMin.z) / worldSize);
+        Vector2 center = new Vector2((pos.x - worldMin.x) / worldSize, (pos.z - worldMin.y) / worldSize);
         float view = viewDiameter / worldSize;
 
         mapImage.uvRect = new Rect(center.x - view / 2f, center.y - view / 2f, view, view);
