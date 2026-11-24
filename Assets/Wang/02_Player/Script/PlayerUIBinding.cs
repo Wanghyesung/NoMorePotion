@@ -11,6 +11,7 @@ public sealed class PlayerUIBinding : MonoBehaviour
     [SerializeField] private Camera aimCamera;
     [SerializeField] private VisionEffect visionEffect;
     [SerializeField] private WorldVignetteController worldVignette;
+    [SerializeField] private MinimapUI minimapUI;
 
     public void SetPlayer(Player target)
     {
@@ -43,6 +44,8 @@ public sealed class PlayerUIBinding : MonoBehaviour
             playerInfoUI.BindPlayer(player);
         if (cameraManager != null)
             cameraManager.SetPlayer(player);
+        if (minimapUI != null)
+            minimapUI.SetPlayer(player);
     }
 
     private void OnDestroy()
