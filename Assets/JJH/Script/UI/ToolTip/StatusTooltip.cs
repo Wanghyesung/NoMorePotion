@@ -1,3 +1,4 @@
+using Enzeun.Runtime;
 using Enzeun.SO;
 using System.Collections.Generic;
 using TMPro;
@@ -25,7 +26,8 @@ public class StatusTooltip : MonoBehaviour
     [SF] private EffectTextGroup effectTextPrefab;
 
     private List<EffectTextGroup> statusEffectList;
-
+    private static BuffContainer PlayerContainer =>
+        SurviveStatusManager.Instance != null ? SurviveStatusManager.Instance.PlayerBuffContainer : null;
     private void Awake()
     {
         Instance = this;
@@ -112,7 +114,7 @@ public class StatusTooltip : MonoBehaviour
         for (int i = 0; i < item.modules.Count; i++)
         {
             (string effectName, string effectText) output =
-                GetEffectText(item.modules[i]);
+                GetEffectText(item, item.modules[i]);
 
             // 생성된 객체가 있을 경우 재사용
             if (i < statusEffectList.Count)
@@ -186,7 +188,7 @@ public class StatusTooltip : MonoBehaviour
             item.Release();
     }
 
-    public (string effectName, string effectText) GetEffectText(StatusEffectModule effect)
+    public (string effectName, string effectText) GetEffectText(StatusEffectData data, StatusEffectModule effect)
     {
         string nametext = "";
         string effectText = "";
@@ -196,16 +198,10 @@ public class StatusTooltip : MonoBehaviour
             case StatModifierModule statEffect:
                 {
                     nametext = statTypeText[statEffect.stat];
-                    int applyEffect = statEffect.percent;
-                    string hex = "";
-
-                    if (applyEffect >= 0)
-                        hex = increaseColor;
-                    else
-                        hex = decreaseColor;
+                    int applyEffect = GetAppliedPercent(data, statEffect);
+                    string hex = applyEffect >= 0 ? increaseColor : decreaseColor;
 
                     effectText = $"<color={hex}>{applyEffect}</color>%";
-
                     return (nametext, effectText);
                 }
             case CraftFailChanceModule craftEffect:
@@ -249,4 +245,57 @@ public class StatusTooltip : MonoBehaviour
                 return ("효과 없음", "");
         }
     }
+
+    /// <summary>
+    /// 지금 걸려 있는 건들을 반영한 효과의 수치
+    /// <para>걸려 있지 않으면 SO 값</para>
+    /// </summary>
+    private int GetAppliedPercent(StatusEffectData data, StatModifierModule module)
+    {
+        BuffContainer container = PlayerContainer;
+        if (container == null) return module.percent;
+
+        IReadOnlyList<ActiveStatusEffect> list = data.statusEffectType == StatusEffectType.Buff
+            ? container.buffs : container.debuffs;
+        if (list == null) return module.percent;
+
+        float multiplier = 1f;
+        bool found = false;
+
+        if (data.stackPolicy == StackPolicy.Stackable)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].data != data) continue;
+                multiplier *= ToMultiplier(EffectivePercent(list[i], module));
+                found = true;
+            }
+        }
+        else
+        {
+            // 가장 큰 한 건 (동률이면 먼저 걸린 건)
+            int best = int.MinValue;
+            int bestPercent = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].data != data) continue;
+
+                int percent = EffectivePercent(list[i], module);
+                if (Mathf.Abs(percent) > best)
+                {
+                    best = Mathf.Abs(percent);
+                    bestPercent = percent;
+                    found = true;
+                }
+            }
+            multiplier = ToMultiplier(bestPercent);
+        }
+
+        return found ? Mathf.RoundToInt((multiplier - 1f) * 100f) : module.percent;
+    }
+
+    private static int EffectivePercent(ActiveStatusEffect effect, StatModifierModule module) =>
+        effect.percentOverride != 0 ? effect.percentOverride : module.percent;
+
+    private static float ToMultiplier(int percent) => 1f + Mathf.Max(percent, -100) / 100f;
 }

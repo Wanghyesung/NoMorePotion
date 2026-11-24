@@ -58,10 +58,6 @@ public class MonsterAttackTrigger : MonoBehaviour
 
     protected virtual AttackInfo GetAttackInfo()
     {
-        return new AttackInfo
-        {
-            Damage = combat.GetDamage(),
-            Position = combat.transform.position
-        };
+        return combat.CreateNormalAttackInfo();
     }
 }

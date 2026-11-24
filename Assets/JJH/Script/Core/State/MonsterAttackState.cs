@@ -51,7 +51,10 @@ public class MonsterAttackState : IMonsterState
         {
             mover.anim.IsNormalAttack();
         }
-        else return;   // 스킬 사거리였지만 방금 다 써버림 → 다음 틱에 추적으로 전환
+        // 스킬 소모시
+        else
+            return;
+        
 
         mover.attackTimer = -Random.Range(0f, 0.3f);
         mover.LockDecision(0.3f);

@@ -10,6 +10,7 @@
     "Weight": 1,
     "Scripted": true
   },
+  // 숲의 마녀
   {
     "UseMonsterId": 41002,
     "SkillNum": 1,
@@ -32,6 +33,19 @@
     "Weight": 1,
     "Scripted": false
   },
+  // 메두사
+  {
+    "UseMonsterId": 41003,
+    "SkillNum": 1,
+    "Name": "Tornado",
+    "SkillDamage": 150,
+    "MinRange": 2,
+    "MaxRange": 13,
+    "Cooldown": 15,
+    "Weight": 2,
+    "Scripted": false
+  },
+  // 마왕
   {
     "UseMonsterId": 41006,
     "SkillNum": 1,
