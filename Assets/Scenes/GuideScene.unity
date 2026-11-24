@@ -5480,11 +5480,6 @@ MonoBehaviour:
   m_Center: {x: -2.0282383, y: 12.424588, z: -0.7666235}
   m_Area: 1
   m_AffectedAgents: ffffffff
---- !u!1 &171617516 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2086270187039558929, guid: 5b983bbee6486a448ba4e6aec11e4905, type: 3}
-  m_PrefabInstance: {fileID: 1346766449}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &171991471
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16237,7 +16232,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7680843790258758372, guid: bb702eff7564cad469a1e2dd74e840b5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1082801863}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5219172622278580903, guid: bb702eff7564cad469a1e2dd74e840b5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 935246125}
   m_SourcePrefab: {fileID: 100100000, guid: bb702eff7564cad469a1e2dd74e840b5, type: 3}
 --- !u!95 &487493963 stripped
 Animator:
@@ -29216,6 +29214,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 934819345}
   m_CullTransparentMesh: 1
+--- !u!1 &935246122 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5219172622278580903, guid: bb702eff7564cad469a1e2dd74e840b5, type: 3}
+  m_PrefabInstance: {fileID: 487493962}
+  m_PrefabAsset: {fileID: 0}
+--- !u!225 &935246125
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935246122}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1001 &936676661
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32233,6 +32248,18 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+        - m_Target: {fileID: 1270077279}
+          m_TargetAssemblyTypeName: UnityEngine.Behaviour, UnityEngine
+          m_MethodName: set_enabled
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
+          m_CallState: 2
     endEvent:
       m_PersistentCalls:
         m_Calls:
@@ -32350,7 +32377,31 @@ MonoBehaviour:
     - {fileID: 2058321703}
     startEvent:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 1270077279}
+          m_TargetAssemblyTypeName: UnityEngine.Behaviour, UnityEngine
+          m_MethodName: set_enabled
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
+          m_CallState: 2
+        - m_Target: {fileID: 1270077281}
+          m_TargetAssemblyTypeName: KeyCanvas, Assembly-CSharp
+          m_MethodName: SetInteractionVisible
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
     endEvent:
       m_PersistentCalls:
         m_Calls: []
@@ -32371,7 +32422,19 @@ MonoBehaviour:
     - {fileID: 1906674776}
     startEvent:
       m_PersistentCalls:
-        m_Calls: []
+        m_Calls:
+        - m_Target: {fileID: 1270077279}
+          m_TargetAssemblyTypeName: UnityEngine.Behaviour, UnityEngine
+          m_MethodName: set_enabled
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
+          m_CallState: 2
     endEvent:
       m_PersistentCalls:
         m_Calls:
@@ -32526,6 +32589,18 @@ MonoBehaviour:
             m_FloatArgument: 0
             m_StringArgument: 
             m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1270077281}
+          m_TargetAssemblyTypeName: KeyCanvas, Assembly-CSharp
+          m_MethodName: SetInteractionVisible
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
           m_CallState: 2
     endEvent:
       m_PersistentCalls:
@@ -32779,6 +32854,147 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
+  - eventText: {fileID: 11400000, guid: 5662cdf7b877e584299ebe8d0551fe12, type: 2}
+    panelType: 0
+    delaySeconds: 0
+    events: []
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockLookKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockMoveKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1561985329}
+          m_TargetAssemblyTypeName: TemperatureEndEvent, Assembly-CSharp
+          m_MethodName: LowerTemperature
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls: []
+  - eventText: {fileID: 11400000, guid: e1996b17166772a449c4396246ab2f79, type: 2}
+    panelType: 0
+    delaySeconds: 5
+    events:
+    - {fileID: 1561985329}
+    startEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: LockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: HideCursor
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockLookKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockMoveKey
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    endEvent:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1001719270}
+          m_TargetAssemblyTypeName: GuideInputController, Assembly-CSharp
+          m_MethodName: UnLockAllKeys
+          m_Mode: 0
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
   - eventText: {fileID: 11400000, guid: 3a07b2de5a52c3e42b04a2408fa2c446, type: 2}
     panelType: 0
     delaySeconds: 0
@@ -32962,6 +33178,7 @@ Transform:
   - {fileID: 932117606}
   - {fileID: 2058321704}
   - {fileID: 1906674777}
+  - {fileID: 1561985330}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1001719270
@@ -44012,7 +44229,8 @@ MonoBehaviour:
     stepLabel: {fileID: 0}
   worldCamera: {fileID: 1861928731}
   worldOffset: {x: 0, y: 0.75, z: 0}
-  playerKeySize: {x: 80, y: 80}
+  playerKeySize: {x: 100, y: 100}
+  mouseHoldKeySize: {x: 160, y: 160}
   wasdKeySize: {x: 256, y: 256}
   throwKeySize: {x: 480, y: 160}
   reverseKeySize: {x: 384, y: 256}
@@ -54442,6 +54660,62 @@ MonoBehaviour:
   m_Center: {x: -0.39081, y: 10.647789, z: -0.04999447}
   m_Area: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &1561985328
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1561985330}
+  - component: {fileID: 1561985329}
+  m_Layer: 0
+  m_Name: TemperatureEndEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1561985329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561985328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2493e8a5a8744654c9290a8fefd44542, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TemperatureEndEvent
+  guideKey: 12
+  keyPosition: 0
+  guideArrow: 0
+  startEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  endEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  temperature: {fileID: 481280750}
+  tutorialPotion: {fileID: 11400000, guid: 80a08bf90cdebb34d971b74d10500825, type: 2}
+  tutorialTemperature: 20
+--- !u!4 &1561985330
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561985328}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001719269}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1563713878
 GameObject:
   m_ObjectHideFlags: 0
@@ -66389,7 +66663,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a700cfa9ac0e1ee4887025c6f1ad7db4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryTransferEndEvent
-  guideKey: -1
+  guideKey: 10
   keyPosition: 0
   guideArrow: 0
   startEvent:
@@ -71033,7 +71307,7 @@ MonoBehaviour:
   inventory: {fileID: 1346766450}
   highlight: {fileID: 1791573403}
   combination: {fileID: 1346766453}
-  materialHighlight: {fileID: 171617516}
+  materialHighlight: {fileID: 2056918461}
   craftHighlight: {fileID: 1439941139}
 --- !u!4 &2011884316
 Transform:
@@ -72526,7 +72800,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a700cfa9ac0e1ee4887025c6f1ad7db4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryTransferEndEvent
-  guideKey: -1
+  guideKey: 10
   keyPosition: 0
   guideArrow: 0
   startEvent:

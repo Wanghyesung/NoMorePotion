@@ -104,6 +104,7 @@ public sealed class KeyCanvas : MonoBehaviour
     [SerializeField] private Camera worldCamera;
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, 0.75f, 0f);
     [SerializeField] private Vector2 playerKeySize = new Vector2(80f, 80f);
+    [SerializeField] private Vector2 mouseHoldKeySize = new Vector2(160f, 160f);
     [SerializeField] private Vector2 wasdKeySize = new Vector2(256f, 256f);
     [SerializeField] private Vector2 throwKeySize = new Vector2(480f, 160f);
     [SerializeField] private Vector2 reverseKeySize = new Vector2(384f, 256f);
@@ -112,6 +113,7 @@ public sealed class KeyCanvas : MonoBehaviour
     private Transform interactionTarget;
     private KeyGuide interactionKeyType;
     private bool hasPlayerGuide;
+    private bool interactionVisible = true;
 
     private void Awake()
     {
@@ -152,8 +154,21 @@ public sealed class KeyCanvas : MonoBehaviour
     {
         interactionTarget = target;
         interactionKeyType = key;
-        if (!hasPlayerGuide)
+        if (!hasPlayerGuide && interactionVisible)
             interactionView.Show(key, target, worldCamera, worldOffset, interactionView.DefaultSize);
+    }
+
+    // 일반 상호작용 표시만 제어한다. Tab 등 가이드 키는 그대로 표시한다.
+    public void SetInteractionVisible(bool visible)
+    {
+        interactionVisible = visible;
+        if (hasPlayerGuide)
+            return;
+
+        if (visible && interactionTarget != null)
+            interactionView.Show(interactionKeyType, interactionTarget, worldCamera, worldOffset, interactionView.DefaultSize);
+        else
+            interactionView.Hide();
     }
 
     public void ShowPlayerKey(KeyGuide key, int step = 0)
@@ -165,9 +180,17 @@ public sealed class KeyCanvas : MonoBehaviour
         }
 
         hasPlayerGuide = true;
-        Vector2 size = key == KeyGuide.WASD ? wasdKeySize :
-            key == KeyGuide.ReverseWASD ? reverseKeySize :
-            key == KeyGuide.ThrowOptions ? throwKeySize : playerKeySize;
+        Vector2 size;
+        if (key == KeyGuide.WASD)
+            size = wasdKeySize;
+        else if (key == KeyGuide.MouseLeftHold)
+            size = mouseHoldKeySize;
+        else if (key == KeyGuide.ReverseWASD)
+            size = reverseKeySize;
+        else if (key == KeyGuide.ThrowOptions)
+            size = throwKeySize;
+        else
+            size = playerKeySize;
         interactionView.Show(key, playerKeyAnchor, null, Vector3.zero, size, step);
     }
 
@@ -177,7 +200,7 @@ public sealed class KeyCanvas : MonoBehaviour
             return;
 
         hasPlayerGuide = false;
-        if (interactionTarget != null)
+        if (interactionVisible && interactionTarget != null)
             interactionView.Show(interactionKeyType, interactionTarget, worldCamera, worldOffset, interactionView.DefaultSize);
         else
             interactionView.Hide();
