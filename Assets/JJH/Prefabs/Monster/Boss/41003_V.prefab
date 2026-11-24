@@ -335,7 +335,7 @@ MonoBehaviour:
           ButtonText: Automatic Shaker Setup
         Owner: {fileID: 1502527766328254640}
         DebugActive: 0
-        Sfx: {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         RandomSfx: []
         TestPlayButton:
           ButtonText: Debug Play Sound
@@ -356,7 +356,7 @@ MonoBehaviour:
         DopplerLevel: 1
         Spread: 0
         RolloffMode: 0
-        MinDistance: 1
+        MinDistance: 10
         MaxDistance: 30
         UseCustomRolloffCurve: 0
         CustomRolloffCurve:
@@ -582,7 +582,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5125380145811051577
 Transform:
   m_ObjectHideFlags: 0
@@ -613,7 +613,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -658,7 +658,7 @@ Transform:
   m_GameObject: {fileID: 7497033863414633807}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.45, z: 1.3}
+  m_LocalPosition: {x: 0, y: 1.3, z: 1.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1015,7 +1015,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: attackSpeed
-      value: 1.5
+      value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: patrolDelay
@@ -1180,7 +1180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterVfx
   normalAttack:
-    HitEffect: {fileID: 0}
+    HitEffect: {fileID: 1840367976591474, guid: c4f506c221ce6b84b856c5712421425d, type: 3}
     HitPoint: {fileID: 2670701657937093907}
     Warning: {fileID: 0}
     Place: 1
@@ -1199,8 +1199,8 @@ MonoBehaviour:
     HitPoint: {fileID: 7647992818196830452}
     Warning: {fileID: 2891420028085579237, guid: 83af32817ae5a1a4d99cc253f1a254b4, type: 3}
     Place: 1
-    WarningSize: 2
-    FrontOffset: -22
+    WarningSize: 6.4
+    FrontOffset: -6.4
     Impact: {fileID: 0}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
@@ -1249,7 +1249,7 @@ MonoBehaviour:
   combat: {fileID: 0}
   projectilePrefab: {fileID: 1066843573042574, guid: 200d66e34ed49d84fb49a4a2f01e5f57, type: 3}
   firePoint: {fileID: 2670701657937093907}
-  speed: 35
+  speed: 50
   maxDistance: 35
   aimHeight: 1.2
   spreadProjectilePrefab: {fileID: 1304703466469904, guid: d20dfddf967ed0b44ba951933054f141, type: 3}

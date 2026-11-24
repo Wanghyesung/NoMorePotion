@@ -67,6 +67,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterChaseTrigger
   mover: {fileID: 0}
+  randomAggroActive: 1
+  randomAggroLockTime: 10
 --- !u!1 &3304479449894728856
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,7 +472,7 @@ MonoBehaviour:
           ButtonText: Automatic Shaker Setup
         Owner: {fileID: 1305361545106826030}
         DebugActive: 0
-        Sfx: {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         RandomSfx: []
         TestPlayButton:
           ButtonText: Debug Play Sound
@@ -1001,6 +1003,7 @@ MonoBehaviour:
   hud: {fileID: 0}
   vfx: {fileID: 0}
   aim: {fileID: 0}
+  projectileShooter: {fileID: 0}
   statusEffect: {fileID: 0}
   biteHitbox: {fileID: 7875655251101329595}
   prefabId: 41002
@@ -1062,6 +1065,7 @@ MonoBehaviour:
     Place: 1
     WarningSize: 3
     FrontOffset: 2
+    Impact: {fileID: 0}
   skills:
   - HitEffect: {fileID: 8842350749568841434, guid: 420e6adc123286840aacd3cff35acc90, type: 3}
     HitPoint: {fileID: 1367392981364913750}
@@ -1069,24 +1073,28 @@ MonoBehaviour:
     Place: 2
     WarningSize: 2
     FrontOffset: 2
+    Impact: {fileID: 0}
   - HitEffect: {fileID: 1778518884697008, guid: 4558aa9ba63b18a48b5c11521a162901, type: 3}
     HitPoint: {fileID: 815238561761379948}
     Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
     Place: 0
     WarningSize: 15
     FrontOffset: 2
+    Impact: {fileID: 0}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
     Warning: {fileID: 0}
     Place: 1
     WarningSize: 3
     FrontOffset: 2
+    Impact: {fileID: 0}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
     Warning: {fileID: 0}
     Place: 1
     WarningSize: 3
     FrontOffset: 2
+    Impact: {fileID: 0}
 --- !u!114 &1750015697700799668
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -40,9 +40,20 @@
     "Name": "Tornado",
     "SkillDamage": 150,
     "MinRange": 2,
-    "MaxRange": 13,
+    "MaxRange": 14,
     "Cooldown": 15,
-    "Weight": 2,
+    "Weight": 6,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41003,
+    "SkillNum": 2,
+    "Name": "BurstRay",
+    "SkillDamage": 400,
+    "MinRange": 6,
+    "MaxRange": 12,
+    "Cooldown": 30,
+    "Weight": 1,
     "Scripted": false
   },
   // 마왕
