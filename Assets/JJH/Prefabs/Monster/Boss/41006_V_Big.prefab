@@ -129,6 +129,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterChaseTrigger
   mover: {fileID: 0}
+  randomAggroActive: 1
+  randomAggroLockTime: 10
 --- !u!1 &4628814768943225817
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,7 +635,7 @@ MonoBehaviour:
           ButtonText: Automatic Shaker Setup
         Owner: {fileID: 9105986501564483994}
         DebugActive: 0
-        Sfx: {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         RandomSfx: []
         TestPlayButton:
           ButtonText: Debug Play Sound
@@ -3301,7 +3303,7 @@ PrefabInstance:
       objectReference: {fileID: 1702832698915099750}
     - target: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_Name
-      value: 41006_V
+      value: 41006_V_Big
       objectReference: {fileID: 0}
     - target: {fileID: 5892533552423922577, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_Layer
@@ -3443,6 +3445,7 @@ MonoBehaviour:
   hud: {fileID: 0}
   vfx: {fileID: 0}
   aim: {fileID: 0}
+  projectileShooter: {fileID: 0}
   statusEffect: {fileID: 0}
   biteHitbox: {fileID: 2888867863924267310}
   prefabId: 41006

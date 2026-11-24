@@ -19,4 +19,14 @@ public class SkillAttackTrigger : MonsterAttackTrigger
 
         return combat.CreateSkillAttackInfo(skillNum);
     }
+
+    // SkillAttackTrigger
+    protected override void OnHit(Collider other)
+    {
+        BossSkill skill = combat.GetBossSkill(skillNum);
+        if (skill?.StatusEffect == null) return;
+
+        MonsterCombat.ApplyStatusTo(other, skill.StatusEffect, skill,
+            skill.StatusPercent, skill.StatusDuration);
+    }
 }

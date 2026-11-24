@@ -1,3 +1,4 @@
+using Enzeun.SO;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -146,8 +147,17 @@ public class EnemyDataLoader : MonoBehaviour
             {
                 if (s.SkillNum < 1 || s.SkillNum > MAX_SKILL_SLOT)
                     Debug.LogError($"[DataLoad] 스킬 번호 범위 밖(1~{MAX_SKILL_SLOT}) : 몬스터 {s.UseMonsterId} / {s.SkillNum}");
+
                 if (!used.Add(s.SkillNum))
                     Debug.LogError($"[DataLoad] 스킬 번호 중복 : 몬스터 {s.UseMonsterId} / {s.SkillNum}");
+
+                if (s.StatusEffectId > 0)
+                {
+                    s.StatusEffect = Resources.Load<StatusEffectData>(
+                        $"{StatusEffectData.folderPath}/{s.StatusEffectId}");
+                    if (s.StatusEffect == null)
+                        Debug.LogError($"[DataLoad] 상태 효과 없음 : 몬스터 {s.UseMonsterId} / 스킬 {s.SkillNum} / {s.StatusEffectId}");
+                }
             }
 
             table[group.Key] = skills;

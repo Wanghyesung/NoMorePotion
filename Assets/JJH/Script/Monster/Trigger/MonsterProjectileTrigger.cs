@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using static CommonStruct;
 using static JJH_Constants;
@@ -11,8 +12,19 @@ public class MonsterProjectileTrigger : MonoBehaviour
     [SF] private LayerMask obstacleMask;
     [SF] private GameObject impactEffect;
 
-    private readonly RaycastHit[] hits = new RaycastHit[8];
+    [Header("관통형 투사체용")]
+    [Tooltip("대상 관통 여부")]
+    [SF] private bool pierce;
+    [Tooltip("지면 이동 여부")]
+    [SF] private bool hugGround;
+    [Tooltip("지면 레이어,obstacleMask 중복 x")]
+    [SF] private LayerMask groundMask;
+    [SF] private float groundOffset = 0f;
 
+    private readonly HashSet<IDamageable> pierced = new();
+
+    private readonly RaycastHit[] hits = new RaycastHit[8];
+    private readonly int[] passHits = new int[8];
     private Transform owner;
     private AttackInfo info;
     private IAttacker attacker;
@@ -21,9 +33,17 @@ public class MonsterProjectileTrigger : MonoBehaviour
     private float remaining;
     private bool alive;
 
-    public void Shot(Transform owner, AttackInfo info, IAttacker attacker,
+    public void Shoot(Transform owner, AttackInfo info, IAttacker attacker,
         Vector3 dir, float speed, float maxDistance)
     {
+        pierced.Clear();
+        if (hugGround)
+        {
+            dir.y = 0f;
+            dir.Normalize();
+            this.dir = dir;
+        }
+
         this.owner = owner;
         this.info = info;
         this.attacker = attacker;
@@ -53,8 +73,24 @@ public class MonsterProjectileTrigger : MonoBehaviour
         transform.position += dir * step;
         remaining -= step;
 
+        if (hugGround) SnapToGround();
+
         if (remaining <= 0f)
             Finish(transform.position);
+    }
+
+    /// <summary>
+    /// 지면 추적형 투사체의 경우 지면 추적용 함수
+    /// </summary>
+    private void SnapToGround()
+    {
+        Vector3 origin = transform.position + Vector3.up * 2f;
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 6f, groundMask, QueryTriggerInteraction.Ignore))
+        {
+            Vector3 p = transform.position;
+            p.y = hit.point.y + groundOffset;
+            transform.position = p;
+        }
     }
 
     /// <summary>
@@ -69,17 +105,26 @@ public class MonsterProjectileTrigger : MonoBehaviour
         int best = -1;
         bool bestIsTarget = false;
         float bestDist = float.MaxValue;
+        int passCount = 0;
 
         for (int i = 0; i < n; i++)
         {
             Collider c = hits[i].collider;
-            if (owner != null && c.transform.IsChildOf(owner)) continue;   // 자기 몸 무시
+            if (owner != null && c.transform.IsChildOf(owner)) continue;
 
             bool isTarget = c.CompareTag(PLAYER_TAG) || c.CompareTag(CORE_TAG);
             bool isObstacle = !c.isTrigger && (obstacleMask.value & (1 << c.gameObject.layer)) != 0;
             if (!isTarget && !isObstacle) continue;
-            if (isTarget && !AttackTarget.IsValid(c.gameObject)) continue; // 죽은 대상은 통과
+            if (isTarget && !AttackTarget.IsValid(c.gameObject)) continue;
 
+            // 관통 대상
+            if (isTarget && pierce)
+            {
+                if (passCount < passHits.Length) passHits[passCount++] = i;
+                continue;
+            }
+
+            // 피격 후보
             if (hits[i].distance < bestDist)
             {
                 bestDist = hits[i].distance;
@@ -88,9 +133,15 @@ public class MonsterProjectileTrigger : MonoBehaviour
             }
         }
 
+        for (int k = 0; k < passCount; k++)
+        {
+            int idx = passHits[k];
+            if (hits[idx].distance <= bestDist)
+                TryDamage(hits[idx].collider);
+        }
+
         if (best < 0) return false;
 
-        // 시작부터 겹쳐 있으면 distance 0, point가 (0,0,0)으로 나옴
         point = hits[best].distance > 0f ? hits[best].point : transform.position;
 
         if (bestIsTarget)
@@ -102,13 +153,14 @@ public class MonsterProjectileTrigger : MonoBehaviour
     /// <summary>
     /// 타격 가능한 오브젝트와 충돌한 경우 피해
     /// </summary>
-    /// <param name="other"></param>
+    /// <param name="other">충돌한 오브젝트</param>
     private void TryDamage(Collider other)
     {
-        // 플레이어는 본인 클라이언트, 수정 구슬은 방장만 데미지 적용
         if (!MonsterAttackTrigger.IsHitTrigger(other.gameObject)) return;
-        if (other.TryGetComponent(out IDamageable target))
-            target.TakeDamage(info, attacker);
+        if (!other.TryGetComponent(out IDamageable target)) return;
+        if (pierce && !pierced.Add(target)) return;
+
+        target.TakeDamage(info, attacker);
     }
 
     /// <summary>

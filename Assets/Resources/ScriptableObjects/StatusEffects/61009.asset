@@ -15,8 +15,8 @@ MonoBehaviour:
   _statusEffectIcon: {fileID: 21300000, guid: ed0cccdb532103548981e05c495d35e3, type: 3}
   _statusEffectID: 61009
   _statusEffectName: "\uC8FD\uC5B4\uB77C"
-  _statusEffectDesc: "\uD63C\uB780 \uB514\uBC84\uD504 +\n\uC774\uB3D9\uC18D\uB3C4
-    \uAC10\uC18C 90%\n\uC2DC\uC57C \uAC10\uC18C 90%"
+  _statusEffectDesc: "\uD63C\uB780 \uD6A8\uACFC\uC640 \uD568\uAED8 \uC774\uB3D9\uC18D\uB3C4\uAC00
+    \uD06C\uAC8C \uAC10\uC18C\uD558\uACE0 \uC2DC\uC57C\uAC00 \uD06C\uAC8C \uCD95\uC18C\uB41C\uB2E4."
   _statusEffectType: 2
   _hasDuration: 0
   _stackPolicy: 1
@@ -35,4 +35,4 @@ MonoBehaviour:
       type: {class: StatModifierModule, ns: Enzeun.SO, asm: Assembly-CSharp}
       data:
         _stat: 4
-        _percent: -88
+        _percent: -90

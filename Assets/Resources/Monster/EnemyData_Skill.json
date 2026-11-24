@@ -8,8 +8,12 @@
     "MaxRange": 7.0,
     "Cooldown": 6,
     "Weight": 1,
+    "StatusEffectId": 0,
+    "StatusPercent": 0,
+    "StatusDuration": 0,
     "Scripted": true
   },
+  // 숲의 마녀
   {
     "UseMonsterId": 41002,
     "SkillNum": 1,
@@ -19,6 +23,9 @@
     "MaxRange": 10,
     "Cooldown": 10,
     "Weight": 2,
+    "StatusEffectId": 0,
+    "StatusPercent": 0,
+    "StatusDuration": 0,
     "Scripted": false
   },
   {
@@ -30,8 +37,55 @@
     "MaxRange": 15,
     "Cooldown": 45,
     "Weight": 1,
+    "StatusEffectId": 0,
+    "StatusPercent": 0,
+    "StatusDuration": 0,
     "Scripted": false
   },
+  // 메두사
+  {
+    "UseMonsterId": 41003,
+    "SkillNum": 1,
+    "Name": "Tornado",
+    "SkillDamage": 150,
+    "MinRange": 2,
+    "MaxRange": 14,
+    "Cooldown": 15,
+    "Weight": 8,
+    "StatusEffectId": 0,
+    "StatusPercent": 0,
+    "StatusDuration": 0,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41003,
+    "SkillNum": 2,
+    "Name": "BurstRay",
+    "SkillDamage": 400,
+    "MinRange": 6,
+    "MaxRange": 12,
+    "Cooldown": 30,
+    "Weight": 2,
+    "StatusEffectId": 0,
+    "StatusPercent": 0,
+    "StatusDuration": 0,
+    "Scripted": false
+  },
+  {
+    "UseMonsterId": 41003,
+    "SkillNum": 3,
+    "Name": "PetrifyingGaze",
+    "SkillDamage": 10,
+    "MinRange": 0,
+    "MaxRange": 12,
+    "Cooldown": 30,
+    "Weight": 4,
+    "StatusEffectId": 61011,
+    "StatusPercent": -90,
+    "StatusDuration": 7.5,
+    "Scripted": false
+  },
+  // 마왕
   {
     "UseMonsterId": 41006,
     "SkillNum": 1,
@@ -41,6 +95,9 @@
     "MaxRange": 8,
     "Cooldown": 15,
     "Weight": 2,
+    "StatusEffectId": 61015,
+    "StatusPercent": 50,
+    "StatusDuration": 10,
     "Scripted": false
   },
   {
@@ -52,6 +109,9 @@
     "MaxRange": 25,
     "Cooldown": 12,
     "Weight": 4,
+    "StatusEffectId": 0,
+    "StatusPercent": 0,
+    "StatusDuration": 0,
     "Scripted": false
   },
   {
@@ -63,6 +123,9 @@
     "MaxRange": 20,
     "Cooldown": 20,
     "Weight": 4,
+    "StatusEffectId": 61015,
+    "StatusPercent": 50,
+    "StatusDuration": 10,
     "Scripted": false
   },
   {
@@ -74,6 +137,9 @@
     "MaxRange": 20,
     "Cooldown": 40,
     "Weight": 4,
+    "StatusEffectId": 61015,
+    "StatusPercent": 50,
+    "StatusDuration": 10,
     "Scripted": false
   }
 ]

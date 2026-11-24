@@ -29,7 +29,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [SF] protected MonsterHPHud hud;
     [SF] protected MonsterVfx vfx;
     [SF] protected AttackAim aim;
-    [SF] private UseProjectile projectileShoter;
+    [SF] private UseProjectile projectileShooter;
     [SF] protected BuffContainer statusEffect;
     [SF] private Collider biteHitbox;
     [SF] protected int prefabId;
@@ -105,8 +105,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
             vfx = vfxVal;
         if (aim == null && TryGetComponent(out AttackAim aimVal))
             aim = aimVal;
-        if (aim == null && TryGetComponent(out UseProjectile projectileVal))
-            projectileShoter = projectileVal;
+        if (projectileShooter == null && TryGetComponent(out UseProjectile projectileVal))
+            projectileShooter = projectileVal;
         
         CacheRenderers();
     }
@@ -294,6 +294,16 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         return data.AtkPoint;
     }
 
+    /// <summary>
+    /// 버프(공격력 배율)까지 반영한 공격력
+    /// </summary>
+    public float GetBuffedDamage()
+    {
+        float atkRate = statusEffect != null
+            ? statusEffect.GetStatMultiplier(StatType.AttackPower) : 1f;
+        return MultiplierCalc(GetDamage(), atkRate);
+    }
+
     public DamageType GetDamageType()
     {
         return data.DamageType;
@@ -330,6 +340,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         if(biteHitbox != null)
             biteHitbox.gameObject.SetActive(true);
+        if (projectileShooter != null)
+            projectileShooter.Fire();
         if (vfx != null)
             vfx.PlayHit(0);
     }
@@ -372,7 +384,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         anim.IsCountered();
         mover.IsAnimation = true;
-        mover.agent.isStopped = true;
+
+        if (GameAuthority.HasAuthority && mover.agent.enabled)
+            mover.agent.isStopped = true;
     }
 
     /// <summary>
@@ -404,7 +418,6 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (counterEffectObj != null)
             PoolManager.Instance.Release(counterEffectObj);
         counterEffectObj = null;
-        mover.agent.isStopped = false;
     }
     #endregion
 
@@ -448,29 +461,41 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     }
 
     /// <summary>
-    /// 기본 공격 데미지 (근접 히트박스와 동일 기준)
+    /// 피격 대상에게 상태 효과를 부여하는 함수
+    /// </summary>
+    public static void ApplyStatusTo(Component target, StatusEffectData data, object source,
+        int percent = 0, float duration = 0f)
+    {
+        if (data == null || target == null) return;
+
+        BuffContainer container = BuffContainer.FindByOwner(target.transform);
+        if (container != null)
+            container.Apply(data, source, percent, duration);
+    }
+
+    /// <summary>
+    /// 기본 공격 데미지 (근접 히트박스·원거리 투사체 공용)
     /// </summary>
     public AttackInfo CreateNormalAttackInfo()
     {
         return new AttackInfo
         {
-            Damage = GetDamage(),
+            Damage = Mathf.RoundToInt(GetBuffedDamage()),
             Position = transform.position
         };
     }
 
+    /// <summary>
+    /// 스킬 데미지 (버프 반영 공격력 × 스킬 배율)
+    /// </summary>
     public AttackInfo CreateSkillAttackInfo(int skillNum)
     {
         BossSkill skill = GetBossSkill(skillNum);
         if (skill == null) return new AttackInfo();
 
-        BuffContainer buff = GetStatusEffect();
-        float atkRate = buff != null ? buff.GetStatMultiplier(StatType.AttackPower) : 1f;
-        float damage = MultiplierCalc(GetDamage(), atkRate);
-
         return new AttackInfo
         {
-            Damage = Mathf.RoundToInt(damage * skill.SkillDamage / 100f),
+            Damage = Mathf.RoundToInt(GetBuffedDamage() * skill.SkillDamage / 100f),
             Position = transform.position
         };
     }
@@ -484,7 +509,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         if (!GameAuthority.HasAuthority)
         {
-            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, damage, type, counterHit);
+            photonView.RPC(nameof(RpcTakeDamage), RpcTarget.MasterClient, 
+                damage, type, counterHit);
             return;
         }
 
@@ -508,20 +534,26 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private void HPChange(int damage)
     {
-        if (data == null || data.HP <= 0) return;
+        if (data == null || data.HP <= 0) 
+            return;
 
         int before = data.HP;
         data.HP = Mathf.Clamp(data.HP - damage, 0, data.MaxHP);
-        if (before == data.HP) return;
+
+        if (before == data.HP) 
+            return;
 
         data.OnHPChanged?.Invoke(before, data.HP);
-        if (before > data.HP) Damaged?.Invoke(this);
+        if (before > data.HP) 
+            Damaged?.Invoke(this);
+
         ShowNumber(before - data.HP);
 
         if (PhotonNetwork.InRoom)
             photonView.RPC(nameof(RpcSyncHP), RpcTarget.Others, data.HP);
 
-        if (data.HP <= 0) data.OnDead?.Invoke();
+        if (data.HP <= 0) 
+            data.OnDead?.Invoke();
     }
 
     /// <summary>
@@ -532,7 +564,11 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     /// <returns>최종 피해량 int</returns>
     private int CalcFinalDamage(int damage, DamageType? type)
     {
-        if (data == null) return 0;
+        if (data == null) 
+            return 0;
+
+        if (type == DamageType.None) 
+            return Mathf.Max(0, damage);
 
         float rate = 100f;
 

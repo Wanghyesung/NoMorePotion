@@ -688,7 +688,7 @@ MonoBehaviour:
           ButtonText: Automatic Shaker Setup
         Owner: {fileID: 9105986501564483994}
         DebugActive: 0
-        Sfx: {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         RandomSfx: []
         TestPlayButton:
           ButtonText: Debug Play Sound
@@ -709,8 +709,8 @@ MonoBehaviour:
         DopplerLevel: 1
         Spread: 0
         RolloffMode: 0
-        MinDistance: 10
-        MaxDistance: 30
+        MinDistance: 30
+        MaxDistance: 50
         UseCustomRolloffCurve: 0
         CustomRolloffCurve:
           serializedVersion: 2
@@ -3575,7 +3575,7 @@ MonoBehaviour:
   hud: {fileID: 0}
   vfx: {fileID: 0}
   aim: {fileID: 0}
-  projectileShoter: {fileID: 0}
+  projectileShooter: {fileID: 0}
   statusEffect: {fileID: 0}
   biteHitbox: {fileID: 2888867863924267310}
   prefabId: 41006

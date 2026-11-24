@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 기존 몬스터 이벤트 + 텔포 이벤트 전달 (WolfAnimationBridge와 같은 방식)
+/// 기존 몬스터 이벤트 + 텔포 이벤트 전달
 /// </summary>
 public class TeleportAnimationBridge : MonsterAnimationBridge
 {

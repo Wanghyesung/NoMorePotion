@@ -36,6 +36,7 @@ public class MonsterAttackTrigger : MonoBehaviour
         if (!hitTargets.Add(target)) return;
 
         target.TakeDamage(GetAttackInfo(), (IAttacker)combat.GetData());
+        OnHit(other);
     }
 
     
@@ -58,10 +59,11 @@ public class MonsterAttackTrigger : MonoBehaviour
 
     protected virtual AttackInfo GetAttackInfo()
     {
-        return new AttackInfo
-        {
-            Damage = combat.GetDamage(),
-            Position = combat.transform.position
-        };
+        return combat.CreateNormalAttackInfo();
     }
+
+    /// <summary>
+    /// 피해를 준 직후 추가 처리 (상태 효과 등)
+    /// </summary>
+    protected virtual void OnHit(Collider other) { }
 }
