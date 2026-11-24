@@ -42,6 +42,9 @@ public class CombinationController : ItemInventory
     [SF, Range(0f, 1f)] private float threshold = 0.5f;
     private bool leftFull;
     private bool rightFull;
+    public bool HasFirstIngredient => leftFull;
+    public bool HasSecondIngredient => rightFull;
+    public event Action OnIngredientsChanged;
     private bool? isLow;
     private bool isCompositionMode;
     private bool isContinuous => continuousToggle.isOn;
@@ -139,6 +142,7 @@ public class CombinationController : ItemInventory
             leftFull = true;
             slot.SetAlpha();
             SetHighlightMaterial(isMaterial ? id : 0); // 현준 수정 : 짝 재료 강조 (재료일 때만)
+            OnIngredientsChanged?.Invoke();
             return;
         }
         if (rightFull) return;
@@ -184,6 +188,7 @@ public class CombinationController : ItemInventory
         {
             resultSlot.image.sprite = result.potionIcon;
             resultSlot.id = result.potionID;
+            OnIngredientsChanged?.Invoke();
         }
         else
         {
@@ -210,6 +215,7 @@ public class CombinationController : ItemInventory
         rightSlot.Clear(defaultImage);
         resultSlot.Clear(defaultImage);
         SetHighlightMaterial(0); // 현준 수정 : 닫기, 조합 완료, 모드 전환 모두 여기를 거치므로 강조도 여기서 끕니다.
+        OnIngredientsChanged?.Invoke();
     }
 
     // ========================= 현준 수정 =============================

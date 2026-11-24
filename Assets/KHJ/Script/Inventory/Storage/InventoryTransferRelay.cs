@@ -26,6 +26,9 @@ namespace Enzeun.Runtime
     /// </summary>
     public class InventoryTransferRelay : MonoBehaviour
     {
+        // 내 클릭으로 요청한 포션 이동이 성공했을 때 목적지를 알린다.
+        public event System.Action<ContainerKind> OnPotionTransferred;
+
         #region Types
         public enum Side
         {
@@ -247,6 +250,8 @@ namespace Enzeun.Runtime
             else
             {
                 Log($"{from.Kind} -> {to.Kind} 이동 성공");
+                if (item.kind == InventorySlotKind.Potion)
+                    OnPotionTransferred?.Invoke(to.Kind);
             }
         }
         #endregion

@@ -4,10 +4,19 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
+public enum GuidePanelType
+{
+    Default,
+    Inventory
+}
+
 [Serializable]
 public sealed class GuideEvent
 {
     [SerializeField] private SOEventText eventText;
+    [SerializeField] private GuidePanelType panelType;
+    [Tooltip("이 단계의 안내를 띄우기 전 대기 시간(초).")]
+    [SerializeField, Min(0f)] private float delaySeconds;
     [Tooltip("이 단계를 완료하는 조건입니다. 시작 시 오브젝트를 켜고 종료 시 끕니다.")]
     [FormerlySerializedAs("endEvents")]
     [SerializeField] private List<GuideEndEvent> events = new();
@@ -18,6 +27,8 @@ public sealed class GuideEvent
     private GuideManager manager;
 
     public SOEventText EventText => eventText;
+    public GuidePanelType PanelType => panelType;
+    public float DelaySeconds => delaySeconds;
     public IReadOnlyList<GuideEndEvent> Events => events;
     [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
     public int RemainingCount => pendingEvents.Count;

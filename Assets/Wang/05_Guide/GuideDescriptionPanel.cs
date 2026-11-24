@@ -26,15 +26,18 @@ public sealed class GuideDescriptionPanel : MonoBehaviour
         nextTextAction.performed += OnNextText;
     }
 
-    public void Show(SOEventText text)
+    public void Show(SOEventText text, int lineIndex = 0, bool waitForInput = true)
     {
         Stop();
         soEventText = text;
-        textIndex = 0;
+        textIndex = lineIndex;
         isShowing = true;
         gameObject.SetActive(true);
        
-        nextTextAction.Enable();
+        if (waitForInput)
+            nextTextAction.Enable();
+        else
+            nextTextAction.Disable();
         ShowText();
     }
 

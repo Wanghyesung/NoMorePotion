@@ -1,9 +1,34 @@
 using UnityEngine;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using Enzeun.Runtime;
 
 /// <summary>씬의 UnityEvent에서 런타임 InputManager를 호출하기 위한 연결 컴포넌트입니다.</summary>
 public sealed class GuideInputController : MonoBehaviour
 {
     public void ClearPotion() => GameSessionManager.Instance.LocalPlayer.GetComponent<Hand>().ClearPotion();
+
+    // 안내 종료 시 개인 슬롯의 포션만 제거한다. UI는 네트워크 변경 알림으로 갱신된다.
+    public void ClearInventoryPotions() => ClearInventoryPotionsAsync().Forget();
+
+    private async UniTask ClearInventoryPotionsAsync()
+    {
+        InventoryNetworkSyncManager manager = InventoryNetworkSyncManager.Instance;
+        PersonalInventory personal = manager.State.GetPersonal(manager.LocalActor);
+        if (personal == null)
+            return;
+
+        var requests = new List<UniTask<InventoryResult>>();
+        for (int i = 0; i < personal.Capacity; i++)
+            if (personal.Slots[i].Kind == InventorySlotKind.Potion)
+                requests.Add(manager.TakeOutQuickSlotAsync(i));
+
+        // 현재 슬롯의 요청을 먼저 모두 보낸 뒤, 다음 안내에서 지급하는 포션과 분리한다.
+        InventoryResult[] results = await UniTask.WhenAll(requests);
+        foreach (InventoryResult result in results)
+            if (!result.Success)
+                Debug.LogError($"[GuideInputController] 개인 포션 정리 실패: {result.Reason}", this);
+    }
 
     public void LockAllKeys() => InputManager.Instance.LockAllKeys();
     public void UnLockAllKeys() => InputManager.Instance.UnLockAllKeys();

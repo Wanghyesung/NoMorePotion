@@ -14,6 +14,7 @@ public sealed class GuideManager : MonoBehaviour
     [Tooltip("각 항목이 하나의 가이드 단계입니다. 설명과 종료 조건을 설정하며 조건 오브젝트는 자동으로 켜고 끕니다.")]
     [SerializeField] private List<GuideEvent> events = new();
     [SerializeField] private GuideDescriptionPanel descriptionPanel;
+    [SerializeField] private GuideDescriptionPanel inventoryPanel;
     [SerializeField] private GuideArrow guideArrow;
     [SerializeField] private RectTransform panelKeyAnchor;
     [SerializeField] private UnityEvent startEvent = new();
@@ -28,6 +29,9 @@ public sealed class GuideManager : MonoBehaviour
     public GuideEvent CurrentEvent { get; private set; }
     public RectTransform PanelKeyAnchor => panelKeyAnchor;
     public bool IsRunning { get; private set; }
+
+    private GuideDescriptionPanel CurrentPanel => CurrentEvent.PanelType == GuidePanelType.Inventory
+        ? inventoryPanel : descriptionPanel;
 
     private void Start()
     {
@@ -51,10 +55,11 @@ public sealed class GuideManager : MonoBehaviour
 
     private async UniTask Enter()
     {
-        if (enterDelaySeconds > 0f)
+        float delay = enterDelaySeconds + events[currentIndex].DelaySeconds;
+        if (delay > 0f)
         {
             enterCancellation ??= new CancellationTokenSource();
-            bool canceled = await UniTask.Delay(TimeSpan.FromSeconds(enterDelaySeconds),
+            bool canceled = await UniTask.Delay(TimeSpan.FromSeconds(delay),
                 ignoreTimeScale: true, cancellationToken: enterCancellation.Token)
                 .SuppressCancellationThrow();
             if (canceled)
@@ -62,6 +67,14 @@ public sealed class GuideManager : MonoBehaviour
         }
 
         CurrentEvent = events[currentIndex];
+        // 인벤토리 안내는 Enter 대신 조합·아이템 이동 행동으로 문장을 넘긴다.
+        if (CurrentEvent.PanelType == GuidePanelType.Inventory)
+        {
+            ShowEventText(0);
+            CurrentEvent.Enter(this);
+            return;
+        }
+
         descriptionPanel.Completed += StartCurrentEvent;
         KeyCanvas.Instance.ShowPanelKey(KeyGuide.Enter, panelKeyAnchor);
         descriptionPanel.Show(CurrentEvent.EventText);
@@ -75,6 +88,11 @@ public sealed class GuideManager : MonoBehaviour
     }
 
     public void NotifyCompleted(GuideEvent step) => Exit(step);
+
+    internal void ShowEventText(int lineIndex)
+    {
+        CurrentPanel.Show(CurrentEvent.EventText, lineIndex, waitForInput: false);
+    }
 
     public void StopClock()
     {
@@ -105,6 +123,7 @@ public sealed class GuideManager : MonoBehaviour
             return;
 
         HideGuideArrow();
+        CurrentPanel.Stop();
         step.Exit();
         if (!IsRunning)
             return;
@@ -138,6 +157,7 @@ public sealed class GuideManager : MonoBehaviour
         CancelPendingEnter();
         descriptionPanel.Completed -= StartCurrentEvent;
         descriptionPanel.Stop();
+        inventoryPanel.Stop();
         if (CurrentEvent != null)
         {
             CurrentEvent.Cancel();
