@@ -23,6 +23,7 @@ public class MonsterAttackState : IMonsterState
     {
         mover.agent.isStopped = true;
         mover.agent.velocity = Vector3.zero;
+        mover.agent.ResetPath();
         mover.agent.updateRotation = false;
 
         mover.anim.IsRun(false);

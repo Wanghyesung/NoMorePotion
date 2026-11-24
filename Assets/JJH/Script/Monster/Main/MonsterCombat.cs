@@ -384,7 +384,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         anim.IsCountered();
         mover.IsAnimation = true;
-        mover.agent.isStopped = true;
+
+        if (GameAuthority.HasAuthority && mover.agent.enabled)
+            mover.agent.isStopped = true;
     }
 
     /// <summary>
@@ -416,7 +418,6 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (counterEffectObj != null)
             PoolManager.Instance.Release(counterEffectObj);
         counterEffectObj = null;
-        mover.agent.isStopped = false;
     }
     #endregion
 
@@ -457,6 +458,19 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     public void TakeDamage(AttackInfo attackInfo, Character attacker)
     {
         SendDamage(attackInfo.Damage, -1);
+    }
+
+    /// <summary>
+    /// 피격 대상에게 상태 효과를 부여하는 함수
+    /// </summary>
+    public static void ApplyStatusTo(Component target, StatusEffectData data, object source,
+        int percent = 0, float duration = 0f)
+    {
+        if (data == null || target == null) return;
+
+        BuffContainer container = BuffContainer.FindByOwner(target.transform);
+        if (container != null)
+            container.Apply(data, source, percent, duration);
     }
 
     /// <summary>

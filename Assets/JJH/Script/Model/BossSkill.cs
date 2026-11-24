@@ -1,3 +1,4 @@
+using Enzeun.SO;
 using Newtonsoft.Json;
 
 public class BossSkill
@@ -20,4 +21,15 @@ public class BossSkill
     public float Cooldown;
     public float Weight = 1f;
     public bool Scripted;
+
+    /// <summary>
+    /// 적중 시 거는 상태 효과 ID
+    /// <para>0 = 없음</para>
+    /// </summary>
+    public int StatusEffectId;
+    public int StatusPercent;
+    public float StatusDuration;
+
+    [JsonIgnore]
+    public StatusEffectData StatusEffect;   // 로드 시 ID로 찾아 둠
 }
