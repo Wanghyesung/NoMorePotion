@@ -118,7 +118,10 @@ public class SaveManager : MonoBehaviour
         // WorldObjectNetworkSyncManager가 있으면 Base64 string으로 변환 / 없으면 null
         string worldObjects = WorldObjectNetworkSyncManager.Instance != null ? Convert.ToBase64String(WorldObjectNetworkSyncManager.Instance.State.CreateSnapshot()) : null;
 
-        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects };
+        // 인벤토리
+        string inventory = CaptureInventory();
+
+        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects, Inventory = inventory};
     }
 
     private void ApplySavedSeed()
@@ -143,8 +146,9 @@ public class SaveManager : MonoBehaviour
             return;
 
         RestoreWorldObjects(data.WorldObjects);
+        RestoreInventory(data.Inventory);
 
-        // TODO: 공용인벤, 지역보스 진행도, 수정구슬 hp
+        // TODO: 지역보스 진행도, 수정구슬 hp
     }
 
     // 월드오브젝트 남은 횟수 복원
@@ -169,6 +173,58 @@ public class SaveManager : MonoBehaviour
             Debug.Log("[SaveManager] 월드오브젝트 남은횟수 복원 완료");
         else
             Debug.LogWarning("[SaveManager] 월드오브젝트 남은횟수 복원 실패, 기본 상태로 시작");
+    }
+
+    private void RestoreInventory(string inventory)
+    {
+        if(string.IsNullOrEmpty(inventory) || InventoryNetworkSyncManager.Instance == null) 
+            return;
+
+        byte[] snapshot;
+
+        try
+        {
+            snapshot = Convert.FromBase64String(inventory);
+        }
+        catch (FormatException e)
+        {
+            Debug.LogWarning($"[SaveManager] 스냅샷 문자열 깨짐, 변환 실패 : {e.Message}");
+            return;
+        }
+
+        if (InventoryNetworkSyncManager.Instance.State.TryLoadSnapshot(snapshot))
+        {
+            PotionInstanceIds.EnsureAbove(InventoryNetworkSyncManager.Instance.State.GetMaxPotionInstanceId());
+            Debug.Log("[SaveManager] 인벤토리 복원 완료");
+        }
+        else
+            Debug.LogWarning("[SaveManager] 인벤토리 복원 실패");
+    }
+
+    /// <summary>
+    /// 인벤토리 스냅샷 만듦
+    /// </summary>
+    private string CaptureInventory()
+    {
+        if (InventoryNetworkSyncManager.Instance == null)
+            return null;
+
+        TeamInventoryState live = InventoryNetworkSyncManager.Instance.State;
+        if (live == null)
+            return null;
+
+        TeamInventoryState copy = new TeamInventoryState();
+        if(!copy.TryLoadSnapshot(live.CreateSnapshot()))
+        {
+            Debug.LogWarning("[SaveManager] 인벤토리 스냅샷 카피 불가");
+            return null;
+        }
+
+        copy.MergePersonalsIntoPack(out int lost);
+        if(lost > 0)
+            Debug.LogWarning($"[SaveManager] 인벤토리 병합 중 개수가 넘쳐 {lost}개 버림");
+
+        return Convert.ToBase64String(copy.CreateSnapshot());
     }
 
     private void DebugBeginSession()

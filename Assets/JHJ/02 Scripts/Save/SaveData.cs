@@ -14,4 +14,5 @@ public class SaveData
     public TimeState Clock;     // 게임 내 일차, 낮/밤, 경과 시간
     public int WorldSeed;       // 월드 배치 시드, 0 = 없음
     public string WorldObjects;  // 월드오브젝트NetState 스냅샷 -> Base64로 바꾼 문자열
+    public string Inventory;    // TeamInventoryState 스냅샷 (개인 인벤 합친 뒤) Base64
 }
