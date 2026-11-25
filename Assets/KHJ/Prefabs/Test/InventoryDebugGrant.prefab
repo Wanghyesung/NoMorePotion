@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6012895906762973951}
   - component: {fileID: 3483459295208683716}
+  - component: {fileID: 1293540532368679475}
   m_Layer: 0
   m_Name: InventoryDebugGrant
   m_TagString: Untagged
@@ -82,3 +83,19 @@ MonoBehaviour:
   - MaterialId: 20011
     Count: 5
   _corpseForwardDistance: 1.5
+--- !u!114 &1293540532368679475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9101637895748276291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dbd1e177dfccfe4fb58b567ce9ced19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OfflineModeTest
+  test: 1
+  _mode: 0
+  _onlineRoomName: KHJ_OnlineTest
+  _onlineMaxPlayers: 5
