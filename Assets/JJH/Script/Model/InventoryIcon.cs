@@ -198,11 +198,13 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
     }
 
     /// <summary>
-    /// 조합창에서 빠졌을 때 알파를 원래대로 돌립니다. 개인 칸은 항상 선명하게, 공용 칸은 아이템이 있으면 선명하게 비었으면 흐리게 합니다.
+    /// 조합창에서 빠졌을 때 알파를 원래대로(선명하게) 돌립니다.
+    /// 개수로 판단하면 "0개일 때 빠진 칸"이 흐린 채로 남습니다. (다시 채워져도 알파는 갱신되지 않음)
+    /// 빈 공용 칸은 아이콘이 꺼지거나 이미지가 비므로 알파로 구분할 필요가 없습니다.
     /// </summary>
     public void RestoreAlpha()
     {
-        SetAlpha(isPersonalSlot || (Item != null && Item.ItemCount > 0));
+        SetAlpha(true);
     }
 
 
