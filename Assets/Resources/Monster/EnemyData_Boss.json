@@ -29,7 +29,8 @@
     "SpawnArea": "Forest",
     "BossSubData": {
     }
-  },  {
+  },
+  {
     "Id": 41003,
     "HP": 20000,
     "Speed": 3.8,
@@ -44,7 +45,23 @@
     "BossSubData": {
     }
   },
-
+  {
+    "Id": 41004,
+    "HP": 50000,
+    "Speed": 4,
+    "DamageType": "Normal",
+    "AtkPoint": 1000,
+    "AttackPower": 3,
+    "Immune": {
+      "1": 35,
+      "2": -80,
+      "3": 50,
+      "4": 50
+    },
+    "SpawnArea": "Glacier",
+    "BossSubData": {
+    }
+  },
 
   {
     "Id": 41006,
