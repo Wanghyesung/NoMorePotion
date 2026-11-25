@@ -140,6 +140,18 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
             photonView.RPC(nameof(RpcSyncHP), RpcTarget.Others, hp);
     }
 
+    public void LoadHP(int max, int now)
+    {
+        maxHp = max;
+
+        ApplyReset();
+
+        if (IsNetworked && PhotonNetwork.IsMasterClient)
+            photonView.RPC(nameof(RpcReset), RpcTarget.Others);
+
+        SetHPAuthority(now);
+    }
+
     /// <summary>
     /// 수정구슬을 복구하는 함수
     /// </summary>

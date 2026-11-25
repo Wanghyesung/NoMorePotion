@@ -29,5 +29,7 @@ public class BossData
     [JsonConverter(typeof(StringEnumConverter))]
     public SpawnAreaType SpawnArea;
 
+    public int MinCounter;
+
     public Dictionary<string, JToken> BossSubData;
 }

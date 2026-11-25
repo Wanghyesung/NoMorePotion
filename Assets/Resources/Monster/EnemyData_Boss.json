@@ -1,7 +1,7 @@
 [
   {
     "Id": 41001,
-    "HP": 5000,
+    "HP": 3000,
     "Speed": 4.4,
     "DamageType": "Normal",
     "AtkPoint": 200,
@@ -11,13 +11,14 @@
       "2": -30
     },
     "SpawnArea": "Plain",
+    "MinCounter": 0,
     "BossSubData": {
       "NormalWolfHP": 3000
     }
   },
   {
     "Id": 41002,
-    "HP": 15000,
+    "HP": 4000,
     "Speed": 3.9,
     "DamageType": "Normal",
     "AtkPoint": 250,
@@ -27,11 +28,13 @@
       "2": -40
     },
     "SpawnArea": "Forest",
+    "MinCounter": 100,
     "BossSubData": {
     }
-  },  {
+  },
+  {
     "Id": 41003,
-    "HP": 20000,
+    "HP": 5000,
     "Speed": 3.8,
     "DamageType": "Normal",
     "AtkPoint": 300,
@@ -41,14 +44,32 @@
       "2": 40
     },
     "SpawnArea": "Desert",
+    "MinCounter": 200,
+    "BossSubData": {
+    }
+  },
+  {
+    "Id": 41004,
+    "HP": 6000,
+    "Speed": 4,
+    "DamageType": "Normal",
+    "AtkPoint": 1000,
+    "AttackPower": 3,
+    "Immune": {
+      "1": 35,
+      "2": -80,
+      "3": 50,
+      "4": 50
+    },
+    "SpawnArea": "Glacier",
+    "MinCounter":  1000,
     "BossSubData": {
     }
   },
 
-
   {
     "Id": 41006,
-    "HP": 100000,
+    "HP": 7000,
     "Speed": 5,
     "DamageType": "Normal",
     "AtkPoint": 650,
@@ -59,6 +80,7 @@
       "4": -10
     },
     "SpawnArea": "Castle",
+    "MinCounter": 500,
     "BossSubData": {
     }
   }

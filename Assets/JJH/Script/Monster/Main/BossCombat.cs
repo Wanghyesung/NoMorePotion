@@ -67,8 +67,8 @@ public class BossCombat : MonsterCombat
 
         SetData(new BossMonster(textData.Name, hp, hp, bossData.AtkPoint, bossData.AttackPower,
             immuneVal, bossData.Speed, bossData.Id, 0,
-            bossData.SpawnArea, textData.Description, skills, bossData.DamageType));
-
+            bossData.SpawnArea, textData.Description, skills, bossData.DamageType, bossData.MinCounter));
+        minCounterDamage = bossData.MinCounter;
         mover.AttackSelector.SetPatterns(AttackSelector.BuildSkillPatterns(skills));
     }
 
@@ -96,12 +96,12 @@ public class BossCombat : MonsterCombat
 
     private void ApplyEngaged(bool value)
     {
-        NormalMonster d = GetData();
-        if (d == null) return;
+        if (GetData() is not BossMonster data) return;
+        if (data == null) return;
 
         bossEngaged = value;
-        if (value) BossEvents.Engage(d, d.Name);
-        else BossEvents.Disengage(d);
+        if (value) BossEvents.Engage(data, data.Name);
+        else BossEvents.Disengage(data);
     }
 
     [PunRPC]

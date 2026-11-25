@@ -5,6 +5,7 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 using SF = UnityEngine.SerializeField;
 
 public class MonsterHPHud : MonoBehaviour
@@ -18,6 +19,9 @@ public class MonsterHPHud : MonoBehaviour
     [SF] private TextMeshProUGUI nameText;
     [SF] private TextMeshProUGUI nowHealthText;
     [SF] private TextMeshProUGUI maxHealthText;
+
+    [SF] private TextMeshProUGUI nowCounterVal;
+    [SF] private TextMeshProUGUI maxCounterVal;
 
     [Header("잔상바 수치 관련")]
     [SF] private float chipDelay = 0.4f;
@@ -75,7 +79,35 @@ public class MonsterHPHud : MonoBehaviour
         canvasGroup.alpha = visible ? 1f : 0f;
     }
 
+    /// <summary>
+    /// 스폰 / 풀에서 꺼낼 때 호출하는 초기화 함수
+    /// </summary>
+    public void Init(float max, float current = -1f, string name = null, int counter = 100)
+    {
+        maxHealth = Mathf.Max(1f, max);
+        currentHealth = current < 0f ? maxHealth : Mathf.Clamp(current, 0f, maxHealth);
+        if (nameText != null && name != null) nameText.SetText(name);
+        KillTweens();
+        CancelHide();
+
+        healthBar.fillAmount = Ratio;
+        chipBar.fillAmount = Ratio;
+        UpdateTexts();
+
+        nowCounterVal.SetText("0");
+        maxCounterVal.SetText($"{counter}");
+
+        bool visible = !(hideIsFull && Ratio >= 1f) && currentHealth > 0f;
+        canvasGroup.alpha = visible ? 1f : 0f;
+    }
+
+
     public void HealthChange(int before, int now) => SetHealth(now);
+    public void CounterValueChange(int now, int max)
+    {
+        nowCounterVal.SetText($"{now}");
+        maxCounterVal.SetText($"{max}");
+    }
 
     public void SetHealth(float newHealth)
     {

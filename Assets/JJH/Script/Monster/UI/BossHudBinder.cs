@@ -4,10 +4,10 @@ using SF = UnityEngine.SerializeField;
 
 public class BossHudBinder : MonoBehaviour
 {
-    private readonly List<(NormalMonster data, string name)> engaged = new();
+    private readonly List<(BossMonster data, string name)> engaged = new();
 
     [SF] private MonsterHPHud hud;
-    private NormalMonster bound;
+    private BossMonster bound;
 
     private void OnEnable()
     {
@@ -25,14 +25,14 @@ public class BossHudBinder : MonoBehaviour
         hud.HideImmediate();
     }
 
-    private void OnEngaged(NormalMonster data, string bossName)
+    private void OnEngaged(BossMonster data, string bossName)
     {
         engaged.RemoveAll(e => e.data == data);
         engaged.Add((data, bossName));
         Bind(data, bossName);
     }
 
-    private void OnDisengaged(NormalMonster data)
+    private void OnDisengaged(BossMonster data)
     {
         engaged.RemoveAll(e => e.data == data);
         if (data != bound) return; 
@@ -52,18 +52,20 @@ public class BossHudBinder : MonoBehaviour
         if (!died) hud.FadeTo(0f);
     }
 
-    private void Bind(NormalMonster data, string bossName)
+    private void Bind(BossMonster data, string bossName)
     {
         Unbind();
         bound = data;
         bound.OnHPChanged += hud.HealthChange;
-        hud.Init(bound.MaxHP, bound.HP, bossName);
+        bound.OnCounterAccumed += hud.CounterValueChange;
+        hud.Init(bound.MaxHP, bound.HP, bossName, data.MinCounter);
     }
 
     private void Unbind()
     {
         if (bound == null) return;
         bound.OnHPChanged -= hud.HealthChange;
+        bound.OnCounterAccumed -= hud.CounterValueChange;
         bound = null;
     }
 }
