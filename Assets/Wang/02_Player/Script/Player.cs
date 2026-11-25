@@ -52,6 +52,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
     #region 캐릭터 정보
     private PlayerCharacter character = null;
+    [SerializeField] private SOPlayerStats playerStats;
 
     [SerializeField] private SkinnedMeshRenderer skinMeshRenderer;
     [SerializeField] private PlayerBlink playerBlink;
@@ -165,9 +166,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         ragdoll = GetComponent<PlayerRagdoll>();
         
         SetLookPitch(Mathf.DeltaAngle(0f, lookPivot.localEulerAngles.x));
-        Dictionary<DamageType, int> immune = new();
-        // 현재 플레이어의 기본 최대 HP / 시작 HP. 버프 컨테이너는 HP 자체를 보관하지 않는다.
-        character = new PlayerCharacter("Player", 3000, 3000, immune, 1,10);
+        character = playerStats.CreateCharacter();
 
         fsm = GetComponent<FSM>();
         fsm.Init(this);

@@ -1343,6 +1343,7 @@ GameObject:
   - component: {fileID: 5742529768754016091}
   - component: {fileID: 6037355458872660066}
   - component: {fileID: 2729435159217721121}
+  - component: {fileID: 5743096651963972499}
   m_Layer: 7
   m_Name: MultiPlayer
   m_TagString: Player
@@ -1468,6 +1469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   drinkHoldSeconds: 0.2
+  playerStats: {fileID: 11400000, guid: f82d0d14c79cc344493a5944cc70e83a, type: 2}
   skinMeshRenderer: {fileID: 6878363051212751977}
   playerBlink: {fileID: 5758480382771732303}
   damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
@@ -1620,6 +1622,22 @@ MonoBehaviour:
   isObjective: 0
   meleeSlots: 3
   slotTimeout: 1.5
+--- !u!114 &5743096651963972499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1594938396219596386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f677e6229c7a6ca4b88141848b932532, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MinimapIcon
+  sprite: {fileID: 21300000, guid: d380c6136a5eddd43b76a44ae0ff3374, type: 3}
+  color: {r: 0.3537736, g: 1, b: 0.9670316, a: 1}
+  size: 14
+  clampToEdge: 0
 --- !u!1 &1765338853279361138
 GameObject:
   m_ObjectHideFlags: 0
