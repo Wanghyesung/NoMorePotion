@@ -1092,8 +1092,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7e54c30c0f18104eac3c3f49b2d13ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FSM
-  jumpGravityMultiplier: 1.5
-  fallGravityMultiplier: 2.5
   stateData:
   - {fileID: 11400000, guid: f84c5b15f7635b34eab9ac3cd7ffe7f3, type: 2}
   - {fileID: 11400000, guid: 48b077db732be9b4b9d4088b75b85f8c, type: 2}
@@ -1110,8 +1108,6 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 64
-  maxGroundAngle: 50
-  groundContactTolerance: 0.03
 --- !u!114 &6041492400059656303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1125,12 +1121,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   drinkHoldSeconds: 0.3
-  playerStats: {fileID: 11400000, guid: f82d0d14c79cc344493a5944cc70e83a, type: 2}
   skinMeshRenderer: {fileID: 0}
   playerBlink: {fileID: 0}
   damageNumberPrefab: {fileID: 0}
   damageNumberOffset: {x: 0, y: 1.8, z: 0}
-  keyGuideAnchor: {fileID: 0}
   cameraPosition: {fileID: 5871699718036848010}
   lookPivot: {fileID: 0}
   pitchSensitivity: 0.15
