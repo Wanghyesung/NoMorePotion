@@ -9,7 +9,7 @@ public class WolfBoss : BossMonster
     public WolfBoss(string name, int maxHp, int hp,int atkPoint,int attackPower, Dictionary<DamageType, int> immune, 
         float speed, int id, int instanceId, SpawnAreaType spawnArea, string description, 
         List<BossSkill> bossSkill, int normalWolfHP, DamageType damageType) : 
-        base(name, maxHp, hp, atkPoint, attackPower, immune, speed, id, instanceId, spawnArea, description, bossSkill, damageType)
+        base(name, maxHp, hp, atkPoint, attackPower, immune, speed, id, instanceId, spawnArea, description, bossSkill, damageType, 0)
     {
         NormalWolfHP = normalWolfHP;
     }

@@ -46,6 +46,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     [Header("카운터")]
     // 카운터 서버 지연 보정 길이
     [SF] private float counterGrace = 0.2f;
+    [SF] protected int minCounterDamage = 100;
+    
     // CounterMat
     [SF] private Material counterOverlay;
     [SF] private GameObject counterEffect;
@@ -53,6 +55,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private bool counterOpen;
     private float counterClosedAt = -999f;
+    private int totalCounterDamage = 0;
     private bool skillCanceled;
 
     private Renderer[] bodyRenderers;
@@ -209,6 +212,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
     {
         counterOpen = false;
         counterClosedAt = Time.time;
+        totalCounterDamage = 0;
+        if (data is BossMonster ck)
+            ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
         SetCounterOverlay(false);
     }
 
@@ -578,7 +584,12 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (statusEffect != null)
             rate /= Mathf.Max(0.01f, statusEffect.GetStatMultiplier(StatType.Defense));
 
-        return Mathf.Max(0, Mathf.RoundToInt(damage * rate / 100f));
+        int final = Mathf.Max(0, Mathf.RoundToInt(damage * rate / 100f));
+
+        totalCounterDamage += final;
+        if (data is BossMonster ck)
+            ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
+        return final;
     }
 
     #endregion
@@ -727,6 +738,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         DamageType? type = typeNum >= 0 ? (DamageType)typeNum : null;
         HPChange(CalcFinalDamage(damage, type));
 
+        
+
         if (counterHit)
             RpcRequestCounter();   // 카운터 창이 아니면 내부에서 무시
 
@@ -755,7 +768,11 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         // 마스터의 카운터 성공 판정 
         bool inWindow = counterOpen || Time.time - counterClosedAt <= counterGrace;
         if (!inWindow || skillCanceled) return;
-
+        
+        if (minCounterDamage > totalCounterDamage) return;
+        totalCounterDamage = 0;
+        if (data is BossMonster ck)
+            ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
         anim.StopActiveSkill();
 
         if (PhotonNetwork.InRoom)

@@ -11,6 +11,7 @@
       "2": -30
     },
     "SpawnArea": "Plain",
+    "MinCounter": 0,
     "BossSubData": {
       "NormalWolfHP": 3000
     }
@@ -27,6 +28,7 @@
       "2": -40
     },
     "SpawnArea": "Forest",
+    "MinCounter": 100,
     "BossSubData": {
     }
   },
@@ -42,6 +44,7 @@
       "2": 40
     },
     "SpawnArea": "Desert",
+    "MinCounter": 200,
     "BossSubData": {
     }
   },
@@ -59,6 +62,7 @@
       "4": 50
     },
     "SpawnArea": "Glacier",
+    "MinCounter":  1000,
     "BossSubData": {
     }
   },
@@ -76,6 +80,7 @@
       "4": -10
     },
     "SpawnArea": "Castle",
+    "MinCounter": 500,
     "BossSubData": {
     }
   }
