@@ -26,5 +26,17 @@ namespace Enzeun.Runtime
         {
             _next = 1;
         }
+
+        #region 세이브/로드 (진희진)
+        /// <summary>
+        /// 특정번호 다음부터 시작합니다.
+        /// 세이브/로드 시 번호가 겹치는 것을 방지합니다.
+        /// </summary>
+        public static void EnsureAbove(int usedMax)
+        {
+            if (_next <= usedMax)
+                _next = usedMax + 1;
+        }
+        #endregion
     }
 }
