@@ -1,10 +1,14 @@
+using Enzeun.Runtime;
+using Photon.Pun;
+using R3;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using SF = UnityEngine.SerializeField;
 
 /// <summary>
 /// 현 상태를 모아 현재 슬롯에 저장함. 인 게임씬에 하나
-/// 불러온 값의 복원 순서는 GameSessionManager가 맡음
+/// State가 Playing 진입 시 복원
 /// </summary>
 public class SaveManager : MonoBehaviour
 {
@@ -31,6 +35,20 @@ public class SaveManager : MonoBehaviour
         // 타이틀 안거치고 씬 바로 실행한 경우에만
         if (enableDebug && !SaveSession.HasSlot())
             DebugBeginSession();
+
+        ApplySavedSeed();       // 월드 시드
+    }
+
+    private void Start()
+    {
+        if (GameSessionManager.Instance == null)
+            return;
+
+        GameSessionManager.Instance.Phase
+            .Where(p => p == SessionPhase.Playing)
+            .Take(1)                            // 1번만
+            .Subscribe(_ => RestoreLoaded())
+            .AddTo(this);
     }
 
     private void OnDestroy()
@@ -84,6 +102,7 @@ public class SaveManager : MonoBehaviour
 
     private SaveData Capture()
     {
+        // 시간
         TimeState clock = TimeManager.Instance != null ? TimeManager.Instance.CaptureState() : null;
 
         if(clock == null)
@@ -92,7 +111,64 @@ public class SaveManager : MonoBehaviour
             return null;
         }
 
-        return new SaveData { Clock = clock };
+        // 월드 시드
+        WorldSeed.TryGet(out int seed);
+
+        // 월드오브젝트
+        // WorldObjectNetworkSyncManager가 있으면 Base64 string으로 변환 / 없으면 null
+        string worldObjects = WorldObjectNetworkSyncManager.Instance != null ? Convert.ToBase64String(WorldObjectNetworkSyncManager.Instance.State.CreateSnapshot()) : null;
+
+        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects };
+    }
+
+    private void ApplySavedSeed()
+    {
+        SaveData data = SaveSession.Loaded;
+
+        if (data == null || data.WorldSeed == 0)
+            return;
+
+        if (!PhotonNetwork.InRoom || !GameAuthority.HasAuthority)
+            return;
+
+        WorldSeed.Roll(data.WorldSeed); // 0이 아니면 이 값으로 방 프로퍼티 설정
+        Debug.Log($"[SaveManager] 저장된 시드 적용: {data.WorldSeed}");
+    }
+
+    // 불러온 값 적용
+    private void RestoreLoaded()
+    {
+        SaveData data = SaveSession.Loaded;
+        if (data == null || !GameAuthority.HasAuthority)
+            return;
+
+        RestoreWorldObjects(data.WorldObjects);
+
+        // TODO: 공용인벤, 지역보스 진행도, 수정구슬 hp
+    }
+
+    // 월드오브젝트 남은 횟수 복원
+    private void RestoreWorldObjects(string worldObjects)
+    {
+        if (string.IsNullOrEmpty(worldObjects) || WorldObjectNetworkSyncManager.Instance == null)
+            return;
+
+        byte[] snapshot;
+
+        try
+        {
+            snapshot = Convert.FromBase64String(worldObjects);
+        }
+        catch (FormatException e)
+        {
+            Debug.LogWarning($"[SaveManager] 스냅샷 문자열 깨짐, 변환 실패 : {e.Message}");
+            return;
+        }
+
+        if (WorldObjectNetworkSyncManager.Instance.State.TryLoadSnapshot(snapshot))
+            Debug.Log("[SaveManager] 월드오브젝트 남은횟수 복원 완료");
+        else
+            Debug.LogWarning("[SaveManager] 월드오브젝트 남은횟수 복원 실패, 기본 상태로 시작");
     }
 
     private void DebugBeginSession()
