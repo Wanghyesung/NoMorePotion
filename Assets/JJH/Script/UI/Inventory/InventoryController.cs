@@ -49,6 +49,7 @@ public class InventoryController : MonoBehaviour
 
     public event Action<ItemInstance> OnPublicListAdded;
     public event Action<int> OnPublicListRemoved;
+    public event Action OnOpened;
 
     private void Awake()
     {
@@ -86,24 +87,15 @@ public class InventoryController : MonoBehaviour
 
     private void OnEnable()
     {
-        closeAction = new InputAction(
-            name: "Close",
-            binding: "<Keyboard>/tab",
-            type: InputActionType.Button
-        );
+        closeAction = InputManager.Instance.TabAction;
         closeAction.performed += OnTabPressed;
-
-        closeAction.Enable();
     }
 
     private void OnDisable()
     {
         if (closeAction != null)
         {
-            closeAction.Disable();
             closeAction.performed -= OnTabPressed;
-
-            closeAction.Dispose();
             closeAction = null;
         }
     }
@@ -149,6 +141,7 @@ public class InventoryController : MonoBehaviour
             invenCanvasGroup.blocksRaycasts = true;
             InputManager.Instance.SetCursorLocked(true);
             InputManager.Instance.SetInputEnabled(false);
+            OnOpened?.Invoke();
         }
         else
         {

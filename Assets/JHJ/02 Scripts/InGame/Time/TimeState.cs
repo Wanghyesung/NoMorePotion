@@ -7,7 +7,6 @@ using System;
 /// class를 사용한 이유: 타임매니저가 매 프레임 값을 갱신하는 가변 상태라
 /// 가변 struct의 복사 함정(복사본 수정, 프로퍼티 CS1612)을 피하기 위함.
 /// 참조 전달로 외부에서 값이 바뀌는 문제는 외부에 넘길 때 복사본을 제공해 막아야함.
-/// TODO : 세이브 시 복사본으로 제공하도록
 /// </remarks>
 [Serializable]
 public class TimeState 
@@ -17,4 +16,9 @@ public class TimeState
     public float Elapsed;
     public float TotalElapsed;
 
+    // 저장할때, 불러올때 사용, 참조형식이라 같이 변하지 않도록 복사
+    public TimeState Copy()
+    {
+        return new TimeState { DayCount = DayCount, Phase = Phase, Elapsed = Elapsed, TotalElapsed = TotalElapsed };
+    }
 }
