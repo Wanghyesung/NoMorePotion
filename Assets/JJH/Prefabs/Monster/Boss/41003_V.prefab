@@ -632,6 +632,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 3
 --- !u!1 &7078768716332195891
 GameObject:
@@ -700,6 +701,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 2
 --- !u!1 &7325411299537516097
 GameObject:
@@ -1063,6 +1065,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
 --- !u!1 &8453130992870531161
 GameObject:
   m_ObjectHideFlags: 0
@@ -1164,6 +1167,7 @@ MonoBehaviour:
   mover: {fileID: 0}
   randomAggroActive: 1
   randomAggroLockTime: 10
+  passive: 0
 --- !u!1001 &761841480538175893
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1485,6 +1489,7 @@ MonoBehaviour:
   damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
   healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
   counterGrace: 0.15
+  minCounterDamage: 100
   counterOverlay: {fileID: 2100000, guid: 69d0f491ebe442d4babf50ccb8bf7488, type: 2}
   counterEffect: {fileID: 643597903100466925, guid: 9643d9cd4290e48448f95626dc216723, type: 3}
   counterFeedback: {fileID: 1502527766328254640}
