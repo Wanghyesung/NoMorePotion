@@ -23,45 +23,41 @@ public sealed class GuideEvent
     [SerializeField] private UnityEvent startEvent = new();
     [SerializeField] private UnityEvent endEvent = new();
 
-    private readonly HashSet<GuideEndEvent> pendingEvents = new();
     private GuideManager manager;
 
     public SOEventText EventText => eventText;
     public GuidePanelType PanelType => panelType;
     public float DelaySeconds => delaySeconds;
     public IReadOnlyList<GuideEndEvent> Events => events;
-    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.ReadOnly]
-    public int RemainingCount => pendingEvents.Count;
 
     public void Enter(GuideManager guideManager)
     {
         manager = guideManager;
-        pendingEvents.Clear();
-        foreach (GuideEndEvent condition in events)
-            pendingEvents.Add(condition);
-
         foreach (GuideEndEvent condition in events)
             condition.Prepare(this, manager);
 
         SetObjectsActive(true);
         startEvent.Invoke();
-        if (pendingEvents.Count == 0)
+        if (events.Count == 0)
         {
             manager.NotifyCompleted(this);
             return;
         }
 
         foreach (GuideEndEvent condition in events)
+        {
+            if (manager.CurrentEvent != this)
+                return;
             condition.Begin();
+        }
     }
 
-    public void NotifyCompleted(GuideEndEvent condition)
+    public void NotifyCompleted()
     {
-        if (!pendingEvents.Remove(condition))
-            return;
-
-        if (pendingEvents.Count == 0)
-            manager.NotifyCompleted(this);
+        foreach (GuideEndEvent condition in events)
+            if (!condition.IsCompleted)
+                return;
+        manager.NotifyCompleted(this);
     }
 
     public void Exit()
@@ -72,8 +68,9 @@ public sealed class GuideEvent
 
     public void Cancel()
     {
-        StopConditions();
-        pendingEvents.Clear();
+        foreach (GuideEndEvent condition in events)
+            if (condition != null)
+                condition.Stop();
         SetObjectsActive(false);
     }
 
@@ -83,12 +80,4 @@ public sealed class GuideEvent
             if (condition != null)
                 condition.gameObject.SetActive(active);
     }
-
-    private void StopConditions()
-    {
-        foreach (GuideEndEvent condition in events)
-            if (condition != null)
-                condition.Stop();
-    }
-
 }

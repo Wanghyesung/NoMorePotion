@@ -56,7 +56,7 @@ public abstract class GuideEndEvent : MonoBehaviour
         Stop();
         endEvent.Invoke();
         if (currentOwner != null)
-            currentOwner.NotifyCompleted(this);
+            currentOwner.NotifyCompleted();
     }
 
     public void Stop()

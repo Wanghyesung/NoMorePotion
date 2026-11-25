@@ -3,12 +3,14 @@ using Cysharp.Threading.Tasks;
 using Photon.Pun;
 using R3;
 using UnityEngine;
+using UnityEngine.Events;
 using PhotonPlayer = Photon.Realtime.Player;
 
 [RequireComponent(typeof(GameSessionManager), typeof(PhotonView))]
 public sealed class RespawnManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private RespawnCountdownUI popup;
+    [SerializeField] private UnityEvent respawned = new();
 
     private GameSessionManager session;
     private Player player;
@@ -128,6 +130,7 @@ public sealed class RespawnManager : MonoBehaviourPunCallbacks
 
         Close();
         player.RespawnAt(spawnPoint);
+        respawned.Invoke();
     }
 
     // 이번 사망 시각과 승인 상태를 초기화하고 팝업을 닫는다.

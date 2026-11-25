@@ -10,13 +10,22 @@ public sealed class GuideClickHighlight : MonoBehaviour, IPointerClickHandler
     [SerializeField] private bool hideOnClick = true;
     [SerializeField] private UnityEvent clickedEvent = new();
     private PointerEventData.InputButton clickButton;
+    private bool keepVisible;
     private Selectable selectable;
 
     private void Awake() => selectable = GetComponent<Selectable>();
 
     public void Show(PointerEventData.InputButton button)
     {
+        keepVisible = false;
         clickButton = button;
+        border.SetActive(true);
+    }
+
+    // 네트워크로 아이템 이동이 확정될 때까지 테두리를 유지한다.
+    public void ShowUntilHidden()
+    {
+        keepVisible = true;
         border.SetActive(true);
     }
 
@@ -24,7 +33,7 @@ public sealed class GuideClickHighlight : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!hideOnClick || !border.activeSelf || eventData.button != clickButton)
+        if (keepVisible || !hideOnClick || !border.activeSelf || eventData.button != clickButton)
             return;
         if (selectable != null && !selectable.IsInteractable())
             return;
