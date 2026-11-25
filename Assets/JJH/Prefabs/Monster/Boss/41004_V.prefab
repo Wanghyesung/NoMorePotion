@@ -69,6 +69,7 @@ MonoBehaviour:
   mover: {fileID: 0}
   randomAggroActive: 1
   randomAggroLockTime: 20
+  passive: 1
 --- !u!1 &2580397759215442495
 GameObject:
   m_ObjectHideFlags: 0
@@ -431,6 +432,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
 --- !u!1 &5987255137229196654
 GameObject:
   m_ObjectHideFlags: 0
@@ -458,7 +460,7 @@ Transform:
   m_GameObject: {fileID: 5987255137229196654}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.5, y: 0, z: 11.65}
+  m_LocalPosition: {x: 0, y: 0, z: 11.65}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -498,7 +500,77 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 1
+--- !u!1 &6203535679786565634
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6183961468275210611}
+  - component: {fileID: 1176545387283942419}
+  - component: {fileID: 1469402314041465536}
+  m_Layer: 9
+  m_Name: Skill2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &6183961468275210611
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6203535679786565634}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3683352035413867597}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &1176545387283942419
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6203535679786565634}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 28
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1469402314041465536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6203535679786565634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab229852c5a83646a6feb9f55a0f65d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
+  combat: {fileID: 0}
+  sectorAngle: 45
+  skillNum: 2
 --- !u!1 &6427061802836613390
 GameObject:
   m_ObjectHideFlags: 0
@@ -1922,15 +1994,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 126.3
       objectReference: {fileID: 0}
     - target: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -8
       objectReference: {fileID: 0}
     - target: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 35.2
       objectReference: {fileID: 0}
     - target: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2059,6 +2131,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5230140273406912397}
+    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6183961468275210611}
     - targetCorrespondingSourceObject: {fileID: 112949857088394901, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7692694122925093458}
@@ -2105,6 +2180,9 @@ MonoBehaviour:
   skillHitboxes:
   - SkillNum: 1
     Hitbox: {fileID: 3069386739108960378}
+    FollowWarningSlot: -1
+  - SkillNum: 2
+    Hitbox: {fileID: 1176545387283942419}
     FollowWarningSlot: -1
   sinkDuration: 2
   sinkMargin: 0.3
@@ -2161,16 +2239,16 @@ MonoBehaviour:
   - HitEffect: {fileID: 7967884361062045200, guid: 2f123781b7618fe42a17cf329ad6ef64, type: 3}
     HitPoint: {fileID: 5230140273406912397}
     Warning: {fileID: 4337120880848930166, guid: 16ad5275be79c1d4b816becb89dfaf07, type: 3}
-    Place: 2
-    WarningSize: 20
-    FrontOffset: 0
-    Impact: {fileID: 969409866168122219}
-  - HitEffect: {fileID: 0}
-    HitPoint: {fileID: 0}
-    Warning: {fileID: 0}
     Place: 1
-    WarningSize: 3
-    FrontOffset: 2
+    WarningSize: 20
+    FrontOffset: 11.65
+    Impact: {fileID: 969409866168122219}
+  - HitEffect: {fileID: 1758561088887766, guid: 328178bf5a193e84b8998c7418201551, type: 3}
+    HitPoint: {fileID: 6183961468275210611}
+    Warning: {fileID: 4337120880848930166, guid: ec644b68a47795e46b3799cad584074f, type: 3}
+    Place: 1
+    WarningSize: 15
+    FrontOffset: 25
     Impact: {fileID: 0}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}

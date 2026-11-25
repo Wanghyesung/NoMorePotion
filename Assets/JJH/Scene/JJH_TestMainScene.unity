@@ -34892,7 +34892,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5368371395739122896, guid: 5b98408a7bf142a47b37697ad7658b84, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6649183063105022375, guid: 5b98408a7bf142a47b37697ad7658b84, type: 3}
       propertyPath: m_LocalPosition.x
@@ -46733,17 +46733,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5230140273406912397, guid: 8e980f9d384f792478c7737ed26fc436, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5999552966734214281, guid: 8e980f9d384f792478c7737ed26fc436, type: 3}
-      propertyPath: skills.Array.data[0].Place
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5999552966734214281, guid: 8e980f9d384f792478c7737ed26fc436, type: 3}
-      propertyPath: skills.Array.data[0].FrontOffset
-      value: 11.65
+    - target: {fileID: 9087091283456610632, guid: 8e980f9d384f792478c7737ed26fc436, type: 3}
+      propertyPath: m_BaseOffset
+      value: -0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

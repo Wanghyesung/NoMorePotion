@@ -11,6 +11,8 @@ public class MonsterChaseTrigger : MonoBehaviour
     [SF] private MonsterMove mover;
     [SF] private bool randomAggroActive = true;
     [SF] private float randomAggroLockTime = 10f;
+    [Header("후공 여부")]
+    [SF] private bool passive;
     private readonly List<GameObject> players = new();
     private readonly List<GameObject> candidates = new();
 
@@ -52,6 +54,9 @@ public class MonsterChaseTrigger : MonoBehaviour
             else return;
         }
 
+        // 후공일 경우 건너 뜀
+        if (passive) return;
+
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
                 
         pick = PickTarget();
@@ -73,6 +78,9 @@ public class MonsterChaseTrigger : MonoBehaviour
 
         // 죽었거나 비활성화된 플레이어 먼저 정리
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
+
+        // 후공 상태면 아무것도 안함
+        if (passive && mover.nowTarget == null) return;
 
         // 도발 중엔 타겟 유지
         if (mover.IsProvoked) return;  

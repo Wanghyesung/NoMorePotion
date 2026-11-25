@@ -586,7 +586,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         int final = Mathf.Max(0, Mathf.RoundToInt(damage * rate / 100f));
 
-        totalCounterDamage += final;
+        if(counterOpen)
+            totalCounterDamage += final;
+
         if (data is BossMonster ck)
             ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
         return final;

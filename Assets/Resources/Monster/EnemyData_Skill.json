@@ -99,6 +99,20 @@
     "StatusDuration": 2.5,
     "Scripted": false
   },
+  {
+    "UseMonsterId": 41004,
+    "SkillNum": 2,
+    "Name": "IceWave",
+    "SkillDamage": 150,
+    "MinRange": 0,
+    "MaxRange": 20,
+    "Cooldown": 30,
+    "Weight": 3,
+    "StatusEffectId": 61011,
+    "StatusPercent": -35,
+    "StatusDuration": 5,
+    "Scripted": false
+  },
   // 마왕
   {
     "UseMonsterId": 41006,
