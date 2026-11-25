@@ -331,7 +331,8 @@ public class WolfPack : MonoBehaviourPun, IPoolable
     {
         if (engaged == value) return;
 
-        NormalMonster data = alphaCombat.GetData();
+
+        if (alphaCombat.GetData() is not BossMonster data) return;
         if (data == null) return;
 
         ApplyEngaged(value, data);
@@ -340,9 +341,10 @@ public class WolfPack : MonoBehaviourPun, IPoolable
             photonView.RPC(nameof(RpcEngaged), RpcTarget.Others, value);
     }
 
-    private void ApplyEngaged(bool value, NormalMonster data)
+    private void ApplyEngaged(bool value, BossMonster data)
     {
         engaged = value;
+
         if (value) BossEvents.Engage(data, data.Name);
         else BossEvents.Disengage(data);
     }
@@ -407,8 +409,8 @@ public class WolfPack : MonoBehaviourPun, IPoolable
     [PunRPC]
     private void RpcEngaged(bool value)
     {
-        NormalMonster data = alphaCombat.GetData();
-        if (data == null || engaged == value) return;
+        if (alphaCombat.GetData() is not BossMonster data ||
+            engaged == value) return;
         ApplyEngaged(value, data);
     }
 

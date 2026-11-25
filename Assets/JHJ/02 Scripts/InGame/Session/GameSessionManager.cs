@@ -160,7 +160,7 @@ public class GameSessionManager : MonoBehaviour
                 Debug.LogWarning($"[GameSessionManager] 로드 대기 {loadTimeout}초 초과, 로드 안 된 플레이어 제외하고 시작 ");
 
             if (TimeManager.Instance != null)
-                TimeManager.Instance.StartClock(SaveSession.Loaded?.Clock); // 로드 연결
+                TimeManager.Instance.StartClock();
             else
                 Debug.LogWarning("[GameSessionManager] 타임매니저 없음");
 

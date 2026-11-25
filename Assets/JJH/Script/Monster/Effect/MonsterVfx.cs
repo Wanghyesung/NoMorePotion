@@ -163,7 +163,11 @@ public class MonsterVfx : MonoBehaviour
         Quaternion rot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
 
         GameObject warning = PoolManager.Instance.Get(vfx.Warning, pos, rot);
-        warning.transform.localScale = Vector3.one * vfx.WarningSize;
+        Vector3 sizeScale = Vector3.one * vfx.WarningSize;
+
+        sizeScale.y = 1;
+
+        warning.transform.localScale = sizeScale;
 
         if (duration > 0f && warning.TryGetComponent(out IWarningIndicator indicator))
             indicator.Play(duration);

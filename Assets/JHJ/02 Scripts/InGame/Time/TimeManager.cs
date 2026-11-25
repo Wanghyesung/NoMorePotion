@@ -133,19 +133,8 @@ public class TimeManager : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// 저장용 현재 시간 복사본, 시작 전이면 null
-    /// </summary>
-    public TimeState CaptureState()
-    {
-        return state?.Copy();
-    }
-
     /// <summary>시계를 1일차 낮으로 초기화하고 시작한다. 이미 진행 중이면 무시.</summary>
-    public void StartClock() => StartClock(null);
-
-    /// <summary>saved가 있으면 그 시점, 없으면 1일차 낮부터</summary>
-    public void StartClock(TimeState saved)
+    public void StartClock()
     {
         if (isRunning)
         {
@@ -153,20 +142,13 @@ public class TimeManager : MonoBehaviour
             return;
         }
 
-        // saved가 있으면 그 시점부터
-        state = saved != null
-            ? saved.Copy()
-            : new TimeState { DayCount = 1, Phase = TimePhase.Day, Elapsed = 0, TotalElapsed = 0 };
-
-        // 파일 내 값 음수, 단계 길이 초과 되지 않도록
-        state.Elapsed = Mathf.Clamp(state.Elapsed, 0f, currentDuration);
-
+        state = new TimeState { DayCount = 1, Phase = TimePhase.Day, Elapsed = 0, TotalElapsed = 0 };
         syncTimer = 0f;
         isRunning = true;
         SyncPublicValues();
 
         SendState();
-        Debug.Log($"[TimeManager] {state.DayCount}일차 {state.Phase} 시작{(saved != null ? " (불러오기)" : "")}");
+        Debug.Log("[TimeManager] 1일차 낮 시작");
     }
 
     /// <summary>

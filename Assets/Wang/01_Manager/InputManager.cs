@@ -36,8 +36,7 @@ public sealed class InputManager : MonoBehaviour
         QuickSlot4 = 1 << 12,
         ThrowPotion = 1 << 13,
         DrinkPotion = 1 << 14,
-        Tab = 1 << 15,
-        All = (1 << 16) - 1
+        All = (1 << 15) - 1
     }
 
     public static InputManager Instance { get; private set; }
@@ -69,7 +68,6 @@ public sealed class InputManager : MonoBehaviour
     [SerializeField] private InputActionReference number9ActionReference;
     [SerializeField] private InputActionReference escapeActionReference;
     [SerializeField] private InputActionReference altActionReference;
-    [SerializeField] private InputActionReference tabActionReference;
 
     public InputAction MoveAction { get; private set; }
     public InputAction DeltaAction { get; private set; }
@@ -93,7 +91,6 @@ public sealed class InputManager : MonoBehaviour
     public InputAction Number9Action { get; private set; }
     public InputAction EscapeAction { get; private set; }
     public InputAction AltAction { get; private set; }
-    public InputAction TabAction { get; private set; }
     #endregion
 
     private PlayerInputInfo inputInfo;
@@ -144,7 +141,6 @@ public sealed class InputManager : MonoBehaviour
         Number9Action = number9ActionReference.action;
         EscapeAction = escapeActionReference.action;
         AltAction = altActionReference.action;
-        TabAction = tabActionReference.action;
     }
 
     private void OnEnable()
@@ -187,7 +183,6 @@ public sealed class InputManager : MonoBehaviour
         AltAction.performed -= OnAltPressed;
         AltAction.canceled -= OnAltReleased;
         AltAction.Disable();
-        TabAction.Disable();
         DisableActions();
         CancelInput();
         Cursor.lockState = CursorLockMode.None;
@@ -215,12 +210,10 @@ public sealed class InputManager : MonoBehaviour
         {
             AltAction.Disable();
             UnLockAllKeys();
-            TabAction.Disable();
         }
         else
         {
             AltAction.Enable();
-            UnLockKeys(GameplayKeys.Tab);
         }
 
         RefreshCursorState(isLobby || AltAction.IsPressed());
@@ -261,7 +254,7 @@ public sealed class InputManager : MonoBehaviour
         RefreshCursorState(show);
     }
 
-    /// <summary>플레이어 조작만 켜거나 끕니다. Tab과 Escape 등 UI 입력은 유지합니다.</summary>
+    /// <summary>플레이어 조작만 켜거나 끕니다. UI와 Escape 입력은 유지합니다.</summary>
     public void SetInputEnabled(bool inputEnabled)
     {
         gameplayInputEnabled = inputEnabled;
@@ -346,11 +339,6 @@ public sealed class InputManager : MonoBehaviour
     public void SetGuideAllowedKeys(GameplayKeys keys)
     {
         GuideAllowedKeys = ExpandPotionKeys(keys);
-        // 인벤토리가 열려 플레이어 입력이 꺼져도 Tab 잠금은 별도로 적용한다.
-        if (isActiveAndEnabled)
-            ApplyGuideKey(TabAction, GameplayKeys.Tab);
-        else
-            TabAction.Disable();
         if (gameplayInputEnabled && isActiveAndEnabled)
             EnableActions();
         else

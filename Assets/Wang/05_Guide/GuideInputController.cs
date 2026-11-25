@@ -9,35 +9,6 @@ using UnityEngine.Events;
 public sealed class GuideInputController : MonoBehaviour
 {
     [SerializeField] private UnityEvent treePotionPrepared = new();
-    [SerializeField] private InventoryController inventory;
-
-    // Tab으로 열기는 허용하고, 열리고 나면 실습이 끝날 때까지 Tab을 잠근다.
-    public void BeginInventoryGuide()
-    {
-        inventory.OnOpened += LockTabKey;
-        if (inventory.IsOpen)
-            LockTabKey();
-        else
-            UnLockTabKey();
-    }
-
-    public void EndInventoryGuide()
-    {
-        inventory.OnOpened -= LockTabKey;
-        LockTabKey();
-    }
-
-    public void CloseInventory()
-    {
-        if (inventory.IsOpen)
-            inventory.InventoryActive(destroyCancellationToken).Forget();
-    }
-
-    private void OnDisable()
-    {
-        if (inventory != null)
-            inventory.OnOpened -= LockTabKey;
-    }
 
     public void ClearPotion() => GameSessionManager.Instance.LocalPlayer.GetComponent<Hand>().ClearPotion();
 
@@ -108,8 +79,6 @@ public sealed class GuideInputController : MonoBehaviour
     public void UnLockShakeKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.Shake);
     public void LockInteractKey() => InputManager.Instance.LockKeys(InputManager.GameplayKeys.Interact);
     public void UnLockInteractKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.Interact);
-    public void LockTabKey() => InputManager.Instance.LockKeys(InputManager.GameplayKeys.Tab);
-    public void UnLockTabKey() => InputManager.Instance.UnLockKeys(InputManager.GameplayKeys.Tab);
     public void SetAllowedKeys(InputManager.GameplayKeys keys) => InputManager.Instance.SetGuideAllowedKeys(keys);
     public void LockKeys(InputManager.GameplayKeys keys) => InputManager.Instance.LockKeys(keys);
     public void UnLockKeys(InputManager.GameplayKeys keys) => InputManager.Instance.UnLockKeys(keys);

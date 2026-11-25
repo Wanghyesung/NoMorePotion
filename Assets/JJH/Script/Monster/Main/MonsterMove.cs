@@ -27,6 +27,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
     [Header("AI 네비게이션")]
     public NavMeshAgent agent;
+    public bool isGiant;
 
     [Header("본체 관련")]
     public float nextMoveDist;
@@ -113,12 +114,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         if(agent == null)
             agent = GetComponent<NavMeshAgent>();
 
-        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2f, NavMesh.AllAreas))
-        {
-            transform.position = hit.position;
-            agent.Warp(hit.position);
-        }
-        if(anim == null)
+        //SnapToNavMesh();
+
+        if (anim == null)
             anim = GetComponent<MonsterAnimationController>();
         if (combat == null)
             combat = GetComponent<MonsterCombat>();
@@ -154,6 +152,26 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     {
         base.OnDisable();
         StopAI();
+    }
+
+    public bool SnapToNavMesh()
+    {
+        NavMeshQueryFilter filter = new()
+        {
+            agentTypeID = agent.agentTypeID,
+            areaMask = agent.areaMask
+        };
+
+        float search = Mathf.Max(2f, agent.radius * 2f);
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, search, filter))
+        {
+            Debug.LogWarning($"[{name}] 주변 {search:F1}m 안에 이 에이전트용 NavMesh가 없음", this);
+            return false;
+        }
+
+        transform.position = hit.position;
+        if (agent.enabled) agent.Warp(hit.position);
+        return true;
     }
 
     /// <summary>
@@ -324,7 +342,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// <returns></returns>
     public async UniTask StartAI(float speed, MonsterCombat combat)
     {
+        SnapToNavMesh();
         if (!agent.enabled) agent.enabled = true;
+
         attackSelector.ResetCooldowns();
         StopAI();
         anim.AnimatorRebind();
@@ -338,6 +358,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         }
 
         reachability.ResetState();
+
         aiCts = new CancellationTokenSource();
         CancellationToken token = aiCts.Token;
         this.combat = combat;
@@ -478,7 +499,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         {
             attackTimer = Mathf.Min(attackTimer + FSM_TIMER / MIL_SEC_F, attackSpeed);
 
-            if (!IsAnimation && Time.time >= decisionLockUntil)
+            if (!IsAnimation && Time.time >= decisionLockUntil && agent.isOnNavMesh)
             {
                 IMonsterState data = UpdateState();
                 
@@ -502,6 +523,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     /// </summary>
     protected virtual void SyncLocomotion()
     {
+        // 켜져 있어도 NavMesh 위가 아니면 경로·정지 상태를 읽을 수 없음
+        if (!agent.enabled || !agent.isOnNavMesh) return;
+
         bool moving = agent.enabled && !agent.isStopped && agent.hasPath &&
                       agent.desiredVelocity.sqrMagnitude > 0.01f;
         bool run = moving && agent.speed > walkSpeed + 0.01f;
