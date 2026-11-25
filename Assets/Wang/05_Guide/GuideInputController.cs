@@ -2,17 +2,24 @@ using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
+using Enzeun.SO;
+using UnityEngine.Events;
 
 /// <summary>씬의 UnityEvent에서 런타임 InputManager를 호출하기 위한 연결 컴포넌트입니다.</summary>
 public sealed class GuideInputController : MonoBehaviour
 {
+    [SerializeField] private UnityEvent treePotionPrepared = new();
+
     public void ClearPotion() => GameSessionManager.Instance.LocalPlayer.GetComponent<Hand>().ClearPotion();
 
-    // 안내 종료 시 개인 슬롯의 포션만 제거한다. UI는 네트워크 변경 알림으로 갱신된다.
-    public void ClearInventoryPotions() => ClearInventoryPotionsAsync().Forget();
+    public void RestorePlayerStatus() => GameSessionManager.Instance.LocalPlayer.GetComponent<Player>().RestorePlayerStatus();
 
-    private async UniTask ClearInventoryPotionsAsync()
+    // 개인 슬롯 연습을 정리한 뒤, 다음 나무 단계에서 쓸 포션을 준비한다.
+    public void PrepareTreePotion(PotionData potion) => PrepareTreePotionAsync(potion).Forget();
+
+    private async UniTask PrepareTreePotionAsync(PotionData potion)
     {
+        var token = destroyCancellationToken;
         InventoryNetworkSyncManager manager = InventoryNetworkSyncManager.Instance;
         PersonalInventory personal = manager.State.GetPersonal(manager.LocalActor);
         if (personal == null)
@@ -23,11 +30,30 @@ public sealed class GuideInputController : MonoBehaviour
             if (personal.Slots[i].Kind == InventorySlotKind.Potion)
                 requests.Add(manager.TakeOutQuickSlotAsync(i));
 
-        // 현재 슬롯의 요청을 먼저 모두 보낸 뒤, 다음 안내에서 지급하는 포션과 분리한다.
+        // 제거 응답을 전부 받은 다음 지급해야 새 포션이 함께 지워지지 않는다.
         InventoryResult[] results = await UniTask.WhenAll(requests);
+        if (token.IsCancellationRequested)
+            return;
         foreach (InventoryResult result in results)
             if (!result.Success)
+            {
                 Debug.LogError($"[GuideInputController] 개인 포션 정리 실패: {result.Reason}", this);
+                return;
+            }
+
+        // 화면의 4번 퀵슬롯은 배열 인덱스 3이다.
+        InventoryResult granted = await manager.GrantPotionAsync(
+            ContainerRef.Personal(manager.LocalActor, 3), potion.potionID);
+        if (token.IsCancellationRequested)
+            return;
+        if (!granted.Success)
+        {
+            Debug.LogError($"[GuideInputController] 벌목 포션 지급 실패: {granted.Reason}", this);
+            return;
+        }
+
+        // 지급 완료 후에만 UnityEvent로 인벤토리 상호작용을 끈다.
+        treePotionPrepared.Invoke();
     }
 
     public void LockAllKeys() => InputManager.Instance.LockAllKeys();

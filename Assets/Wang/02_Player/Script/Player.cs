@@ -213,20 +213,7 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
 
         bool wasDead = character.HP <= 0;
         CancelPending();
-
-        if (buffContainer != null)
-        {
-            buffContainer.Clear();
-
-            // 포션 등이 건 효과만 지우고, 생존 상태 구간이 거는 효과(예: 정신력 초기값 50 의 멍청함)는 현재 구간에 맞게 다시 건다.
-            if (SurviveStatusManager.Instance != null)
-                SurviveStatusManager.Instance.ResetAllStatus();
-        }
-
-        character.HP = character.MaxHP;
-        ConfusePotionUse = false;
-        fsm.ReverseMovement = false;
-        fsm.MoveSpeedMultiplier = 1f;
+        RestorePlayerStatus();
 
         if (ragdoll != null)
             ragdoll.Restore();
@@ -239,6 +226,24 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
         // 최초 생성 시 초기화는 제외하고, 실제 부활만 다른 클라이언트에 전달한다.
         if (wasDead == true && PhotonNetwork.InRoom && photonView != null && photonView.ViewID != 0)
             photonView.RPC(nameof(RpcRevive), RpcTarget.Others, transform.position, transform.rotation);
+    }
+
+    // 전투 전 회복에도 사용한다. 체력은 최대치, 생존 수치는 각 매니저의 초기값으로 복원한다.
+    public void RestorePlayerStatus()
+    {
+        if (IsLocalPlayer == false)
+            return;
+
+        if (buffContainer != null)
+            buffContainer.Clear();
+        if (SurviveStatusManager.Instance != null)
+            SurviveStatusManager.Instance.ResetAllStatus();
+
+        character.HP = character.MaxHP;
+        ConfusePotionUse = false;
+        fsm.ReverseMovement = false;
+        fsm.MoveSpeedMultiplier = 1f;
+        fsm.Unfreeze();
     }
 
     [PunRPC]

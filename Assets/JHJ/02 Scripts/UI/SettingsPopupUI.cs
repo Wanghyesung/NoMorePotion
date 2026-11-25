@@ -17,6 +17,7 @@ public class SettingsPopupUI : MonoBehaviour
 
     [Header("탭")]                                
     [SF] private Toggle soundTab;
+    [SF] private Toggle minimapTab;
 
     [Header("사운드")]
     [SF] private Slider masterSlider;
@@ -29,9 +30,15 @@ public class SettingsPopupUI : MonoBehaviour
     [Header("게임")]
     [SF] private TMP_Text toTitleText;  // 버튼라벨
 
+    [Header("미니맵")]
+    [SF] private Toggle minimapRotateToggle;
+    [SF] private Toggle minimapFixedToggle;
+
+
     private float savedMaster;
     private float savedBgm;
     private float savedSfx;
+    private bool savedMinimapRotate;
     private const float VOLUME_TOLERANCE = 0.001f;
     private bool isInGame;
 
@@ -50,7 +57,7 @@ public class SettingsPopupUI : MonoBehaviour
         masterSlider.onValueChanged.AddListener(OnMasterChanged);
         bgmSlider.onValueChanged.AddListener(OnBgmChanged);
         sfxSlider.onValueChanged.AddListener(OnSfxChanged);
-
+        minimapRotateToggle.onValueChanged.AddListener(OnMinimapRotateChanged);
     }
 
     #region 열기/닫기
@@ -59,6 +66,7 @@ public class SettingsPopupUI : MonoBehaviour
         if (gameObject.activeSelf)
             return;
 
+        // 게임 탭
         NetworkFlowManager manager = NetworkFlowManager.Instance;
 
         FlowState state = manager != null ? manager.CurrentState : FlowState.Title;
@@ -72,11 +80,21 @@ public class SettingsPopupUI : MonoBehaviour
         if (toTitleText != null)
             toTitleText.text = isInGame ? "게임 나가기" : "타이틀로 돌아가기";
 
-        CacheCurrentVolumes();
+
+        // 사운드탭
+        CacheCurrentSettings();
 
         InitSlider(masterSlider, masterText, MMSoundManager.MMSoundManagerTracks.Master);
         InitSlider(bgmSlider, bgmText, MMSoundManager.MMSoundManagerTracks.Music);
         InitSlider(sfxSlider, sfxText, MMSoundManager.MMSoundManagerTracks.Sfx);
+
+
+        // 미니맵 탭
+        bool rotate = MinimapSettings.RotateWithPlayer;
+        Toggle onOption = rotate ? minimapRotateToggle : minimapFixedToggle;
+        Toggle offOption = rotate ? minimapFixedToggle : minimapRotateToggle;
+        onOption.SetIsOnWithoutNotify(true);
+        offOption.SetIsOnWithoutNotify(false);
 
         // 사운드탭부터
         if (soundTab != null)
@@ -108,6 +126,7 @@ public class SettingsPopupUI : MonoBehaviour
         sm.SetVolumeMaster(savedMaster);
         sm.SetVolumeMusic(savedBgm);
         sm.SetVolumeSfx(savedSfx);
+        MinimapSettings.RotateWithPlayer = savedMinimapRotate;
         Close();
     }
 
@@ -128,16 +147,18 @@ public class SettingsPopupUI : MonoBehaviour
     private void Save()
     {
         MMSoundManager.Instance.SaveSettings();
-        CacheCurrentVolumes();
+        MinimapSettings.Save();
+        CacheCurrentSettings();
         RefreshSaveButton();
     }
 
-    private void CacheCurrentVolumes()
+    private void CacheCurrentSettings()
     {
         MMSoundManager sm = MMSoundManager.Instance;
         savedMaster = sm.GetTrackVolume(MMSoundManager.MMSoundManagerTracks.Master, false);
         savedBgm = sm.GetTrackVolume(MMSoundManager.MMSoundManagerTracks.Music, false);
         savedSfx = sm.GetTrackVolume(MMSoundManager.MMSoundManagerTracks.Sfx, false);
+        savedMinimapRotate = MinimapSettings.RotateWithPlayer;
     }
 
     // 저장된 값이랑 달라졌을때만 저장버튼 활성화
@@ -145,7 +166,8 @@ public class SettingsPopupUI : MonoBehaviour
     {
         saveBtn.interactable = IsChanged(masterSlider.value, savedMaster)
                             || IsChanged(bgmSlider.value, savedBgm)
-                            || IsChanged(sfxSlider.value, savedSfx);
+                            || IsChanged(sfxSlider.value, savedSfx)
+                            || minimapRotateToggle.isOn != savedMinimapRotate;
     }
 
     private bool IsChanged(float current, float saved)
@@ -252,6 +274,14 @@ public class SettingsPopupUI : MonoBehaviour
     private UniTask<bool> Confirm(string message)
     {
         return confirmPopup != null ? confirmPopup.ShowAsync(message) : UniTask.FromResult(true);
+    }
+    #endregion
+
+    #region 미니맵
+    private void OnMinimapRotateChanged(bool isOn)
+    {
+        MinimapSettings.RotateWithPlayer = isOn;
+        RefreshSaveButton();
     }
     #endregion
 }
