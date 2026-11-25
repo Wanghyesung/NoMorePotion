@@ -2055,5 +2055,86 @@ namespace Enzeun.Runtime
             return reader.ReadBytes(length);
         }
         #endregion
+
+        #region Save (진희진)
+        /// <summary>
+        /// 가장 큰 포션 번호 찾기
+        /// </summary>
+        public int GetMaxPotionInstanceId()
+        {
+            int max = 0;
+
+            // 공용 인벤토리
+            foreach(PotionInstance potion in Pack.Potions.Items)
+                max = Mathf.Max(max, potion.InstanceId);
+
+            // 창고
+            foreach (PotionInstance potion in Storage.Potions.Items)
+                max = Mathf.Max(max, potion.InstanceId);
+
+            // 개인 인벤토리
+            foreach (KeyValuePair<int, PersonalInventory> entry in _personals)
+            {
+                PersonalInventory inventory = entry.Value;
+                foreach(InventorySlot slot in inventory.Slots)
+                {
+                    if (slot.Kind == InventorySlotKind.Potion)
+                        max = Mathf.Max(max, slot.Potion.InstanceId);
+                }
+            }
+
+            // 시체상자
+            foreach (KeyValuePair<int, CorpseBox> entry in _corpses)
+            {
+                CorpseBox box = entry.Value;
+                foreach(InventorySlot slot in box.Slots.Slots)
+                {
+                    if (slot.Kind == InventorySlotKind.Potion)
+                        max = Mathf.Max(max, slot.Potion.InstanceId);
+                }
+            }
+
+            return max;
+        }
+
+        // [세이브용 사본 전용] 네트워크 전송없음. 실제 게임 상태에서 호출금지
+        public void MergePersonalsIntoPack(out int lost)
+        {
+            lost = 0;
+
+            foreach (KeyValuePair<int, PersonalInventory> entry in _personals)
+            {
+                PersonalInventory inventory = entry.Value;
+                InventorySlot[] slots = inventory.TakeAll();
+
+                foreach(InventorySlot slot in slots)
+                {
+                    if (slot.IsEmpty)
+                        continue;
+
+                    if(slot.Kind == InventorySlotKind.Material)
+                    {
+                        int added = Pack.Materials.Add(slot.MaterialId, slot.Count);
+                        int rest = slot.Count - added;
+
+                        if (rest > 0)
+                            rest -= Storage.Materials.Add(slot.MaterialId, rest);
+
+                        lost += rest;
+                    }
+                    else
+                    {
+                        if (!Pack.Potions.IsFull)
+                            Pack.Potions.Add(slot.Potion);
+                        else if (!Storage.Potions.IsFull)
+                            Storage.Potions.Add(slot.Potion);
+                        else
+                            lost += 1;
+                    }
+                }
+            }
+                _personals.Clear();
+        }
+        #endregion
     }
 }
