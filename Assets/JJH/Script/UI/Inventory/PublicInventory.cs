@@ -166,7 +166,7 @@ public class PublicInventory : ItemInventory
             view.Init(item);
             view.gameObject.SetActive(count > 0);
             materialViews[id] = view;
-            view.ShowCheckImage(IsCombinePartner(id)); // 현준 수정 : 새로 만든 아이콘도 현재 강조 상태로
+            RefreshHighlightView(id, view); // 현준 수정 : 새로 만든 아이콘도 현재 강조 상태로
         }
     }
 
@@ -184,7 +184,7 @@ public class PublicInventory : ItemInventory
 
         // 현준 수정 : 강조 중에 개수가 바뀌면 그 재료만 다시 판정 (같은 재료 짝은 개수 2개 기준이라 바뀔 수 있음)
         if (view != null && highlightMaterialId != 0)
-            view.ShowCheckImage(IsCombinePartner(materialId));
+            RefreshHighlightView(materialId, view);
     }
 
     #endregion
@@ -232,7 +232,19 @@ public class PublicInventory : ItemInventory
         highlightMaterialId = combineHighlightEnabled ? materialId : 0;
 
         foreach (KeyValuePair<int, InventoryIcon> pair in materialViews)
-            pair.Value.ShowCheckImage(IsCombinePartner(pair.Key));
+            RefreshHighlightView(pair.Key, pair.Value);
+    }
+
+    // 아이콘 하나의 체크 표시를 다시 정합니다.
+    // 왼쪽 칸에 올린 재료 자신은, 자기 자신과도 조합되면(2개 이상) 회색을 풀어 "같은 재료로도 조합된다"를 보여 주고, 아니면 회색으로 둡니다.
+    // 강조를 끌 때(기준 0)는 알파를 건드리지 않습니다. (오른쪽 칸을 채울 때 BoundSlot 이 건 회색, Clear 의 RestoreAlpha 를 덮지 않기 위함)
+    private void RefreshHighlightView(int materialId, InventoryIcon view)
+    {
+        bool partner = IsCombinePartner(materialId);
+        view.ShowCheckImage(partner);
+
+        if (highlightMaterialId != 0 && materialId == highlightMaterialId)
+            view.SetAlpha(partner);
     }
 
     // 지금 기준 재료와 실제로 조합할 수 있는 재료인지 판정합니다. 같은 재료끼리는 2개 이상 있어야 합니다.
