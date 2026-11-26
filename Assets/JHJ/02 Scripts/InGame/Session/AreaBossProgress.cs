@@ -49,12 +49,12 @@ private void OnDestroy()
         MarkCleared(boss.SpawnArea);
     }
 
-    public void MarkCleared(SpawnAreaType area)
+    public static void MarkCleared(SpawnAreaType area)
     {
         if (!PhotonNetwork.IsMasterClient || PhotonNetwork.CurrentRoom == null)
             return;
 
-        if (IsCleared(area))
+        if (RoomProps.IsAreaBossCleared(PhotonNetwork.CurrentRoom, area))
             return;
 
         PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { RoomProps.AreaBossKey(area), true } });
@@ -71,4 +71,34 @@ private void OnDestroy()
             }
         }
     }
+
+#if UNITY_EDITOR
+    #region 디버그 (세이브 테스트용)
+    // 플레이 중 컴포넌트 ⋮ 메뉴에서 실행. 보스를 잡지 않고 클리어 상태만 만든다
+    [UnityEngine.ContextMenu("디버그: 평원 보스 클리어")]
+    private void DebugClearPlain() => DebugClear(SpawnAreaType.Plain);
+
+    [UnityEngine.ContextMenu("디버그: 숲 보스 클리어")]
+    private void DebugClearForest() => DebugClear(SpawnAreaType.Forest);
+
+    [UnityEngine.ContextMenu("디버그: 클리어 상태 출력")]
+    private void DebugLogCleared()
+    {
+        foreach (SpawnAreaType area in (SpawnAreaType[])System.Enum.GetValues(typeof(SpawnAreaType)))
+            UnityEngine.Debug.Log($"[AreaBossProgress] {area} : {(IsCleared(area) ? "클리어" : "-")}");
+    }
+
+    private void DebugClear(SpawnAreaType area)
+    {
+        if (PhotonNetwork.CurrentRoom == null)
+        {
+            UnityEngine.Debug.LogWarning("[AreaBossProgress] 방 밖이라 클리어 표시 불가 (플레이 중에 실행)");
+            return;
+        }
+
+        MarkCleared(area);
+        UnityEngine.Debug.Log($"[AreaBossProgress] 디버그 클리어 : {area}");
+    }
+    #endregion
+#endif
 }

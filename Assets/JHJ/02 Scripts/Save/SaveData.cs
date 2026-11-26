@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System;
+using static JJH_Enums;
 
 /// <summary>
 /// 세이브 슬롯 한개에 들어가는 묶음 /  로직없이 값만
@@ -10,9 +12,12 @@ public class SaveData
     public const int CURRENT_VERSION = 1;
 
     public int Version = CURRENT_VERSION;   // 예전 파일 걸러내는 용도로 버전 필드 추가
-    public DateTime SavedAt;    // 슬롯 UI 표시용
-    public TimeState Clock;     // 게임 내 일차, 낮/밤, 경과 시간
-    public int WorldSeed;       // 월드 배치 시드, 0 = 없음
-    public string WorldObjects;  // 월드오브젝트NetState 스냅샷 -> Base64로 바꾼 문자열
-    public string Inventory;    // TeamInventoryState 스냅샷 (개인 인벤 합친 뒤) Base64
+    public DateTime SavedAt;                // 슬롯 UI 표시용
+    public TimeState Clock;                 // 게임 내 일차, 낮/밤, 경과 시간
+    public int WorldSeed;                   // 월드 배치 시드, 0 = 없음
+    public string WorldObjects;             // 월드오브젝트NetState 스냅샷 -> Base64로 바꾼 문자열
+    public string Inventory;                 // TeamInventoryState 스냅샷 (개인 인벤 합친 뒤) Base64
+    public List<SpawnAreaType> ClearedBossArea; //클리어한 지역 목록
+    public int CrystalMaxHP;                    // 0 = 저장안됨
+    public int CrystalHP;
 }

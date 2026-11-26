@@ -1,4 +1,6 @@
 using Enzeun.Runtime;
+using static JJH_Enums;
+using System.Collections.Generic;
 using Photon.Pun;
 using R3;
 using System;
@@ -13,6 +15,8 @@ using SF = UnityEngine.SerializeField;
 public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
+
+    private CrystalCore crystal;
 
     // [임시] 테스트용으로만 사용
     [Header("디버그")]
@@ -37,12 +41,15 @@ public class SaveManager : MonoBehaviour
             DebugBeginSession();
 
         ApplySavedSeed();       // 월드 시드
+        ApplySavedBossProgress(); // 지역보스 진행도
     }
 
     private void Start()
     {
         if (GameSessionManager.Instance == null)
             return;
+
+        crystal = FindAnyObjectByType<CrystalCore>();
 
         GameSessionManager.Instance.Phase
             .Where(p => p == SessionPhase.Playing)
@@ -121,9 +128,45 @@ public class SaveManager : MonoBehaviour
         // 인벤토리
         string inventory = CaptureInventory();
 
-        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects, Inventory = inventory};
+        // 지역보스 클리어 진행도
+        List<SpawnAreaType> cleared = new List<SpawnAreaType>();
+
+        foreach (SpawnAreaType area in (SpawnAreaType[])Enum.GetValues(typeof(SpawnAreaType)))
+        {
+            if (RoomProps.IsAreaBossCleared(PhotonNetwork.CurrentRoom, area))
+                cleared.Add(area);
+        }
+
+        // 수정구슬
+        int maxHp = 0;
+        int hp = 0;
+        if(crystal != null)
+        {
+            maxHp = crystal.MaxHP;
+            hp = crystal.HP;
+        }
+
+        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects, Inventory = inventory, ClearedBossArea = cleared, CrystalMaxHP = maxHp, CrystalHP = hp};
     }
 
+    // 지역보스 진행도 불러오기
+    private void ApplySavedBossProgress()
+    {
+        SaveData data = SaveSession.Loaded;
+
+        if (data == null || data.ClearedBossArea == null)
+            return;
+
+        if (!PhotonNetwork.InRoom || !GameAuthority.HasAuthority)
+            return;
+
+        foreach (SpawnAreaType area in data.ClearedBossArea)
+            AreaBossProgress.MarkCleared(area);
+        
+        Debug.Log($"[SaveManager] 저장된 지역보스 클리어 진행도 {data.ClearedBossArea.Count}개 적용");
+    }
+
+    // 월드 시드 불러오기
     private void ApplySavedSeed()
     {
         SaveData data = SaveSession.Loaded;
@@ -148,7 +191,11 @@ public class SaveManager : MonoBehaviour
         RestoreWorldObjects(data.WorldObjects);
         RestoreInventory(data.Inventory);
 
-        // TODO: 지역보스 진행도, 수정구슬 hp
+        if (data.CrystalMaxHP > 0 && crystal != null)
+        {
+            crystal.LoadHP(data.CrystalMaxHP, data.CrystalHP);
+            Debug.Log($"[SaveManager] 수정구슬 HP 복원 : {data.CrystalHP}/{data.CrystalMaxHP}");
+        }
     }
 
     // 월드오브젝트 남은 횟수 복원
