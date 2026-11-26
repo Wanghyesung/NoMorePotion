@@ -41,8 +41,13 @@ public class SaveManager : MonoBehaviour
 
         Instance = this;
 
+        // 현재 멀티는 세이브 없음
+        // TODO: 추후 수정
+        if (!PhotonNetwork.OfflineMode)
+            SaveSession.Clear();
+
         // 타이틀 안거치고 씬 바로 실행한 경우에만
-        if (enableDebug && !SaveSession.HasSlot())
+        if (enableDebug && !SaveSession.HasSlot() && PhotonNetwork.OfflineMode)
             DebugBeginSession();
 
         if (SaveSession.Loaded != null && SaveSession.Loaded.Clock != null)
