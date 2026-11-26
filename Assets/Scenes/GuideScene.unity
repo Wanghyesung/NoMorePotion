@@ -665,6 +665,11 @@ MonoBehaviour:
   m_Center: {x: 0.1576004, y: 3.5880241, z: 1.7213931}
   m_Area: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &20339501 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2947045540964591543, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+  m_PrefabInstance: {fileID: 606325813}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &20394481
 GameObject:
   m_ObjectHideFlags: 0
@@ -19669,6 +19674,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
@@ -19676,7 +19685,19 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1001719268}
     - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 1001719270}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 606325819}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
@@ -19684,8 +19705,28 @@ PrefabInstance:
       value: HideGuideArrow
       objectReference: {fileID: 0}
     - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: ClearPotion
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Begin
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: GuideManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: GuideInputController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GuidePotionRefill, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2947045540964591543, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
       propertyPath: m_Name
@@ -19738,14 +19779,17 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2947045540964591543, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 606325819}
   m_SourcePrefab: {fileID: 100100000, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
 --- !u!114 &606325814 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1074016496518365033, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
   m_PrefabInstance: {fileID: 606325813}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 20339501}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5a5b2a0edb97c349839dadf0b25e1ec, type: 3}
@@ -19756,6 +19800,18 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4819774982017556659, guid: 6d99738c7530e3848afe0d8dceba1994, type: 3}
   m_PrefabInstance: {fileID: 606325813}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &606325819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 20339501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92317c988e251df4fbdefdfc12a7391d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuidePotionRefill
 --- !u!1001 &616560253
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -38671,6 +38727,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1095361750 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5067281245688191972, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+  m_PrefabInstance: {fileID: 4843208166430796770}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1097707254
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80465,14 +80526,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.size
-      value: 2
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.size
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1001719268}
     - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[2].m_Target
+      value: 
+      objectReference: {fileID: 1001719270}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 4843208166430796776}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[2].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
@@ -80480,8 +80557,28 @@ PrefabInstance:
       value: HideGuideArrow
       objectReference: {fileID: 0}
     - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[2].m_MethodName
+      value: ClearPotion
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Begin
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
       propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: GuideManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: endEvent.m_PersistentCalls.m_Calls.Array.data[2].m_TargetAssemblyTypeName
+      value: GuideInputController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      propertyPath: startEvent.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GuidePotionRefill, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 5067281245688191972, guid: 9212057ad849494438a8b8d60300947c, type: 3}
       propertyPath: m_Name
@@ -80530,14 +80627,17 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5067281245688191972, guid: 9212057ad849494438a8b8d60300947c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4843208166430796776}
   m_SourcePrefab: {fileID: 100100000, guid: 9212057ad849494438a8b8d60300947c, type: 3}
 --- !u!114 &4843208166430796771 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1221922487578091488, guid: 9212057ad849494438a8b8d60300947c, type: 3}
   m_PrefabInstance: {fileID: 4843208166430796770}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1095361750}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9861ff133b7e7f14cbed8c2963495c96, type: 3}
@@ -80548,6 +80648,18 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8484487378071400191, guid: 9212057ad849494438a8b8d60300947c, type: 3}
   m_PrefabInstance: {fileID: 4843208166430796770}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4843208166430796776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1095361750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92317c988e251df4fbdefdfc12a7391d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GuidePotionRefill
 --- !u!224 &5010617743613140975
 RectTransform:
   m_ObjectHideFlags: 0

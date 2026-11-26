@@ -57,6 +57,7 @@ public sealed class Hand : MonoBehaviour
     public event Action OnPotionHeld;
     public event Action OnPotionDrunk;
     public event Action OnPotionThrown;
+    public event Action<PotionInstance> OnThrownPotionLanded;
 
     /// <summary>
     /// 흔들기 시작 시 알림. 첫 번째 인자는 왼손, 두 번째 인자는 오른손의 포션입니다.
@@ -208,21 +209,26 @@ public sealed class Hand : MonoBehaviour
         foreach (PotionInstance instance in potions)
         {
             // 이미 인벤토리에서 빠진 포션이라 들 손이 없으면 사라집니다. (요청 중에는 새로 꺼낼 수 없어 보통 생기지 않음)
-            if (TryGetEmptySide(out Side side) == false)
+            if (!TryHoldPotion(instance))
             {
                 Debug.LogWarning("[Hand] : 포션을 들 빈 손이 없어 꺼낸 포션이 사라졌습니다.");
                 break;
             }
-
-            GameObject potionObj = PhotonNetwork.Instantiate(itemPrefab.name, transform.position, Quaternion.identity);
-            Potion potion = potionObj.GetComponent<Potion>();
-
-            potion.Initialize(instance);
-            Hold(side, potion.potionMover);
-
-            playerView.RPC(nameof(RpcTakeOutPotion), RpcTarget.Others,
-                potionObj.GetComponent<PhotonView>().ViewID, (int)side, instance.Data.potionID);
         }
+    }
+
+    public bool TryHoldPotion(PotionInstance instance)
+    {
+        if (!player.IsLocalPlayer || !TryGetEmptySide(out Side side))
+            return false;
+
+        GameObject potionObj = PhotonNetwork.Instantiate(itemPrefab.name, transform.position, Quaternion.identity);
+        Potion potion = potionObj.GetComponent<Potion>();
+        potion.Initialize(instance);
+        Hold(side, potion.potionMover);
+        playerView.RPC(nameof(RpcTakeOutPotion), RpcTarget.Others,
+            potionObj.GetComponent<PhotonView>().ViewID, (int)side, instance.Data.potionID);
+        return true;
     }
 
     #region Reroll
@@ -326,7 +332,7 @@ public sealed class Hand : MonoBehaviour
 
         SetPotion(side, null);
         potion.transform.SetParent(null, true);
-        potion.Throw(throwData);
+        potion.Throw(throwData, OnThrownPotionLanded);
 
         // 다른 클라이언트도 같은 목표점과 높이로 포물선을 복원한다.
         playerView.RPC(nameof(RpcThrowPotion), RpcTarget.Others,

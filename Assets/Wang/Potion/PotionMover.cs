@@ -26,6 +26,7 @@ public class PotionMover : MonoBehaviour
     public PotionInstance PotionInstance => potion.Instance;
     public bool HasExploded { get; private set; }
     private bool canExplodeOnContact;
+    private System.Action<PotionInstance> onThrowLanded;
     private PhotonView photonView;
 
     private void Awake() => photonView = GetComponent<PhotonView>();
@@ -114,8 +115,9 @@ public class PotionMover : MonoBehaviour
         movement.AttachTo(socket);
     }
 
-    public void Throw(ThrowData data)
+    public void Throw(ThrowData data, System.Action<PotionInstance> onLanded = null)
     {
+        onThrowLanded = onLanded;
         movement.enabled = true;
         movement.Launch(data, mask);
         canExplodeOnContact = true;
@@ -159,6 +161,10 @@ public class PotionMover : MonoBehaviour
         }
 
         PlayExplosion(position, impact, instance, attackMultiplier);
+        // 폭발로 나무가 소진될 수 있으므로 효과 판정이 끝난 뒤 던질 때의 구독자에게 알린다.
+        if (impact)
+            onThrowLanded?.Invoke(instance);
+        onThrowLanded = null;
         if (networked)
             PhotonNetwork.Destroy(gameObject);
         else
