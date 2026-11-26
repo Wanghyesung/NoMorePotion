@@ -180,6 +180,10 @@ public class CombinationController : ItemInventory
         rightFull = true;
         slot.SetAlpha();
         SetHighlightMaterial(0); // 현준 수정 : 두 칸이 다 찼으니 강조 끄기
+
+        // 현준 수정 : 강조 중에 왼쪽 재료 칸이 선명해졌을 수 있으므로(같은 재료 조합 안내), 두 칸이 차면 왼쪽 칸도 다시 회색으로
+        if (leftSlot.boundSlot != null)
+            leftSlot.boundSlot.SetAlpha();
         PotionData result = isMaterial
             ? dm.GetPotionDataFromRecipe(leftSlot.id, rightSlot.id)
             : dm.GetUpgradedPotion(leftSlot.id, rightSlot.id);
