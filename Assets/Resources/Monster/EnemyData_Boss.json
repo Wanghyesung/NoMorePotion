@@ -56,13 +56,31 @@
     "AtkPoint": 1000,
     "AttackPower": 3,
     "Immune": {
-      "1": 35,
+      "1": 40,
       "2": -80,
-      "3": 50,
+      "3": 70,
       "4": 50
     },
     "SpawnArea": "Glacier",
-    "MinCounter":  1000,
+    "MinCounter": 1000,
+    "BossSubData": {
+    }
+  },
+  {
+    "Id": 41005,
+    "HP": 5000,
+    "Speed": 4,
+    "DamageType": "Fire",
+    "AtkPoint": 80,
+    "AttackPower": 3,
+    "Immune": {
+      "1": 50,
+      "2": 90,
+      "3": -100,
+      "4": 50
+    },
+    "SpawnArea": "Volcano",
+    "MinCounter": 400,
     "BossSubData": {
     }
   },
@@ -76,7 +94,8 @@
     "AttackPower": 1,
     "Immune": {
       "1": 50,
-      "3": -10,
+      "2": 50,
+      "3": -20,
       "4": -10
     },
     "SpawnArea": "Castle",

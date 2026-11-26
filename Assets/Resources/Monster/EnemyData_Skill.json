@@ -85,6 +85,7 @@
     "StatusDuration": 7.5,
     "Scripted": false
   },
+  // 고대 서리 골렘
   {
     "UseMonsterId": 41004,
     "SkillNum": 1,
@@ -111,6 +112,21 @@
     "StatusEffectId": 61011,
     "StatusPercent": -35,
     "StatusDuration": 5,
+    "Scripted": false
+  },
+  // 데몬 소서러
+  {
+    "UseMonsterId": 41005,
+    "SkillNum": 1,
+    "Name": "Dash",
+    "SkillDamage": 500,
+    "MinRange": 0,
+    "MaxRange": 4,
+    "Cooldown": 5,
+    "Weight": 3,
+    "StatusEffectId": 61015,
+    "StatusPercent": 50,
+    "StatusDuration": 3,
     "Scripted": false
   },
   // 마왕
