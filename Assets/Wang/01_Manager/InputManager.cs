@@ -99,6 +99,8 @@ public sealed class InputManager : MonoBehaviour
     private PlayerInputInfo inputInfo;
     private bool focused = true;
     private bool cursorLocked;
+    private bool respawnCursor;
+    private bool requestedCursorVisible;
     private bool gameplayInputEnabled = true;
     public PlayerInputInfo InputInfo => inputInfo;
 
@@ -207,6 +209,7 @@ public sealed class InputManager : MonoBehaviour
 
         bool isLobby = scene.name == SceneNames.OUT_GAME;
         cursorLocked = false;
+        respawnCursor = false;
         SetInputEnabled(!isLobby);
         if (isLobby)
         {
@@ -278,9 +281,17 @@ public sealed class InputManager : MonoBehaviour
         RefreshCursorState(locked || AltAction.IsPressed());
     }
 
+    // 부활 팝업이 닫히면 인벤토리와 Alt 입력이 마지막으로 요청한 상태를 다시 적용한다.
+    public void SetRespawnCursor(bool visible)
+    {
+        respawnCursor = visible;
+        RefreshCursorState(requestedCursorVisible);
+    }
+
     private void RefreshCursorState(bool bState)
     {
-        bState |= SceneManager.GetActiveScene().name == SceneNames.OUT_GAME;
+        requestedCursorVisible = bState;
+        bState |= respawnCursor || SceneManager.GetActiveScene().name == SceneNames.OUT_GAME;
         Cursor.lockState = bState ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = bState;
 

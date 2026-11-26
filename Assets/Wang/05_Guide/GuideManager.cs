@@ -67,6 +67,11 @@ public sealed class GuideManager : MonoBehaviour
         }
 
         CurrentEvent = events[currentIndex];
+        if (CurrentEvent.EventText == null)
+        {
+            CurrentEvent.Enter(this);
+            return;
+        }
         // 인벤토리 안내는 Enter 대신 조합·아이템 이동 행동으로 문장을 넘긴다.
         if (CurrentEvent.PanelType == GuidePanelType.Inventory)
         {

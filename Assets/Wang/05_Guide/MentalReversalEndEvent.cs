@@ -60,7 +60,8 @@ public sealed class MentalReversalEndEvent : GuideEndEvent
             SetMentalStrength(previousMentalStrength);
     }
 
-    private void SetMentalStrength(int value)
+    // 가이드 이벤트에서 목표 수치를 지정해 기존 정신력 증감 처리를 거친다.
+    public void SetMentalStrength(int value)
     {
         int amount = value - mentalStrengthManager.mentalStrength;
         if (amount > 0)

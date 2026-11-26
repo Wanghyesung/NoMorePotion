@@ -227,6 +227,18 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
             photonView.RPC(nameof(RpcRevive), RpcTarget.Others, transform.position, transform.rotation);
     }
 
+    // 부활 RPC에 마을 좌표가 실리도록 플레이어를 먼저 옮긴 뒤 상태를 복구한다.
+    public void RespawnAt(Transform point)
+    {
+        if (!IsLocalPlayer || character.HP > 0)
+            return;
+
+        transform.SetPositionAndRotation(point.position, point.rotation);
+        fsm.Rigidbody.position = point.position;
+        fsm.Rigidbody.rotation = point.rotation;
+        RefreshPlayer();
+    }
+
     // 전투 전 회복에도 사용한다. 체력은 최대치, 생존 수치는 각 매니저의 초기값으로 복원한다.
     public void RestorePlayerStatus()
     {
@@ -308,11 +320,6 @@ public sealed class Player : MonoBehaviour, IDamageable, IHealable
             if (Instance.HasGameplayInput == true && fsm.IsFrozen == false && fsm.IsRotationLocked == false)
                 SetLookPitch(lookPitch - Instance.InputInfo.Delta.y * pitchSensitivity);
             fsm.UpdateState();
-        }
-
-        if(Keyboard.current[Key.F8].wasPressedThisFrame)
-        {
-            RefreshPlayer();
         }
     }
 

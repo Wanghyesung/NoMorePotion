@@ -39,6 +39,7 @@ public class GameSessionManager : MonoBehaviour
     [SerializeField] private Player playerPrefab;
     [SerializeField] private PlayerUIBinding playerBinder;
     [SerializeField] private Transform spawnPoint;
+    [SerializeField] private RespawnManager respawnManager;
     private GameObject spawnedPlayer;
 
     public GameObject LocalPlayer => spawnedPlayer;
@@ -189,7 +190,10 @@ public class GameSessionManager : MonoBehaviour
         if (spawnedPlayer == null)
             return false;
 
-        playerBinder.SetPlayer(spawnedPlayer.GetComponent<Player>());
+        Player localPlayer = spawnedPlayer.GetComponent<Player>();
+        playerBinder.SetPlayer(localPlayer);
+        if (respawnManager != null)
+            respawnManager.Bind(localPlayer, point);
 
         return true;
     }
