@@ -46819,25 +46819,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 5132477496775431634, guid: a9c5a5709496cc54b87a409c42d28fde, type: 3}
-      propertyPath: m_Size.x
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5132477496775431634, guid: a9c5a5709496cc54b87a409c42d28fde, type: 3}
-      propertyPath: m_IsTrigger
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6292848480951806359, guid: a9c5a5709496cc54b87a409c42d28fde, type: 3}
       propertyPath: sceneViewId
       value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 8051977815152774019, guid: a9c5a5709496cc54b87a409c42d28fde, type: 3}
-      propertyPath: skills.Array.data[0].FrontOffset
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8051977815152774019, guid: a9c5a5709496cc54b87a409c42d28fde, type: 3}
-      propertyPath: skills.Array.data[0].WarningSize
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8064635412473216829, guid: a9c5a5709496cc54b87a409c42d28fde, type: 3}
       propertyPath: m_Name

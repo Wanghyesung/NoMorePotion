@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &99533951589101751
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6387430771212080875}
+  m_Layer: 0
+  m_Name: Center
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6387430771212080875
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99533951589101751}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8731840580969998922}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &404191095539246675
 GameObject:
   m_ObjectHideFlags: 0
@@ -436,7 +467,9 @@ MonoBehaviour:
         Owner: {fileID: 7499043034536677504}
         DebugActive: 0
         Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
-        RandomSfx: []
+        RandomSfx:
+        - {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        - {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         TestPlayButton:
           ButtonText: Debug Play Sound
         TestStopButton:
@@ -454,7 +487,7 @@ MonoBehaviour:
         PanStereo: 0
         SpatialBlend: 1
         DopplerLevel: 1
-        Spread: 0
+        Spread: 180
         RolloffMode: 0
         MinDistance: 30
         MaxDistance: 50
@@ -603,6 +636,75 @@ MonoBehaviour:
         Velocity: {x: 0, y: 0.5, z: 0}
         ClearImpulseOnStop: 1
         DrawGizmos: 0
+--- !u!1 &990192170276259906
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3974309649812358060}
+  - component: {fileID: 5557127262534572363}
+  - component: {fileID: 5753630276787184084}
+  m_Layer: 9
+  m_Name: Skill2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &3974309649812358060
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990192170276259906}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8731840580969998922}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &5557127262534572363
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990192170276259906}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 7.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5753630276787184084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990192170276259906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab229852c5a83646a6feb9f55a0f65d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
+  combat: {fileID: 0}
+  sectorAngle: 360
+  skillNum: 2
 --- !u!1 &8272853575225516037
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,8 +1021,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.5, y: 1, z: 1.5}
-  m_Center: {x: 0, y: 0.5, z: 0}
+  m_Size: {x: 2, y: 2, z: 2}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &4806953597843504801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -936,6 +1038,75 @@ MonoBehaviour:
   combat: {fileID: 0}
   sectorAngle: 360
   skillNum: 1
+--- !u!1 &8412471949917551351
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3378362883709581827}
+  - component: {fileID: 4123481246772091850}
+  - component: {fileID: 8886309528377041316}
+  m_Layer: 9
+  m_Name: Skill3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &3378362883709581827
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8412471949917551351}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8731840580969998922}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &4123481246772091850
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8412471949917551351}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 10
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8886309528377041316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8412471949917551351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab229852c5a83646a6feb9f55a0f65d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
+  combat: {fileID: 0}
+  sectorAngle: 360
+  skillNum: 3
 --- !u!1 &8871182084297678385
 GameObject:
   m_ObjectHideFlags: 0
@@ -1463,6 +1634,10 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: attackSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: nextMoveDist
       value: 3
       objectReference: {fileID: 0}
@@ -1522,6 +1697,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4131600410612169628}
+    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3974309649812358060}
+    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3378362883709581827}
+    - targetCorrespondingSourceObject: {fileID: 5116249262619016934, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6387430771212080875}
     - targetCorrespondingSourceObject: {fileID: 112949857088394901, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 854627349698682215}
@@ -1577,6 +1761,12 @@ MonoBehaviour:
   - SkillNum: 1
     Hitbox: {fileID: 5132477496775431634}
     FollowWarningSlot: -1
+  - SkillNum: 2
+    Hitbox: {fileID: 5557127262534572363}
+    FollowWarningSlot: -1
+  - SkillNum: 3
+    Hitbox: {fileID: 4123481246772091850}
+    FollowWarningSlot: -1
   sinkDuration: 2
   sinkMargin: 0.3
   damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
@@ -1631,27 +1821,27 @@ MonoBehaviour:
     FrontOffset: 2
     Impact: {fileID: 0}
   skills:
-  - HitEffect: {fileID: 0}
-    HitPoint: {fileID: 0}
+  - HitEffect: {fileID: 3455203728533863914, guid: c5ce4f16387ba16469ed6e50df1572a4, type: 3}
+    HitPoint: {fileID: 6387430771212080875}
     Warning: {fileID: 2891420028085579237, guid: 83af32817ae5a1a4d99cc253f1a254b4, type: 3}
     Place: 1
     WarningSize: 3
     FrontOffset: 0
     Impact: {fileID: 0}
-  - HitEffect: {fileID: 0}
-    HitPoint: {fileID: 0}
-    Warning: {fileID: 0}
-    Place: 1
-    WarningSize: 3
-    FrontOffset: 2
-    Impact: {fileID: 0}
-  - HitEffect: {fileID: 0}
-    HitPoint: {fileID: 0}
-    Warning: {fileID: 0}
-    Place: 1
-    WarningSize: 3
-    FrontOffset: 2
-    Impact: {fileID: 0}
+  - HitEffect: {fileID: 5182209764602882564, guid: e0523a03daf0c8f4a8122f7573718051, type: 3}
+    HitPoint: {fileID: 3974309649812358060}
+    Warning: {fileID: 4337120880848930166, guid: de0d3f1872767794c8263097b585786e, type: 3}
+    Place: 0
+    WarningSize: 7.5
+    FrontOffset: 0
+    Impact: {fileID: 2346263766765909354}
+  - HitEffect: {fileID: 1383950886581822, guid: 87e1defb3b9e3a84ea8409c85b066b5c, type: 3}
+    HitPoint: {fileID: 3378362883709581827}
+    Warning: {fileID: 4337120880848930166, guid: 16ad5275be79c1d4b816becb89dfaf07, type: 3}
+    Place: 0
+    WarningSize: 10
+    FrontOffset: 0
+    Impact: {fileID: 2346263766765909354}
   - HitEffect: {fileID: 0}
     HitPoint: {fileID: 0}
     Warning: {fileID: 0}

@@ -336,7 +336,9 @@ MonoBehaviour:
         Owner: {fileID: 1502527766328254640}
         DebugActive: 0
         Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
-        RandomSfx: []
+        RandomSfx:
+        - {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        - {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         TestPlayButton:
           ButtonText: Debug Play Sound
         TestStopButton:
@@ -345,16 +347,16 @@ MonoBehaviour:
         PoolSize: 10
         UseLegacyEventsMode: 0
         StopSoundOnFeedbackStop: 1
-        MinVolume: 1
+        MinVolume: 0.95
         MaxVolume: 1
-        MinPitch: 0.94
-        MaxPitch: 1.05
+        MinPitch: 0.9
+        MaxPitch: 1.1
         SfxAudioMixerGroup: {fileID: 0}
         Priority: 128
         PanStereo: 0
         SpatialBlend: 1
         DopplerLevel: 1
-        Spread: 0
+        Spread: 180
         RolloffMode: 0
         MinDistance: 30
         MaxDistance: 50
