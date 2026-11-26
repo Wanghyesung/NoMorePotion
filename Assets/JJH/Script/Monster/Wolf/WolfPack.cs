@@ -345,7 +345,7 @@ public class WolfPack : MonoBehaviourPun, IPoolable
     {
         engaged = value;
 
-        if (value) BossEvents.Engage(data, data.Name);
+        if (value) BossEvents.Engage(data, data.Name, alphaCombat.transform);
         else BossEvents.Disengage(data);
     }
     #endregion
