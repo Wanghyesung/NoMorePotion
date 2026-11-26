@@ -398,10 +398,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     protected virtual IMonsterState UpdateState()
     {
         IMonsterState result = null;
-        MonsterState nowState = MonsterState.None;
-
-        //스폰 중엔 판단 정지
-        if (state.GetStateType() == MonsterState.Spawn) return null;
+        
+        //스폰, 사망 중엔 판단 정지
+        MonsterState currentState = state.GetStateType();
+        if (currentState == MonsterState.Spawn || currentState == MonsterState.Death) return null;
 
         // 타겟이 죽었거나, 꺼졌거나, 파괴됐으면 타겟 종료
         if (!ReferenceEquals(nowTarget, null) && !AttackTarget.IsValid(nowTarget))
