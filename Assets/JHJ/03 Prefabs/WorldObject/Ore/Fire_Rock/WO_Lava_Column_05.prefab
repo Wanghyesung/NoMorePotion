@@ -80,6 +80,18 @@ PrefabInstance:
       value: WO_Lava_Column_05
       objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -126,6 +138,30 @@ PrefabInstance:
     - target: {fileID: 7310000000000000003, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: _networkId
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Center.x
+      value: -0.4111886
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Center.y
+      value: 4.4314213
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Center.z
+      value: -0.08343303
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Extents.x
+      value: 2.3509433
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Extents.y
+      value: 4.4314213
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Extents.z
+      value: 2.9265633
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7310000000000000023, guid: 3f07a68906860a1479165fc5778500bd, type: 3}

@@ -45,9 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8b60ee5431f8cd4ab912df2749774ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DebugTeleporter
-  teleportKey: 101
+  toggleKey: 101
   targets: []
-  spreadRadius: 2
 --- !u!1 &2500747348773187109
 GameObject:
   m_ObjectHideFlags: 0

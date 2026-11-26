@@ -18,6 +18,22 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
     private bool waitingForWaveClear;
 
     public event Action OnAllMonstersDead;
+
+    /// <summary> [디버그] false면 새 웨이브를 시작하지 않음. 이미 나온 몬스터는 그대로 </summary>
+    public bool WaveEnabled { get; private set; } = true;
+
+    /// <summary>
+    /// [디버그] 웨이브 켜기/끄기. 끄면 아직 생성 안 된 예약도 취소 (방장만 의미 있음)
+    /// </summary>
+    public void SetWaveEnabled(bool enabled)
+    {
+        WaveEnabled = enabled;
+
+        if (!enabled)
+            CancelPendingSpawns();
+
+        Debug.Log($"[NightWaveSpawner] 웨이브 {(enabled ? "켜짐" : "꺼짐")}");
+    }
     private void Start()
     {
         time = TimeManager.Instance;
@@ -87,6 +103,12 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         // 생성 예약은 방장만 (다른 클라이언트는 포톤 생성 이벤트로 받음)
         if (!GameAuthority.HasAuthority)
             return;
+
+        if (!WaveEnabled)
+        {
+            Debug.Log($"[NightWaveSpawner] 웨이브 꺼짐, {day}일차 웨이브 건너뜀");
+            return;
+        }
         // 룸에 있을 경우 룸에 현재 웨이브 데이터 저장 1차
         if (PhotonNetwork.InRoom)
         {
