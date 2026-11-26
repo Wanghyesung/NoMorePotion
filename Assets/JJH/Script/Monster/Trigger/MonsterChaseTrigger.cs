@@ -85,7 +85,7 @@ public class MonsterChaseTrigger : MonoBehaviour
     {
         if (!players.Remove(other.gameObject)) return;
         if (mover.state.GetStateType() == MonsterState.Death) return;
-
+        if (other.gameObject == mover.nowTarget) return;
         // 죽었거나 비활성화된 플레이어 먼저 정리
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
 

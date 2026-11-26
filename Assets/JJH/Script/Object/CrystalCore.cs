@@ -73,7 +73,8 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
 
     public void RestoreCrystal(TimePhase phase)
     {
-        Heal(restoreHP);
+        if(GameAuthority.HasAuthority)
+            Heal(restoreHP);
     }
 
     /// <summary>

@@ -84,7 +84,32 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [HIn] public bool patrolTimerActive;
     [HIn] public float attackTimer = 0;
     [HIn]public float AttackRange => attackRange;
-    [HIn] public bool IsAnimation;
+
+    [Tooltip("애니메이션 잠금 최대 시간 (끝 이벤트가 누락돼도 이 시간 뒤엔 판단 재개)")]
+    [SF] private float animationLockTimeout = 10f;
+
+    private bool isAnimation;
+    private float animationLockedAt;
+
+
+    [HIn] public bool IsAnimation
+    {
+        get
+        {
+            if (isAnimation && Time.time - animationLockedAt > animationLockTimeout)
+            {
+                Debug.LogWarning($"[{name}] 애니메이션 에러 판단 재개", this);
+                isAnimation = false;
+            }
+            return isAnimation;
+        }
+        set
+        {
+            isAnimation = value;
+            if (value) animationLockedAt = Time.time;
+        }
+    }
+
     private CancellationTokenSource aiCts;
     private AttackTarget targetInfo;
     private MonsterPatrolState patrolState;
@@ -451,7 +476,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         
         float distance = DistanceToTarget();
         // 추적 가능한 상태인지 확인
-        bool chaseable = distance <= ChaseRadius || IsProvoked || IsTargetObjective;
+        bool chaseable = distance <= ChaseRadius + chaseDropMargin || IsProvoked || IsTargetObjective;
         bool slotZone = useAttackSlot && targetInfo != null && distance <= AttackRange + waitBuffer;
 
         // 공격 범위 안
@@ -493,10 +518,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         // 모든 조건 불충족 시
         else
         {
-            if (distance > ChaseRadius + chaseDropMargin)
-                SetTarget(null);
-
-            return null;
+            SetTarget(null);
+            return UpdateState();
         }
 
         if (state.GetStateType() == nowState)
