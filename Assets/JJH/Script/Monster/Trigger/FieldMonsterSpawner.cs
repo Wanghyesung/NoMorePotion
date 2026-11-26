@@ -1,6 +1,7 @@
 using System;
 using Photon.Pun;
 using UnityEngine;
+using static JJH_Enums;
 
 using SF = UnityEngine.SerializeField;
 
@@ -12,6 +13,10 @@ public class FieldSpawnSlot
 {
     public Transform Point;
     public GameObject Prefab;
+    #region 지역보스 / 진희진
+    public bool IsBoss;             // 체크하면 지역보스
+    public SpawnAreaType Area;      // 보스일때만 사용
+    #endregion
 }
 
 public class FieldMonsterSpawner : MonoBehaviourPunCallbacks
@@ -65,6 +70,14 @@ public class FieldMonsterSpawner : MonoBehaviourPunCallbacks
         foreach (FieldSpawnSlot slot in slots)
         {
             if (slot == null || slot.Point == null || slot.Prefab == null) continue;
+
+            #region 지역보스 / 진희진
+            if (slot.IsBoss && RoomProps.IsAreaBossCleared(PhotonNetwork.CurrentRoom, slot.Area))
+            {
+                Debug.Log($"[FieldMonsterSpawner] 클리어된 지역보스 생성 안함 : {slot.Area}");
+                continue;
+            }
+            #endregion
 
             if (NetPool.Spawn(slot.Prefab, slot.Point.position, slot.Point.rotation) != null)
                 count++;
