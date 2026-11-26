@@ -3370,6 +3370,10 @@ PrefabInstance:
       propertyPath: m_BaseOffset
       value: -0.15
       objectReference: {fileID: 0}
+    - target: {fileID: 722442712123855843, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
+      propertyPath: m_WalkableMask
+      value: 16384
+      objectReference: {fileID: 0}
     - target: {fileID: 864110868322116323, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: animator
       value: 

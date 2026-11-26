@@ -594,7 +594,6 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         {
             Transform hit = sightHits[i].transform;
             if (hit.IsChildOf(transform) || hit.IsChildOf(nowTarget.transform)) continue;
-            Debug.Log($"[Sight] {name} 시야 막힘: {hit.name} (레이어 {LayerMask.LayerToName(hit.gameObject.layer)})", hit);
             return false;
         }
         return true;

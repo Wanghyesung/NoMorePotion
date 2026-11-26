@@ -143,6 +143,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9099992271117678229, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
+      propertyPath: m_WalkableMask
+      value: 512
+      objectReference: {fileID: 0}
     - target: {fileID: 9198116484777040148, guid: 6f5725a9fecce9242a1e07ae6d187085, type: 3}
       propertyPath: m_Name
       value: BossWolf
@@ -220,6 +224,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NormalWolf2
       objectReference: {fileID: 0}
+    - target: {fileID: 6279164120281813160, guid: ba4f3dc9eb8f7dd459ca1b1359d641b3, type: 3}
+      propertyPath: m_WalkableMask
+      value: 512
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -292,6 +300,10 @@ PrefabInstance:
     - target: {fileID: 6254372382850334505, guid: ba4f3dc9eb8f7dd459ca1b1359d641b3, type: 3}
       propertyPath: m_Name
       value: NormalWolf1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6279164120281813160, guid: ba4f3dc9eb8f7dd459ca1b1359d641b3, type: 3}
+      propertyPath: m_WalkableMask
+      value: 512
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
