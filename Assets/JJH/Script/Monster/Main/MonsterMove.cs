@@ -480,10 +480,10 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         // 모든 조건 불충족 시
         else
         {
-            result = stateGroup[MonsterState.Patrol];
-            nowState = MonsterState.Patrol;
+            SetTarget(null);
+            return null;
         }
-        
+
         if (state.GetStateType() == nowState)
             result = null;
 
