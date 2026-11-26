@@ -6441,7 +6441,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: e4e72bb965c0725458fb8ab6fde2afe4, type: 3}
 --- !u!4 &81094021 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 9223372036854775806, guid: e4e72bb965c0725458fb8ab6fde2afe4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 4209830095328674, guid: e4e72bb965c0725458fb8ab6fde2afe4, type: 3}
   m_PrefabInstance: {fileID: 81094020}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &82274963
@@ -154747,7 +154747,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1442054061579140289, guid: aea94c7a23048e0409def6a058870597, type: 3}
       propertyPath: dayDuration
-      value: 120
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: 1442054061579140289, guid: aea94c7a23048e0409def6a058870597, type: 3}
       propertyPath: nightDuration
