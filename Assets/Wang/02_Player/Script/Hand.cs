@@ -98,6 +98,15 @@ public sealed class Hand : MonoBehaviour
             SubscribeInput();
     }
 
+    private void LateUpdate()
+    {
+        // 로컬과 원격 모두 애니메이션이 갱신된 손에 포션을 맞춘다.
+        if (leftPotion != null)
+            leftPotion.UpdateHeldPose(leftSocket);
+        if (rightPotion != null)
+            rightPotion.UpdateHeldPose(rightSocket);
+    }
+
     private void SubscribeInput()
     {
         if (player.IsLocalPlayer == false || inputSubscribed == true)

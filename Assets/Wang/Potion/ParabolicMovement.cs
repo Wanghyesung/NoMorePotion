@@ -34,7 +34,7 @@ public sealed class ParabolicMovement : MonoBehaviour
         body.detectCollisions = false;
     }
 
-    // socket: 포션을 붙일 손 위치. 보관 중에는 부모 Transform이 이동을 담당
+    // socket: 포션을 붙일 손 위치. 보관 중 위치 갱신은 Hand.LateUpdate에서 호출한다.
     public void AttachTo(Transform socket)
     {
         // 손에서 분리된 뒤에도 던진 사람의 몸은 충돌 대상에서 제외한다.
@@ -43,10 +43,17 @@ public sealed class ParabolicMovement : MonoBehaviour
         enabled = false;
         body.interpolation = RigidbodyInterpolation.None;
         transform.SetParent(socket, true);
-        transform.localPosition = Vector3.zero;
-        transform.localRotation = Quaternion.identity;
-        body.position = transform.position;
-        body.rotation = transform.rotation;
+        UpdateHeldPose(socket);
+    }
+
+    public void UpdateHeldPose(Transform socket)
+    {
+        Vector3 position = socket.position;
+        Quaternion rotation = socket.rotation;
+        body.position = position;
+        body.rotation = rotation;
+        // 물리 좌표만 맞추면 렌더링 위치가 뒤처질 수 있어 Transform도 함께 맞춘다.
+        transform.SetPositionAndRotation(position, rotation);
     }
 
     // data: 발사 순간 확정된 월드 궤적. 조준선의 좌표 리스트는 참조하지 않음

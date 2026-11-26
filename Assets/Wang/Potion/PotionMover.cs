@@ -115,6 +115,8 @@ public class PotionMover : MonoBehaviour
         movement.AttachTo(socket);
     }
 
+    public void UpdateHeldPose(Transform socket) => movement.UpdateHeldPose(socket);
+
     public void Throw(ThrowData data, System.Action<PotionInstance> onLanded = null)
     {
         onThrowLanded = onLanded;
