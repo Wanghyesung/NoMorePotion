@@ -6441,7 +6441,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: e4e72bb965c0725458fb8ab6fde2afe4, type: 3}
 --- !u!4 &81094021 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 9223372036854775806, guid: e4e72bb965c0725458fb8ab6fde2afe4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 4209830095328674, guid: e4e72bb965c0725458fb8ab6fde2afe4, type: 3}
   m_PrefabInstance: {fileID: 81094020}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &82274963
@@ -153231,6 +153231,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2120307928}
   - component: {fileID: 2120307929}
+  - component: {fileID: 2120307930}
   m_Layer: 0
   m_Name: Area_GlacierBoss
   m_TagString: Untagged
@@ -153270,6 +153271,38 @@ MonoBehaviour:
   m_Center: {x: 0, y: 1, z: 0}
   m_Area: 10
   m_AffectedAgents: ffffffff
+--- !u!114 &2120307930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2120307927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: -334000983
+  m_CollectObjects: 1
+  m_Size: {x: 200, y: 50, z: 150}
+  m_Center: {x: 0, y: 1, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 15443
+  m_UseGeometry: 1
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 1.6666666
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 23800000, guid: e29556c7cde80e94ab717833cb116db9, type: 2}
+  m_BuildHeightMesh: 0
 --- !u!1001 &2122617989
 PrefabInstance:
   m_ObjectHideFlags: 0
