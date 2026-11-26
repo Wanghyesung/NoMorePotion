@@ -18,6 +18,8 @@ public class MonsterDeathState : IMonsterState
 
     public void OnStart()
     {
+        if (!mover.agent.enabled || !mover.agent.isOnNavMesh) return;
+
         mover.agent.isStopped = true;
         mover.agent.ResetPath();
     }

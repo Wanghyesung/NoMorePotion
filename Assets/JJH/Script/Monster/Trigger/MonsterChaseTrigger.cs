@@ -131,11 +131,16 @@ public class MonsterChaseTrigger : MonoBehaviour
     /// </summary>
     private void ClearOuterPlayer()
     {
-        float radius = chaseCollider.radius * transform.lossyScale.x;
+        float radius = mover.ChaseRadius + 2f;
         float sqr = radius * radius;
-        Vector3 center = chaseCollider.transform.TransformPoint(chaseCollider.center);
+        Vector3 center = transform.position;
 
-        players.RemoveAll(p => p == null || !p.activeInHierarchy ||
-                               (p.transform.position - center).sqrMagnitude > sqr);
+        players.RemoveAll(p =>
+        {
+            if (p == null || !p.activeInHierarchy) return true;
+            Vector3 d = p.transform.position - center;
+            d.y = 0f;
+            return d.sqrMagnitude > sqr;
+        });
     }
 }

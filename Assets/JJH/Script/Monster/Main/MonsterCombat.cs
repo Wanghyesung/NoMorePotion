@@ -756,6 +756,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         data.HP = hp;
         data.OnHPChanged?.Invoke(before, hp);   // HUD 갱신
         ShowNumber(before - hp);
+
+        if (before > 0 && hp <= 0)
+            data.OnDead?.Invoke();
     }
 
     [PunRPC]
