@@ -1,6 +1,6 @@
 using MoreMountains.Feedbacks;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
+//using static UnityEditor.PlayerSettings;
 using SF = UnityEngine.SerializeField;
 public class GiantAnimationBridge : MonsterAnimationBridge
 {
