@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &799565507930043048
+--- !u!1001 &3176258834914004350
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 7310000000000000001, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_Name
-      value: WO_Rock_Sandstone_07
+      value: WO_Rock_Sandstone_08
       objectReference: {fileID: 0}
     - target: {fileID: 7310000000000000002, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -55,10 +55,34 @@ PrefabInstance:
     - target: {fileID: 7310000000000000003, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: _data
       value: 
-      objectReference: {fileID: 11400000, guid: 094e8b2594d501f4784df6d7d142a39e, type: 2}
+      objectReference: {fileID: 11400000, guid: a62cf9fc7a362e146bca80cb12cbb5e4, type: 2}
     - target: {fileID: 7310000000000000003, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       propertyPath: _networkId
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Center.x
+      value: -0.029150665
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Center.y
+      value: 1.3060668
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Center.z
+      value: -0.18053001
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Extents.x
+      value: 1.9497128
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Extents.y
+      value: 1.3060668
+      objectReference: {fileID: 0}
+    - target: {fileID: 7310000000000000033, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
+      propertyPath: m_Extents.z
+      value: 1.8444531
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7310000000000000023, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
@@ -67,29 +91,29 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 356882639811261846, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4416895841072732991}
+      addedObject: {fileID: 826890365123771143}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3022975340221234767}
+      addedObject: {fileID: 508032815797127415}
   m_SourcePrefab: {fileID: 100100000, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
---- !u!4 &1147087811164702526 stripped
+--- !u!4 &2947518314316495080 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 356882639811261846, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
-  m_PrefabInstance: {fileID: 799565507930043048}
+  m_PrefabInstance: {fileID: 3176258834914004350}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &7956443076841976509 stripped
+--- !u!1 &5288915714028457323 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7310000000000000021, guid: 3f07a68906860a1479165fc5778500bd, type: 3}
-  m_PrefabInstance: {fileID: 799565507930043048}
+  m_PrefabInstance: {fileID: 3176258834914004350}
   m_PrefabAsset: {fileID: 0}
---- !u!64 &3022975340221234767
+--- !u!64 &508032815797127415
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7956443076841976509}
+  m_GameObject: {fileID: 5288915714028457323}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -104,71 +128,71 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: 4666249055879184520, guid: 0ba2d0e7240b8fa48b800bf543c01161, type: 3}
---- !u!1001 &1358646504214528419
+  m_Mesh: {fileID: 648374052374118515, guid: 340aa909be29717419a6e8ed2d35b2fa, type: 3}
+--- !u!1001 &6898823215184892221
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1147087811164702526}
+    m_TransformParent: {fileID: 2947518314316495080}
     m_Modifications:
-    - target: {fileID: 2655652896266420262, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
-      propertyPath: m_Name
-      value: PP_Rock_Sandstone_07
-      objectReference: {fileID: 0}
-    - target: {fileID: 2655652896266420262, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
-      propertyPath: m_Layer
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - target: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6885986112679260288, guid: bca890987db121943a85eb28cf544bf5, type: 3}
+      propertyPath: m_Name
+      value: PP_Rock_Sandstone_08
+      objectReference: {fileID: 0}
+    - target: {fileID: 6885986112679260288, guid: bca890987db121943a85eb28cf544bf5, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents:
-    - {fileID: 2655652896266420261, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
+    - {fileID: 6885986112679260289, guid: bca890987db121943a85eb28cf544bf5, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
---- !u!4 &4416895841072732991 stripped
+  m_SourcePrefab: {fileID: 100100000, guid: bca890987db121943a85eb28cf544bf5, type: 3}
+--- !u!4 &826890365123771143 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 3427545606418258588, guid: 1fb3edf705ff7fe4ca8a09f61dbb5ea9, type: 3}
-  m_PrefabInstance: {fileID: 1358646504214528419}
+  m_CorrespondingSourceObject: {fileID: 6108076600274020922, guid: bca890987db121943a85eb28cf544bf5, type: 3}
+  m_PrefabInstance: {fileID: 6898823215184892221}
   m_PrefabAsset: {fileID: 0}
