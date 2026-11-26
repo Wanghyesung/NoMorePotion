@@ -73,7 +73,9 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
 
     public void RestoreCrystal(TimePhase phase)
     {
-        hp = Mathf.Max(maxHp, hp + restoreHP);
+        int nowHp = hp;
+        hp = Mathf.Min(maxHp, hp + restoreHP);
+        OnHPChanged?.Invoke(nowHp, hp);
     }
 
     /// <summary>

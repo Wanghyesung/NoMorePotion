@@ -11,6 +11,9 @@ public class MonsterChaseTrigger : MonoBehaviour
     [SF] private MonsterMove mover;
     [SF] private bool randomAggroActive = true;
     [SF] private float randomAggroLockTime = 10f;
+    [SF] private SphereCollider chaseCollider;
+
+
     [Header("후공 여부")]
     [SF] private bool passive;
     private readonly List<GameObject> players = new();
@@ -23,6 +26,8 @@ public class MonsterChaseTrigger : MonoBehaviour
     {
         if (mover == null)
             mover = GetComponentInParent<MonsterMove>();
+        if (chaseCollider == null && TryGetComponent(out SphereCollider col))
+            chaseCollider = col;
     }
 
     private void OnEnable()
@@ -37,6 +42,8 @@ public class MonsterChaseTrigger : MonoBehaviour
         if (tickTimer < FSM_TIMER / MIL_SEC_F) return;
         tickTimer = 0f;
         targetTickCount++;
+
+        ClearOuterPlayer();
 
         // 타겟이 없거나 수정구슬을 노리는 경우
         if (players.Count == 0) return;
@@ -114,5 +121,18 @@ public class MonsterChaseTrigger : MonoBehaviour
         return candidates.Count > 0
             ? candidates[Random.Range(0, candidates.Count)]
             : null;
+    }
+
+    /// <summary>
+    /// 범위 외부에 있는 플레이어 명시적 정리
+    /// </summary>
+    private void ClearOuterPlayer()
+    {
+        float radius = chaseCollider.radius * transform.lossyScale.x;
+        float sqr = radius * radius;
+        Vector3 center = chaseCollider.transform.TransformPoint(chaseCollider.center);
+
+        players.RemoveAll(p => p == null || !p.activeInHierarchy ||
+                               (p.transform.position - center).sqrMagnitude > sqr);
     }
 }
