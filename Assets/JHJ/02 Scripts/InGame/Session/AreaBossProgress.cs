@@ -49,12 +49,12 @@ private void OnDestroy()
         MarkCleared(boss.SpawnArea);
     }
 
-    public void MarkCleared(SpawnAreaType area)
+    public static void MarkCleared(SpawnAreaType area)
     {
         if (!PhotonNetwork.IsMasterClient || PhotonNetwork.CurrentRoom == null)
             return;
 
-        if (IsCleared(area))
+        if (RoomProps.IsAreaBossCleared(PhotonNetwork.CurrentRoom, area))
             return;
 
         PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable { { RoomProps.AreaBossKey(area), true } });

@@ -8108,6 +8108,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4352564959055857321, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
+      propertyPath: m_WalkableMask
+      value: 64
+      objectReference: {fileID: 0}
     - target: {fileID: 6852315246159276145, guid: 5be5d59044f3b204f9657c4e772e1762, type: 3}
       propertyPath: sceneViewId
       value: 10

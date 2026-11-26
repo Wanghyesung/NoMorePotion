@@ -160,7 +160,7 @@ public class GameSessionManager : MonoBehaviour
                 Debug.LogWarning($"[GameSessionManager] 로드 대기 {loadTimeout}초 초과, 로드 안 된 플레이어 제외하고 시작 ");
 
             if (TimeManager.Instance != null)
-                TimeManager.Instance.StartClock();
+                TimeManager.Instance.StartClock(SaveSession.Loaded?.Clock); // 로드 연결
             else
                 Debug.LogWarning("[GameSessionManager] 타임매니저 없음");
 
@@ -174,7 +174,6 @@ public class GameSessionManager : MonoBehaviour
             view.RPC(nameof(RpcRequestPhase), RpcTarget.MasterClient);
     }
 
-    // 로컬 플레이어를 생성해 UI에 연결하고 리스폰 매니저에 같은 스폰 지점을 전달한다.
     private bool SpawnLocalPlayer()
     {
         if (spawnedPlayer != null)

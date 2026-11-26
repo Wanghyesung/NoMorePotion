@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using SF = UnityEngine.SerializeField;
+using System.Collections.Generic;
 
 public class MinimapUI : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public class MinimapUI : MonoBehaviour
     [SF] private RawImage mapImage;
     [SF] private RectTransform mapRotator;
     [SF] private RectTransform playerArrow;
+    [SF] private RectTransform iconRoot;
 
     [Header("미니맵 정보 (Minimap_MainMap.png)")]
     [SF] private Vector2 worldMin = new Vector2(-650f, -650f);
@@ -18,6 +20,8 @@ public class MinimapUI : MonoBehaviour
     private float viewDiameter = 150f;
 
     private Player player;
+    private readonly Dictionary<MinimapIcon, RectTransform> iconViews = new Dictionary<MinimapIcon, RectTransform>();
+    private readonly List<MinimapIcon> removeBuffer = new List<MinimapIcon>();  // 지울것들 모아두는 리스트
 
 
     private void LateUpdate()
@@ -26,6 +30,7 @@ public class MinimapUI : MonoBehaviour
             return;
 
         UpdateMap();
+        UpdateIcons();
     }
 
     public void SetPlayer(Player target)
@@ -56,5 +61,81 @@ public class MinimapUI : MonoBehaviour
             playerArrow.localEulerAngles = new Vector3(0f, 0f, -yaw);
         }
         
+    }
+
+    /// <summary>
+    /// 아이콘 생성
+    /// </summary>
+    private RectTransform CreateIconView(MinimapIcon icon)
+    {
+        GameObject gameobj = new GameObject($"Icon_{icon.name}", typeof(RectTransform), typeof(Image));
+        RectTransform rect = (RectTransform)gameobj.transform;
+        rect.SetParent(iconRoot, false);
+        rect.sizeDelta = Vector2.one * icon.Size;
+
+        Image image = gameobj.GetComponent<Image>();
+        image.sprite = icon.Sprite;
+        image.color = icon.Color;
+        image.raycastTarget = false;
+
+        return rect;
+    }
+
+    /// <summary>
+    /// 사라진 아이콘 정리
+    /// </summary>
+    private void RemoveMissingIcons()
+    {
+        removeBuffer.Clear();
+
+        foreach(MinimapIcon icon in iconViews.Keys)
+        {
+            if (icon == null || !icon.isActiveAndEnabled)
+                removeBuffer.Add(icon);
+        }
+
+        foreach(MinimapIcon icon in removeBuffer)
+        {
+            Destroy(iconViews[icon].gameObject);
+            iconViews.Remove(icon);
+        }
+    }
+
+    private void UpdateIcons()
+    {
+        RemoveMissingIcons();
+
+        Vector3 center = player.transform.position;
+        float mapSize = mapRotator.rect.width;
+        float pixelPerMeter = mapSize / viewDiameter;
+        float radius = mapSize / 2f;
+
+        Quaternion upright = Quaternion.Inverse(mapRotator.localRotation);
+
+        foreach(MinimapIcon icon in MinimapIcon.All)
+        {
+            // 내 플레이어 제외
+            if (icon.transform == player.transform)
+                continue;
+
+            if(!iconViews.TryGetValue(icon, out RectTransform view))
+            {
+                view = CreateIconView(icon);
+                iconViews.Add(icon, view);
+            }
+
+            Vector3 offset = icon.transform.position - center;
+            Vector2 pos = new Vector2(offset.x, offset.z) * pixelPerMeter;
+
+            float limit = radius - icon.Size / 2f;
+            bool outside = pos.magnitude > limit;
+
+            if (outside && icon.ClampToEdge)
+                pos = pos.normalized * limit;
+
+            view.gameObject.SetActive(!outside || icon.ClampToEdge);
+            view.anchoredPosition = pos;
+            view.localRotation = upright;
+        }
     }
 }
