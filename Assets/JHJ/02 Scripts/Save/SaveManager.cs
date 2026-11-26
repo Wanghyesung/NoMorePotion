@@ -1,4 +1,6 @@
 using Enzeun.Runtime;
+using static JJH_Enums;
+using System.Collections.Generic;
 using Photon.Pun;
 using R3;
 using System;
@@ -13,6 +15,13 @@ using SF = UnityEngine.SerializeField;
 public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
+
+    [Header("저장")]
+    [Tooltip("밤 몇 초전에 자동 저장할지")]
+    [SF] private int checkpointSecBeforeNight = 10;
+
+    private CrystalCore crystal;
+    private int lastSavedDay;       // 마지막으로 저장된 일차 0 = 기록없음
 
     // [임시] 테스트용으로만 사용
     [Header("디버그")]
@@ -36,7 +45,11 @@ public class SaveManager : MonoBehaviour
         if (enableDebug && !SaveSession.HasSlot())
             DebugBeginSession();
 
+        if (SaveSession.Loaded != null && SaveSession.Loaded.Clock != null)
+            lastSavedDay = SaveSession.Loaded.Clock.DayCount;
+
         ApplySavedSeed();       // 월드 시드
+        ApplySavedBossProgress(); // 지역보스 진행도
     }
 
     private void Start()
@@ -44,10 +57,24 @@ public class SaveManager : MonoBehaviour
         if (GameSessionManager.Instance == null)
             return;
 
+        crystal = FindAnyObjectByType<CrystalCore>();
+
         GameSessionManager.Instance.Phase
             .Where(p => p == SessionPhase.Playing)
             .Take(1)                            // 1번만
             .Subscribe(_ => RestoreLoaded())
+            .AddTo(this);
+
+        if (TimeManager.Instance != null)
+            TimeManager.Instance.RemainSec
+                .Where(p => p == checkpointSecBeforeNight && TimeManager.Instance.Phase.CurrentValue == TimePhase.Day)
+                .Subscribe(_ => SaveCheckpoint())
+                .AddTo(this);
+
+        GameSessionManager.Instance.Phase
+            .Where(p => p == SessionPhase.Ended)
+            .Take(1)
+            .Subscribe(_ => OnSessionEnded())
             .AddTo(this);
     }
 
@@ -71,10 +98,27 @@ public class SaveManager : MonoBehaviour
 
     /// <summary>
     /// 현 상태를 현재 슬롯에 저장(덮어쓰기) 성공 시 true
+    /// 수동 저장
     /// </summary>
     public bool SaveNow()
     {
-        if(!SaveSession.HasSlot())
+        if(TimeManager.Instance != null && TimeManager.Instance.Phase.CurrentValue == TimePhase.Night)
+        {
+            string note = lastSavedDay > 0 ?
+                $"밤에는 저장할 수 없습니다. 지금 나가면 마지막 저장({lastSavedDay}일차 낮)부터 이어집니다."
+                : "밤에는 저장할 수 없습니다.";
+
+            NotificationUI.Show(note);
+            return false;
+        }
+
+        return SaveInternal();
+    }
+
+    // 실제 저장
+    private bool SaveInternal()
+    {
+        if (!SaveSession.HasSlot())
         {
             Debug.LogWarning("[SaveManager] 슬롯 없음, 저장 안 함");
             return false;
@@ -83,7 +127,7 @@ public class SaveManager : MonoBehaviour
         if (!GameAuthority.HasAuthority)
             return false;
 
-        if(GameSessionManager.Instance == null || GameSessionManager.Instance.Phase.CurrentValue != SessionPhase.Playing)
+        if (GameSessionManager.Instance == null || GameSessionManager.Instance.Phase.CurrentValue != SessionPhase.Playing)
         {
             Debug.Log("[SaveManager] 진행 중이 아님, 저장 안 함");
             return false;
@@ -96,6 +140,10 @@ public class SaveManager : MonoBehaviour
         bool ok = SaveStore.Save(SaveSession.Slot, data);
 
         Debug.Log($"[SaveManager] {SaveSession.Slot}번 슬롯 저장 {(ok ? "성공" : "실패")} : {data.Clock.DayCount}일차 {data.Clock.Phase}");
+
+        if (ok)
+            lastSavedDay = data.Clock.DayCount;
+
         return ok;
     }
 
@@ -121,9 +169,45 @@ public class SaveManager : MonoBehaviour
         // 인벤토리
         string inventory = CaptureInventory();
 
-        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects, Inventory = inventory};
+        // 지역보스 클리어 진행도
+        List<SpawnAreaType> cleared = new List<SpawnAreaType>();
+
+        foreach (SpawnAreaType area in (SpawnAreaType[])Enum.GetValues(typeof(SpawnAreaType)))
+        {
+            if (RoomProps.IsAreaBossCleared(PhotonNetwork.CurrentRoom, area))
+                cleared.Add(area);
+        }
+
+        // 수정구슬
+        int maxHp = 0;
+        int hp = 0;
+        if(crystal != null)
+        {
+            maxHp = crystal.MaxHP;
+            hp = crystal.HP;
+        }
+
+        return new SaveData { Clock = clock, WorldSeed = seed, WorldObjects = worldObjects, Inventory = inventory, ClearedBossArea = cleared, CrystalMaxHP = maxHp, CrystalHP = hp};
     }
 
+    // 지역보스 진행도 불러오기
+    private void ApplySavedBossProgress()
+    {
+        SaveData data = SaveSession.Loaded;
+
+        if (data == null || data.ClearedBossArea == null)
+            return;
+
+        if (!PhotonNetwork.InRoom || !GameAuthority.HasAuthority)
+            return;
+
+        foreach (SpawnAreaType area in data.ClearedBossArea)
+            AreaBossProgress.MarkCleared(area);
+        
+        Debug.Log($"[SaveManager] 저장된 지역보스 클리어 진행도 {data.ClearedBossArea.Count}개 적용");
+    }
+
+    // 월드 시드 불러오기
     private void ApplySavedSeed()
     {
         SaveData data = SaveSession.Loaded;
@@ -148,7 +232,11 @@ public class SaveManager : MonoBehaviour
         RestoreWorldObjects(data.WorldObjects);
         RestoreInventory(data.Inventory);
 
-        // TODO: 지역보스 진행도, 수정구슬 hp
+        if (data.CrystalMaxHP > 0 && crystal != null)
+        {
+            crystal.LoadHP(data.CrystalMaxHP, data.CrystalHP);
+            Debug.Log($"[SaveManager] 수정구슬 HP 복원 : {data.CrystalHP}/{data.CrystalMaxHP}");
+        }
     }
 
     // 월드오브젝트 남은 횟수 복원
@@ -225,6 +313,29 @@ public class SaveManager : MonoBehaviour
             Debug.LogWarning($"[SaveManager] 인벤토리 병합 중 개수가 넘쳐 {lost}개 버림");
 
         return Convert.ToBase64String(copy.CreateSnapshot());
+    }
+
+    private void SaveCheckpoint()
+    {
+        if (SaveInternal())
+        {
+            Debug.Log($"[SaveManager] 체크포인트 저장 : {lastSavedDay}일차");
+            NotificationUI.Show("자동 저장되었습니다.");
+        }
+    }
+
+    private void OnSessionEnded()
+    {
+        if (!SaveSession.HasSlot() || !GameAuthority.HasAuthority)
+            return;
+
+        if (GameSessionManager.Instance.Result == GameResult.Clear)
+        {
+            SaveStore.Delete(SaveSession.Slot);
+            Debug.Log("[SaveManager] 게임 클리어로 인한 슬롯 삭제");
+        }
+        else
+            Debug.Log("[SaveManager] 게임 미클리어로 마지막 저장 유지");
     }
 
     private void DebugBeginSession()

@@ -135,10 +135,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         };
 
         patrolState = (MonsterPatrolState)stateGroup[MonsterState.Patrol];
-    }
 
-    private void Start()
-    {
         RegisterStates();
     }
 
