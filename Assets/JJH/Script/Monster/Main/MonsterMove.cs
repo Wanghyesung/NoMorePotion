@@ -34,6 +34,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     [SF] private float attackRange = 1f;
     [SF] private float maxAttackHeight = 1.5f;
     public SphereCollider chaseCollider;
+    [SF] private float chaseDropMargin = 2f;
     public float attackSpeed = 2;
     public float patrolDelay = 4;
     public float walkSpeed = 1.9f;
@@ -108,6 +109,17 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     public bool IsAggroLocked => Time.time < aggroLock;
 
     private readonly RaycastHit[] sightHits = new RaycastHit[8];
+
+    public float ChaseRadius
+    {
+        get
+        {
+            Vector3 s = chaseCollider.transform.lossyScale;
+            return chaseCollider.radius * Mathf.Max(s.x, Mathf.Max(s.y, s.z));
+        }
+    }
+
+    public float ChaseDropMargin => chaseDropMargin;
     #endregion
 
 
@@ -400,8 +412,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         IMonsterState result = null;
         MonsterState nowState = MonsterState.None;
 
-        //스폰 중엔 판단 정지
-        if (state.GetStateType() == MonsterState.Spawn) return null;
+        //스폰, 사망 중엔 판단 정지
+        MonsterState currentState = state.GetStateType();
+        if (currentState == MonsterState.Spawn || currentState == MonsterState.Death) return null;
 
         // 타겟이 죽었거나, 꺼졌거나, 파괴됐으면 타겟 종료
         if (!ReferenceEquals(nowTarget, null) && !AttackTarget.IsValid(nowTarget))
@@ -438,7 +451,7 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         
         float distance = DistanceToTarget();
         // 추적 가능한 상태인지 확인
-        bool chaseable = distance <= chaseCollider.radius || IsProvoked || IsTargetObjective;
+        bool chaseable = distance <= ChaseRadius || IsProvoked || IsTargetObjective;
         bool slotZone = useAttackSlot && targetInfo != null && distance <= AttackRange + waitBuffer;
 
         // 공격 범위 안
@@ -480,7 +493,9 @@ public class MonsterMove : MonoBehaviourPunCallbacks
         // 모든 조건 불충족 시
         else
         {
-            SetTarget(null);
+            if (distance > ChaseRadius + chaseDropMargin)
+                SetTarget(null);
+
             return null;
         }
 

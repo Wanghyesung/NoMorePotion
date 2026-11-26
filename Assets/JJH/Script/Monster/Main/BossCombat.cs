@@ -100,7 +100,7 @@ public class BossCombat : MonsterCombat
         if (data == null) return;
 
         bossEngaged = value;
-        if (value) BossEvents.Engage(data, data.Name);
+        if (value) BossEvents.Engage(data, data.Name, transform);
         else BossEvents.Disengage(data);
     }
 

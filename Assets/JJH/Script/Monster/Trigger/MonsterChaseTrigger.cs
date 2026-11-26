@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using static JJH_Constants;
+using static JJH_Enums;
 using SF = UnityEngine.SerializeField;
 
 [RequireComponent(typeof(SphereCollider))]
@@ -38,6 +39,7 @@ public class MonsterChaseTrigger : MonoBehaviour
     private void Update()
     {
         if (PhotonNetwork.InRoom && !GameAuthority.HasAuthority) return;
+        if (mover.state.GetStateType() == MonsterState.Death) return;
         tickTimer += Time.deltaTime;
         if (tickTimer < FSM_TIMER / MIL_SEC_F) return;
         tickTimer = 0f;
@@ -82,6 +84,7 @@ public class MonsterChaseTrigger : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         if (!players.Remove(other.gameObject)) return;
+        if (mover.state.GetStateType() == MonsterState.Death) return;
 
         // 죽었거나 비활성화된 플레이어 먼저 정리
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
@@ -128,11 +131,16 @@ public class MonsterChaseTrigger : MonoBehaviour
     /// </summary>
     private void ClearOuterPlayer()
     {
-        float radius = chaseCollider.radius * transform.lossyScale.x;
+        float radius = mover.ChaseRadius + mover.ChaseDropMargin;
         float sqr = radius * radius;
-        Vector3 center = chaseCollider.transform.TransformPoint(chaseCollider.center);
+        Vector3 center = transform.position;
 
-        players.RemoveAll(p => p == null || !p.activeInHierarchy ||
-                               (p.transform.position - center).sqrMagnitude > sqr);
+        players.RemoveAll(p =>
+        {
+            if (p == null || !p.activeInHierarchy) return true;
+            Vector3 d = p.transform.position - center;
+            d.y = 0f;
+            return d.sqrMagnitude > sqr;
+        });
     }
 }
