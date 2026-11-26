@@ -1,5 +1,7 @@
+using Cysharp.Threading.Tasks;
 using Enzeun.Runtime;
 using Photon.Pun;
+using R3;
 using System;
 using UnityEngine;
 
@@ -17,6 +19,7 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
 {
     [Header("체력")]
     [SF] private int maxHp = 5000;
+    [SF] private int restoreHP = 1000;
     //임시
     [SF] private string displayName = "수정 구슬";
 
@@ -62,6 +65,15 @@ public class CrystalCore : MonoBehaviourPunCallbacks, IDamageable, IHealable
     {
         ApplyReset();
         coreHud.ResetHealth(maxHp);
+        TimeManager.Instance.Phase
+            .Where(x => x == TimePhase.Day)
+            .Subscribe(RestoreCrystal)
+            .AddTo(this);
+    }
+
+    public void RestoreCrystal(TimePhase phase)
+    {
+        hp = Mathf.Max(maxHp, hp + restoreHP);
     }
 
     /// <summary>
