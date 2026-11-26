@@ -184,6 +184,7 @@ MonoBehaviour:
   mover: {fileID: 0}
   randomAggroActive: 1
   randomAggroLockTime: 10
+  passive: 0
 --- !u!1 &4628814768943225817
 GameObject:
   m_ObjectHideFlags: 0
@@ -251,6 +252,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 3
 --- !u!1 &5150227094651942723
 GameObject:
@@ -319,6 +321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 2
 --- !u!1 &7401636120913423284
 GameObject:
@@ -689,7 +692,9 @@ MonoBehaviour:
         Owner: {fileID: 9105986501564483994}
         DebugActive: 0
         Sfx: {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
-        RandomSfx: []
+        RandomSfx:
+        - {fileID: 8300000, guid: 956c7e24e1ba3b74a94de89ef5922e7e, type: 3}
+        - {fileID: 8300000, guid: 13e6522f31f48c543a98a8a1bae53abb, type: 3}
         TestPlayButton:
           ButtonText: Debug Play Sound
         TestStopButton:
@@ -707,7 +712,7 @@ MonoBehaviour:
         PanStereo: 0
         SpatialBlend: 1
         DopplerLevel: 1
-        Spread: 0
+        Spread: 180
         RolloffMode: 0
         MinDistance: 30
         MaxDistance: 50
@@ -923,6 +928,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 4
 --- !u!1 &8387985610075068968
 GameObject:
@@ -1255,6 +1261,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
 --- !u!1 &8526245539398365338
 GameObject:
   m_ObjectHideFlags: 0
@@ -1586,6 +1593,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SkillAttackTrigger
   combat: {fileID: 0}
+  sectorAngle: 360
   skillNum: 1
 --- !u!1001 &2835516978835231103
 PrefabInstance:
@@ -3594,6 +3602,7 @@ MonoBehaviour:
   damageNumberPrefab: {fileID: 1282649701592641862, guid: a59cbc8bfb992964288d37a7334ee950, type: 3}
   healNumberPrefab: {fileID: 1282649701592641862, guid: f55cd6b582c9be247ad84b602f3c8d64, type: 3}
   counterGrace: 0.1
+  minCounterDamage: 100
   counterOverlay: {fileID: 2100000, guid: 69d0f491ebe442d4babf50ccb8bf7488, type: 2}
   counterEffect: {fileID: 643597903100466925, guid: 9643d9cd4290e48448f95626dc216723, type: 3}
   counterFeedback: {fileID: 9105986501564483994}

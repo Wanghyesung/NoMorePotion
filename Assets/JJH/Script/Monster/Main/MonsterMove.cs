@@ -106,6 +106,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     private float aggroLock;
 
     public bool IsAggroLocked => Time.time < aggroLock;
+
+    private readonly RaycastHit[] sightHits = new RaycastHit[8];
     #endregion
 
 
@@ -581,7 +583,21 @@ public class MonsterMove : MonoBehaviourPunCallbacks
 
         Vector3 from = transform.position + Vector3.up * eyeHeight;
         Vector3 to = nowTarget.transform.position + Vector3.up;
-        return !Physics.Linecast(from, to, sightBlockMask, QueryTriggerInteraction.Ignore);
+        Vector3 dir = to - from;
+        float length = dir.magnitude;
+        if (length < 0.01f) return true;
+
+        int n = Physics.RaycastNonAlloc(from, dir / length, sightHits, length,
+            sightBlockMask, QueryTriggerInteraction.Ignore);
+
+        for (int i = 0; i < n; i++)
+        {
+            Transform hit = sightHits[i].transform;
+            if (hit.IsChildOf(transform) || hit.IsChildOf(nowTarget.transform)) continue;
+            Debug.Log($"[Sight] {name} 시야 막힘: {hit.name} (레이어 {LayerMask.LayerToName(hit.gameObject.layer)})", hit);
+            return false;
+        }
+        return true;
     }
 
     /// <summary>
