@@ -118,6 +118,8 @@ public class MonsterMove : MonoBehaviourPunCallbacks
             return chaseCollider.radius * Mathf.Max(s.x, Mathf.Max(s.y, s.z));
         }
     }
+
+    public float ChaseDropMargin => chaseDropMargin;
     #endregion
 
 

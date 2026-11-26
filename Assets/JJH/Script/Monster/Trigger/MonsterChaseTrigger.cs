@@ -83,8 +83,8 @@ public class MonsterChaseTrigger : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (mover.state.GetStateType() == MonsterState.Death) return;
         if (!players.Remove(other.gameObject)) return;
+        if (mover.state.GetStateType() == MonsterState.Death) return;
 
         // 죽었거나 비활성화된 플레이어 먼저 정리
         players.RemoveAll(p => p == null || !p.activeInHierarchy);
@@ -131,7 +131,7 @@ public class MonsterChaseTrigger : MonoBehaviour
     /// </summary>
     private void ClearOuterPlayer()
     {
-        float radius = mover.ChaseRadius + 2f;
+        float radius = mover.ChaseRadius + mover.ChaseDropMargin;
         float sqr = radius * radius;
         Vector3 center = transform.position;
 
