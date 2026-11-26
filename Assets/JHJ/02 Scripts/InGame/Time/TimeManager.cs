@@ -330,4 +330,19 @@ public class TimeManager : MonoBehaviour
         state.Elapsed = 0; // 총 경과 시간은 그대로
         AdvancePhase();
     }
+
+    /// <summary>
+    /// [디버그] 다음 target 단계의 시작으로 건너뛴다. 이미 target이면 한 바퀴 돌아 다음 target으로.
+    /// 판정 권한(GameAuthority)이 있고 시계가 돌 때만 동작. 건너뛴 구간의 체크포인트 저장 등은 일어나지 않음.
+    /// </summary>
+    public void DebugSkipTo(TimePhase target)
+    {
+        if (!isRunning || !GameAuthority.HasAuthority)
+            return;
+
+        ForceNextPhase();
+
+        if (state.Phase != target)
+            ForceNextPhase();
+    }
 }
