@@ -5,19 +5,21 @@ using SF = UnityEngine.SerializeField;
 using MoreMountains.Tools;
 using TMPro;
 using Photon.Pun;
+using DamageNumbersPro;
+using UnityEngine.InputSystem;
 
 public class SettingsPopupUI : MonoBehaviour
 {
-    [SF] private Button toTitleBtn;
-    [SF] private Button quitBtn;
-    [SF] private Button tutorialBtn;
+
+    [Header("설정 공용")]
     [SF] private Button closeBtn;
     [SF] private ConfirmPopupUI confirmPopup;
-    [SF] private Button saveBtn;
+    [SF] private Button saveBtn;        // 설정 저장 버튼
 
     [Header("탭")]                                
     [SF] private Toggle soundTab;
     [SF] private Toggle minimapTab;
+    [SF] private Toggle gameTab;
 
     [Header("사운드")]
     [SF] private Slider masterSlider;
@@ -28,11 +30,19 @@ public class SettingsPopupUI : MonoBehaviour
     [SF] private TMP_Text sfxText;
 
     [Header("게임")]
-    [SF] private TMP_Text toTitleText;  // 버튼라벨
+    [SF] private Button gameSaveBtn;
+    [SF] private Button leaveGameBtn;
+    [SF] private DamageNumber saveNotice;
+    [SF] private RectTransform noticeCanvas;
 
     [Header("미니맵")]
     [SF] private Toggle minimapRotateToggle;
     [SF] private Toggle minimapFixedToggle;
+
+    [Header("기타(시스템)")]
+    [SF] private Button toTitleBtn;
+    [SF] private Button quitBtn;
+    [SF] private Button tutorialBtn;
 
 
     private float savedMaster;
@@ -53,6 +63,8 @@ public class SettingsPopupUI : MonoBehaviour
         toTitleBtn.onClick.AddListener(() => ToTitleFlow().Forget());
         quitBtn.onClick.AddListener(() => QuitFlow().Forget());
         tutorialBtn.onClick.AddListener(() => TutorialFlow().Forget());
+        leaveGameBtn.onClick.AddListener(() => ToTitleFlow().Forget());
+        gameSaveBtn.onClick.AddListener(() => OnGameSave());
 
         masterSlider.onValueChanged.AddListener(OnMasterChanged);
         bgmSlider.onValueChanged.AddListener(OnBgmChanged);
@@ -71,15 +83,13 @@ public class SettingsPopupUI : MonoBehaviour
 
         FlowState state = manager != null ? manager.CurrentState : FlowState.Title;
         isInGame = state == FlowState.InGame;
+        bool canSave = isInGame && PhotonNetwork.OfflineMode && SaveSession.HasSlot();
 
-        // 로비 : 타이틀로 /  인게임 : 게임 나가기
-        toTitleBtn.gameObject.SetActive(state == FlowState.Lobby || isInGame);
-        // 튜토리얼은 타이틀에서만 시작 가능
+        gameTab.gameObject.SetActive(isInGame);
+        gameSaveBtn.gameObject.SetActive(canSave);
+        leaveGameBtn.gameObject.SetActive(isInGame);
+        toTitleBtn.gameObject.SetActive(state == FlowState.Lobby);
         tutorialBtn.gameObject.SetActive(state == FlowState.Title);
-
-        if (toTitleText != null)
-            toTitleText.text = isInGame ? "게임 나가기" : "타이틀로 돌아가기";
-
 
         // 사운드탭
         CacheCurrentSettings();
@@ -142,7 +152,7 @@ public class SettingsPopupUI : MonoBehaviour
 
     #endregion
 
-    #region 저장
+    #region 설정 저장
 
     private void Save()
     {
@@ -213,7 +223,7 @@ public class SettingsPopupUI : MonoBehaviour
 
     #endregion
 
-    #region 게임
+    #region 기타
     private async UniTaskVoid ToTitleFlow()
     {
         NetworkFlowManager manager = NetworkFlowManager.Instance;
@@ -224,7 +234,8 @@ public class SettingsPopupUI : MonoBehaviour
         }
 
         string message = !isInGame ? "타이틀로 돌아가시겠습니까?"
-                : PhotonNetwork.OfflineMode ? "게임을 종료하고 타이틀로 돌아가시겠습니까?"
+                : PhotonNetwork.OfflineMode && SaveSession.HasSlot() ? "마지막 저장 이후의 진행은 사라집니다.\n게임을 나가시겠습니까?"
+                : PhotonNetwork.OfflineMode ? "게임을 종료하고 타이틀로 돌아가시겠습니까?"  // 추후 튜토리얼에서 사용될 예정
                 : "게임을 나가 로비로 돌아가시겠습니까?";
 
         if (!await Confirm(message))
@@ -282,6 +293,55 @@ public class SettingsPopupUI : MonoBehaviour
     {
         MinimapSettings.RotateWithPlayer = isOn;
         RefreshSaveButton();
+    }
+    #endregion
+
+    #region 게임저장
+    private void OnGameSave()
+    {
+        if (SaveManager.Instance == null)
+            return;
+
+        SaveResult result = SaveManager.Instance.SaveNow();
+        string message = "저장상태 확인불가";
+
+        switch (result)
+        {
+            case SaveResult.Saved:
+                message = "저장되었습니다!";
+                break;
+
+            case SaveResult.BlockedAtNight:
+                if (SaveManager.Instance.LastSavedDay > 0)
+                    message = $"밤에는 저장할 수 없습니다\n(마지막 저장: {SaveManager.Instance.LastSavedDay}일차 낮)";
+                else
+                    message = "밤에는 저장할 수 없습니다.";
+                break;
+
+            case SaveResult.Failed:
+                message = "저장에 실패했습니다.";
+                break;
+
+            default:
+                break;
+        }
+
+        ShowNotice(message);
+    }
+
+    // DamageNumberPro로 노티스 보여줌
+    private void ShowNotice(string message)
+    {
+        if (saveNotice == null || noticeCanvas == null || Mouse.current == null)
+            return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            noticeCanvas,
+            Mouse.current.position.ReadValue(),
+            null,
+            out Vector2 localPoint);
+
+        saveNotice.SpawnGUI(noticeCanvas, localPoint + new Vector2(0, 50), message);
     }
     #endregion
 }

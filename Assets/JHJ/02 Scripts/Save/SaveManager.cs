@@ -8,6 +8,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using SF = UnityEngine.SerializeField;
 
+// 세이브 결과
+public enum SaveResult { Saved, BlockedAtNight, Failed }
+
 /// <summary>
 /// 현 상태를 모아 현재 슬롯에 저장함. 인 게임씬에 하나
 /// State가 Playing 진입 시 복원
@@ -22,6 +25,9 @@ public class SaveManager : MonoBehaviour
 
     private CrystalCore crystal;
     private int lastSavedDay;       // 마지막으로 저장된 일차 0 = 기록없음
+
+
+    public int LastSavedDay => lastSavedDay;
 
     // [임시] 테스트용으로만 사용
     [Header("디버그")]
@@ -102,22 +108,15 @@ public class SaveManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 현 상태를 현재 슬롯에 저장(덮어쓰기) 성공 시 true
+    /// 현 상태를 현재 슬롯에 저장(덮어쓰기)
     /// 수동 저장
     /// </summary>
-    public bool SaveNow()
+    public SaveResult SaveNow()
     {
         if(TimeManager.Instance != null && TimeManager.Instance.Phase.CurrentValue == TimePhase.Night)
-        {
-            string note = lastSavedDay > 0 ?
-                $"밤에는 저장할 수 없습니다. 지금 나가면 마지막 저장({lastSavedDay}일차 낮)부터 이어집니다."
-                : "밤에는 저장할 수 없습니다.";
+            return SaveResult.BlockedAtNight;
 
-            NotificationUI.Show(note);
-            return false;
-        }
-
-        return SaveInternal();
+        return SaveInternal() ? SaveResult.Saved : SaveResult.Failed;
     }
 
     // 실제 저장
