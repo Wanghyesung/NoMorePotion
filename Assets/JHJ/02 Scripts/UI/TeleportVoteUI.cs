@@ -139,6 +139,10 @@ public class TeleportVoteUI : MonoBehaviour
             case VoteCloseReason.TimeOut:
                 msg = "응답 시간이 지났어요";
                 break;
+
+            case VoteCloseReason.Dead:
+                msg = $"{name}님이 쓰러져 투표가 취소됐어요";
+                break;
         }
 
         return msg;

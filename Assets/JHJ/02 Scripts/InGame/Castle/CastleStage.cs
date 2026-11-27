@@ -13,5 +13,6 @@ public enum VoteCloseReason
     Passed,
     Rejected,
     TimeOut,
-    PlayerChanged
+    PlayerChanged,
+    Dead       
 }

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using R3;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using PhotonPlayer = Photon.Realtime.Player;
+using Cysharp.Threading.Tasks;
+using MoreMountains.Tools;
+using System.Threading;
 
 public class CastleTeleportManager : MonoBehaviourPunCallbacks
 {
@@ -12,6 +15,8 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
 
     [SF] private float voteSec = 15f;       // 투표시간
     [SF] private float retryCooldownSec = 3f;   // 재투표 대기시간
+    [SF] private Transform[] arrivalPoints;
+    [SF] private float fadeSeconds = 0.4f;
 
 
     private HashSet<int> agreed = new HashSet<int>(); // 동의한 플레이어 ActorNum
@@ -56,6 +61,9 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
         voteOpened?.Dispose();
         voteClosed?.Dispose();
         voteProgress?.Dispose();
+
+        if (cachedPlayer != null)
+            cachedPlayer.OnDead -= OnLocalDead;
     }
 
     private void Update()
@@ -107,6 +115,14 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
         hasAnswered = true;
         photonView.RPC(nameof(RpcAnswer), RpcTarget.MasterClient, yes);
     }
+
+    private void OnLocalDead(Vector3 pos)
+    {
+        if (!isVoteOpen || !hasAnswered)
+            return;
+
+        photonView.RPC(nameof(RpcAgreedDied), RpcTarget.MasterClient);
+    }
     #endregion
 
     #region Master판정
@@ -139,13 +155,27 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
         SetStage(CastleStage.InCastle);
         agreed.Clear();
         photonView.RPC(nameof(RpcCloseVote), RpcTarget.All, (int)VoteCloseReason.Passed, "");
-        //TODO: 텔레포트 추가
+        SendTeleport();
     }
 
     private void CheckPassed()
     {
         if (agreed.Count >= PhotonNetwork.CurrentRoom.PlayerCount)
             Pass();
+    }
+
+    private void SendTeleport()
+    {
+        if (arrivalPoints == null || arrivalPoints.Length == 0)
+        {
+            Debug.LogWarning("[CastleTeleportManager] 텔레포트 도착 장소 없음");
+            return;
+        }
+
+        PhotonPlayer[] players = PhotonNetwork.PlayerList;
+
+        for (int i = 0; i < players.Length; i++)
+            photonView.RPC(nameof(RpcTeleport), players[i], i%arrivalPoints.Length);
     }
 
     [PunRPC]
@@ -193,6 +223,18 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
         agreed.Add(info.Sender.ActorNumber);
         BroadcastProgress();
         CheckPassed();
+    }
+
+    [PunRPC]
+    private void RpcAgreedDied(PhotonMessageInfo info)
+    {
+        if (!PhotonNetwork.IsMasterClient || !masterVoting)
+            return;
+
+        if (!agreed.Contains(info.Sender.ActorNumber))
+            return;
+
+        CloseVote(VoteCloseReason.Dead, info.Sender.NickName);
     }
     #endregion
 
@@ -276,6 +318,40 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
     #endregion
 
     #region 텔레포트
+    [PunRPC]
+    private void RpcTeleport(int slot, PhotonMessageInfo info)
+    {
+        if (info.Sender != PhotonNetwork.MasterClient)
+            return;
+
+        Player player = GetLocalPlayer();
+        if (player == null || !IsLocalActive())
+            return;
+
+        TeleportAsync(player, arrivalPoints[slot]).Forget();
+    }
+
+    private async UniTaskVoid TeleportAsync(Player player, Transform pos)
+    {
+        MMFadeEvent.Trigger(fadeSeconds, 1f);
+        await UniTask.Delay((int)(fadeSeconds * 1000), DelayType.Realtime, cancellationToken: destroyCancellationToken);
+        if(IsLocalActive())
+            MoveLocalPlayer(player, pos);
+        MMFadeEvent.Trigger(fadeSeconds, 0f);
+    }
+
+    private void MoveLocalPlayer(Player player, Transform pos)
+    {
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+        player.transform.SetPositionAndRotation(pos.position, pos.rotation);
+
+        if (rb != null)
+        {
+            rb.position = pos.position;
+            rb.rotation = pos.rotation;
+            rb.linearVelocity = Vector3.zero;
+        }
+    }
     #endregion
 
     #region 내 플레이어
@@ -292,6 +368,9 @@ public class CastleTeleportManager : MonoBehaviourPunCallbacks
             return null;
 
         cachedPlayer = go.GetComponent<Player>();
+        if (cachedPlayer != null)
+            cachedPlayer.OnDead += OnLocalDead;
+
         return cachedPlayer;
         
     }
