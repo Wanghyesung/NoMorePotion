@@ -71,7 +71,10 @@ public class WolfCombat : MonsterCombat
             .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))
             .ToDictionary(kv => (DamageType)kv.Key, kv => kv.Value);
 
-        Init(textData.Name, bossData.HP, bossData.HP, bossData.AtkPoint,
+        int finalHp = bossData.HP * PartySize;
+
+
+        Init(textData.Name, finalHp, finalHp, bossData.AtkPoint,
             bossData.AttackPower, immuneVal, bossData.Speed, bossData.Id, 0,
             bossData.SpawnArea, textData.Description, skills,
             normalWolfHp, bossData.DamageType);

@@ -7,6 +7,7 @@ using Photon.Pun;
 using static JJH_Enums;
 
 using SF = UnityEngine.SerializeField;
+using Photon.Pun.Demo.PunBasics;
 
 public class BossCombat : MonsterCombat
 {
@@ -60,6 +61,8 @@ public class BossCombat : MonsterCombat
         }
 
         int hp = hpOverride > 0 ? hpOverride : bossData.HP;
+
+        hp *= PartySize;
 
         Dictionary<DamageType, int> immuneVal = (bossData.Immune ?? new Dictionary<int, int>())
             .Where(kv => Enum.IsDefined(typeof(DamageType), kv.Key))

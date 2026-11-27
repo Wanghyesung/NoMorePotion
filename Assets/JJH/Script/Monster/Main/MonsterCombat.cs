@@ -60,6 +60,8 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
     private Renderer[] bodyRenderers;
     protected NormalMonster data;
+    protected static int PartySize =>
+        PhotonNetwork.InRoom ? Mathf.Max(1, PhotonNetwork.CurrentRoom.PlayerCount) : 1;
 
     private CancellationTokenSource deadCts;
     private bool isSinking;
