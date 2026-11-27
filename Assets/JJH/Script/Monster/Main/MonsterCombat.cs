@@ -632,9 +632,9 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         SetCounterOverlay(false);
         counterOpen = false;
-
         mover.IsAnimation = false;
         anim.ResetActions();
+
         if (biteHitbox != null) biteHitbox.gameObject.SetActive(false);
         foreach (SkillHitbox h in skillHitboxes)
             if (h.Hitbox != null) h.Hitbox.gameObject.SetActive(false);

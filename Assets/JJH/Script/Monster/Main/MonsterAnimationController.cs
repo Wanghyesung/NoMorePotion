@@ -142,5 +142,9 @@ public class MonsterAnimationController : MonoBehaviour
         IsCountered(false);
         IsRun(false);
         IsWalk(false);
+
+        // 연출·스킬 도중 바뀐 재생 속도 복구 (중간에 끊긴 히트스톱 등)
+        animator.speed = 1f;
+        SetMoveAnimationSpeed(1f);
     }
 }
