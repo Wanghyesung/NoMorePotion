@@ -96,9 +96,11 @@ public class MonsterMove : MonoBehaviourPunCallbacks
     {
         get
         {
-            if (isAnimation && Time.time - animationLockedAt > animationLockTimeout)
+            if (isAnimation &&
+                state != null && state.GetStateType() != MonsterState.Death &&
+                Time.time - animationLockedAt > animationLockTimeout)
             {
-                Debug.LogWarning($"[{name}] 애니메이션 에러 판단 재개", this);
+                Debug.LogWarning($"[{name}] 애니메이션 끝 이벤트 누락 의심 → 판단 재개", this);
                 isAnimation = false;
             }
             return isAnimation;
