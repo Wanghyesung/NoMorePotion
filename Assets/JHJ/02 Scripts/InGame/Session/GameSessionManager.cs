@@ -3,7 +3,6 @@ using Photon.Pun;
 using R3;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using PhotonPlayer = Photon.Realtime.Player;
 
@@ -65,9 +64,6 @@ public class GameSessionManager : MonoBehaviour
     public bool IsEnded => Phase.CurrentValue == SessionPhase.Ended;
 
 
-    [Header("디버그")]
-    [SerializeField] private bool enableDebugKeys = true;   // 정식 빌드 전에 끄기
-
 
     #region 생명주기
 
@@ -106,17 +102,6 @@ public class GameSessionManager : MonoBehaviour
 
         phase?.Dispose();
         rankingSubmit?.Dispose();
-    }
-
-    private void Update()
-    {
-        if (!enableDebugKeys || Keyboard.current == null)
-            return;
-
-        if (Keyboard.current.f1Key.wasPressedThisFrame)
-            ReportClear();
-        else if (Keyboard.current.f2Key.wasPressedThisFrame)
-            ReportDefeat();  
     }
 
     #endregion
@@ -418,14 +403,4 @@ public class GameSessionManager : MonoBehaviour
         return true;
     }
 
-
-    #region 디버그
-
-    [ContextMenu("디버그 클리어")]
-    private void DebugClear() => ReportClear();
-
-    [ContextMenu("디버그 패배")]
-    private void DebugDefeat() => ReportDefeat();
-
-    #endregion
 }

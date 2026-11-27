@@ -79,6 +79,12 @@ MonoBehaviour:
   - RpcReportDeath
   - RpcRespawnReady
   - RpcCounterGauge
+  - RpcAnswer
+  - RpcCloseVote
+  - RpcNotify
+  - RpcOpenVote
+  - RpcRequestVote
+  - RpcVoteProgress
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

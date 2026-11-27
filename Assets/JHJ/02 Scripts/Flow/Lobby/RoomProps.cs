@@ -16,6 +16,7 @@ public static class RoomProps
 {
     public const string DISPLAY_NAME = "dn";
     public const string AREA_BOSS_PREFIX = "ab_";   // 지역보스 처치 여부, 예: "ab_Forest" 
+    public const string CASTLE_STAGE = "cs";
 
     public static string GetDisplayName(RoomInfo room)
     {
@@ -37,5 +38,16 @@ public static class RoomProps
         return room != null && room.CustomProperties.TryGetValue(AreaBossKey(area), out object value)
             && value is bool b
             && b;
+    }
+
+    public static CastleStage GetCastleStage(Room room)
+    {
+        if (room == null)
+            return CastleStage.Ready;
+
+        if (room.CustomProperties.TryGetValue(CASTLE_STAGE, out object value) && value is int i)
+            return (CastleStage)i;
+
+        return CastleStage.Ready;
     }
 }

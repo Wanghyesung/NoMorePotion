@@ -503,6 +503,14 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
     }
 
+    public void AddSystemChat(string text)
+    {
+        if (chat == null)
+            return;
+
+        chat.AddSystem(text);
+    }
+
     public void RequestSendChat(string text)
     {
         bool canChat = (CurrentState == FlowState.Room || CurrentState == FlowState.InGame) && PhotonNetwork.InRoom;
