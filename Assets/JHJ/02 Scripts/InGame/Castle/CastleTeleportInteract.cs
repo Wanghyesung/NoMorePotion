@@ -8,6 +8,7 @@ using R3;
 public class CastleTeleportInteract : MonoBehaviour
 {
     [SF] private Collider rangeTrigger;
+    [SF] private Transform keyAnchor;
 
     private HashSet<Collider> playerColliders = new HashSet<Collider>();
     private bool subscribed;
@@ -68,6 +69,7 @@ public class CastleTeleportInteract : MonoBehaviour
 
         InputManager.Instance.InteractAction.performed += OnInteract;
         subscribed = true;
+        KeyCanvas.Instance?.PlayAnimationKey(KeyGuide.E, keyAnchor);
     }
 
     private void Unsubscribe()
@@ -79,6 +81,7 @@ public class CastleTeleportInteract : MonoBehaviour
             InputManager.Instance.InteractAction.performed -= OnInteract;
 
         subscribed = false;
+        KeyCanvas.Instance?.ClearInteractionPosition();
     }
 
     private static bool IsLocalPlayerCollider(Collider other)

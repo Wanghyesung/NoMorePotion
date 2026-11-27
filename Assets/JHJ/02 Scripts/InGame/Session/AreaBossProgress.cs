@@ -8,6 +8,7 @@ public class AreaBossProgress : MonoBehaviourPunCallbacks
 {
     public static AreaBossProgress Instance {  get; private set; }
 
+    private bool wasAllCleared;
     private readonly Subject<Unit> changed = new Subject<Unit>();
     public Observable<Unit> Changed => changed;
     public static readonly SpawnAreaType[] RegionBossAreas = { SpawnAreaType.Plain, SpawnAreaType.Forest, SpawnAreaType.Desert, SpawnAreaType.Glacier, SpawnAreaType.Volcano };
@@ -16,6 +17,12 @@ public class AreaBossProgress : MonoBehaviourPunCallbacks
     private void Awake()
     {
         Instance = this;
+    }
+
+    private void Start()
+    {
+        // 불러오기로 이미 클리어된 상태면 메세지 없음
+        wasAllCleared = IsAllCleared();
     }
 
     public override void OnEnable()
@@ -85,6 +92,11 @@ public class AreaBossProgress : MonoBehaviourPunCallbacks
             if(key is string s && s.StartsWith(RoomProps.AREA_BOSS_PREFIX))
             {
                 changed.OnNext(Unit.Default);
+
+                bool now = IsAllCleared();
+                if (!wasAllCleared && now)
+                    NetworkFlowManager.Instance?.AddSystemChat("모든 지역 보스를 처치했어요! 마왕성으로 갈 준비가 끝나면 수정구슬로 가보세요!");
+                wasAllCleared = now;
                 return;
             }
         }
