@@ -51,6 +51,7 @@ public class SettingsPopupUI : MonoBehaviour
     private bool savedMinimapRotate;
     private const float VOLUME_TOLERANCE = 0.001f;
     private bool isInGame;
+    private DamageNumber activeNotice;  // 지금 떠 있는 알림 (설정창 닫을때 바로 지우기 위해)
 
 
     public bool IsOpen => gameObject.activeSelf;
@@ -122,6 +123,8 @@ public class SettingsPopupUI : MonoBehaviour
     {
         if (!gameObject.activeSelf)
             return;
+
+        ClearNotice();
 
         if (isInGame)
             LockGameplay(false);
@@ -341,7 +344,16 @@ public class SettingsPopupUI : MonoBehaviour
             null,
             out Vector2 localPoint);
 
-        saveNotice.SpawnGUI(noticeCanvas, localPoint + new Vector2(0, 50), message);
+        ClearNotice();
+        activeNotice = saveNotice.SpawnGUI(noticeCanvas, localPoint + new Vector2(0, 50), message);
+    }
+
+    private void ClearNotice()
+    {
+        if (activeNotice != null && activeNotice.gameObject.activeSelf)
+            activeNotice.DestroyDNP();
+
+        activeNotice = null;
     }
     #endregion
 }

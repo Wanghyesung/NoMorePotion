@@ -82,10 +82,16 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
 
     private void StartWave()
     {
-        // TODO(세이브): 밤에 불러오기 시 웨이브 재시작 여부
         CancelPendingSpawns();
 
         int day = time.DayCount.CurrentValue;
+
+        if(AreaBossProgress.IsAllCleared())
+        {
+            Debug.Log($"[NightWaveSpawner] 지역보스 전부 처치, {day}일차 웨이브 없음");
+            return;
+        }    
+
         WaveData wave = waveTable.GetWave(day);
         if(wave == null)
         {
@@ -222,6 +228,10 @@ public class NightWaveSpawner : MonoBehaviourPunCallbacks
         {
             dayNum = (int)day;
             if (dayNum <= 0) return;
+
+            // 오늘 시작한 웨이브가 아니면 이어받지 않도록
+            if (dayNum != time.DayCount.CurrentValue)
+                return;
         }
         else return;
 
