@@ -129,4 +129,18 @@ public class MonsterAnimationController : MonoBehaviour
         animator.SetBool(activeSkillHash, false);
         activeSkillHash = 0;
     }
+
+    /// 공격·스킬·이동 Bool을 전부 끔 (사망 시 다른 상태로 끌려가지 않게)
+    /// </summary>
+    public void ResetActions()
+    {
+        StopActiveSkill();
+        for (int i = 1; i <= MAX_SKILL_SLOT; i++)
+            SetSkill(i, false);
+
+        IsNormalAttack(false);
+        IsCountered(false);
+        IsRun(false);
+        IsWalk(false);
+    }
 }
