@@ -69,6 +69,7 @@ MonoBehaviour:
   mover: {fileID: 0}
   randomAggroActive: 1
   randomAggroLockTime: 20
+  chaseCollider: {fileID: 0}
   passive: 1
 --- !u!1 &2580397759215442495
 GameObject:
@@ -1805,6 +1806,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: fae8124faf3756746a87beabd4ae4388, type: 2}
+    - target: {fileID: 95089309120233660, guid: 93c0dd75ddc1c9f4dabe9f061ef19748, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 95089309120233660, guid: 93c0dd75ddc1c9f4dabe9f061ef19748, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0

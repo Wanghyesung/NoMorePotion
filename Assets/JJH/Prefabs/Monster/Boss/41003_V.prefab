@@ -1169,6 +1169,7 @@ MonoBehaviour:
   mover: {fileID: 0}
   randomAggroActive: 1
   randomAggroLockTime: 10
+  chaseCollider: {fileID: 0}
   passive: 0
 --- !u!1001 &761841480538175893
 PrefabInstance:
@@ -2010,6 +2011,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 22100000, guid: 30e9cad9f29789c4e8997507b4c354e2, type: 2}
+    - target: {fileID: 95863272260243382, guid: 333e5531d0814614f9738b8e0f3807cd, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 95863272260243382, guid: 333e5531d0814614f9738b8e0f3807cd, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0

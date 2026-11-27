@@ -1118,7 +1118,7 @@ GameObject:
   - component: {fileID: 2909547774978020292}
   - component: {fileID: 3296341192261929353}
   - component: {fileID: 5899212667273991846}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: ChaseCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1454,6 +1454,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 22100000, guid: 93036215f85348f4294d55f1a7eaa016, type: 2}
+    - target: {fileID: 95226846252001880, guid: 9984be23625843a48a44d88aae5669f2, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 95226846252001880, guid: 9984be23625843a48a44d88aae5669f2, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0

@@ -213,8 +213,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         counterOpen = false;
         counterClosedAt = Time.time;
         totalCounterDamage = 0;
-        if (data is BossMonster ck)
-            ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
+        SyncCounterGauge();
         SetCounterOverlay(false);
     }
 
@@ -588,16 +587,24 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
 
         if(counterOpen)
             totalCounterDamage += final;
-
-        if (data is BossMonster ck)
-            ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
+        SyncCounterGauge();
         return final;
+    }
+
+    private void SyncCounterGauge()
+    {
+        if (data is not BossMonster ck) return;
+
+        ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
+
+        if (PhotonNetwork.InRoom && GameAuthority.HasAuthority)
+            photonView.RPC(nameof(RpcCounterGauge), RpcTarget.Others, totalCounterDamage);
     }
 
     #endregion
 
     #region 사망 정보용
-    
+
 
     private void CacheRenderers()
     {
@@ -776,8 +783,7 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         
         if (minCounterDamage > totalCounterDamage) return;
         totalCounterDamage = 0;
-        if (data is BossMonster ck)
-            ck.OnCounterAccumed?.Invoke(totalCounterDamage, minCounterDamage);
+        SyncCounterGauge();
         anim.StopActiveSkill();
 
         if (PhotonNetwork.InRoom)
@@ -807,6 +813,13 @@ public class MonsterCombat : MonoBehaviourPun, IDamageable, IHealable, IPoolable
         if (counterFeedback != null)
             counterFeedback.PlayFeedbacks(transform.position);
 
+    }
+
+    [PunRPC]
+    protected void RpcCounterGauge(int total)
+    {
+        totalCounterDamage = total;
+        SyncCounterGauge();
     }
     #endregion
 
