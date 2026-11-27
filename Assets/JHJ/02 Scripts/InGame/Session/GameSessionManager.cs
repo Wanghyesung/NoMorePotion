@@ -90,6 +90,7 @@ public class GameSessionManager : MonoBehaviour
     private void Start()
     {
         SubscribeCrystal();
+        SubscribeFinalBoss();
         RunStartSequence().Forget();
     }
 
@@ -99,6 +100,7 @@ public class GameSessionManager : MonoBehaviour
             Instance = null;
 
         UnsubscribeCrystal();
+        UnsubscribeFinalBoss();
 
         phase?.Dispose();
         rankingSubmit?.Dispose();
@@ -233,6 +235,21 @@ public class GameSessionManager : MonoBehaviour
 
     #endregion
 
+    #region 마왕
+    private void SubscribeFinalBoss() => BossEvents.OnDefeated += OnBossDefeated;
+    private void UnsubscribeFinalBoss() => BossEvents.OnDefeated -= OnBossDefeated;
+
+    private void OnBossDefeated(BossMonster boss)
+    {
+        if (boss == null)
+            return;
+
+        if (boss.SpawnArea != JJH_Enums.SpawnAreaType.Castle)
+            return;
+
+        ReportClear();
+    }
+    #endregion
 
     #region 끝 판정·기록
 
