@@ -1176,6 +1176,7 @@ MonoBehaviour:
   mover: {fileID: 0}
   randomAggroActive: 1
   randomAggroLockTime: 15
+  chaseCollider: {fileID: 0}
   passive: 0
 --- !u!1001 &850154136161621331
 PrefabInstance:
@@ -1635,7 +1636,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: attackSpeed
-      value: 2
+      value: 3.5
       objectReference: {fileID: 0}
     - target: {fileID: 6898059946081594175, guid: e1cdc5c1746a64645b8f4e8d92a39718, type: 3}
       propertyPath: nextMoveDist
@@ -1882,7 +1883,7 @@ MonoBehaviour:
   combat: {fileID: 0}
   projectilePrefab: {fileID: 1589245581719068, guid: 09814e11cfb88e04fbba7b6889e83bbe, type: 3}
   firePoint: {fileID: 847438498319911725}
-  speed: 80
+  speed: 60
   maxDistance: 25
   aimHeight: 1.5
   spreadProjectilePrefab: {fileID: 0}

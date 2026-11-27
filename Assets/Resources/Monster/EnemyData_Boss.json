@@ -7,8 +7,6 @@
     "AtkPoint": 200,
     "AttackPower": 1,
     "Immune": {
-      "1": 20,
-      "2": -30
     },
     "SpawnArea": "Plain",
     "MinCounter": 0,
@@ -18,14 +16,12 @@
   },
   {
     "Id": 41002,
-    "HP": 4000,
+    "HP": 5000,
     "Speed": 3.9,
     "DamageType": "Normal",
     "AtkPoint": 250,
     "AttackPower": 1,
     "Immune": {
-      "1": 35,
-      "2": -40
     },
     "SpawnArea": "Forest",
     "MinCounter": 100,
@@ -34,41 +30,43 @@
   },
   {
     "Id": 41003,
-    "HP": 5000,
+    "HP": 9500,
     "Speed": 3.8,
     "DamageType": "Normal",
     "AtkPoint": 300,
     "AttackPower": 1,
     "Immune": {
       "1": 35,
-      "2": 40
+      "2": 40,
+      "3": 35,
+      "4": 40
     },
     "SpawnArea": "Desert",
-    "MinCounter": 200,
+    "MinCounter": 500,
     "BossSubData": {
     }
   },
   {
     "Id": 41004,
-    "HP": 6000,
+    "HP": 10000,
     "Speed": 4,
     "DamageType": "Normal",
-    "AtkPoint": 1000,
+    "AtkPoint": 900,
     "AttackPower": 3,
     "Immune": {
-      "1": 40,
+      "1": 60,
       "2": -80,
-      "3": 70,
-      "4": 50
+      "3": 60,
+      "4": 60
     },
     "SpawnArea": "Glacier",
-    "MinCounter": 1000,
+    "MinCounter": 700,
     "BossSubData": {
     }
   },
   {
     "Id": 41005,
-    "HP": 5000,
+    "HP": 8000,
     "Speed": 4,
     "DamageType": "Fire",
     "AtkPoint": 80,
@@ -87,19 +85,19 @@
 
   {
     "Id": 41006,
-    "HP": 7000,
+    "HP": 15000,
     "Speed": 5,
     "DamageType": "Normal",
     "AtkPoint": 650,
     "AttackPower": 1,
     "Immune": {
-      "1": 50,
-      "2": 50,
-      "3": -20,
-      "4": -10
+      "1": 70,
+      "2": 99,
+      "3": 20,
+      "4": -100
     },
     "SpawnArea": "Castle",
-    "MinCounter": 500,
+    "MinCounter": 600,
     "BossSubData": {
     }
   }
