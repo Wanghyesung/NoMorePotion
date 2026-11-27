@@ -2,14 +2,16 @@ using R3;
 using Photon.Pun;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using static JJH_Enums;
+using Photon.Realtime;
 
 public class AreaBossProgress : MonoBehaviourPunCallbacks
 {
-
     public static AreaBossProgress Instance {  get; private set; }
 
     private readonly Subject<Unit> changed = new Subject<Unit>();
     public Observable<Unit> Changed => changed;
+    public static readonly SpawnAreaType[] RegionBossAreas = { SpawnAreaType.Plain, SpawnAreaType.Forest, SpawnAreaType.Desert, SpawnAreaType.Glacier, SpawnAreaType.Volcano };
+
 
     private void Awake()
     {
@@ -30,7 +32,7 @@ public class AreaBossProgress : MonoBehaviourPunCallbacks
     }
 
 
-private void OnDestroy()
+    private void OnDestroy()
     {
         if (Instance == this) Instance = null;
         changed.Dispose();
@@ -39,6 +41,22 @@ private void OnDestroy()
     public bool IsCleared(SpawnAreaType area)
     {
         return RoomProps.IsAreaBossCleared(PhotonNetwork.CurrentRoom, area);
+    }
+
+    public static bool IsAllCleared()
+    {
+        Room room = PhotonNetwork.CurrentRoom;
+        
+        if(room == null)
+            return false;
+    
+        foreach(SpawnAreaType area in RegionBossAreas)
+        {
+            if (!RoomProps.IsAreaBossCleared(room, area))
+                return false;
+        }
+
+        return true;
     }
 
     private void HandleBossDefeated(BossMonster boss)
@@ -81,11 +99,27 @@ private void OnDestroy()
     [UnityEngine.ContextMenu("디버그: 숲 보스 클리어")]
     private void DebugClearForest() => DebugClear(SpawnAreaType.Forest);
 
+    // 마왕성(Castle)을 제외한 지역 보스 전부. 방장에서만 반영됨 (MarkCleared가 방장만 처리)
+    [UnityEngine.ContextMenu("디버그: 지역 보스 전부 클리어")]
+    private void DebugClearAllRegions()
+    {
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            UnityEngine.Debug.LogWarning("[AreaBossProgress] 방장이 아니라 클리어 표시 불가 (방장 클라이언트에서 실행)");
+            return;
+        }
+
+        foreach (SpawnAreaType area in RegionBossAreas)
+            DebugClear(area);
+    }
+
     [UnityEngine.ContextMenu("디버그: 클리어 상태 출력")]
     private void DebugLogCleared()
     {
         foreach (SpawnAreaType area in (SpawnAreaType[])System.Enum.GetValues(typeof(SpawnAreaType)))
             UnityEngine.Debug.Log($"[AreaBossProgress] {area} : {(IsCleared(area) ? "클리어" : "-")}");
+
+        UnityEngine.Debug.Log($"[AreaBossProgress] 지역 보스 전부 처치 : {(IsAllCleared() ? "예" : "아니오")}");
     }
 
     private void DebugClear(SpawnAreaType area)
