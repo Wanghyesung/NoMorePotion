@@ -418,7 +418,7 @@ public class NetworkFlowManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
        if (PhotonNetwork.OfflineMode)
         {
-            StartGameInternal();
+            StartGameInternal().Forget();
             return;
         }
 
